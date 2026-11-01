@@ -110,3 +110,10 @@ body { background-image:radial-gradient(ellipse at 12% 0%,rgba(36,129,190,.22),t
 .screen.active { animation:screen-in .42s cubic-bezier(.2,.8,.2,1) both; }
 @media (min-width:700px) { .app-viewport { border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04);box-shadow:0 0 100px rgba(29,87,139,.08); } }
 @media (prefers-reduced-motion:reduce) { .home-orb { animation:none; } }
+
+/* ===== Correcciones 2.2.1 ===== */
+/* Contador de avisos vencidos en el botón de menú inferior y en el menú lateral */
+.nav-tab .nav-badge-pill { top: 6px; right: calc(50% - 26px); display: inline-flex; }
+.header-btn.has-alert { border-color: rgba(255, 108, 130, .55); box-shadow: 0 0 14px rgba(255, 108, 130, .25); }
+.drawer-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--danger); color: #160707; font: 700 11px/20px var(--font-body); font-style: normal; align-items: center; justify-content: center; }
+.btn:disabled { opacity: .45; cursor: default; }

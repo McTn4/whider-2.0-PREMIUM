@@ -8,29 +8,42 @@ window.Whider = window.Whider || {};
   'use strict';
 
   var audioCtx = null;
+  var unlocked = false;          // El navegador solo permite audio tras un gesto del usuario
+  var pendingWarning = false;    // Alerta que llegó antes del primer gesto: se reproduce al desbloquear
 
   function getAudioContext() {
+    if (!unlocked) return null;
     if (!audioCtx) {
       var AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (AudioContextClass) {
-        audioCtx = new AudioContextClass();
+        try { audioCtx = new AudioContextClass(); } catch (e) { audioCtx = null; }
       }
     }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
+    if (audioCtx && audioCtx.state === 'suspended' && audioCtx.resume) {
+      audioCtx.resume().catch(function () {});
     }
     return audioCtx;
   }
 
+  function hasUserActivation() {
+    if (unlocked) return true;
+    var ua = navigator.userActivation;
+    return !!(ua && ua.hasBeenActive);
+  }
+
   // Desbloqueo seguro en el primer toque del usuario
   function initUnlock() {
+    var events = ['pointerdown', 'touchstart', 'keydown', 'click'];
     var unlock = function () {
+      unlocked = true;
       getAudioContext();
-      window.removeEventListener('click', unlock);
-      window.removeEventListener('touchstart', unlock);
+      events.forEach(function (ev) { window.removeEventListener(ev, unlock, true); });
+      if (pendingWarning) {
+        pendingWarning = false;
+        Whider.Audio.playWarningSound();
+      }
     };
-    window.addEventListener('click', unlock, { once: true });
-    window.addEventListener('touchstart', unlock, { once: true });
+    events.forEach(function (ev) { window.addEventListener(ev, unlock, true); });
   }
   initUnlock();
 
@@ -38,6 +51,7 @@ window.Whider = window.Whider || {};
     // Alerta de advertencia: Tono doble de atención (La4 -> Do#5)
     playWarningSound: function () {
       if (Whider.State && Whider.State.settings && !Whider.State.settings.sound) return;
+      if (!unlocked) { pendingWarning = true; return; }
       try {
         var ctx = getAudioContext();
         if (!ctx) return;
@@ -100,7 +114,8 @@ window.Whider = window.Whider || {};
     // Respuesta háptica en dispositivos móviles
     vibrate: function (pattern) {
       if (Whider.State && Whider.State.settings && !Whider.State.settings.vibrate) return;
-      if (navigator.vibrate) {
+      // Chrome bloquea (y avisa en consola) la vibración antes del primer toque
+      if (navigator.vibrate && hasUserActivation()) {
         try {
           navigator.vibrate(pattern);
         } catch (e) {}

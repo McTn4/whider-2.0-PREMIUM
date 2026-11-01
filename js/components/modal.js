@@ -29,10 +29,12 @@ window.Whider = window.Whider || {};
       if (btnDelete) {
         btnDelete.addEventListener('click', function () {
           var id = document.getElementById('editTaskId').value;
-          if (id) {
-            Whider.State.removeTask(id);
-            close();
-          }
+          if (!id) return;
+          if (!window.confirm('¿Eliminar esta tarea?')) return;
+          Whider.State.removeTask(id);
+          Whider.Audio.vibrate([20]);
+          close();
+          if (Whider.Toast) Whider.Toast.show('Tarea eliminada');
         });
       }
 
@@ -58,6 +60,16 @@ window.Whider = window.Whider || {};
         Whider.Audio.vibrate([15]);
         close();
       });
+    },
+
+    close: function () {
+      var modal = document.getElementById('editModal');
+      if (modal) modal.style.display = 'none';
+    },
+
+    isOpen: function () {
+      var modal = document.getElementById('editModal');
+      return !!modal && modal.style.display !== 'none';
     },
 
     open: function (taskId) {

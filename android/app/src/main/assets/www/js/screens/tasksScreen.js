@@ -40,9 +40,8 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   function createTaskCardElement(t) {
     var td = Whider.State.today();
-    var curTime = Whider.State.currentTimeStr();
-    var isLate = !t.done && t.date && t.date < td;
-    var isTimeLate = !t.done && t.date === td && t.time && t.time < curTime;
+    var isLate = !t.done && !!t.date && t.date < td;
+    var isTimeLate = !isLate && Whider.State.isOverdue(t);
     var isLateWarn = !t.done && t.warn && (isLate || isTimeLate);
 
     var cardCls = 'task-card';
@@ -146,7 +145,13 @@ window.Whider.Screens = window.Whider.Screens || {};
           var time = document.getElementById('quickTaskTime').value || null;
           var warn = document.getElementById('quickTaskWarn').checked;
 
-          Whider.State.addTask(text, date, time, currentHighlightSelection, warn);
+          var added = Whider.State.addTask(text, date, time, currentHighlightSelection, warn);
+          if (!added) return;
+          // Si un filtro ocultaría la nueva tarea, volver a "Todas" para que se vea
+          if (Whider.State.filter !== 'all') {
+            Whider.State.filter = 'all';
+            Whider.Screens.Tasks.render();
+          }
           input.value = '';
           input.focus();
           Whider.Audio.vibrate([20]);
@@ -199,6 +204,20 @@ window.Whider.Screens = window.Whider.Screens || {};
         });
       }
 
+      // Fecha elegida a mano: marcar el chip que corresponda (o ninguno)
+      function syncChipsWithDate() {
+        var v = dateInput.value;
+        var td = Whider.State.today();
+        if (!v) setActiveChip(chipSomeday);
+        else if (v === td) setActiveChip(chipToday);
+        else if (v === Whider.State.addDays(td, 1)) setActiveChip(chipTomorrow);
+        else setActiveChip(null);
+      }
+      if (dateInput) {
+        dateInput.addEventListener('change', syncChipsWithDate);
+        dateInput.addEventListener('input', syncChipsWithDate);
+      }
+
       // Selector de remarcado
       var hlChips = document.querySelectorAll('.hl-chip');
       hlChips.forEach(function (chip) {
@@ -214,11 +233,11 @@ window.Whider.Screens = window.Whider.Screens || {};
       var warnBox = document.getElementById('switchQuickWarn');
       var warnCheckbox = document.getElementById('quickTaskWarn');
       if (warnBox && warnCheckbox) {
-        warnBox.addEventListener('click', function () {
-          setTimeout(function () {
-            warnBox.classList.toggle('active', warnCheckbox.checked);
-          }, 10);
+        warnCheckbox.addEventListener('change', function () {
+          warnBox.classList.toggle('active', warnCheckbox.checked);
+          Whider.Audio.vibrate([10]);
         });
+        warnBox.classList.toggle('active', warnCheckbox.checked);
       }
 
       // Filtro de la lista
@@ -285,7 +304,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       } else if (Whider.State.filter === 'today') {
         list = list.filter(function (t) { return t.date === td; });
       } else if (Whider.State.filter === 'late') {
-        list = list.filter(function (t) { return !t.done && t.date && t.date < td; });
+        list = list.filter(function (t) { return Whider.State.isOverdue(t); });
       } else if (Whider.State.filter === 'done') {
         list = list.filter(function (t) { return t.done; });
       }
@@ -298,7 +317,10 @@ window.Whider.Screens = window.Whider.Screens || {};
         renderGroup('Para hoy', pend.filter(function (t) { return t.date === td && (!t.highlight || t.highlight === 'none'); }).sort(byDate), false, false),
         renderGroup('Próximos días', pend.filter(function (t) { return t.date && t.date > td && (!t.highlight || t.highlight === 'none'); }).sort(byDate), false, false),
         renderGroup('Sin fecha', pend.filter(function (t) { return !t.date && (!t.highlight || t.highlight === 'none'); }), false, false),
-        renderGroup('Completadas', list.filter(function (t) { return t.done; }).sort(function (a, b) { return (b.doneOn || '') < (a.doneOn || '') ? -1 : 1; }).slice(0, 30), false, false)
+        renderGroup('Completadas', list.filter(function (t) { return t.done; }).sort(function (a, b) {
+          var da = a.doneOn || '', db = b.doneOn || '';
+          return da > db ? -1 : da < db ? 1 : 0;
+        }).slice(0, 30), false, false)
       ];
 
       var hasContent = false;
@@ -318,6 +340,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         btnClear.type = 'button';
         btnClear.addEventListener('click', function () {
           Whider.State.clearExamples();
+          Whider.Audio.vibrate([15]);
         });
         clearRow.appendChild(btnClear);
         container.appendChild(clearRow);

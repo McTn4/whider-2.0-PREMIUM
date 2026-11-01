@@ -1,0 +1,28 @@
+# Paquetes generados
+whider-pro-android-project.zip
+*.apk
+*.aab
+
+# Python
+__pycache__/
+*.pyc
+
+# Binarios locales opcionales
+cloudflared
+cloudflared.exe
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/captures/
+*.keystore
+*.jks
+
+# Sistema
+.DS_Store
+Thumbs.db

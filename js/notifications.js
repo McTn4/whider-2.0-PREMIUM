@@ -7,6 +7,14 @@ window.Whider = window.Whider || {};
   'use strict';
 
   var checkIntervalId = null;
+  var REWARN_MS = 20 * 60 * 1000; // Reaviso cada 20 minutos por tarea no atendida
+  var NOTIF_ICON = 'icons/icon-192.png';
+
+  // Puente nativo opcional que expone la app Android (WebView)
+  function androidBridge() {
+    var b = window.WhiderAndroid;
+    return b && typeof b.showNotification === 'function' ? b : null;
+  }
 
   Whider.Notifications = {
     init: function () {
@@ -21,27 +29,55 @@ window.Whider = window.Whider || {};
           Whider.Notifications.checkWarnings();
         }
       });
+
+      // Clic en una notificación mostrada por el Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', function (e) {
+          if (e.data && e.data.type === 'open-warnings' && Whider.Router) {
+            Whider.Router.navigate('warnings');
+          }
+        });
+      }
     },
 
     isSupported: function () {
-      return 'Notification' in window;
+      return !!androidBridge() || 'Notification' in window;
     },
 
     getPermission: function () {
-      if (!Whider.Notifications.isSupported()) return 'unsupported';
+      var bridge = androidBridge();
+      if (bridge) {
+        try { return bridge.getNotificationPermission(); } catch (e) { return 'default'; }
+      }
+      if (!('Notification' in window)) return 'unsupported';
       return Notification.permission;
     },
 
     requestPermission: async function () {
-      if (!Whider.Notifications.isSupported()) {
+      var bridge = androidBridge();
+      if (bridge) {
+        try { bridge.requestNotificationPermission(); } catch (e) {}
+        Whider.Notifications.updateBadges();
+        return Whider.Notifications.getPermission() === 'granted';
+      }
+      if (!('Notification' in window)) {
+        if (Whider.Toast) Whider.Toast.show('Este navegador no admite notificaciones del sistema', 'danger');
         return false;
       }
       try {
-        var res = await Notification.requestPermission();
+        // Safari antiguo usa la versión con callback
+        var res = await new Promise(function (resolve) {
+          var maybePromise = Notification.requestPermission(resolve);
+          if (maybePromise && typeof maybePromise.then === 'function') maybePromise.then(resolve);
+        });
         if (res === 'granted') {
           Whider.Audio.vibrate([30, 40, 30]);
+          if (Whider.Toast) Whider.Toast.show('Notificaciones activadas', 'success');
           Whider.Notifications.updateBadges();
           return true;
+        }
+        if (res === 'denied' && Whider.Toast) {
+          Whider.Toast.show('Notificaciones bloqueadas. Actívalas en los ajustes del navegador.', 'danger');
         }
       } catch (e) {
         console.error(e);
@@ -51,20 +87,45 @@ window.Whider = window.Whider || {};
     },
 
     dispatchSystemNotification: function (title, body, taskId) {
-      if (Whider.Notifications.isSupported() && Notification.permission === 'granted') {
+      var tag = 'whider-warn-' + taskId;
+
+      var bridge = androidBridge();
+      if (bridge) {
+        try { bridge.showNotification(title, body, tag); } catch (e) {}
+        return;
+      }
+
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      var options = {
+        body: body,
+        tag: tag,
+        renotify: true,
+        requireInteraction: true,
+        icon: NOTIF_ICON,
+        badge: NOTIF_ICON,
+        data: { screen: 'warnings' }
+      };
+
+      // En Android (Chrome) el constructor `new Notification` no está permitido:
+      // hay que mostrarla a través del Service Worker.
+      var showDirect = function () {
         try {
-          var n = new Notification(title, {
-            body: body,
-            tag: 'whider-warn-' + taskId,
-            requireInteraction: true,
-            icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="%23f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>'
-          });
+          var n = new Notification(title, options);
           n.onclick = function () {
             window.focus();
             if (Whider.Router) Whider.Router.navigate('warnings');
             n.close();
           };
         } catch (e) {}
+      };
+
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.getRegistration().then(function (reg) {
+          if (reg && reg.showNotification) return reg.showNotification(title, options);
+          showDirect();
+        }).catch(showDirect);
+      } else {
+        showDirect();
       }
     },
 
@@ -73,82 +134,78 @@ window.Whider = window.Whider || {};
       if (!Whider.State) return;
 
       var td = Whider.State.today();
-      var curTime = Whider.State.currentTimeStr();
       var nowTs = Date.now();
-      var tasks = Whider.State.tasks;
-      var hasAlertTriggered = false;
+      var triggered = [];
 
-      tasks.forEach(function (t) {
-        if (t.done || !t.warn) return;
+      Whider.State.getOverdueWarnings().forEach(function (t) {
+        var lastWarned = t.warnedAt || 0;
+        if (nowTs - lastWarned <= REWARN_MS) return;
+        t.warnedAt = nowTs;
+        triggered.push(t);
 
-        var isExpired = false;
-        var reason = '';
+        var reason = t.date < td
+          ? 'Venció el ' + t.date
+          : 'Superó la hora límite (' + t.time + ')';
 
-        if (t.date && t.date < td) {
-          isExpired = true;
-          reason = 'Venció el ' + t.date;
-        } else if (t.date === td && t.time && t.time <= curTime) {
-          isExpired = true;
-          reason = 'Superó la hora límite (' + t.time + ')';
-        }
+        // Notificación del Sistema Operativo
+        Whider.Notifications.dispatchSystemNotification(
+          '⚠️ ALERTA: Tarea pendiente sin realizar',
+          '"' + t.text + '" — ' + reason,
+          t.id
+        );
 
-        if (isExpired) {
-          var lastWarned = t.warnedAt || 0;
-          // Intervalo de reaviso: cada 20 minutos por tarea no atendida
-          if (nowTs - lastWarned > 20 * 60 * 1000) {
-            t.warnedAt = nowTs;
-            hasAlertTriggered = true;
-
-            // Alerta Sonora y Háptica
-            Whider.Audio.playWarningSound();
-            Whider.Audio.vibrate([60, 80, 60, 100, 60]);
-
-            // Notificación del Sistema Operativo
-            Whider.Notifications.dispatchSystemNotification(
-              '⚠️ ALERTA: Tarea Pendiente Sin Realizar',
-              '"' + t.text + '" — ' + reason,
-              t.id
-            );
-
-            // Toast Emergente In-App con Botón Directo de Cumplimiento
-            Whider.Toast.show(
-              'Advertencia: "' + t.text + '" sigue pendiente.',
-              'danger',
-              'Completar ahora',
-              function () {
-                Whider.State.toggleDone(t.id);
-                Whider.Audio.playSuccessSound();
-              }
-            );
-          }
+        // Toast emergente in-app con botón directo de cumplimiento
+        if (Whider.Toast) {
+          Whider.Toast.show(
+            'Advertencia: "' + t.text + '" sigue pendiente.',
+            'danger',
+            'Completar ahora',
+            function () {
+              var done = Whider.State.completeTask(t.id);
+              if (done) Whider.Audio.playSuccessSound();
+            }
+          );
         }
       });
 
-      if (hasAlertTriggered) {
+      if (triggered.length) {
+        // Un único aviso sonoro/háptico aunque venzan varias tareas a la vez
+        Whider.Audio.playWarningSound();
+        Whider.Audio.vibrate([60, 80, 60, 100, 60]);
         Whider.State.saveLocal();
       }
+      Whider.Notifications.updateBadges();
+    },
+
+    // Llamado por la app Android cuando el usuario responde al diálogo de permiso
+    onNativePermissionResult: function (granted) {
+      if (Whider.Toast) {
+        Whider.Toast.show(granted ? 'Notificaciones activadas' : 'Permiso de notificaciones denegado', granted ? 'success' : 'danger');
+      }
+      if (Whider.Screens && Whider.Screens.Settings) Whider.Screens.Settings.render();
       Whider.Notifications.updateBadges();
     },
 
     // Actualiza los badges contadores en tiempo real
     updateBadges: function () {
       if (!Whider.State) return;
-      var count = Whider.State.getUncompletedWarnings().length;
-      var badge = document.getElementById('navWarnBadge');
-      var headerBtn = document.getElementById('btnHeaderAlerts');
+      var count = Whider.State.getOverdueWarnings().length;
+      var text = count > 9 ? '9+' : String(count);
 
-      if (badge) {
+      ['navWarnBadge', 'drawerWarnBadge'].forEach(function (id) {
+        var badge = document.getElementById(id);
+        if (!badge) return;
         if (count > 0) {
-          badge.textContent = count > 9 ? '9+' : String(count);
+          badge.textContent = text;
           badge.style.display = 'inline-flex';
+          badge.setAttribute('aria-label', count + (count === 1 ? ' aviso vencido' : ' avisos vencidos'));
         } else {
           badge.style.display = 'none';
         }
-      }
+      });
 
-      if (headerBtn) {
-        headerBtn.classList.toggle('has-alert', count > 0);
-      }
+      var menuBtn = document.getElementById('btnMenu');
+      if (menuBtn) menuBtn.classList.toggle('has-alert', count > 0);
     }
   };
 })();

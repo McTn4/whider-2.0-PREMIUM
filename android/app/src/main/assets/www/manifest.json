@@ -1,12 +1,12 @@
 {
   "name": "WHIDER PRO • Productivity OS",
   "short_name": "WHIDER PRO",
-  "start_url": "./index.html",
+  "start_url": "./index.html#home",
   "id": "com.whider.pro.app",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#05070d",
-  "theme_color": "#080d17",
+  "theme_color": "#05070d",
   "description": "Centro de productividad personal: tareas, calendario, progreso, records y avisos.",
   "icons": [
     {
@@ -22,7 +22,7 @@
       "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -30,8 +30,8 @@
   ],
   "shortcuts": [
     {
-      "name": "Ver Agenda",
-      "short_name": "Agenda",
+      "name": "Ver tareas",
+      "short_name": "Tareas",
       "url": "./index.html#tasks",
       "icons": [
         {
@@ -50,11 +50,23 @@
           "sizes": "192x192"
         }
       ]
+    },
+    {
+      "name": "Calendario",
+      "short_name": "Calendario",
+      "url": "./index.html#calendar",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "categories": [
     "productivity",
     "utilities"
   ],
-  "lang": "es"
+  "lang": "es",
+  "scope": "./"
 }

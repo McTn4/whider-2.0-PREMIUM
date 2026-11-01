@@ -20,7 +20,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (elRate) elRate.textContent = metrics.rate + '%';
 
       var elStreak = document.getElementById('statCurrentStreak');
-      if (elStreak) elStreak.textContent = metrics.streak + (metrics.streak === 1 ? ' d' : ' d');
+      if (elStreak) elStreak.textContent = metrics.streak + ' d';
 
       var elCompleted = document.getElementById('statTotalCompleted');
       if (elCompleted) elCompleted.textContent = metrics.completed;

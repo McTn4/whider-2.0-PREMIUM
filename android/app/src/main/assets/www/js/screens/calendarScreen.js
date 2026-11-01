@@ -108,7 +108,10 @@ window.Whider.Screens = window.Whider.Screens || {};
           if (isToday) cellCls += ' today';
           if (isSelected) cellCls += ' selected';
 
-          var cell = el('div', cellCls);
+          var cell = el('button', cellCls);
+          cell.type = 'button';
+          cell.setAttribute('aria-label', dateStr + (count ? ' · ' + count + (count === 1 ? ' tarea pendiente' : ' tareas pendientes') : ''));
+          if (isSelected) cell.setAttribute('aria-pressed', 'true');
           cell.appendChild(el('span', 'cal-day-num', String(dayNum)));
 
           var dots = el('div', 'cal-dots-row');
@@ -158,15 +161,27 @@ window.Whider.Screens = window.Whider.Screens || {};
           var ul = el('ul', 'tasks-list');
           dayTasks.forEach(function (t) {
             // Reutiliza la función de render de tarjeta
-            var li = el('li', 'task-card' + (t.done ? ' done' : '') + (t.highlight !== 'none' ? ' hl-' + t.highlight : ''));
+            var li = el('li', 'task-card' + (t.done ? ' done' : '') + (t.highlight && t.highlight !== 'none' ? ' hl-' + t.highlight : ''));
             var cb = el('button', 'check-trigger', t.done ? '✓' : '');
-            cb.addEventListener('click', function () {
-              Whider.State.toggleDone(t.id);
+            cb.type = 'button';
+            cb.setAttribute('aria-label', (t.done ? 'Marcar incompleta: ' : 'Completar: ') + t.text);
+            cb.addEventListener('click', function (e) {
+              e.stopPropagation();
+              var updated = Whider.State.toggleDone(t.id);
+              if (updated && updated.done) {
+                Whider.Audio.playSuccessSound();
+                Whider.Audio.vibrate([25, 40]);
+              } else {
+                Whider.Audio.vibrate([12]);
+              }
             });
             li.appendChild(cb);
 
             var main = el('div', 'task-main');
-            main.addEventListener('click', function () { Whider.Modal.open(t.id); });
+            main.addEventListener('click', function () {
+              Whider.Modal.open(t.id);
+              Whider.Audio.vibrate([10]);
+            });
             main.appendChild(el('span', 'task-title', t.text));
 
             var badges = el('div', 'task-meta');

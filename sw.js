@@ -1,13 +1,14 @@
 /**
  * WHIDER PRO - SERVICE WORKER (PWA & OFFLINE ENGINE)
  */
-var CACHE_NAME = 'whider-pro-v3-premium';
+var CACHE_NAME = 'whider-pro-v4-premium-2.2.1';
 var ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/icon-maskable-512.png',
   './icons/icon.svg',
   './fonts/archivo-latin-wdth-normal.woff2',
   './fonts/ibm-plex-sans-latin-400-normal.woff2',
@@ -41,7 +42,12 @@ var ASSETS_TO_CACHE = [
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(ASSETS_TO_CACHE);
+      // Se cachea cada recurso por separado: un único fallo no debe impedir la instalación
+      return Promise.all(ASSETS_TO_CACHE.map(function (url) {
+        return cache.add(new Request(url, { cache: 'reload' })).catch(function (err) {
+          console.warn('[SW] No se pudo cachear', url, err);
+        });
+      }));
     }).then(function () {
       return self.skipWaiting();
     })
@@ -53,7 +59,7 @@ self.addEventListener('activate', function (event) {
     caches.keys().then(function (cacheNames) {
       return Promise.all(
         cacheNames.map(function (name) {
-          if (name !== CACHE_NAME) {
+          if (name.indexOf('whider-pro-') === 0 && name !== CACHE_NAME) {
             return caches.delete(name);
           }
         })
@@ -64,13 +70,50 @@ self.addEventListener('activate', function (event) {
   );
 });
 
+// Estrategia "red primero": siempre se sirve la versión más reciente si hay conexión
+// (así las actualizaciones llegan a los usuarios) y la caché actúa como respaldo offline.
 self.addEventListener('fetch', function (event) {
+  var req = event.request;
+  if (req.method !== 'GET') return;
+
+  var url = new URL(req.url);
+  // Solo recursos propios; el resto (p. ej. el generador de QR) va directo a la red
+  if (url.origin !== self.location.origin) return;
+  // La API local de serve.py nunca se cachea
+  if (url.pathname.indexOf('/api/') !== -1) return;
+
   event.respondWith(
-    caches.match(event.request).then(function (response) {
-      return response || fetch(event.request).catch(function () {
-        // Fallback en caso de estar offline
-        return caches.match('./index.html');
+    fetch(req).then(function (response) {
+      if (response && response.ok && response.type === 'basic') {
+        var copy = response.clone();
+        caches.open(CACHE_NAME).then(function (cache) { cache.put(req, copy); });
+      }
+      return response;
+    }).catch(function () {
+      return caches.match(req, { ignoreSearch: true }).then(function (cached) {
+        if (cached) return cached;
+        // Sin conexión: las navegaciones caen en la app; el resto, error de red normal
+        if (req.mode === 'navigate') return caches.match('./index.html');
+        return Response.error();
       });
+    })
+  );
+});
+
+// Al pulsar una notificación de aviso, enfocar (o abrir) la app en la pantalla de avisos
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  var target = new URL('./index.html#warnings', self.registration.scope).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        var client = list[i];
+        if (client.url.indexOf(self.registration.scope) === 0 && 'focus' in client) {
+          client.postMessage({ type: 'open-warnings' });
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(target);
     })
   );
 });

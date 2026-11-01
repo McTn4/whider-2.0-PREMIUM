@@ -38,18 +38,23 @@ window.Whider.Screens = window.Whider.Screens || {};
       container.textContent = '';
 
       var activeWarnings = Whider.State.getUncompletedWarnings();
+      var overdueCount = activeWarnings.filter(function (t) { return Whider.State.isOverdue(t); }).length;
       var heroCard = document.getElementById('warningsHeroCard');
       var heroDesc = document.getElementById('warningsHeroDesc');
 
       if (heroCard) {
-        heroCard.classList.toggle('has-danger', activeWarnings.length > 0);
+        heroCard.classList.toggle('has-danger', overdueCount > 0);
       }
 
       if (heroDesc) {
+        var upcoming = activeWarnings.length - overdueCount;
         if (activeWarnings.length === 0) {
           heroDesc.textContent = 'No hay advertencias activas. Todas tus tareas marcadas están al día.';
+        } else if (overdueCount > 0) {
+          heroDesc.textContent = 'Tienes ' + overdueCount + (overdueCount === 1 ? ' tarea vencida que requiere' : ' tareas vencidas que requieren') + ' atención inmediata' +
+            (upcoming > 0 ? ' y ' + upcoming + (upcoming === 1 ? ' aviso programado.' : ' avisos programados.') : '.');
         } else {
-          heroDesc.textContent = 'Tienes ' + activeWarnings.length + (activeWarnings.length === 1 ? ' tarea que requiere atención inmediata antes de que venza.' : ' tareas que requieren atención inmediata antes de que venzan.');
+          heroDesc.textContent = 'Tienes ' + upcoming + (upcoming === 1 ? ' aviso programado. Te avisaremos si la tarea no se cumple a tiempo.' : ' avisos programados. Te avisaremos si alguna tarea no se cumple a tiempo.');
         }
       }
 
@@ -67,11 +72,11 @@ window.Whider.Screens = window.Whider.Screens || {};
       }
 
       var td = Whider.State.today();
-      var curTime = Whider.State.currentTimeStr();
+      var tomorrow = Whider.State.addDays(td, 1);
 
       activeWarnings.forEach(function (t) {
-        var isLate = t.date && t.date < td;
-        var isTimeLate = t.date === td && t.time && t.time <= curTime;
+        var isLate = !!t.date && t.date < td;
+        var isTimeLate = !isLate && Whider.State.isOverdue(t);
 
         var card = el('div', 'warning-item-card ' + (isLate || isTimeLate ? 'is-danger' : 'is-warn'));
 
@@ -86,7 +91,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 
         // Detalles de plazo
         var details = el('div', 'warning-details-row');
-        var timeInfo = t.date ? 'Fecha: ' + (t.date === td ? 'Hoy' : t.date) : 'Sin fecha fija';
+        var timeInfo = t.date ? 'Fecha: ' + (t.date === td ? 'Hoy' : t.date === tomorrow ? 'Mañana' : t.date) : 'Sin fecha fija';
         if (t.time) timeInfo += ' a las ' + t.time;
         details.textContent = timeInfo;
         card.appendChild(details);
@@ -95,33 +100,38 @@ window.Whider.Screens = window.Whider.Screens || {};
         var actions = el('div', 'warning-actions-row');
 
         var btnDone = el('button', 'btn btn-primary', 'Completar');
+        btnDone.type = 'button';
         btnDone.style.minHeight = '34px';
         btnDone.style.padding = '6px 16px';
         btnDone.style.fontSize = '12.5px';
         btnDone.addEventListener('click', function () {
-          Whider.State.toggleDone(t.id);
+          if (!Whider.State.completeTask(t.id)) return;
           Whider.Audio.playSuccessSound();
           Whider.Audio.vibrate([30, 40]);
         });
         actions.appendChild(btnDone);
 
         var btnSnooze1h = el('button', 'btn btn-ghost', '+1h');
+        btnSnooze1h.type = 'button';
         btnSnooze1h.style.padding = '6px 10px';
         btnSnooze1h.style.fontSize = '12px';
         btnSnooze1h.title = 'Posponer 1 hora';
         btnSnooze1h.addEventListener('click', function () {
           Whider.State.snoozeTask(t.id, 1);
           Whider.Audio.vibrate([15]);
+          if (Whider.Toast) Whider.Toast.show('Aviso pospuesto 1 hora');
         });
         actions.appendChild(btnSnooze1h);
 
         var btnSnoozeDay = el('button', 'btn btn-ghost', 'Para mañana');
+        btnSnoozeDay.type = 'button';
         btnSnoozeDay.style.padding = '6px 10px';
         btnSnoozeDay.style.fontSize = '12px';
         btnSnoozeDay.title = 'Posponer para mañana';
         btnSnoozeDay.addEventListener('click', function () {
           Whider.State.snoozeTask(t.id, 24);
           Whider.Audio.vibrate([15]);
+          if (Whider.Toast) Whider.Toast.show('Aviso pospuesto hasta mañana');
         });
         actions.appendChild(btnSnoozeDay);
 

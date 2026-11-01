@@ -4,8 +4,10 @@
   <meta charset="utf-8">
   <title>WHIDER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#050506">
+  <meta name="theme-color" content="#05070d">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="WHIDER PRO">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Gestor de tareas con agenda, avisos por incumplimiento y seguimiento de rachas.">
 
@@ -44,20 +46,23 @@
   <div class="screens-viewport">
 
     <!-- ==========================================================================
-         TAREAS
+         INICIO
          ========================================================================== -->
-    <section class="screen" id="screen-home" aria-label="Inicio">
+    <section class="screen active" id="screen-home" aria-label="Inicio">
       <div class="home-screen-wrap">
         <div class="home-welcome"><div><span class="eyebrow">TU CENTRO DE CONTROL</span><h2>Domina tu día<span class="accent-dot">.</span></h2><p id="homeGreeting">Cada acción cuenta. Empieza ahora.</p></div><div class="home-orb"><span>W</span></div></div>
         <div class="home-focus-card"><div class="focus-head"><span class="eyebrow">RENDIMIENTO DE HOY</span><span class="live-indicator">● EN CURSO</span></div><div class="focus-metric"><strong id="homeCompletion">0%</strong><span id="homeTaskCount">0 de 0 tareas</span></div><div class="home-progress"><span id="homeProgressFill"></span></div><div class="focus-foot"><span>CONSISTENCIA</span><strong id="homeStreak">0 DÍAS DE RACHA</strong></div></div>
-        <div class="home-quick-grid"><button class="home-quick-card" data-screen="tasks"><span class="quick-icon">＋</span><strong>Nueva tarea</strong><small>Organiza lo que sigue</small></button><button class="home-quick-card" data-screen="calendar"><span class="quick-icon">▦</span><strong>Calendario</strong><small>Visualiza tu agenda</small></button></div>
-        <div class="home-section-head"><div><span class="eyebrow">VISIÓN GENERAL</span><h3>Tu actividad</h3></div><button class="text-action" data-screen="stats">Ver progreso ↗</button></div>
+        <div class="home-quick-grid"><button type="button" class="home-quick-card" data-screen="tasks"><span class="quick-icon">＋</span><strong>Nueva tarea</strong><small>Organiza lo que sigue</small></button><button type="button" class="home-quick-card" data-screen="calendar"><span class="quick-icon">▦</span><strong>Calendario</strong><small>Visualiza tu agenda</small></button></div>
+        <div class="home-section-head"><div><span class="eyebrow">VISIÓN GENERAL</span><h3>Tu actividad</h3></div><button type="button" class="text-action" data-screen="stats">Ver progreso ↗</button></div>
         <div class="home-stat-grid"><div class="home-stat"><span>Completadas</span><strong id="homeDone">0</strong><small>En total</small></div><div class="home-stat"><span>Pendientes</span><strong id="homePending">0</strong><small>Por resolver</small></div><div class="home-stat"><span>Racha actual</span><strong id="homeStreakSmall">0</strong><small>Días seguidos</small></div></div>
-        <div class="home-section-head"><div><span class="eyebrow">SIGUIENTE PASO</span><h3>Prioridades</h3></div><button class="text-action" data-screen="tasks">Ver todas ↗</button></div><div id="homePriorityList" class="home-priority-list"></div>
+        <div class="home-section-head"><div><span class="eyebrow">SIGUIENTE PASO</span><h3>Prioridades</h3></div><button type="button" class="text-action" data-screen="tasks">Ver todas ↗</button></div><div id="homePriorityList" class="home-priority-list"></div>
       </div>
     </section>
 
-    <section class="screen active" id="screen-tasks" aria-label="Tareas">
+    <!-- ==========================================================================
+         TAREAS
+         ========================================================================== -->
+    <section class="screen" id="screen-tasks" aria-label="Tareas">
       <div class="tasks-screen-wrap">
 
         <div class="today-summary-card">
@@ -99,7 +104,7 @@
                   <button type="button" class="chip" id="chipQuickTomorrow">Mañana</button>
                   <button type="button" class="chip" id="chipQuickSomeday">Sin fecha</button>
                   <input type="date" id="quickTaskDate" class="chip" style="padding: 3px 8px;" aria-label="Fecha personalizada">
-                  <input type="time" id="quickTaskTime" class="chip" style="padding: 3px 8px;" title="Hora límite / aviso">
+                  <input type="time" id="quickTaskTime" class="chip" style="padding: 3px 8px;" title="Hora límite / aviso" aria-label="Hora límite">
                 </div>
                 <div class="highlight-bar">
                   <span class="label-xs">Remarcar</span>
@@ -234,10 +239,13 @@
     </section>
 
     <!-- ==========================================================================
+         RECORDS
+         ========================================================================== -->
+    <section class="screen" id="screen-records" aria-label="Records"><div class="records-screen-wrap"><span class="eyebrow">TU HISTORIAL</span><h2 class="screen-title">Records</h2><p class="records-intro">Tus hitos y mejores marcas. Cada récord refleja una mejora real.</p><div class="record-card"><span class="record-symbol">✦</span><div><small>MAYOR RACHA</small><strong id="recordStreak">0 días</strong><p>Tu mejor racha de días seguidos</p></div></div><div class="record-card"><span class="record-symbol">✓</span><div><small>TAREAS COMPLETADAS</small><strong id="recordCompleted">0</strong><p>Acciones finalizadas</p></div></div><div class="record-card"><span class="record-symbol">◷</span><div><small>ACTIVIDAD TOTAL</small><strong id="recordTotal">0</strong><p>Tareas creadas</p></div></div><div class="record-note">Los récords se calculan a partir de la actividad guardada en este dispositivo.</div></div></section>
+
+    <!-- ==========================================================================
          AJUSTES
          ========================================================================== -->
-    <section class="screen" id="screen-records" aria-label="Records"><div class="records-screen-wrap"><span class="eyebrow">TU HISTORIAL</span><h2 class="screen-title">Records</h2><p class="records-intro">Tus hitos y mejores marcas. Cada récord refleja una mejora real.</p><div class="record-card"><span class="record-symbol">✦</span><div><small>MAYOR RACHA</small><strong id="recordStreak">0 días</strong><p>Racha actual registrada</p></div></div><div class="record-card"><span class="record-symbol">✓</span><div><small>TAREAS COMPLETADAS</small><strong id="recordCompleted">0</strong><p>Acciones finalizadas</p></div></div><div class="record-card"><span class="record-symbol">◷</span><div><small>ACTIVIDAD TOTAL</small><strong id="recordTotal">0</strong><p>Tareas creadas</p></div></div><div class="record-note">Los récords se calculan a partir de la actividad guardada en este dispositivo.</div></div></section>
-
     <section class="screen" id="screen-settings" aria-label="Ajustes">
       <div class="settings-screen-wrap">
         <h2 class="screen-title">Ajustes:</h2>
@@ -324,30 +332,30 @@
        BARRA INFERIOR: perfil · tareas · ajustes
        ========================================================================== -->
   <nav class="bottom-nav" aria-label="Acceso rápido">
-    <button type="button" class="nav-tab" data-screen="home" aria-label="Inicio"><span class="nav-glyph">⌂</span><span class="nav-title">Inicio</span></button>
-    <button type="button" class="nav-tab active" data-screen="tasks" aria-label="Taskraker"><span class="nav-glyph">✓</span><span class="nav-title">Taskraker</span></button>
-    <button type="button" class="nav-tab" id="btnBottomMenu" aria-label="Abrir menú"><span class="nav-glyph">☷</span><span class="nav-title">Menú</span></button>
+    <button type="button" class="nav-tab active" data-screen="home" aria-label="Inicio"><span class="nav-glyph">⌂</span><span class="nav-title">Inicio</span></button>
+    <button type="button" class="nav-tab" data-screen="tasks" aria-label="Taskraker"><span class="nav-glyph">✓</span><span class="nav-title">Taskraker</span></button>
+    <button type="button" class="nav-tab" id="btnBottomMenu" aria-label="Abrir menú"><span class="nav-glyph">☷</span><span class="nav-title">Menú</span><span class="nav-badge-pill" id="navWarnBadge" style="display: none;"></span></button>
   </nav>
 
 </div>
 
 <div class="drawer-scrim" id="drawerScrim"></div>
 <aside class="app-drawer" id="appDrawer" aria-hidden="true">
-<div class="drawer-top"><div class="drawer-brand">WHIDER<span>PRO</span></div><button id="btnCloseMenu" class="drawer-close" aria-label="Cerrar menú">×</button></div>
-<button class="drawer-account" id="drawerAccount"><span class="drawer-avatar" id="drawerAvatar">W</span><span><strong id="drawerName">Tu espacio personal</strong><small id="drawerEmail">Configura tu perfil</small></span><b>↗</b></button>
+<div class="drawer-top"><div class="drawer-brand">WHIDER<span>PRO</span></div><button type="button" id="btnCloseMenu" class="drawer-close" aria-label="Cerrar menú">×</button></div>
+<button type="button" class="drawer-account" id="drawerAccount"><span class="drawer-avatar" id="drawerAvatar">W</span><span><strong id="drawerName">Tu espacio personal</strong><small id="drawerEmail">Configura tu perfil</small></span><b>↗</b></button>
 <div class="drawer-label">ESPACIO DE TRABAJO</div>
-<button class="drawer-link" data-screen="home"><span>⌂</span>Inicio</button><button class="drawer-link" data-screen="calendar"><span>▦</span>Calendario</button><button class="drawer-link" data-screen="tasks"><span>✓</span>Taskraker</button><button class="drawer-link" data-screen="warnings"><span>♧</span>Avisos</button>
-<div class="drawer-label">TU RENDIMIENTO</div><button class="drawer-link" data-screen="stats"><span>◈</span>Perfil / Progreso</button><button class="drawer-link" data-screen="records"><span>✦</span>Records</button>
-<div class="drawer-label">PERSONALIZACIÓN</div><button class="drawer-link" data-screen="settings"><span>⚙</span>Ajustes</button><div class="drawer-footer"><span class="drawer-status"></span> WHIDER PRO <small>· BUILD 2.2</small></div></aside>
-<div class="modal-backdrop account-backdrop" id="accountModal" style="display:none"><div class="modal-sheet account-sheet" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="modal-header"><div><span class="eyebrow">IDENTIDAD WHIDER</span><h3 id="accountTitle">Tu espacio personal</h3></div><button type="button" class="icon-btn-action" id="btnCloseAccount">×</button></div><p class="account-explainer">Personaliza tu experiencia y reconoce tu actividad.</p><form id="accountForm" class="account-form"><label>Nombre<input class="input-text" id="accountName" maxlength="40" placeholder="Cómo te llamas" required></label><label>Correo electrónico<input class="input-text" id="accountEmail" type="email" placeholder="tu@email.com" required></label><button class="btn btn-primary account-submit" type="submit">Guardar perfil</button></form><p class="account-local-note">Importante: esta versión guarda el perfil únicamente en este dispositivo. El registro seguro, inicio de sesión real y sincronización entre dispositivos necesitan un backend de autenticación.</p></div></div>
+<button type="button" class="drawer-link" data-screen="home"><span>⌂</span>Inicio</button><button type="button" class="drawer-link" data-screen="calendar"><span>▦</span>Calendario</button><button type="button" class="drawer-link" data-screen="tasks"><span>✓</span>Taskraker</button><button type="button" class="drawer-link" data-screen="warnings"><span>♧</span>Avisos<em class="drawer-badge" id="drawerWarnBadge" style="display: none;"></em></button>
+<div class="drawer-label">TU RENDIMIENTO</div><button type="button" class="drawer-link" data-screen="stats"><span>◈</span>Perfil / Progreso</button><button type="button" class="drawer-link" data-screen="records"><span>✦</span>Records</button>
+<div class="drawer-label">PERSONALIZACIÓN</div><button type="button" class="drawer-link" data-screen="settings"><span>⚙</span>Ajustes</button><div class="drawer-footer"><span class="drawer-status"></span> WHIDER PRO <small>· BUILD 2.2.1</small></div></aside>
+<div class="modal-backdrop account-backdrop" id="accountModal" style="display:none"><div class="modal-sheet account-sheet" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="modal-header"><div><span class="eyebrow">IDENTIDAD WHIDER</span><h3 id="accountTitle">Tu espacio personal</h3></div><button type="button" class="icon-btn-action" id="btnCloseAccount" aria-label="Cerrar" style="font-size: 22px;">×</button></div><p class="account-explainer">Personaliza tu experiencia y reconoce tu actividad.</p><form id="accountForm" class="account-form"><label>Nombre<input class="input-text" id="accountName" maxlength="40" autocomplete="name" placeholder="Cómo te llamas" required></label><label>Correo electrónico<input class="input-text" id="accountEmail" type="email" maxlength="80" autocomplete="email" placeholder="tu@email.com" required></label><button class="btn btn-primary account-submit" type="submit">Guardar perfil</button></form><p class="account-local-note">Importante: esta versión guarda el perfil únicamente en este dispositivo. El registro seguro, inicio de sesión real y sincronización entre dispositivos necesitan un backend de autenticación.</p></div></div>
 
 <!-- ==========================================================================
      MODAL: INSTALAR EN EL TELÉFONO
      ========================================================================== -->
 <div class="modal-backdrop" id="installModal" style="display: none;">
-  <div class="modal-sheet" role="dialog" aria-modal="true">
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="installTitle">
     <div class="modal-header">
-      <h3>Instalar en tu teléfono</h3>
+      <h3 id="installTitle">Instalar en tu teléfono</h3>
       <button type="button" class="icon-btn-action" id="btnCloseInstallModal" aria-label="Cerrar" style="font-size: 22px;">×</button>
     </div>
 
@@ -360,7 +368,7 @@
         </div>
 
         <div style="display: flex; justify-content: center; align-items: center; background: #fff; padding: 10px; border-radius: 16px; width: fit-content; margin: 4px auto;">
-          <img id="qrCodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=http://localhost:8080" alt="Código QR para móvil" style="width: 160px; height: 160px; display: block;">
+          <img id="qrCodeImg" alt="Código QR para móvil" width="160" height="160" style="width: 160px; height: 160px; display: block;">
         </div>
 
         <div>
@@ -377,7 +385,7 @@
       <div style="border: 1.5px solid rgba(255,255,255,.35); padding: 14px; border-radius: 20px;">
         <strong style="color: #fff; display: block; margin-bottom: 4px;">2. Descargar el archivo .APK (PWABuilder)</strong>
         <span style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 10px;">Genera el <strong>.apk</strong> firmado para guardarlo en la carpeta Descargas:</span>
-        <a id="btnPwaBuilderLink" href="https://www.pwabuilder.com" target="_blank" class="btn btn-ghost" style="width: 100%; text-decoration: none;">Descargar .APK desde PWABuilder</a>
+        <a id="btnPwaBuilderLink" href="https://www.pwabuilder.com" target="_blank" rel="noopener" class="btn btn-ghost" style="width: 100%; text-decoration: none;">Descargar .APK desde PWABuilder</a>
       </div>
 
       <div style="border: 1.5px solid rgba(255,255,255,.2); padding: 12px 14px; border-radius: 20px; font-size: 12px;">

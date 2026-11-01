@@ -50,7 +50,7 @@ window.Whider = window.Whider || {};
         doneOn: typeof item.doneOn === 'string' ? item.doneOn : null,
         highlight: (item.highlight === 'star' || item.highlight === 'danger' || item.highlight === 'purple') ? item.highlight : 'none',
         warn: !!item.warn,
-        warnedAt: item.warnedAt || null,
+        warnedAt: typeof item.warnedAt === 'number' && isFinite(item.warnedAt) ? item.warnedAt : null,
         example: !!item.example
       });
     }
@@ -73,9 +73,22 @@ window.Whider = window.Whider || {};
     var def = { sound: true, vibrate: true };
     try {
       var raw = localStorage.getItem(SETTINGS_KEY);
-      if (raw) return Object.assign(def, JSON.parse(raw));
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          if (typeof parsed.sound === 'boolean') def.sound = parsed.sound;
+          if (typeof parsed.vibrate === 'boolean') def.vibrate = parsed.vibrate;
+        }
+      }
     } catch (e) {}
     return def;
+  }
+
+  // Una tarea con aviso está vencida si pasó su fecha o, siendo hoy, su hora límite
+  function isOverdue(t, td, curTime) {
+    if (t.done || !t.date) return false;
+    if (t.date < td) return true;
+    return t.date === td && !!t.time && t.time <= curTime;
   }
 
   var storedTasks = loadLocalTasks();
@@ -127,6 +140,7 @@ window.Whider = window.Whider || {};
     },
 
     addTask: function (text, date, time, highlight, warn) {
+      if (typeof text !== 'string' || !text.trim()) return null;
       var t = {
         id: uid(),
         text: text.trim(),
@@ -134,7 +148,7 @@ window.Whider = window.Whider || {};
         time: time || null,
         done: false,
         doneOn: null,
-        highlight: highlight || 'none',
+        highlight: (highlight === 'star' || highlight === 'danger' || highlight === 'purple') ? highlight : 'none',
         warn: !!warn,
         warnedAt: null,
         example: false
@@ -147,9 +161,12 @@ window.Whider = window.Whider || {};
     updateTask: function (id, fields) {
       var t = State.find(id);
       if (!t) return false;
-      if (fields.text != null) t.text = fields.text.trim();
+      if (fields.text != null && String(fields.text).trim()) t.text = String(fields.text).trim();
+      var oldDeadline = (t.date || '') + ' ' + (t.time || '');
       if (fields.date !== undefined) t.date = fields.date || null;
       if (fields.time !== undefined) t.time = fields.time || null;
+      // Si cambia el plazo, el aviso debe poder volver a sonar con la nueva fecha/hora
+      if ((t.date || '') + ' ' + (t.time || '') !== oldDeadline) t.warnedAt = null;
       if (fields.highlight !== undefined) t.highlight = fields.highlight;
       if (fields.warn !== undefined) t.warn = !!fields.warn;
       State.notify();
@@ -162,6 +179,18 @@ window.Whider = window.Whider || {};
       t.done = !t.done;
       t.doneOn = t.done ? today() : null;
       State.notify();
+      return t;
+    },
+
+    // Marca como hecha sin invertir el estado (para botones "Completar" de avisos)
+    completeTask: function (id) {
+      var t = State.find(id);
+      if (!t) return null;
+      if (!t.done) {
+        t.done = true;
+        t.doneOn = today();
+        State.notify();
+      }
       return t;
     },
 
@@ -217,14 +246,32 @@ window.Whider = window.Whider || {};
       return count;
     },
 
+    isOverdue: function (t) {
+      return isOverdue(t, today(), currentTimeStr());
+    },
+
+    // Todas las tareas pendientes con aviso activo (vencidas primero)
     getUncompletedWarnings: function () {
       var td = today();
       var curTime = currentTimeStr();
       return State.tasks.filter(function (t) {
-        if (t.done || !t.warn) return false;
-        if (t.date && t.date < td) return true;
-        if (t.date === td && t.time && t.time <= curTime) return true;
-        return true; // Cualquier tarea con aviso activo pendiente
+        return !t.done && t.warn;
+      }).sort(function (a, b) {
+        var la = isOverdue(a, td, curTime) ? 0 : 1;
+        var lb = isOverdue(b, td, curTime) ? 0 : 1;
+        if (la !== lb) return la - lb;
+        var da = (a.date || '9999-99-99') + ' ' + (a.time || '99:99');
+        var db = (b.date || '9999-99-99') + ' ' + (b.time || '99:99');
+        return da < db ? -1 : da > db ? 1 : 0;
+      });
+    },
+
+    // Solo las que ya han incumplido su plazo (las que generan alerta)
+    getOverdueWarnings: function () {
+      var td = today();
+      var curTime = currentTimeStr();
+      return State.tasks.filter(function (t) {
+        return t.warn && isOverdue(t, td, curTime);
       });
     },
 
@@ -255,7 +302,7 @@ window.Whider = window.Whider || {};
     exportJSON: function () {
       return JSON.stringify({
         app: 'Whider Pro',
-        version: '2.0',
+        version: '2.2',
         exportedAt: new Date().toISOString(),
         tasks: State.tasks
       }, null, 2);
@@ -264,8 +311,9 @@ window.Whider = window.Whider || {};
     importJSON: function (jsonString) {
       try {
         var data = JSON.parse(jsonString);
-        if (data && Array.isArray(data.tasks)) {
-          State.tasks = cleanTasks(data.tasks);
+        var list = Array.isArray(data) ? data : (data && Array.isArray(data.tasks) ? data.tasks : null);
+        if (list) {
+          State.tasks = cleanTasks(list);
           State.notify();
           return true;
         }
@@ -278,6 +326,21 @@ window.Whider = window.Whider || {};
       State.notify();
     }
   };
+
+  // Sincroniza los cambios hechos en otra pestaña/ventana de la app
+  window.addEventListener('storage', function (e) {
+    if (e.key === STORAGE_KEY) {
+      var fresh = loadLocalTasks();
+      if (fresh) {
+        State.tasks = fresh;
+        subscribers.forEach(function (fn) {
+          try { fn(State); } catch (err) { console.error(err); }
+        });
+      }
+    } else if (e.key === SETTINGS_KEY) {
+      State.settings = loadLocalSettings();
+    }
+  });
 
   Whider.State = State;
 })();

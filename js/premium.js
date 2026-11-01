@@ -5,7 +5,10 @@ window.Whider = window.Whider || {};
   var PROFILE_KEY = 'whider.profile.v1';
   function byId(id) { return document.getElementById(id); }
   function readProfile() {
-    try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch (e) { return null; }
+    try {
+      var p = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+      return p && typeof p === 'object' ? p : null;
+    } catch (e) { return null; }
   }
   function saveProfile(p) {
     try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch (e) {}
@@ -13,14 +16,16 @@ window.Whider = window.Whider || {};
   }
   function initials(name) { return (name || 'W').trim().charAt(0).toUpperCase(); }
   function renderProfile() {
-    var p = readProfile() || { name: 'Usuario WHIDER', email: 'Perfil local · Este dispositivo' };
-    var name = p.name || 'Usuario WHIDER', email = p.email || 'Perfil local';
+    var p = readProfile() || {};
+    var hasProfile = !!(p.name && String(p.name).trim());
+    var name = hasProfile ? String(p.name).trim() : 'Usuario WHIDER';
+    var email = p.email ? String(p.email) : 'Perfil local · Este dispositivo';
     [['profileName', name], ['profileEmail', email], ['drawerName', name], ['drawerEmail', email],
-     ['profileAvatar', initials(name)], ['headerAvatar', initials(name)], ['drawerAvatar', initials(name)]]
+     ['profileAvatar', initials(hasProfile ? name : 'W')], ['headerAvatar', initials(hasProfile ? name : 'W')], ['drawerAvatar', initials(hasProfile ? name : 'W')]]
       .forEach(function (pair) { var node = byId(pair[0]); if (node) node.textContent = pair[1]; });
     var f = byId('accountName'), em = byId('accountEmail');
-    if (f && document.activeElement !== f) f.value = p.name === 'Usuario WHIDER' ? '' : p.name;
-    if (em && document.activeElement !== em) em.value = p.email && p.email.indexOf('Perfil local') < 0 ? p.email : '';
+    if (f && document.activeElement !== f) f.value = hasProfile ? name : '';
+    if (em && document.activeElement !== em) em.value = p.email ? String(p.email) : '';
   }
   function openDrawer(open) {
     var drawer = byId('appDrawer'), scrim = byId('drawerScrim'), trigger = byId('btnMenu');
@@ -31,11 +36,24 @@ window.Whider = window.Whider || {};
     if (trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
     document.body.classList.toggle('drawer-open', open);
   }
+  function isDrawerOpen() {
+    var drawer = byId('appDrawer');
+    return !!drawer && drawer.classList.contains('open');
+  }
+  function closeAccount() {
+    var modal = byId('accountModal');
+    if (modal) modal.style.display = 'none';
+  }
+  function isAccountOpen() {
+    var modal = byId('accountModal');
+    return !!modal && modal.style.display !== 'none';
+  }
   function openAccount() {
     renderProfile();
     var modal = byId('accountModal');
     if (modal) modal.style.display = 'flex';
     openDrawer(false);
+    setTimeout(function () { var n = byId('accountName'); if (n) n.focus(); }, 60);
   }
   function renderHome() {
     var tasks = Whider.State.tasks || [], today = Whider.State.today();
@@ -57,7 +75,11 @@ window.Whider = window.Whider || {};
       list.textContent = '';
       var priorities = tasks.filter(function (t) { return !t.done; }).sort(function (a, b) {
         var rank = { danger: 0, star: 1, purple: 2, none: 3 };
-        return (rank[a.highlight || 'none'] - rank[b.highlight || 'none']) || ((a.date || '9999') > (b.date || '9999') ? 1 : -1);
+        var byRank = (rank[a.highlight] != null ? rank[a.highlight] : 3) - (rank[b.highlight] != null ? rank[b.highlight] : 3);
+        if (byRank) return byRank;
+        var da = (a.date || '9999-99-99') + ' ' + (a.time || '99:99');
+        var db = (b.date || '9999-99-99') + ' ' + (b.time || '99:99');
+        return da < db ? -1 : da > db ? 1 : 0;
       }).slice(0, 3);
       if (!priorities.length) {
         var empty = document.createElement('div'); empty.className = 'home-empty'; empty.textContent = 'Todo despejado. Añade una tarea y empieza a avanzar.'; list.appendChild(empty);
@@ -66,7 +88,11 @@ window.Whider = window.Whider || {};
         var dot = document.createElement('i'); dot.className = 'priority-dot ' + (t.highlight || 'none');
         var title = document.createElement('span'); title.textContent = t.text;
         var arrow = document.createElement('b'); arrow.textContent = '↗';
-        row.append(dot, title, arrow); row.addEventListener('click', function () { Whider.Router.navigate('tasks'); });
+        row.appendChild(dot); row.appendChild(title); row.appendChild(arrow);
+        row.addEventListener('click', function () {
+          Whider.Router.navigate('tasks');
+          if (Whider.Modal && Whider.State.find(t.id)) Whider.Modal.open(t.id);
+        });
         list.appendChild(row);
       });
     }
@@ -94,7 +120,7 @@ window.Whider = window.Whider || {};
     bind('btnCloseMenu', function () { openDrawer(false); });
     bind('drawerScrim', function () { openDrawer(false); });
     bind('btnAccount', openAccount); bind('drawerAccount', openAccount); bind('btnEditProfile', openAccount);
-    bind('btnCloseAccount', function () { var n = byId('accountModal'); if (n) n.style.display = 'none'; });
+    bind('btnCloseAccount', closeAccount);
     document.querySelectorAll('[data-screen]:not(.nav-tab)').forEach(function (node) {
       node.addEventListener('click', function () {
         var target = node.getAttribute('data-screen');
@@ -108,14 +134,23 @@ window.Whider = window.Whider || {};
       var email = (byId('accountEmail').value || '').trim();
       if (!name || !email) return;
       saveProfile({ name: name, email: email, updatedAt: new Date().toISOString() });
-      var modal = byId('accountModal'); if (modal) modal.style.display = 'none';
-      if (Whider.Toast && Whider.Toast.show) Whider.Toast.show('Perfil actualizado');
-      else if (Whider.Components && Whider.Components.Toast) Whider.Components.Toast.show('Perfil actualizado');
+      closeAccount();
+      if (Whider.Router && Whider.State.activeScreen === 'home') renderHome();
+      if (Whider.Toast) Whider.Toast.show('Perfil actualizado', 'success');
     });
     var accountModal = byId('accountModal');
-    if (accountModal) accountModal.addEventListener('click', function (e) { if (e.target === accountModal) accountModal.style.display = 'none'; });
+    if (accountModal) accountModal.addEventListener('click', function (e) { if (e.target === accountModal) closeAccount(); });
     renderProfile();
   }
-  Whider.Premium = { renderHome: renderHome, renderRecords: renderRecords, renderProfile: renderProfile };
+  Whider.Premium = {
+    renderHome: renderHome,
+    renderRecords: renderRecords,
+    renderProfile: renderProfile,
+    openDrawer: function () { openDrawer(true); },
+    closeDrawer: function () { openDrawer(false); },
+    isDrawerOpen: isDrawerOpen,
+    closeAccount: closeAccount,
+    isAccountOpen: isAccountOpen
+  };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

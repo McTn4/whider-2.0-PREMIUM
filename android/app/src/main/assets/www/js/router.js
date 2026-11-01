@@ -1,29 +1,33 @@
 /**
  * WHIDER PRO - ENRUTADOR DE PANTALLAS (SCREEN ROUTER)
- * Controla la navegación fluida entre las 5 pantallas dedicadas.
+ * Controla la navegación entre pantallas y sincroniza la URL (#pantalla)
+ * para que funcionen los accesos directos del manifiesto (p. ej. #warnings).
  */
 window.Whider = window.Whider || {};
 
 (function () {
   'use strict';
 
-  // Pantallas de la barra inferior: perfil, tareas y ajustes.
-  // Calendario y avisos se abren desde los iconos de la cabecera.
   var screensMeta = {
-    home: { title: 'Inicio', badge: 'Inicio' },
-    records: { title: 'Records', badge: 'Records' },
-    tasks: { title: 'Tareas', badge: 'Tareas' },
-    calendar: { title: 'Calendario', badge: 'Calendario' },
-    warnings: { title: 'Avisos', badge: 'Avisos' },
-    stats: { title: 'Perfil', badge: 'Perfil' },
-    settings: { title: 'Ajustes', badge: 'Ajustes' }
+    home: { title: 'Inicio' },
+    tasks: { title: 'Tareas' },
+    calendar: { title: 'Calendario' },
+    warnings: { title: 'Avisos' },
+    stats: { title: 'Perfil' },
+    records: { title: 'Records' },
+    settings: { title: 'Ajustes' }
   };
+  var DEFAULT_SCREEN = 'home';
+
+  function screenFromHash() {
+    var h = (window.location.hash || '').replace(/^#\/?/, '');
+    return screensMeta[h] ? h : null;
+  }
 
   Whider.Router = {
     init: function () {
-      // Event listeners para los botones de la barra inferior
-      var navTabs = document.querySelectorAll('.nav-tab');
-      navTabs.forEach(function (tab) {
+      // Botones de la barra inferior
+      document.querySelectorAll('.nav-tab').forEach(function (tab) {
         tab.addEventListener('click', function () {
           var targetScreen = tab.getAttribute('data-screen');
           if (targetScreen) {
@@ -33,35 +37,25 @@ window.Whider = window.Whider || {};
         });
       });
 
-      // Calendario (izquierda de la cabecera)
-      var btnHeaderCalendar = document.getElementById('btnHeaderCalendar');
-      if (btnHeaderCalendar) {
-        btnHeaderCalendar.addEventListener('click', function () {
-          Whider.Router.navigate(Whider.State.activeScreen === 'calendar' ? 'tasks' : 'calendar');
-          Whider.Audio.vibrate([12]);
-        });
-      }
+      // Cambios manuales de la URL (atrás/adelante del navegador, accesos directos)
+      window.addEventListener('hashchange', function () {
+        var target = screenFromHash();
+        if (target && target !== Whider.State.activeScreen) Whider.Router.navigate(target);
+      });
 
-      // Campana de avisos (derecha de la cabecera)
-      var btnHeaderAlerts = document.getElementById('btnHeaderAlerts');
-      if (btnHeaderAlerts) {
-        btnHeaderAlerts.addEventListener('click', function () {
-          Whider.Router.navigate(Whider.State.activeScreen === 'warnings' ? 'tasks' : 'warnings');
-          Whider.Audio.vibrate([12]);
-        });
-      }
+      Whider.Router.navigate(screenFromHash() || Whider.State.activeScreen || DEFAULT_SCREEN);
+    },
 
-      // Navegación a la pantalla inicial
-      Whider.Router.navigate(Whider.State.activeScreen || 'tasks');
+    isValid: function (screenId) {
+      return !!screensMeta[screenId];
     },
 
     navigate: function (screenId) {
-      if (!screensMeta[screenId]) screenId = 'tasks';
+      if (!screensMeta[screenId]) screenId = DEFAULT_SCREEN;
       Whider.State.activeScreen = screenId;
 
       // Actualizar visibilidad de pantallas
-      var allScreens = document.querySelectorAll('.screen');
-      allScreens.forEach(function (el) {
+      document.querySelectorAll('.screen').forEach(function (el) {
         if (el.id === 'screen-' + screenId) {
           el.classList.add('active');
           el.scrollTop = 0;
@@ -70,40 +64,35 @@ window.Whider = window.Whider || {};
         }
       });
 
-      // Actualizar estado activo en la barra de navegación inferior
-      var navTabs = document.querySelectorAll('.nav-tab');
-      navTabs.forEach(function (tab) {
+      // Estado activo en la barra inferior y en el menú lateral
+      document.querySelectorAll('.nav-tab[data-screen]').forEach(function (tab) {
         var isTarget = tab.getAttribute('data-screen') === screenId;
         tab.classList.toggle('active', isTarget);
+        if (isTarget) tab.setAttribute('aria-current', 'page'); else tab.removeAttribute('aria-current');
       });
-
       document.querySelectorAll('.drawer-link').forEach(function (link) {
         link.classList.toggle('active', link.getAttribute('data-screen') === screenId);
       });
 
-      // Marcar el icono de cabecera de la pantalla secundaria activa
-      var hdrCal = document.getElementById('btnHeaderCalendar');
-      var hdrAlerts = document.getElementById('btnHeaderAlerts');
-      if (hdrCal) hdrCal.classList.toggle('active', screenId === 'calendar');
-      if (hdrAlerts) hdrAlerts.classList.toggle('active', screenId === 'warnings');
+      document.title = screenId === DEFAULT_SCREEN ? 'WHIDER' : screensMeta[screenId].title + ' · WHIDER';
 
-      // Renderizar la pantalla correspondiente
+      // Mantener la URL sincronizada sin llenar el historial
+      if (window.history && window.history.replaceState && window.location.protocol !== 'file:') {
+        try { window.history.replaceState(null, '', '#' + screenId); } catch (e) {}
+      }
+
       Whider.Router.renderActiveScreen(screenId);
     },
 
     renderActiveScreen: function (screenId) {
-      if (!Whider.Screens) return;
-      if (screenId === 'home' && Whider.Premium) { Whider.Premium.renderHome(); } else if (screenId === 'records' && Whider.Premium) { Whider.Premium.renderRecords(); } else if (screenId === 'tasks' && Whider.Screens.Tasks) {
-        Whider.Screens.Tasks.render();
-      } else if (screenId === 'calendar' && Whider.Screens.Calendar) {
-        Whider.Screens.Calendar.render();
-      } else if (screenId === 'warnings' && Whider.Screens.Warnings) {
-        Whider.Screens.Warnings.render();
-      } else if (screenId === 'stats' && Whider.Screens.Stats) {
-        Whider.Screens.Stats.render();
-      } else if (screenId === 'settings' && Whider.Screens.Settings) {
-        Whider.Screens.Settings.render();
-      }
+      var S = Whider.Screens || {};
+      if (screenId === 'home' && Whider.Premium) Whider.Premium.renderHome();
+      else if (screenId === 'records' && Whider.Premium) Whider.Premium.renderRecords();
+      else if (screenId === 'tasks' && S.Tasks) S.Tasks.render();
+      else if (screenId === 'calendar' && S.Calendar) S.Calendar.render();
+      else if (screenId === 'warnings' && S.Warnings) S.Warnings.render();
+      else if (screenId === 'stats' && S.Stats) S.Stats.render();
+      else if (screenId === 'settings' && S.Settings) S.Settings.render();
     }
   };
 })();
