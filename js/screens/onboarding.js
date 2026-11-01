@@ -40,7 +40,7 @@ window.Whider = window.Whider || {};
       cta = U.el('button.btn.primary.block', { on: { click: function () { step = 1; render(); } } }, ['Empezar', U.icon('right', 'sm')]);
     } else if (step === 1) {
       var input = U.el('input.input.ob-input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'given-name', enterkeyhint: 'next' } });
-      input.value = data.name != null ? data.name : st.displayName();
+      input.value = data.name != null ? data.name : (st.displayName() || (W.Auth && W.Auth.user && W.Auth.user.displayName) || '');
       var next = function () { data.name = input.value.trim(); step = 2; render(); };
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); next(); } });
       body = U.el('div.ob-body', [

@@ -8,7 +8,7 @@ window.Whider = window.Whider || {};
   'use strict';
   var U = W.U;
   var ORDER = { home: 0, tasks: 1, calendar: 2, focus: 3 };
-  var SECONDARY = { progress: 'btnProfile', alerts: 'btnAlerts', settings: 'btnSettings' };
+  var SECONDARY = { progress: 'btnProfile', records: 'btnProfile', alerts: 'btnAlerts', settings: 'btnSettings' };
 
   function screenFromHash() {
     var h = (location.hash || '').replace(/^#\/?/, '');

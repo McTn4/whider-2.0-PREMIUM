@@ -112,7 +112,7 @@ window.Whider = window.Whider || {};
       var st = S();
       if (!st) return;
       // Durante la presentación inicial no se interrumpe con avisos
-      if (W.Onboarding && W.Onboarding.isOpen()) return;
+      if ((W.Onboarding && W.Onboarding.isOpen()) || (W.AuthScreen && W.AuthScreen.isOpen())) return;
       if (Notify.isQuiet()) { Notify.emitBadge(); return; }
       var now = Date.now(), alerts = [], reminders = [], dirty = false;
       var rewarn = st.settings.rewarn;

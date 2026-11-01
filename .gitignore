@@ -26,3 +26,6 @@ android/captures/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Dependencias de herramientas
+node_modules/

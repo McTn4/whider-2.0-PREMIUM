@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// WHIDER · Reglas de seguridad de Cloud Firestore
+// Cada usuario solo puede leer y escribir SUS datos (users/{uid}/...), y solo
+// cuando su correo está verificado (las cuentas de Google ya vienen verificadas).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == uid
+                         && request.auth.token.email_verified == true;
+    }
+    // Todo lo demás está cerrado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

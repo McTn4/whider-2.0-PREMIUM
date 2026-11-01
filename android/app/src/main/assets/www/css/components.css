@@ -207,7 +207,7 @@ input[type="date"].input, input[type="time"].input { color-scheme: dark; }
 .empty p { color: var(--t3); font-size: .86rem; max-width: 18rem; line-height: 1.5; }
 
 /* ---------- Hoja inferior (bottom sheet) ---------- */
-.sheet-root { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+.sheet-root { position: fixed; inset: 0; z-index: 58; pointer-events: none; }
 .sheet-layer { position: absolute; inset: 0; pointer-events: auto; display: flex; align-items: flex-end; justify-content: center; }
 .sheet-scrim { position: absolute; inset: 0; background: rgba(2, 3, 6, .62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; transition: opacity .35s var(--ease); }
 .sheet { position: relative; width: 100%; max-width: 640px; max-height: calc(100% - var(--safe-t) - 1.5rem);

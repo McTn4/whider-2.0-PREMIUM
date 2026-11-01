@@ -14,8 +14,12 @@ window.Whider = window.Whider || {};
     profile: 'whider.profile.v1',
     lists: 'whider.lists.v1',
     focus: 'whider.focus.v1',
-    meta: 'whider.meta.v1'
+    meta: 'whider.meta.v1',
+    doneLog: 'whider.donelog.v1',   // Historial permanente de tareas completadas por día
+    records: 'whider.records.v1',   // Marcas automáticas y personales
+    sync: 'whider.sync.v1'          // Marcas de tiempo y borrados para la sincronización
   };
+  var ALL_KEYS = Object.keys(KEYS).map(function (k) { return KEYS[k]; });
 
   /* Paleta de acentos: [principal, secundario] — todos pensados para fondo oscuro */
   var ACCENTS = {
@@ -72,11 +76,31 @@ window.Whider = window.Whider || {};
     { id: 'health', name: 'Salud', color: 'jade' }
   ];
 
+  /*
+   * Persistencia doble: localStorage + espejo nativo en Android (SharedPreferences).
+   * Si el sistema limpia el almacenamiento del WebView, los datos se recuperan del espejo.
+   */
+  function bridge() {
+    var b = window.WhiderAndroid;
+    return b && typeof b.storeGet === 'function' ? b : null;
+  }
   function read(key) {
-    try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+    var raw = null;
+    try { raw = localStorage.getItem(key); } catch (e) { raw = null; }
+    if (raw == null && bridge()) {
+      try { raw = bridge().storeGet(key) || null; } catch (e) { raw = null; }
+      if (raw != null) { try { localStorage.setItem(key, raw); } catch (e) { /* sin espacio */ } }
+    }
+    try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
   }
   function write(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* almacenamiento lleno o bloqueado */ }
+    var raw = JSON.stringify(value);
+    try { localStorage.setItem(key, raw); } catch (e) { /* almacenamiento lleno o bloqueado */ }
+    if (bridge()) { try { bridge().storeSet(key, raw); } catch (e) { /* sin puente */ } }
+  }
+  function remove(key) {
+    try { localStorage.removeItem(key); } catch (e) { /* bloqueado */ }
+    if (bridge()) { try { bridge().storeSet(key, null); } catch (e) { /* sin puente */ } }
   }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
@@ -123,6 +147,7 @@ window.Whider = window.Whider || {};
       subtasks: subs,
       focusMin: typeof item.focusMin === 'number' ? item.focusMin : 0,
       createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
+      updatedAt: typeof item.updatedAt === 'number' ? item.updatedAt : (typeof item.createdAt === 'number' ? item.createdAt : Date.now()),
       example: !!item.example
     };
   }
@@ -175,10 +200,43 @@ window.Whider = window.Whider || {};
   var storedTasks = read(KEYS.tasks);
   var isNewUser = !(storedTasks && Array.isArray(storedTasks.tasks));
   var tasks = isNewUser ? cleanTasks(sampleTasks(), lists) : cleanTasks(storedTasks.tasks, lists);
-  var meta = Object.assign({ onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [] }, read(KEYS.meta) || {});
+  var meta = Object.assign({ onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [], owner: null, guest: false }, read(KEYS.meta) || {});
   var focusLog = read(KEYS.focus) || {};
   var profile = read(KEYS.profile) || {};
   if (!Array.isArray(meta.seenAchievements)) meta.seenAchievements = [];
+
+  function emptyRecords() {
+    return { best: {}, history: [], custom: [] };
+  }
+  function cleanRecords(r) {
+    var out = emptyRecords();
+    if (!r || typeof r !== 'object') return out;
+    if (r.best && typeof r.best === 'object') Object.keys(r.best).forEach(function (k) {
+      var b = r.best[k];
+      if (b && typeof b.value === 'number') out.best[k] = { value: b.value, date: isDate(b.date) ? b.date : U.today() };
+    });
+    if (Array.isArray(r.history)) out.history = r.history.filter(function (h) { return h && h.id && h.type && typeof h.value === 'number'; }).slice(-300);
+    if (Array.isArray(r.custom)) out.custom = r.custom.filter(function (m) { return m && m.id && typeof m.name === 'string'; }).map(function (m) {
+      return {
+        id: m.id, name: m.name.slice(0, 40), unit: typeof m.unit === 'string' ? m.unit.slice(0, 12) : '',
+        kind: m.kind === 'time' ? 'time' : 'number', better: m.better === 'lower' ? 'lower' : 'higher', icon: typeof m.icon === 'string' ? m.icon : 'trophy',
+        createdAt: typeof m.createdAt === 'number' ? m.createdAt : Date.now(),
+        updatedAt: typeof m.updatedAt === 'number' ? m.updatedAt : Date.now(),
+        entries: (Array.isArray(m.entries) ? m.entries : []).filter(function (e) { return e && e.id && typeof e.value === 'number' && isFinite(e.value); })
+          .map(function (e) { return { id: e.id, value: e.value, date: isDate(e.date) ? e.date : U.today(), note: typeof e.note === 'string' ? e.note.slice(0, 120) : '', at: typeof e.at === 'number' ? e.at : Date.now() }; })
+      };
+    });
+    return out;
+  }
+
+  // Historial diario permanente: no depende de que las tareas sigan existiendo
+  var doneLog = read(KEYS.doneLog);
+  if (!doneLog || typeof doneLog !== 'object') {
+    doneLog = {};
+    tasks.forEach(function (t) { if (t.done && t.doneOn) doneLog[t.doneOn] = (doneLog[t.doneOn] || 0) + 1; });
+  }
+  var records = cleanRecords(read(KEYS.records));
+  var syncMeta = Object.assign({ deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 }, read(KEYS.sync) || {});
 
   var subscribers = [];
 
@@ -211,6 +269,8 @@ window.Whider = window.Whider || {};
     lists: lists,
     settings: settings,
     meta: meta,
+    records: records,
+    syncMeta: syncMeta,
     isNewUser: isNewUser,
     activeScreen: null,
     ui: { filter: 'all', query: '', listFilter: null, calMonth: null, calSelected: U.today() },
@@ -230,16 +290,65 @@ window.Whider = window.Whider || {};
       write(KEYS.lists, State.lists);
       write(KEYS.meta, State.meta);
       write(KEYS.focus, focusLog);
+      write(KEYS.doneLog, doneLog);
+      write(KEYS.records, State.records);
+      write(KEYS.sync, State.syncMeta);
     },
     saveSettings: function (reason) {
+      State.syncMeta.settingsAt = Date.now();
       write(KEYS.settings, State.settings);
       State.notify(reason || 'settings');
+    },
+    touch: function (t) { t.updatedAt = Date.now(); return t; },
+    markDeleted: function (key) { State.syncMeta.deleted[key] = Date.now(); },
+
+    /* ---------- Instantánea completa (sincronización en la nube) ---------- */
+    snapshot: function () {
+      return {
+        v: 1,
+        tasks: State.tasks, lists: State.lists, settings: State.settings,
+        focus: focusLog, doneLog: doneLog, records: State.records,
+        profile: { name: profile.name || '', email: profile.email || '' },
+        meta: { createdAt: State.meta.createdAt, seenAchievements: State.meta.seenAchievements, onboarded: !!State.meta.onboarded },
+        sync: State.syncMeta
+      };
+    },
+    /** Sustituye el estado local por uno ya fusionado */
+    applySnapshot: function (snap, reason) {
+      if (!snap) return;
+      State.lists = cleanLists(snap.lists);
+      State.tasks = cleanTasks(snap.tasks, State.lists);
+      if (snap.settings) State.settings = mergeTyped(DEFAULT_SETTINGS, snap.settings);
+      focusLog = snap.focus && typeof snap.focus === 'object' ? snap.focus : {};
+      doneLog = snap.doneLog && typeof snap.doneLog === 'object' ? snap.doneLog : {};
+      State.records = cleanRecords(snap.records);
+      if (snap.profile && snap.profile.name) { profile = Object.assign({}, profile, { name: snap.profile.name }); write(KEYS.profile, profile); }
+      if (snap.meta) {
+        if (snap.meta.createdAt) State.meta.createdAt = Math.min(State.meta.createdAt || Date.now(), snap.meta.createdAt);
+        if (Array.isArray(snap.meta.seenAchievements)) State.meta.seenAchievements = snap.meta.seenAchievements;
+        if (snap.meta.onboarded) State.meta.onboarded = true;
+      }
+      State.syncMeta = Object.assign({ deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 }, snap.sync || {});
+      State.notify(reason || 'sync');
+    },
+    /** Borra los datos de este dispositivo (al cerrar sesión o cambiar de cuenta) */
+    clearLocal: function () {
+      ALL_KEYS.forEach(remove);
+      remove('whider.focus.timer');
+      profile = {};
+      State.tasks = []; State.lists = cleanLists(null); State.settings = clone(DEFAULT_SETTINGS);
+      focusLog = {}; doneLog = {}; State.records = emptyRecords();
+      State.syncMeta = { deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 };
+      State.meta = { onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [], owner: null, guest: false };
+      State.save();
+      State.notify('reset');
     },
 
     /* ---------- Perfil ---------- */
     getProfile: function () { return profile; },
     setProfile: function (p) {
       profile = Object.assign({}, profile, p, { updatedAt: new Date().toISOString() });
+      State.syncMeta.profileAt = Date.now();
       write(KEYS.profile, profile);
       State.notify('profile');
     },
@@ -253,6 +362,7 @@ window.Whider = window.Whider || {};
     addList: function (name, color) {
       var l = { id: U.uid('l'), name: name.trim().slice(0, 24), color: ACCENTS[color] ? color : 'iris' };
       State.lists.push(l);
+      State.syncMeta.listsAt = Date.now();
       State.notify('lists');
       return l;
     },
@@ -261,6 +371,7 @@ window.Whider = window.Whider || {};
       if (!l) return;
       if (fields.name && fields.name.trim()) l.name = fields.name.trim().slice(0, 24);
       if (fields.color && ACCENTS[fields.color]) l.color = fields.color;
+      State.syncMeta.listsAt = Date.now();
       State.notify('lists');
     },
     removeList: function (id) {
@@ -269,6 +380,7 @@ window.Whider = window.Whider || {};
       State.tasks.forEach(function (t) { if (t.listId === id) t.listId = null; });
       if (State.settings.defaultList === id) State.settings.defaultList = State.lists[0].id;
       if (State.ui.listFilter === id) State.ui.listFilter = null;
+      State.syncMeta.listsAt = Date.now();
       State.notify('lists');
       return true;
     },
@@ -301,6 +413,7 @@ window.Whider = window.Whider || {};
       Object.keys(c).forEach(function (k) { t[k] = c[k]; });
       // Un nuevo plazo rearma los avisos
       if ((t.date || '') + ' ' + (t.time || '') !== oldDeadline) { t.warnedAt = null; t.remindedAt = null; }
+      t.updatedAt = Date.now();
       State.notify('update');
       return t;
     },
@@ -311,9 +424,12 @@ window.Whider = window.Whider || {};
     setDone: function (id, done) {
       var t = State.find(id);
       if (!t || t.done === !!done) return t;
+      if (!done && t.doneOn && doneLog[t.doneOn]) doneLog[t.doneOn] = Math.max(0, doneLog[t.doneOn] - 1);
       t.done = !!done;
       t.doneOn = t.done ? U.today() : null;
       t.doneAt = t.done ? Date.now() : null;
+      if (t.done) doneLog[t.doneOn] = (doneLog[t.doneOn] || 0) + 1;
+      t.updatedAt = Date.now();
       if (t.done && t.repeat !== 'none' && !t.spawnedId) {
         var nd = nextDate(t);
         if (nd) {
@@ -326,7 +442,7 @@ window.Whider = window.Whider || {};
         }
       } else if (!t.done && t.spawnedId) {
         var sp = State.find(t.spawnedId);
-        if (sp && !sp.done) State.tasks = State.tasks.filter(function (x) { return x.id !== sp.id; });
+        if (sp && !sp.done) { State.tasks = State.tasks.filter(function (x) { return x.id !== sp.id; }); State.markDeleted(sp.id); }
         t.spawnedId = null;
       }
       State.notify(t.done ? 'done' : 'undone');
@@ -336,6 +452,7 @@ window.Whider = window.Whider || {};
       var t = State.find(id);
       if (!t) return;
       t.subtasks.forEach(function (s) { if (s.id === subId) s.done = !s.done; });
+      t.updatedAt = Date.now();
       State.notify('update');
     },
     removeTask: function (id) {
@@ -343,11 +460,14 @@ window.Whider = window.Whider || {};
       for (var i = 0; i < State.tasks.length; i++) if (State.tasks[i].id === id) { idx = i; break; }
       if (idx < 0) return null;
       var removed = State.tasks.splice(idx, 1)[0];
+      State.markDeleted(removed.id);
       State.notify('remove');
       return { task: removed, index: idx };
     },
     restoreTask: function (snapshot) {
       if (!snapshot || !snapshot.task || State.find(snapshot.task.id)) return;
+      delete State.syncMeta.deleted[snapshot.task.id];
+      snapshot.task.updatedAt = Date.now();
       State.tasks.splice(Math.min(snapshot.index, State.tasks.length), 0, snapshot.task);
       State.notify('restore');
     },
@@ -357,30 +477,36 @@ window.Whider = window.Whider || {};
       var d = new Date(Date.now() + minutes * 60000);
       t.date = U.ymd(d);
       t.time = U.pad(d.getHours()) + ':' + U.pad(d.getMinutes());
-      t.warnedAt = null; t.remindedAt = null;
+      t.warnedAt = null; t.remindedAt = null; t.updatedAt = Date.now();
       State.notify('update');
     },
     moveToTomorrow: function (id) {
       var t = State.find(id);
       if (!t) return;
       t.date = U.addDays(U.today(), 1);
-      t.warnedAt = null; t.remindedAt = null;
+      t.warnedAt = null; t.remindedAt = null; t.updatedAt = Date.now();
       State.notify('update');
     },
     clearCompleted: function () {
       var n = State.tasks.filter(function (t) { return t.done; }).length;
+      State.tasks.forEach(function (t) { if (t.done) State.markDeleted(t.id); });
       State.tasks = State.tasks.filter(function (t) { return !t.done; });
       State.notify('clear');
       return n;
     },
     clearExamples: function () {
+      State.tasks.forEach(function (t) { if (t.example) State.markDeleted(t.id); });
       State.tasks = State.tasks.filter(function (t) { return !t.example; });
       State.notify('clear');
     },
     hasExamples: function () { return State.tasks.some(function (t) { return t.example; }); },
     resetAll: function () {
+      State.tasks.forEach(function (t) { State.markDeleted(t.id); });
       State.tasks = [];
       focusLog = {};
+      doneLog = {};
+      State.records = emptyRecords();
+      State.syncMeta.resetAt = Date.now();
       State.meta.celebrated = null;
       State.meta.seenAchievements = [];
       State.notify('reset');
@@ -432,7 +558,7 @@ window.Whider = window.Whider || {};
       entry.min += minutes; entry.sessions += 1;
       focusLog[d] = entry;
       var t = taskId ? State.find(taskId) : null;
-      if (t) t.focusMin += minutes;
+      if (t) { t.focusMin += minutes; t.updatedAt = Date.now(); }
       State.notify('focus');
     },
     focusOn: function (d) { return focusLog[d] || { min: 0, sessions: 0 }; },
@@ -443,10 +569,14 @@ window.Whider = window.Whider || {};
     },
 
     /* ---------- Métricas ---------- */
+    /** Completadas por día (historial permanente, sobrevive al borrado de tareas) */
     doneByDay: function () {
       var map = {};
-      State.tasks.forEach(function (t) { if (t.done && t.doneOn) map[t.doneOn] = (map[t.doneOn] || 0) + 1; });
+      Object.keys(doneLog).forEach(function (d) { if (doneLog[d] > 0) map[d] = doneLog[d]; });
       return map;
+    },
+    totalDone: function () {
+      return Object.keys(doneLog).reduce(function (a, d) { return a + (doneLog[d] || 0); }, 0);
     },
     streak: function () {
       var seen = State.doneByDay(), td = U.today();
@@ -473,7 +603,8 @@ window.Whider = window.Whider || {};
     },
     stats: function () {
       var total = State.tasks.length;
-      var done = State.tasks.filter(function (t) { return t.done; }).length;
+      var doneNow = State.tasks.filter(function (t) { return t.done; }).length;
+      var done = Math.max(State.totalDone(), doneNow);
       var today = State.todayTasks();
       var todayDone = today.filter(function (t) { return t.done; }).length;
       var ft = State.focusTotals();
@@ -481,8 +612,8 @@ window.Whider = window.Whider || {};
       var level = Math.floor(Math.sqrt(xp / 60)) + 1;
       var levelXp = Math.pow(level - 1, 2) * 60, nextXp = Math.pow(level, 2) * 60;
       return {
-        total: total, done: done, pending: total - done,
-        rate: total ? Math.round(done / total * 100) : 0,
+        total: total, done: done, pending: total - doneNow,
+        rate: total ? Math.round(doneNow / total * 100) : 0,
         todayTotal: today.length, todayDone: todayDone,
         todayPct: today.length ? Math.round(todayDone / today.length * 100) : 0,
         streak: State.streak(), bestStreak: State.bestStreak(),
@@ -518,6 +649,8 @@ window.Whider = window.Whider || {};
         { id: 'lists', icon: 'layers', title: 'Organizado', desc: 'Completa tareas en 3 listas', ok: Object.keys(listsUsed).length >= 3 }
       ];
     },
+
+    focusLog: function () { return focusLog; },
 
     /* ---------- Ajustes ---------- */
     setSetting: function (path, value) {

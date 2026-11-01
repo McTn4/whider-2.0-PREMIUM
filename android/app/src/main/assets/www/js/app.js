@@ -44,10 +44,11 @@ window.Whider = window.Whider || {};
     W.Editor.open(null, preset);
   }
 
-  /** Atrás (Android/Escape): presentación → hojas → pantalla inicial → salir */
+  /** Atrás (Android/Escape): hojas → acceso/presentación → pantalla inicial → salir */
   function handleBack() {
-    if (W.Onboarding.isOpen()) return W.Onboarding.back();
     if (W.Sheet.closeTop()) return true;
+    if (W.AuthScreen.isOpen()) return W.AuthScreen.back();
+    if (W.Onboarding.isOpen()) return W.Onboarding.back();
     var start = S.settings.startScreen || 'home';
     if (S.activeScreen !== start) { W.Router.go(start); return true; }
     return false;
@@ -77,15 +78,80 @@ window.Whider = window.Whider || {};
     });
   }
 
+  /* ---------- Cuentas ---------- */
+  function afterAuth() {
+    if (!S.meta.onboarded) setTimeout(W.Onboarding.start, 200);
+    else W.Router.go(S.activeScreen || S.settings.startScreen || 'home');
+    setTimeout(function () { W.Notify.check(); }, 1500);
+  }
+
+  function onUser(user) {
+    if (user) {
+      if (!S.displayName() && user.displayName) S.setProfile({ name: user.displayName, email: user.email || '' });
+      W.Sync.start(user);
+      if (W.AuthScreen.isOpen()) {
+        if (W.Auth.isVerified()) { W.AuthScreen.close(); afterAuth(); }
+        else W.AuthScreen.showVerify();
+      }
+    } else {
+      W.Sync.stop();
+    }
+    applyAppearance();
+    W.Router.refresh();
+  }
+
+  function logout() {
+    W.Sync.flush().then(function () { return W.Auth.logout(); }).catch(function () { /* se cierra igualmente */ }).then(function () {
+      W.Sync.stop();
+      S.clearLocal();
+      applyAppearance();
+      W.Router.go('home');
+      W.AuthScreen.open({ mode: 'login' });
+      W.Toast.show({ text: 'Has cerrado sesión', icon: 'logout' });
+    });
+  }
+
+  function deleteAccount() {
+    W.Auth.deleteAccount().then(function () {
+      S.clearLocal();
+      applyAppearance();
+      W.Router.go('home');
+      W.AuthScreen.open({ mode: 'register' });
+      W.Toast.show({ text: 'Tu cuenta y sus datos se han eliminado', icon: 'trash' });
+    }).catch(function (e) {
+      W.Toast.show({ text: W.Auth.message(e), type: 'danger', duration: 6000 });
+      if (e && e.code === 'auth/requires-recent-login') { W.Sync.restart(); logout(); }
+    });
+  }
+
+  /** Android: la primera vez tras actualizar, copia los datos del origen antiguo (file://) al almacén nativo */
+  function migrateFromFileOrigin() {
+    var b = window.WhiderAndroid;
+    if (location.protocol !== 'file:' || !b || typeof b.migrationPending !== 'function' || !b.migrationPending()) return false;
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf('whider') === 0) b.storeSet(k, localStorage.getItem(k));
+      }
+    } catch (e) { /* sin datos antiguos */ }
+    b.migrationDone();
+    return true;
+  }
+
   function initServiceWorker() {
+    if (window.WhiderAndroid) return; // En el APK la app ya se sirve desde el propio teléfono
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () { /* opcional */ });
     if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
     if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
     navigator.serviceWorker.register('./sw.js').catch(function (err) { console.warn('Service Worker no registrado:', err); });
   }
 
   function init() {
+    if (migrateFromFileOrigin()) return;
     applyAppearance();
     checkAchievements(true);
+    W.Records.init();
+    W.Records.check(true);
 
     document.getElementById('btnFab').addEventListener('click', function () { newTaskFromContext(); });
     document.getElementById('btnProfile').addEventListener('click', function () { W.Audio.tap(); W.Router.go('progress'); });
@@ -98,7 +164,14 @@ window.Whider = window.Whider || {};
       if (!(/^settings:/.test(reason) && S.activeScreen === 'settings')) W.Router.refresh();
       W.Notify.emitBadge();
       celebrateIfDone(reason);
-      if (/^(done|focus)$/.test(reason)) checkAchievements(false);
+      if (/^(done|focus)$/.test(reason)) { checkAchievements(false); W.Records.check(false); }
+      if (reason !== 'sync') W.Sync.schedule();
+    });
+    W.Sync.onStatus(function () {
+      if (S.activeScreen === 'settings') {
+        var row = U.$('#screen-settings .sync-row .row-desc');
+        if (row) row.textContent = W.Sync.statusText();
+      }
     });
 
     window.addEventListener('keydown', function (e) {
@@ -119,11 +192,17 @@ window.Whider = window.Whider || {};
     W.Screens.focus.resume();
     initServiceWorker();
 
-    if (!S.meta.onboarded) setTimeout(W.Onboarding.start, 250);
+    W.Auth.init();
+    W.Auth.onChange(onUser);
+    W.Auth.ready().then(function (user) {
+      var cfg = window.WHIDER_CONFIG || {};
+      if (W.Auth.configured() && !user && !S.meta.guest && cfg.requireAccount !== false) W.AuthScreen.open();
+      else afterAuth();
+    });
     document.documentElement.classList.add('ready');
   }
 
-  W.App = { handleBack: handleBack, setFab: setFab, applyAppearance: applyAppearance };
+  W.App = { handleBack: handleBack, setFab: setFab, applyAppearance: applyAppearance, afterAuth: afterAuth, logout: logout, deleteAccount: deleteAccount };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })(window.Whider);

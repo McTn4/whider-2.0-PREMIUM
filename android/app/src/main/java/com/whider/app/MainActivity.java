@@ -17,6 +17,7 @@ import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -27,20 +28,48 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.credentials.ClearCredentialStateRequest;
+import androidx.credentials.Credential;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.CustomCredential;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.ClearCredentialException;
+import androidx.credentials.exceptions.GetCredentialCancellationException;
+import androidx.credentials.exceptions.GetCredentialException;
+import androidx.webkit.WebViewAssetLoader;
+
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.concurrent.Executor;
 
 public class MainActivity extends AppCompatActivity {
 
     static final String EXTRA_OPEN_SCREEN = "open_screen";
     static volatile boolean isForeground = false;
 
-    private static final String APP_URL = "file:///android_asset/www/index.html";
+    /*
+     * La app se sirve desde un origen HTTPS local (WebViewAssetLoader). Así funcionan
+     * IndexedDB, las cuentas (Firebase) y la copia sin conexión de forma fiable.
+     * Las versiones anteriores usaban file://; la primera vez se migran sus datos.
+     */
+    private static final String ASSET_HOST = "appassets.androidplatform.net";
+    private static final String APP_URL = "https://" + ASSET_HOST + "/assets/www/index.html";
+    private static final String LEGACY_URL = "file:///android_asset/www/index.html";
     private static final String PREFS = "whider_native";
+    private static final String STORE = "whider_store";
+    private static final String PREF_MIGRATED = "migrated_file_origin";
     private static final String PREF_ASKED_NOTIF = "asked_notifications";
     private static final int REQ_NOTIFICATIONS = 4021;
 
     private WebView webView;
+    private WebViewAssetLoader assetLoader;
+    private CredentialManager credentialManager;
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -70,8 +99,19 @@ public class MainActivity extends AppCompatActivity {
         // sistema no debe descuadrar el diseño, que ya se adapta a la pantalla.
         settings.setTextZoom(100);
 
+        assetLoader = new WebViewAssetLoader.Builder()
+                .setDomain(ASSET_HOST)
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
+        credentialManager = CredentialManager.create(this);
+
         webView.addJavascriptInterface(new WhiderBridge(), "WhiderAndroid");
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return openExternally(request.getUrl());
@@ -90,7 +130,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if (savedInstanceState != null) webView.restoreState(savedInstanceState);
+        boolean migrated = getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(PREF_MIGRATED, false);
+        if (!migrated) webView.loadUrl(LEGACY_URL);          // Copia los datos de la versión anterior y vuelve
+        else if (savedInstanceState != null) webView.restoreState(savedInstanceState);
         else webView.loadUrl(APP_URL);
         handleLaunchIntent(getIntent());
     }
@@ -144,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean openExternally(Uri uri) {
         if (uri == null || "file".equals(uri.getScheme())) return false;
+        if (ASSET_HOST.equals(uri.getHost())) return false;
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, uri));
         } catch (ActivityNotFoundException ignored) {
@@ -188,8 +231,90 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void sendGoogleResult(String idToken, String error) {
+        runOnUiThread(() -> {
+            if (webView == null) return;
+            String js = "window.Whider&&Whider.Auth&&Whider.Auth.onNativeGoogle("
+                    + (idToken == null ? "null" : JSONObject.quote(idToken)) + ","
+                    + (error == null ? "null" : JSONObject.quote(error)) + ");";
+            webView.evaluateJavascript(js, null);
+        });
+    }
+
+    /** Inicio de sesión con Google con el selector nativo de cuentas (Credential Manager) */
+    private void startGoogleSignIn(String webClientId) {
+        GetSignInWithGoogleOption option = new GetSignInWithGoogleOption.Builder(webClientId).build();
+        GetCredentialRequest request = new GetCredentialRequest.Builder().addCredentialOption(option).build();
+        Executor executor = ContextCompat.getMainExecutor(this);
+        credentialManager.getCredentialAsync(this, request, null, executor,
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse response) {
+                        Credential credential = response.getCredential();
+                        if (credential instanceof CustomCredential
+                                && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
+                            try {
+                                GoogleIdTokenCredential google = GoogleIdTokenCredential.createFrom(credential.getData());
+                                sendGoogleResult(google.getIdToken(), null);
+                            } catch (Exception e) {
+                                sendGoogleResult(null, "invalid");
+                            }
+                        } else {
+                            sendGoogleResult(null, "invalid");
+                        }
+                    }
+
+                    @Override
+                    public void onError(GetCredentialException e) {
+                        sendGoogleResult(null, e instanceof GetCredentialCancellationException ? "cancelled" : "unavailable");
+                    }
+                });
+    }
+
     /** Puente expuesto a JavaScript como window.WhiderAndroid */
     private class WhiderBridge {
+
+        /* ----- Almacén nativo: espejo de los datos para que nunca se pierdan ----- */
+        @JavascriptInterface
+        public String storeGet(String key) {
+            return getSharedPreferences(STORE, Context.MODE_PRIVATE).getString(key, null);
+        }
+
+        @JavascriptInterface
+        public void storeSet(String key, String value) {
+            SharedPreferences.Editor e = getSharedPreferences(STORE, Context.MODE_PRIVATE).edit();
+            if (value == null) e.remove(key); else e.putString(key, value);
+            e.commit();
+        }
+
+        /* ----- Migración desde la versión anterior (origen file://) ----- */
+        @JavascriptInterface
+        public boolean migrationPending() {
+            return !getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(PREF_MIGRATED, false);
+        }
+
+        @JavascriptInterface
+        public void migrationDone() {
+            getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(PREF_MIGRATED, true).commit();
+            runOnUiThread(() -> { if (webView != null) webView.loadUrl(APP_URL); });
+        }
+
+        /* ----- Cuentas: Google ----- */
+        @JavascriptInterface
+        public void googleSignIn(String webClientId) {
+            if (webClientId == null || webClientId.trim().isEmpty()) { sendGoogleResult(null, "config"); return; }
+            runOnUiThread(() -> startGoogleSignIn(webClientId.trim()));
+        }
+
+        @JavascriptInterface
+        public void googleSignOut() {
+            credentialManager.clearCredentialStateAsync(new ClearCredentialStateRequest(), null,
+                    ContextCompat.getMainExecutor(MainActivity.this),
+                    new CredentialManagerCallback<Void, ClearCredentialException>() {
+                        @Override public void onResult(Void result) { }
+                        @Override public void onError(ClearCredentialException e) { }
+                    });
+        }
 
         @JavascriptInterface
         public String getNotificationPermission() {

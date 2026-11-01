@@ -62,7 +62,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     return U.el('div.quick-grid', [
       q('plus', 'Nueva', function () { W.Editor.open(null); }),
       q('timer', 'Enfoque', function () { W.Router.go('focus'); }),
-      q('calendar', 'Agenda', function () { W.Router.go('calendar'); }),
+      q('trophy', 'Marcas', function () { W.Router.go('records'); }),
       q('bell', 'Avisos', function () { W.Router.go('alerts'); }, overdue ? String(overdue) : null)
     ]);
   }

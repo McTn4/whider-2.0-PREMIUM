@@ -131,6 +131,11 @@ window.Whider.Screens = window.Whider.Screens || {};
         stat('timer', s.focusMin, 'Minutos de enfoque'),
         stat('alert', s.overdue, 'Vencidas ahora')
       ]));
+      inner.appendChild(U.el('button.card.focus-task.records-link', { on: { click: function () { W.Router.go('records'); } } }, [
+        U.el('span.row-icon', [U.icon('trophy')]),
+        U.el('span.row-main', [U.el('span.eyebrow', { text: 'Registro de marcas' }), U.el('span.row-label', { text: 'Tus récords y marcas personales' })]),
+        U.icon('right')
+      ]));
       inner.appendChild(chart(st, root));
       inner.appendChild(heatmap(st));
       var bl = byList(st);

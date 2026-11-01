@@ -60,9 +60,50 @@ window.Whider.Screens = window.Whider.Screens || {};
     return i;
   }
 
+  function accountGroup(rerender) {
+    var A = W.Auth;
+    if (!A || !A.configured()) return null;
+    var u = A.user;
+    if (!u) {
+      return U.el('div.group', [
+        W.UI.row({ icon: 'cloud', label: 'Crea tu cuenta o inicia sesión', desc: 'Guarda tus tareas y marcas en la nube y recupéralas en cualquier dispositivo. No perderás lo que ya tienes.',
+          onTap: function () { W.AuthScreen.open({ mode: 'register' }); } })
+      ]);
+    }
+    var verified = A.isVerified();
+    var syncRow = W.UI.row({ icon: 'cloud', label: 'Copia en la nube', desc: W.Sync.statusText(), onTap: function () {
+      if (!verified) { W.AuthScreen.showVerify(); return; }
+      W.Sync.push().then(function () { W.Toast.show({ text: 'Sincronizado', type: 'success', icon: 'cloud' }); rerender(); });
+    } });
+    syncRow.classList.add('sync-row');
+    var rows = [
+      U.el('div.row.account-row', [
+        U.el('div.avatar-xl.sm', [U.el('span', { text: (u.displayName || u.email || 'W').charAt(0).toUpperCase() })]),
+        U.el('div.row-main', [U.el('span.row-label', { text: u.displayName || W.State.displayName() || 'Tu cuenta' }), U.el('span.row-desc', { text: u.email || '' })]),
+        U.el('span.tag' + (verified ? '.today' : '.late'), [U.icon(A.provider() === 'google' ? 'user' : verified ? 'shield' : 'mail'), A.provider() === 'google' ? 'Google' : verified ? 'Verificada' : 'Sin verificar'])
+      ]),
+      syncRow
+    ];
+    if (!verified) rows.push(W.UI.row({ icon: 'mail', label: 'Verificar correo', desc: 'Abre el enlace que te enviamos a ' + u.email, onTap: function () { W.AuthScreen.showVerify(); } }));
+    if (A.provider() === 'password') rows.push(W.UI.row({ icon: 'key', label: 'Cambiar contraseña', desc: 'Te enviaremos un enlace seguro por correo', onTap: function () {
+      A.resetPassword(u.email).then(function () { W.Toast.show({ text: 'Enlace enviado a ' + u.email, type: 'success', icon: 'mail' }); })
+        .catch(function (e) { W.Toast.show({ text: A.message(e), type: 'danger' }); });
+    } }));
+    rows.push(W.UI.row({ icon: 'logout', label: 'Cerrar sesión', onTap: function () {
+      W.Sheet.confirm({ title: '¿Cerrar sesión?', icon: 'logout', text: 'Tus datos quedan guardados en tu cuenta. Al volver a entrar se recuperarán.', ok: 'Cerrar sesión' })
+        .then(function (ok) { if (ok) W.App.logout(); });
+    } }));
+    rows.push(W.UI.row({ icon: 'trash', label: 'Eliminar cuenta', desc: 'Borra tu cuenta y todos sus datos de la nube', danger: true, onTap: function () {
+      W.Sheet.confirm({ title: '¿Eliminar tu cuenta?', text: 'Se borrarán tu cuenta y todos tus datos de la nube de forma permanente. Esta acción no se puede deshacer.', ok: 'Eliminar cuenta', danger: true })
+        .then(function (ok) { if (ok) W.App.deleteAccount(); });
+    } }));
+    return U.el('div.group', rows);
+  }
+
   W.Screens.settings = {
     title: 'Ajustes',
     manageLists: manageLists,
+    accountGroup: accountGroup,
     render: function (root, fresh) {
       var st = S(), cfg = st.settings, set = st.setSetting;
       var rerender = function () { W.Screens.settings.render(root); };
@@ -75,6 +116,10 @@ window.Whider.Screens = window.Whider.Screens || {};
         U.el('div.row-main', [U.el('span.row-label', { text: st.displayName() || 'Añade tu nombre' }), U.el('span.row-desc', { text: 'Ver perfil, nivel y logros' })]),
         U.icon('right')
       ]));
+
+      /* Cuenta */
+      var acc = W.Screens.settings.accountGroup(rerender);
+      if (acc) { inner.appendChild(U.el('h3.group-title', { text: 'Cuenta' })); inner.appendChild(acc); }
 
       /* Apariencia */
       inner.appendChild(U.el('h3.group-title', { text: 'Apariencia' }));
@@ -164,8 +209,8 @@ window.Whider.Screens = window.Whider.Screens || {};
           .then(function (ok) { if (ok) { var n = st.clearCompleted(); W.Toast.show({ text: U.plural(n, 'tarea borrada', 'tareas borradas'), icon: 'trash' }); } });
       } }));
       dataRows.push(W.UI.row({ icon: 'sparkle', label: 'Ver la presentación de nuevo', onTap: function () { W.Onboarding.start(); } }));
-      dataRows.push(W.UI.row({ icon: 'trash', label: 'Restablecer todo', desc: 'Elimina tareas, enfoque y logros de este dispositivo', danger: true, onTap: function () {
-        W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán todas tus tareas, sesiones de enfoque y logros. No se puede deshacer.', ok: 'Restablecer', danger: true })
+      dataRows.push(W.UI.row({ icon: 'trash', label: 'Restablecer todo', desc: 'Elimina tareas, enfoque, marcas y logros' + (W.Auth && W.Auth.user ? ' (también de tu cuenta)' : ''), danger: true, onTap: function () {
+        W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán todas tus tareas, sesiones de enfoque, marcas y logros. No se puede deshacer.', ok: 'Restablecer', danger: true })
           .then(function (ok) { if (ok) { st.resetAll(); W.Toast.show({ text: 'Datos restablecidos' }); } });
       } }));
       inner.appendChild(U.el('div.group', dataRows));
@@ -174,7 +219,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       inner.appendChild(U.el('div.about', [
         U.svg('svg', { 'class': 'about-logo', viewBox: '0 0 64 64' }, [U.svg('use', { href: '#logo' })]),
         U.el('strong', { text: 'WHIDER' }),
-        U.el('span', { text: 'Versión 3.0 · Tus datos se guardan solo en este dispositivo' })
+        U.el('span', { text: 'Versión 4.0 · ' + (W.Auth && W.Auth.user ? 'Tus datos se guardan en tu cuenta y en este dispositivo' : 'Tus datos se guardan en este dispositivo') })
       ]));
       U.clear(root).appendChild(inner);
     }

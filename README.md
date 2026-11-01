@@ -1,6 +1,6 @@
-# WHIDER 3.0
+# WHIDER 4.0
 
-**Tu día, bajo control.** WHIDER es una app de productividad para Android (y cualquier navegador) que reúne tareas, agenda, avisos por incumplimiento, modo enfoque y seguimiento de progreso, con un diseño oscuro y efectos fluidos. Funciona 100 % sin conexión y guarda los datos solo en el dispositivo.
+**Tu día, bajo control.** WHIDER es una app de productividad para Android (y cualquier navegador) que reúne tareas, agenda, avisos por incumplimiento, modo enfoque y seguimiento de progreso, con un diseño oscuro y efectos fluidos. Incluye **cuentas de usuario** (correo y contraseña o Google) con **copia en la nube**, y un **registro de marcas** que conserva tus récords para siempre. Funciona también sin conexión.
 
 <p align="center">
   <img src="docs/capturas/02-inicio.jpg" width="200" alt="Inicio">
@@ -14,10 +14,34 @@
   <img src="docs/capturas/08-ajustes.jpg" width="200" alt="Ajustes">
   <img src="docs/capturas/09-editor.jpg" width="200" alt="Editor de tareas">
 </p>
+<p align="center">
+  <img src="docs/capturas/10-registro.jpg" width="200" alt="Crear cuenta">
+  <img src="docs/capturas/11-marcas.jpg" width="200" alt="Marcas">
+  <img src="docs/capturas/12-marca-detalle.jpg" width="200" alt="Detalle de una marca">
+  <img src="docs/capturas/13-cuenta.jpg" width="200" alt="Cuenta y copia en la nube">
+</p>
 
 ---
 
 ## ✨ Funciones
+
+**Cuentas y copia en la nube**
+- Registro con **correo y contraseña** (con verificación del correo, medidor de seguridad de la contraseña y recuperación por correo) o con **Google** (en Android, con el selector nativo de cuentas del teléfono).
+- Opción para admitir **solo correos de empresa** (`allowedEmailDomains`).
+- Tus tareas, listas, marcas, enfoque y ajustes se guardan en tu cuenta y se **sincronizan en tiempo real** entre dispositivos; los cambios de varios móviles se fusionan sin perder nada.
+- Funciona sin internet y sincroniza al volver la conexión. Cerrar sesión y **eliminar la cuenta** desde Ajustes.
+- Modo **sin cuenta** opcional: los datos se quedan en el dispositivo y se suben a la cuenta si la creas más tarde.
+- Configuración: [docs/CONFIGURAR-CUENTAS.md](docs/CONFIGURAR-CUENTAS.md).
+
+**Registro de marcas**
+- **Récords automáticos**: mejor racha, más tareas en un día, mejor semana y más enfoque en un día, con su fecha. Aviso de "¡Nueva marca!" al superarlos e hitos de tareas completadas (10, 25, 50, 100…).
+- **Marcas personales**: crea las tuyas (tiempos, pesos, distancias, páginas…), indica si es mejor más o menos, registra valores con fecha y nota y sigue tu evolución con su gráfica.
+- **Historial de marcas** con todas las que has batido.
+- El historial es permanente: **no se borra aunque elimines tareas**, y queda guardado en tu cuenta.
+
+**Tus datos no se pierden**
+- Todo se guarda al instante en el dispositivo; en el APK además en un almacén nativo de Android, que los recupera aunque el sistema limpie el almacenamiento de la app.
+- Con cuenta, también en la nube: al iniciar sesión en otro móvil lo recuperas todo.
 
 **Tareas**
 - Prioridades (Normal, Destacada, Importante, Urgente) con color propio.
@@ -106,24 +130,36 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 │   ├── layout.css          # Estructura a pantalla completa, fondo animado y barra inferior
 │   ├── components.css      # Botones, tarjetas, hojas, interruptores, avisos…
 │   └── screens.css         # Estilos de cada pantalla
+├── firestore.rules         # Reglas de seguridad de la base de datos (cada usuario, solo sus datos)
+├── firebase.json           # Configuración de Firebase (reglas, hosting y emuladores)
 ├── js/
-│   ├── core/               # util, store (datos y métricas), audio, notify (motor de avisos)
+│   ├── config.js           # ← Configuración de cuentas (Firebase): ver docs/CONFIGURAR-CUENTAS.md
+│   ├── vendor/firebase.js  # SDK de Firebase empaquetado (funciona sin CDN)
+│   ├── core/               # util, store, audio, notify, records (marcas), auth (cuentas), sync (nube)
 │   ├── ui/                 # efectos, avisos flotantes, hojas, controles, editor y tarjeta de tarea
-│   ├── screens/            # home, tasks, calendar, focus, progress, alerts, settings, onboarding
+│   ├── screens/            # home, tasks, calendar, focus, progress, records, alerts, settings, onboarding, auth
 │   ├── router.js
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable
 ├── fonts/                  # Archivo e IBM Plex Sans (locales)
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones)
+├── tools/firebase-bundle/  # Cómo regenerar js/vendor/firebase.js
 ├── serve.py                # Servidor local para PC y móvil
 └── package_apk.py          # Copia la web a android/…/assets/www y crea el ZIP del proyecto
 ```
 
 ## 🔒 Privacidad
 
-Todo se guarda en el propio dispositivo (`localStorage`). La app no tiene cuentas, no envía datos a ningún servidor y no necesita conexión a internet. Las tareas creadas con versiones anteriores se conservan al actualizar.
+Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y sus datos desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 4.0
+
+- Cuentas de usuario con correo y contraseña (verificación y recuperación) y con Google.
+- Copia en la nube con sincronización en tiempo real entre dispositivos y funcionamiento sin conexión.
+- Registro de marcas: récords automáticos con historial permanente y marcas personales con su evolución.
+- Android: la app se sirve desde un origen seguro local, con espejo nativo de los datos y migración automática desde la versión anterior.
 
 ## 📝 Novedades de la 3.0
 
