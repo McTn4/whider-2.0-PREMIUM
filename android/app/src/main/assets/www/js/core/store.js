@@ -1,0 +1,544 @@
+/**
+ * WHIDER · Estado de la aplicación, persistencia, migración y métricas
+ */
+window.Whider = window.Whider || {};
+
+(function (W) {
+  'use strict';
+
+  var U = W.U;
+  var KEYS = {
+    tasks: 'whider.v1',             // Se conserva la clave original: los datos de versiones anteriores siguen funcionando
+    settings: 'whider.settings.v2',
+    legacySettings: 'whider.settings.v1',
+    profile: 'whider.profile.v1',
+    lists: 'whider.lists.v1',
+    focus: 'whider.focus.v1',
+    meta: 'whider.meta.v1'
+  };
+
+  /* Paleta de acentos: [principal, secundario] — todos pensados para fondo oscuro */
+  var ACCENTS = {
+    iris:  { name: 'Iris',      a: '#8B8DFF', b: '#C084FC' },
+    aqua:  { name: 'Océano',    a: '#38CFE6', b: '#6D8BFF' },
+    jade:  { name: 'Jade',      a: '#34D39A', b: '#22C7E0' },
+    ember: { name: 'Brasa',     a: '#FF9F5A', b: '#FF5D8F' },
+    rose:  { name: 'Orquídea',  a: '#FF6FA5', b: '#B57CFF' },
+    gold:  { name: 'Oro',       a: '#F2C14E', b: '#FF8A4C' }
+  };
+
+  var PRIORITIES = {
+    danger: { label: 'Urgente', short: 'Urgente', rank: 0 },
+    purple: { label: 'Importante', short: 'Importante', rank: 1 },
+    star:   { label: 'Destacada', short: 'Destacada', rank: 2 },
+    none:   { label: 'Normal', short: 'Normal', rank: 3 }
+  };
+
+  var REPEATS = {
+    none: 'No se repite',
+    daily: 'Cada día',
+    weekdays: 'Días laborables',
+    weekly: 'Cada semana',
+    monthly: 'Cada mes'
+  };
+
+  var DEFAULT_SETTINGS = {
+    accent: 'iris',
+    textSize: 'm',
+    density: 'comfortable',
+    bgEffects: true,
+    reduceMotion: false,
+    startScreen: 'home',
+    homeSections: { summary: true, actions: true, next: true, agenda: true, week: true },
+    dailyGoal: 5,
+    weekStart: 1,
+    timeFormat: '24',
+    hideCompleted: false,
+    confirmDelete: true,
+    defaultWarn: true,
+    defaultList: 'personal',
+    remindBefore: 15,
+    rewarn: 20,
+    sort: 'smart',
+    sound: true,
+    vibrate: true,
+    quietHours: { enabled: false, from: '22:00', to: '08:00' },
+    focus: { work: 25, short: 5, long: 15, rounds: 4, autoBreaks: true }
+  };
+
+  var DEFAULT_LISTS = [
+    { id: 'personal', name: 'Personal', color: 'iris' },
+    { id: 'work', name: 'Trabajo', color: 'aqua' },
+    { id: 'health', name: 'Salud', color: 'jade' }
+  ];
+
+  function read(key) {
+    try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  }
+  function write(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* almacenamiento lleno o bloqueado */ }
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  /** Fusiona respetando solo claves conocidas y del mismo tipo */
+  function mergeTyped(def, src) {
+    var out = clone(def);
+    if (!src || typeof src !== 'object') return out;
+    Object.keys(def).forEach(function (k) {
+      var d = def[k], v = src[k];
+      if (v === undefined || v === null) return;
+      if (d && typeof d === 'object' && !Array.isArray(d)) out[k] = mergeTyped(d, v);
+      else if (typeof v === typeof d) out[k] = v;
+    });
+    return out;
+  }
+
+  var isDate = function (s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s); };
+  var isTime = function (s) { return typeof s === 'string' && /^\d{2}:\d{2}$/.test(s); };
+
+  function cleanTask(item, listIds) {
+    if (!item || typeof item.text !== 'string' || !item.text.trim()) return null;
+    var subs = Array.isArray(item.subtasks) ? item.subtasks.filter(function (s) {
+      return s && typeof s.text === 'string' && s.text.trim();
+    }).map(function (s) {
+      return { id: typeof s.id === 'string' ? s.id : U.uid('s'), text: s.text.trim().slice(0, 120), done: !!s.done };
+    }) : [];
+    return {
+      id: typeof item.id === 'string' ? item.id : U.uid(),
+      text: item.text.trim().slice(0, 160),
+      notes: typeof item.notes === 'string' ? item.notes.slice(0, 2000) : '',
+      date: isDate(item.date) ? item.date : null,
+      time: isTime(item.time) ? item.time : null,
+      done: !!item.done,
+      doneOn: isDate(item.doneOn) ? item.doneOn : null,
+      doneAt: typeof item.doneAt === 'number' ? item.doneAt : null,
+      highlight: PRIORITIES[item.highlight] ? item.highlight : 'none',
+      warn: !!item.warn,
+      warnedAt: typeof item.warnedAt === 'number' && isFinite(item.warnedAt) ? item.warnedAt : null,
+      remindedAt: typeof item.remindedAt === 'number' ? item.remindedAt : null,
+      remindBefore: typeof item.remindBefore === 'number' ? item.remindBefore : null,
+      listId: typeof item.listId === 'string' && (!listIds || listIds[item.listId]) ? item.listId : null,
+      repeat: REPEATS[item.repeat] ? item.repeat : 'none',
+      spawnedId: typeof item.spawnedId === 'string' ? item.spawnedId : null,
+      subtasks: subs,
+      focusMin: typeof item.focusMin === 'number' ? item.focusMin : 0,
+      createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
+      example: !!item.example
+    };
+  }
+
+  function cleanTasks(arr, lists) {
+    var ids = {};
+    (lists || []).forEach(function (l) { ids[l.id] = true; });
+    var out = [];
+    (Array.isArray(arr) ? arr : []).forEach(function (t) { var c = cleanTask(t, ids); if (c) out.push(c); });
+    return out;
+  }
+
+  function cleanLists(arr) {
+    if (!Array.isArray(arr) || !arr.length) return clone(DEFAULT_LISTS);
+    var out = arr.filter(function (l) { return l && typeof l.id === 'string' && typeof l.name === 'string' && l.name.trim(); })
+      .map(function (l) { return { id: l.id, name: l.name.trim().slice(0, 24), color: ACCENTS[l.color] ? l.color : 'iris' }; });
+    return out.length ? out : clone(DEFAULT_LISTS);
+  }
+
+  function sampleTasks() {
+    var t = U.today(), now = new Date();
+    // Hora de la primera tarea: dentro de ~2 h (o mañana si ya es tarde)
+    var h = now.getHours() + 2, firstDate = t;
+    if (h > 22) { h = 10; firstDate = U.addDays(t, 1); }
+    var firstTime = U.pad(h) + ':00';
+    var evening = now.getHours() < 19 ? '19:00' : null;
+    var mk = function (o) { return Object.assign({ id: U.uid(), example: true, createdAt: Date.now() }, o); };
+    return [
+      mk({ text: 'Planificar las prioridades de la semana', date: firstDate, time: firstTime, highlight: 'purple', warn: true, listId: 'work',
+        subtasks: [{ text: 'Revisar pendientes' }, { text: 'Elegir 3 objetivos' }] }),
+      mk({ text: 'Entrenamiento de 30 minutos', date: t, time: evening, highlight: 'none', warn: false, listId: 'health', repeat: 'weekdays' }),
+      mk({ text: 'Leer 20 páginas', date: t, highlight: 'star', listId: 'personal', repeat: 'daily' }),
+      mk({ text: 'Reunión de revisión de avances', date: U.addDays(t, 1), time: '12:30', highlight: 'danger', warn: true, listId: 'work' })
+    ];
+  }
+
+  /* ---------- Carga inicial y migración ---------- */
+  var savedSettings = read(KEYS.settings);
+  var settings = mergeTyped(DEFAULT_SETTINGS, savedSettings);
+  if (!savedSettings) {
+    var legacy = read(KEYS.legacySettings);
+    if (legacy) {
+      if (typeof legacy.sound === 'boolean') settings.sound = legacy.sound;
+      if (typeof legacy.vibrate === 'boolean') settings.vibrate = legacy.vibrate;
+    }
+  }
+  if (!ACCENTS[settings.accent]) settings.accent = 'iris';
+
+  var lists = cleanLists(read(KEYS.lists));
+  var storedTasks = read(KEYS.tasks);
+  var isNewUser = !(storedTasks && Array.isArray(storedTasks.tasks));
+  var tasks = isNewUser ? cleanTasks(sampleTasks(), lists) : cleanTasks(storedTasks.tasks, lists);
+  var meta = Object.assign({ onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [] }, read(KEYS.meta) || {});
+  var focusLog = read(KEYS.focus) || {};
+  var profile = read(KEYS.profile) || {};
+  if (!Array.isArray(meta.seenAchievements)) meta.seenAchievements = [];
+
+  var subscribers = [];
+
+  function isOverdue(t, now) {
+    if (t.done || !t.date) return false;
+    return (now || Date.now()) >= U.deadlineTs(t.date, t.time);
+  }
+
+  function nextDate(t) {
+    var base = t.date || U.today();
+    switch (t.repeat) {
+      case 'daily': return U.addDays(base, 1);
+      case 'weekly': return U.addDays(base, 7);
+      case 'monthly': return U.addMonths(base, 1);
+      case 'weekdays':
+        var d = U.addDays(base, 1);
+        while (U.weekday(d) === 0 || U.weekday(d) === 6) d = U.addDays(d, 1);
+        return d;
+      default: return null;
+    }
+  }
+
+  var State = {
+    KEYS: KEYS,
+    ACCENTS: ACCENTS,
+    PRIORITIES: PRIORITIES,
+    REPEATS: REPEATS,
+    DEFAULT_SETTINGS: DEFAULT_SETTINGS,
+    tasks: tasks,
+    lists: lists,
+    settings: settings,
+    meta: meta,
+    isNewUser: isNewUser,
+    activeScreen: null,
+    ui: { filter: 'all', query: '', listFilter: null, calMonth: null, calSelected: U.today() },
+
+    /* ---------- Suscripción ---------- */
+    subscribe: function (fn) {
+      subscribers.push(fn);
+      return function () { subscribers = subscribers.filter(function (s) { return s !== fn; }); };
+    },
+    notify: function (reason) {
+      State.save();
+      subscribers.forEach(function (fn) { try { fn(reason || 'change'); } catch (e) { console.error(e); } });
+    },
+    save: function () {
+      write(KEYS.tasks, { tasks: State.tasks });
+      write(KEYS.settings, State.settings);
+      write(KEYS.lists, State.lists);
+      write(KEYS.meta, State.meta);
+      write(KEYS.focus, focusLog);
+    },
+    saveSettings: function (reason) {
+      write(KEYS.settings, State.settings);
+      State.notify(reason || 'settings');
+    },
+
+    /* ---------- Perfil ---------- */
+    getProfile: function () { return profile; },
+    setProfile: function (p) {
+      profile = Object.assign({}, profile, p, { updatedAt: new Date().toISOString() });
+      write(KEYS.profile, profile);
+      State.notify('profile');
+    },
+    displayName: function () { return profile && profile.name ? String(profile.name).trim() : ''; },
+
+    /* ---------- Listas ---------- */
+    getList: function (id) {
+      for (var i = 0; i < State.lists.length; i++) if (State.lists[i].id === id) return State.lists[i];
+      return null;
+    },
+    addList: function (name, color) {
+      var l = { id: U.uid('l'), name: name.trim().slice(0, 24), color: ACCENTS[color] ? color : 'iris' };
+      State.lists.push(l);
+      State.notify('lists');
+      return l;
+    },
+    updateList: function (id, fields) {
+      var l = State.getList(id);
+      if (!l) return;
+      if (fields.name && fields.name.trim()) l.name = fields.name.trim().slice(0, 24);
+      if (fields.color && ACCENTS[fields.color]) l.color = fields.color;
+      State.notify('lists');
+    },
+    removeList: function (id) {
+      if (State.lists.length <= 1) return false;
+      State.lists = State.lists.filter(function (l) { return l.id !== id; });
+      State.tasks.forEach(function (t) { if (t.listId === id) t.listId = null; });
+      if (State.settings.defaultList === id) State.settings.defaultList = State.lists[0].id;
+      if (State.ui.listFilter === id) State.ui.listFilter = null;
+      State.notify('lists');
+      return true;
+    },
+    listColor: function (id) {
+      var l = State.getList(id);
+      return l ? ACCENTS[l.color].a : null;
+    },
+
+    /* ---------- Tareas ---------- */
+    find: function (id) {
+      for (var i = 0; i < State.tasks.length; i++) if (State.tasks[i].id === id) return State.tasks[i];
+      return null;
+    },
+    addTask: function (fields) {
+      var listIds = {}; State.lists.forEach(function (l) { listIds[l.id] = true; });
+      var t = cleanTask(Object.assign({ id: U.uid(), createdAt: Date.now() }, fields), listIds);
+      if (!t) return null;
+      State.tasks.push(t);
+      State.notify('add');
+      return t;
+    },
+    updateTask: function (id, fields) {
+      var t = State.find(id);
+      if (!t) return null;
+      var oldDeadline = (t.date || '') + ' ' + (t.time || '');
+      var merged = Object.assign({}, t, fields);
+      var listIds = {}; State.lists.forEach(function (l) { listIds[l.id] = true; });
+      var c = cleanTask(merged, listIds);
+      if (!c) return null;
+      Object.keys(c).forEach(function (k) { t[k] = c[k]; });
+      // Un nuevo plazo rearma los avisos
+      if ((t.date || '') + ' ' + (t.time || '') !== oldDeadline) { t.warnedAt = null; t.remindedAt = null; }
+      State.notify('update');
+      return t;
+    },
+    /**
+     * Marca/desmarca una tarea. Si se repite, al completarla se crea la siguiente;
+     * si se desmarca, se elimina la siguiente que generó (si sigue intacta).
+     */
+    setDone: function (id, done) {
+      var t = State.find(id);
+      if (!t || t.done === !!done) return t;
+      t.done = !!done;
+      t.doneOn = t.done ? U.today() : null;
+      t.doneAt = t.done ? Date.now() : null;
+      if (t.done && t.repeat !== 'none' && !t.spawnedId) {
+        var nd = nextDate(t);
+        if (nd) {
+          var next = cleanTask(Object.assign({}, t, {
+            id: U.uid(), date: nd, done: false, doneOn: null, doneAt: null, warnedAt: null, remindedAt: null,
+            spawnedId: null, focusMin: 0, createdAt: Date.now(), example: false,
+            subtasks: t.subtasks.map(function (s) { return { text: s.text, done: false }; })
+          }));
+          if (next) { State.tasks.push(next); t.spawnedId = next.id; }
+        }
+      } else if (!t.done && t.spawnedId) {
+        var sp = State.find(t.spawnedId);
+        if (sp && !sp.done) State.tasks = State.tasks.filter(function (x) { return x.id !== sp.id; });
+        t.spawnedId = null;
+      }
+      State.notify(t.done ? 'done' : 'undone');
+      return t;
+    },
+    toggleSubtask: function (id, subId) {
+      var t = State.find(id);
+      if (!t) return;
+      t.subtasks.forEach(function (s) { if (s.id === subId) s.done = !s.done; });
+      State.notify('update');
+    },
+    removeTask: function (id) {
+      var idx = -1;
+      for (var i = 0; i < State.tasks.length; i++) if (State.tasks[i].id === id) { idx = i; break; }
+      if (idx < 0) return null;
+      var removed = State.tasks.splice(idx, 1)[0];
+      State.notify('remove');
+      return { task: removed, index: idx };
+    },
+    restoreTask: function (snapshot) {
+      if (!snapshot || !snapshot.task || State.find(snapshot.task.id)) return;
+      State.tasks.splice(Math.min(snapshot.index, State.tasks.length), 0, snapshot.task);
+      State.notify('restore');
+    },
+    snooze: function (id, minutes) {
+      var t = State.find(id);
+      if (!t) return;
+      var d = new Date(Date.now() + minutes * 60000);
+      t.date = U.ymd(d);
+      t.time = U.pad(d.getHours()) + ':' + U.pad(d.getMinutes());
+      t.warnedAt = null; t.remindedAt = null;
+      State.notify('update');
+    },
+    moveToTomorrow: function (id) {
+      var t = State.find(id);
+      if (!t) return;
+      t.date = U.addDays(U.today(), 1);
+      t.warnedAt = null; t.remindedAt = null;
+      State.notify('update');
+    },
+    clearCompleted: function () {
+      var n = State.tasks.filter(function (t) { return t.done; }).length;
+      State.tasks = State.tasks.filter(function (t) { return !t.done; });
+      State.notify('clear');
+      return n;
+    },
+    clearExamples: function () {
+      State.tasks = State.tasks.filter(function (t) { return !t.example; });
+      State.notify('clear');
+    },
+    hasExamples: function () { return State.tasks.some(function (t) { return t.example; }); },
+    resetAll: function () {
+      State.tasks = [];
+      focusLog = {};
+      State.meta.celebrated = null;
+      State.meta.seenAchievements = [];
+      State.notify('reset');
+    },
+
+    /* ---------- Consultas ---------- */
+    isOverdue: function (t) { return isOverdue(t); },
+    pending: function () { return State.tasks.filter(function (t) { return !t.done; }); },
+    forDate: function (d) { return State.tasks.filter(function (t) { return t.date === d; }); },
+    todayTasks: function () { return State.forDate(U.today()); },
+    overdueWarnings: function () {
+      var now = Date.now();
+      return State.tasks.filter(function (t) { return t.warn && isOverdue(t, now); });
+    },
+    overdueAll: function () {
+      var now = Date.now();
+      return State.tasks.filter(function (t) { return isOverdue(t, now); });
+    },
+    upcomingWarnings: function () {
+      var now = Date.now();
+      return State.tasks.filter(function (t) { return t.warn && !t.done && !isOverdue(t, now); })
+        .sort(State.compareDeadline);
+    },
+    compareDeadline: function (a, b) {
+      var da = a.date ? U.deadlineTs(a.date, a.time) : Infinity;
+      var db = b.date ? U.deadlineTs(b.date, b.time) : Infinity;
+      if (da !== db) return da < db ? -1 : 1;
+      return PRIORITIES[a.highlight].rank - PRIORITIES[b.highlight].rank;
+    },
+    comparePriority: function (a, b) {
+      var r = PRIORITIES[a.highlight].rank - PRIORITIES[b.highlight].rank;
+      return r || State.compareDeadline(a, b);
+    },
+    /** Siguiente tarea relevante: vencida más antigua o la próxima con plazo, si no la de más prioridad */
+    nextTask: function () {
+      var p = State.pending().filter(function (t) { return !t.date || t.date <= U.today(); });
+      if (!p.length) p = State.pending();
+      return p.sort(function (a, b) {
+        var ao = isOverdue(a) ? 0 : 1, bo = isOverdue(b) ? 0 : 1;
+        if (ao !== bo) return ao - bo;
+        return State.compareDeadline(a, b);
+      })[0] || null;
+    },
+
+    /* ---------- Enfoque ---------- */
+    addFocus: function (minutes, taskId) {
+      var d = U.today();
+      var entry = focusLog[d] || { min: 0, sessions: 0 };
+      entry.min += minutes; entry.sessions += 1;
+      focusLog[d] = entry;
+      var t = taskId ? State.find(taskId) : null;
+      if (t) t.focusMin += minutes;
+      State.notify('focus');
+    },
+    focusOn: function (d) { return focusLog[d] || { min: 0, sessions: 0 }; },
+    focusTotals: function () {
+      var min = 0, sessions = 0;
+      Object.keys(focusLog).forEach(function (k) { min += focusLog[k].min || 0; sessions += focusLog[k].sessions || 0; });
+      return { min: min, sessions: sessions };
+    },
+
+    /* ---------- Métricas ---------- */
+    doneByDay: function () {
+      var map = {};
+      State.tasks.forEach(function (t) { if (t.done && t.doneOn) map[t.doneOn] = (map[t.doneOn] || 0) + 1; });
+      return map;
+    },
+    streak: function () {
+      var seen = State.doneByDay(), td = U.today();
+      var cur = seen[td] ? td : U.addDays(td, -1), n = 0;
+      while (seen[cur]) { n++; cur = U.addDays(cur, -1); }
+      return n;
+    },
+    bestStreak: function () {
+      var days = Object.keys(State.doneByDay()).sort(), best = 0, run = 0, prev = null;
+      days.forEach(function (d) {
+        run = prev && U.addDays(prev, 1) === d ? run + 1 : 1;
+        if (run > best) best = run;
+        prev = d;
+      });
+      return best;
+    },
+    lastDays: function (n) {
+      var map = State.doneByDay(), td = U.today(), out = [];
+      for (var i = n - 1; i >= 0; i--) {
+        var d = U.addDays(td, -i);
+        out.push({ date: d, count: map[d] || 0, focus: State.focusOn(d).min, isToday: i === 0 });
+      }
+      return out;
+    },
+    stats: function () {
+      var total = State.tasks.length;
+      var done = State.tasks.filter(function (t) { return t.done; }).length;
+      var today = State.todayTasks();
+      var todayDone = today.filter(function (t) { return t.done; }).length;
+      var ft = State.focusTotals();
+      var xp = done * 10 + ft.min * 2 + State.bestStreak() * 15;
+      var level = Math.floor(Math.sqrt(xp / 60)) + 1;
+      var levelXp = Math.pow(level - 1, 2) * 60, nextXp = Math.pow(level, 2) * 60;
+      return {
+        total: total, done: done, pending: total - done,
+        rate: total ? Math.round(done / total * 100) : 0,
+        todayTotal: today.length, todayDone: todayDone,
+        todayPct: today.length ? Math.round(todayDone / today.length * 100) : 0,
+        streak: State.streak(), bestStreak: State.bestStreak(),
+        focusMin: ft.min, focusSessions: ft.sessions,
+        focusToday: State.focusOn(U.today()).min,
+        overdue: State.overdueAll().length,
+        xp: xp, level: level, levelProgress: (xp - levelXp) / (nextXp - levelXp), nextXp: nextXp
+      };
+    },
+    levelTitle: function (level) {
+      var titles = ['Iniciado', 'Aprendiz', 'Constante', 'Enfocado', 'Imparable', 'Estratega', 'Maestro', 'Leyenda'];
+      return titles[Math.min(level - 1, titles.length - 1)];
+    },
+    achievements: function () {
+      var s = State.stats(), map = State.doneByDay();
+      var perfectDay = Object.keys(map).some(function (d) {
+        var all = State.forDate(d);
+        return all.length >= 3 && all.every(function (t) { return t.done; });
+      });
+      var listsUsed = {};
+      State.tasks.forEach(function (t) { if (t.done && t.listId) listsUsed[t.listId] = true; });
+      return [
+        { id: 'first', icon: 'check', title: 'Primer paso', desc: 'Completa tu primera tarea', ok: s.done >= 1 },
+        { id: 'ten', icon: 'bolt', title: 'En marcha', desc: 'Completa 10 tareas', ok: s.done >= 10 },
+        { id: 'fifty', icon: 'medal', title: 'Imparable', desc: 'Completa 50 tareas', ok: s.done >= 50 },
+        { id: 'hundred', icon: 'trophy', title: 'Centenario', desc: 'Completa 100 tareas', ok: s.done >= 100 },
+        { id: 'streak3', icon: 'flame', title: 'Calentando', desc: 'Racha de 3 días', ok: s.bestStreak >= 3 },
+        { id: 'streak7', icon: 'flame', title: 'Semana perfecta', desc: 'Racha de 7 días', ok: s.bestStreak >= 7 },
+        { id: 'streak30', icon: 'crown', title: 'Hábito de hierro', desc: 'Racha de 30 días', ok: s.bestStreak >= 30 },
+        { id: 'focus1', icon: 'timer', title: 'Concentración', desc: 'Termina una sesión de enfoque', ok: s.focusSessions >= 1 },
+        { id: 'focus10h', icon: 'target', title: 'Mente de acero', desc: '10 horas de enfoque', ok: s.focusMin >= 600 },
+        { id: 'perfect', icon: 'sparkle', title: 'Día redondo', desc: 'Completa todo un día con 3+ tareas', ok: perfectDay },
+        { id: 'lists', icon: 'layers', title: 'Organizado', desc: 'Completa tareas en 3 listas', ok: Object.keys(listsUsed).length >= 3 }
+      ];
+    },
+
+    /* ---------- Ajustes ---------- */
+    setSetting: function (path, value) {
+      var parts = path.split('.'), obj = State.settings;
+      for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
+      obj[parts[parts.length - 1]] = value;
+      State.saveSettings('settings:' + path);
+    },
+    setMeta: function (k, v) { State.meta[k] = v; write(KEYS.meta, State.meta); }
+  };
+
+  // Mantener sincronizadas varias pestañas/ventanas de la app
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEYS.tasks) {
+      var fresh = read(KEYS.tasks);
+      if (fresh && Array.isArray(fresh.tasks)) { State.tasks = cleanTasks(fresh.tasks, State.lists); State.notify('sync'); }
+    } else if (e.key === KEYS.settings) {
+      State.settings = mergeTyped(DEFAULT_SETTINGS, read(KEYS.settings));
+      State.notify('settings');
+    }
+  });
+
+  W.State = State;
+})(window.Whider);

@@ -1,0 +1,114 @@
+/* ==========================================================================
+   WHIDER · Tokens de diseño (tema oscuro único, acento configurable)
+   ========================================================================== */
+@font-face {
+  font-family: 'Archivo';
+  src: url('../fonts/archivo-latin-wdth-normal.woff2') format('woff2-variations'),
+       url('../fonts/archivo-latin-wdth-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face { font-family: 'IBM Plex Sans'; src: url('../fonts/ibm-plex-sans-latin-400-normal.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'IBM Plex Sans'; src: url('../fonts/ibm-plex-sans-latin-500-normal.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'IBM Plex Sans'; src: url('../fonts/ibm-plex-sans-latin-600-normal.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'IBM Plex Sans'; src: url('../fonts/ibm-plex-sans-latin-700-normal.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+
+:root {
+  /* Superficies: de más profunda a más elevada */
+  --bg-0: #05060A;
+  --bg-1: #090B11;
+  --s1: #0E1118;
+  --s2: #131721;
+  --s3: #1A1F2B;
+  --s4: #232937;
+  --line: rgba(255, 255, 255, .06);
+  --line-2: rgba(255, 255, 255, .1);
+  --line-3: rgba(255, 255, 255, .16);
+
+  /* Texto */
+  --t1: #F3F5FA;
+  --t2: #A9B1C2;
+  --t3: #6D7588;
+  --t4: #474E5F;
+
+  /* Acento (lo sobrescribe el ajuste "Color de acento") */
+  --accent: #8B8DFF;
+  --accent-2: #C084FC;
+  --accent-rgb: 139, 141, 255;
+  --accent-2-rgb: 192, 132, 252;
+  --on-accent: #0A0B12;
+  --grad: linear-gradient(135deg, var(--accent), var(--accent-2));
+
+  /* Semánticos */
+  --danger: #FF5D73;  --danger-rgb: 255, 93, 115;
+  --warn: #FFB547;    --warn-rgb: 255, 181, 71;
+  --success: #3DDC97; --success-rgb: 61, 220, 151;
+  --info: #5CC8FF;
+
+  /* Prioridades */
+  --p-danger: #FF5D73;
+  --p-purple: #A78BFA;
+  --p-star: #FFC45C;
+  --p-none: #4A5162;
+
+  /* Forma */
+  --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 28px; --r-pill: 999px;
+  --pad: 18px;
+  --gap: 12px;
+  --card-pad: 16px;
+
+  /* Tipografía */
+  --font-display: 'Archivo', 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', 'Segoe UI', Roboto, system-ui, sans-serif;
+
+  /* Movimiento */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-in: cubic-bezier(.5, 0, .75, 0);
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --dur: .32s;
+
+  /* Estructura (zonas seguras de Android/iOS incluidas) */
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --topbar-h: 58px;
+  --dock-h: 68px;
+  --dock-gap: 12px;
+  --content-max: 620px;
+
+  /* Elevación */
+  --sh-1: 0 1px 0 rgba(255, 255, 255, .035) inset, 0 10px 30px -12px rgba(0, 0, 0, .6);
+  --sh-2: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 24px 60px -20px rgba(0, 0, 0, .8);
+  --glow: 0 10px 34px -8px rgba(var(--accent-rgb), .55);
+}
+
+/* Tamaño de texto (Ajustes → Apariencia). Toda la UI usa rem. */
+html[data-text="s"] { font-size: 14.5px; }
+html[data-text="m"] { font-size: 16px; }
+html[data-text="l"] { font-size: 17.5px; }
+html[data-text="xl"] { font-size: 19px; }
+
+/* Densidad */
+html[data-density="compact"] { --pad: 14px; --gap: 9px; --card-pad: 13px; }
+
+/* Pantallas pequeñas (≤ 360 px de ancho) */
+@media (max-width: 360px) {
+  :root { --pad: 14px; --gap: 10px; --card-pad: 14px; --dock-h: 64px; }
+  html[data-text="m"] { font-size: 15px; }
+}
+/* Móviles en horizontal o pantallas muy bajas */
+@media (max-height: 520px) {
+  :root { --topbar-h: 50px; --dock-h: 58px; --dock-gap: 6px; }
+}
+
+/* Animaciones reducidas (ajuste propio o preferencia del sistema) */
+html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-motion="reduced"] *::after {
+  animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important; scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

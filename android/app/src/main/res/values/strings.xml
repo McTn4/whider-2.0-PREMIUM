@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Whider Pro</string>
+    <string name="app_name">WHIDER</string>
     <string name="channel_warnings">Avisos de tareas</string>
-    <string name="channel_warnings_desc">Alertas cuando una tarea con aviso no se cumple a tiempo</string>
+    <string name="channel_warnings_desc">Recordatorios antes del plazo y alertas cuando una tarea no se cumple</string>
 </resources>

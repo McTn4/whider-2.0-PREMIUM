@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-WHIDER PRO - Empaquetador para Android Studio y PWABuilder
+WHIDER - Empaquetador para Android Studio y PWABuilder
 
 1. Sincroniza la app web (index.html, css/, js/, fonts/, icons/, manifest.json, sw.js)
    dentro de android/app/src/main/assets/www para que el APK use siempre la última versión.
-2. Crea whider-pro-android-project.zip listo para Android Studio o PWABuilder.
+2. Crea whider-android-project.zip listo para Android Studio o PWABuilder.
 
 Uso:
     python package_apk.py          # sincroniza y crea el ZIP
@@ -19,7 +19,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ZIP_NAME = "whider-pro-android-project.zip"
+ZIP_NAME = "whider-android-project.zip"
 ZIP_OUTPUT = os.path.join(BASE_DIR, ZIP_NAME)
 ANDROID_WWW = os.path.join(BASE_DIR, "android", "app", "src", "main", "assets", "www")
 

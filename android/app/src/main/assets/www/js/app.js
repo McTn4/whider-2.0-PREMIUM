@@ -1,294 +1,129 @@
 /**
- * WHIDER PRO - APLICACIÓN PRINCIPAL (BOOTSTRAPPER)
- * Inicializa todos los subsistemas, servicios y pantallas.
+ * WHIDER · Arranque de la aplicación
  */
 window.Whider = window.Whider || {};
 
-(function () {
+(function (W) {
   'use strict';
+  var U = W.U, S = W.State;
 
-  function initApp() {
-    console.log('🚀 Whider Pro iniciando...');
-
-    // 1. Inicializar Modal de Edición
-    if (Whider.Modal) Whider.Modal.init();
-
-    // 2. Inicializar Pantallas
-    if (Whider.Screens) {
-      if (Whider.Screens.Tasks) Whider.Screens.Tasks.init();
-      if (Whider.Screens.Calendar) Whider.Screens.Calendar.init();
-      if (Whider.Screens.Warnings) Whider.Screens.Warnings.init();
-      if (Whider.Screens.Stats) Whider.Screens.Stats.init();
-      if (Whider.Screens.Settings) Whider.Screens.Settings.init();
-    }
-
-    // 3. Inicializar Notificaciones y Alertas Proactivas
-    if (Whider.Notifications) Whider.Notifications.init();
-
-    // 4. Inicializar Router
-    if (Whider.Router) Whider.Router.init();
-
-    // 5. Suscripción Reactiva del Estado
-    Whider.State.subscribe(function () {
-      if (Whider.Router) {
-        Whider.Router.renderActiveScreen(Whider.State.activeScreen);
-      }
-      if (Whider.Notifications) {
-        Whider.Notifications.updateBadges();
-      }
-    });
-
-    // 6. Atajos de teclado en escritorio
-    window.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        closeTopLayer();
-        return;
-      }
-      var tag = document.activeElement ? document.activeElement.tagName : '';
-      if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
-        var quickInput = document.getElementById('quickTaskInput');
-        if (quickInput) {
-          e.preventDefault();
-          Whider.Router.navigate('tasks');
-          quickInput.focus();
-        }
-      }
-    });
-
-    // 6b. Al cambiar de día con la app abierta, refrescar fechas, rachas y avisos
-    var lastDay = Whider.State.today();
-    setInterval(function () {
-      var now = Whider.State.today();
-      if (now !== lastDay) {
-        lastDay = now;
-        Whider.Router.renderActiveScreen(Whider.State.activeScreen);
-      }
-    }, 60000);
-
-    // 7. Registro de Service Worker (PWA & Offline WebAPK)
-    initServiceWorker();
-
-    // 8. Gestor de Instalación Nativa (WebAPK / PWA)
-    initInstallPrompt();
-
-    // 9. Conexión opcional a Cloud (window.claude) si está disponible
-    connectClaudeDoc();
-
-    console.log('✅ Whider Pro listo y operativo.');
+  function hexToRgb(hex) {
+    var h = hex.replace('#', '');
+    return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)].join(', ');
   }
 
-  var deferredPrompt = null;
-
-  function isVisible(id) {
-    var n = document.getElementById(id);
-    return !!n && n.style.display !== 'none';
+  /** Aplica acento, tamaño de texto, densidad y efectos */
+  function applyAppearance() {
+    var cfg = S.settings, html = document.documentElement, acc = S.ACCENTS[cfg.accent] || S.ACCENTS.iris;
+    html.style.setProperty('--accent', acc.a);
+    html.style.setProperty('--accent-2', acc.b);
+    html.style.setProperty('--accent-rgb', hexToRgb(acc.a));
+    html.style.setProperty('--accent-2-rgb', hexToRgb(acc.b));
+    html.setAttribute('data-text', cfg.textSize);
+    html.setAttribute('data-density', cfg.density);
+    html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
+    html.setAttribute('data-fx', cfg.bgEffects && !cfg.reduceMotion ? 'on' : 'off');
+    var name = S.displayName();
+    var av = document.getElementById('topAvatar');
+    if (av) av.textContent = (name || 'W').charAt(0).toUpperCase();
+    var b = window.WhiderAndroid;
+    if (b && typeof b.setAccent === 'function') { try { b.setAccent(acc.a); } catch (e) { /* opcional */ } }
+    requestAnimationFrame(W.Router.placeIndicator);
   }
 
-  function hide(id) {
-    var n = document.getElementById(id);
-    if (n) n.style.display = 'none';
+  function setFab(open) {
+    var f = document.getElementById('btnFab');
+    if (f) f.classList.toggle('open', !!open);
   }
 
-  // Cierra la capa superior abierta (modal o menú). Devuelve true si cerró algo.
-  function closeTopLayer() {
-    if (isVisible('editModal')) { hide('editModal'); return true; }
-    if (isVisible('accountModal')) { hide('accountModal'); return true; }
-    if (isVisible('installModal')) { hide('installModal'); return true; }
-    if (Whider.Premium && Whider.Premium.isDrawerOpen && Whider.Premium.isDrawerOpen()) {
-      Whider.Premium.closeDrawer();
-      return true;
-    }
-    return false;
+  function newTaskFromContext() {
+    var id = S.activeScreen, preset = {};
+    if (id === 'calendar') preset.date = S.ui.calSelected;
+    if (id === 'tasks' && S.ui.filter === 'nodate') preset.date = null;
+    if (id === 'tasks' && S.ui.filter === 'upcoming') preset.date = U.addDays(U.today(), 1);
+    W.Editor.open(null, preset);
   }
 
-  // Botón "atrás" de Android: cierra capas, vuelve a Inicio y solo entonces sale.
-  // La app nativa (MainActivity) lo invoca y espera true si la web gestionó el gesto.
+  /** Atrás (Android/Escape): presentación → hojas → pantalla inicial → salir */
   function handleBack() {
-    if (closeTopLayer()) return true;
-    if (Whider.State.activeScreen && Whider.State.activeScreen !== 'home') {
-      Whider.Router.navigate('home');
-      return true;
-    }
+    if (W.Onboarding.isOpen()) return W.Onboarding.back();
+    if (W.Sheet.closeTop()) return true;
+    var start = S.settings.startScreen || 'home';
+    if (S.activeScreen !== start) { W.Router.go(start); return true; }
     return false;
   }
 
-  Whider.App = { handleBack: handleBack, closeTopLayer: closeTopLayer };
+  function celebrateIfDone(reason) {
+    if (reason !== 'done') return;
+    var s = S.stats();
+    if (s.todayTotal > 0 && s.todayDone === s.todayTotal && S.meta.celebrated !== U.today()) {
+      S.setMeta('celebrated', U.today());
+      setTimeout(function () {
+        W.Fx.confetti();
+        W.Audio.celebrate();
+        W.Toast.show({ text: '¡Día completado! Todas las tareas de hoy están hechas', type: 'success', icon: 'trophy', duration: 4500 });
+      }, 450);
+    }
+  }
 
-  function isStandalone() {
-    return !!window.WhiderAndroid ||
-      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-      window.navigator.standalone === true;
+  function checkAchievements(silent) {
+    var seen = S.meta.seenAchievements.slice(), fresh = [];
+    S.achievements().forEach(function (a) { if (a.ok && seen.indexOf(a.id) < 0) { seen.push(a.id); fresh.push(a); } });
+    if (!fresh.length) return;
+    S.setMeta('seenAchievements', seen);
+    if (silent) return;
+    fresh.forEach(function (a, i) {
+      setTimeout(function () { W.Toast.show({ text: 'Logro desbloqueado: ' + a.title, type: 'success', icon: a.icon, duration: 4000 }); W.Audio.vibrate([20, 40, 20, 40, 60]); }, 900 + i * 700);
+    });
   }
 
   function initServiceWorker() {
-    // Los Service Workers solo funcionan en HTTPS o localhost (no en file:// ni en el WebView de assets)
-    if ('serviceWorker' in navigator && window.isSecureContext && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-      navigator.serviceWorker.register('./sw.js').then(function (reg) {
-        console.log('📦 Service Worker registrado con éxito:', reg.scope);
-      }).catch(function (err) {
-        console.warn('Service Worker registro omitido:', err);
-      });
-    }
+    if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
+    if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+    navigator.serviceWorker.register('./sw.js').catch(function (err) { console.warn('Service Worker no registrado:', err); });
   }
 
-  function initInstallPrompt() {
-    var installModal = document.getElementById('installModal');
-    var btnHeaderInstall = document.getElementById('btnHeaderInstall');
-    var btnInstallAppPrompt = document.getElementById('btnInstallAppPrompt');
-    var btnTriggerPwaInstall = document.getElementById('btnTriggerPwaInstall');
-    var btnClose = document.getElementById('btnCloseInstallModal');
-    var btnDismiss = document.getElementById('btnDismissInstallModal');
+  function init() {
+    applyAppearance();
+    checkAchievements(true);
 
-    // Ya instalada (APK nativo o PWA abierta como app): no tiene sentido ofrecer la instalación
-    var installCard = btnInstallAppPrompt ? btnInstallAppPrompt.closest('.settings-section-card') : null;
-    if (installCard && isStandalone()) installCard.style.display = 'none';
+    document.getElementById('btnFab').addEventListener('click', function () { newTaskFromContext(); });
+    document.getElementById('btnProfile').addEventListener('click', function () { W.Audio.tap(); W.Router.go('progress'); });
+    document.getElementById('btnAlerts').addEventListener('click', function () { W.Audio.tap(); W.Router.go('alerts'); });
+    document.getElementById('btnSettings').addEventListener('click', function () { W.Audio.tap(); W.Router.go('settings'); });
 
-    window.addEventListener('beforeinstallprompt', function (e) {
-      e.preventDefault();
-      deferredPrompt = e;
-      if (btnHeaderInstall) btnHeaderInstall.classList.add('has-alert');
-      console.log('📲 Instalación WebAPK disponible en este dispositivo');
+    S.subscribe(function (reason) {
+      if (/^settings|^profile/.test(reason)) applyAppearance();
+      // En Ajustes, los propios controles ya reflejan el cambio: no se reconstruye la pantalla
+      if (!(/^settings:/.test(reason) && S.activeScreen === 'settings')) W.Router.refresh();
+      W.Notify.emitBadge();
+      celebrateIfDone(reason);
+      if (/^(done|focus)$/.test(reason)) checkAchievements(false);
     });
 
-    window.addEventListener('appinstalled', function () {
-      deferredPrompt = null;
-      if (installModal) installModal.style.display = 'none';
-      if (Whider.Toast) Whider.Toast.show('¡WHIDER PRO instalada en tu dispositivo!', 'success');
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { handleBack(); return; }
+      var tag = document.activeElement ? document.activeElement.tagName : '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || W.Sheet.isOpen()) return;
+      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); newTaskFromContext(); }
+      else if (e.key === '/') { e.preventDefault(); W.Router.go('tasks'); setTimeout(function () { var i = U.$('#screen-tasks input[type=search]'); if (i) i.focus(); }, 60); }
     });
 
-    var openInstallDialog = function () {
-      if (deferredPrompt) {
-        var promptEvent = deferredPrompt;
-        deferredPrompt = null; // Un evento de instalación solo puede usarse una vez
-        if (installModal) installModal.style.display = 'none';
-        promptEvent.prompt();
-        promptEvent.userChoice.then(function (choice) {
-          if (choice && choice.outcome === 'accepted' && Whider.Toast) {
-            Whider.Toast.show('Instalando WHIDER PRO…', 'success');
-          }
-        }).catch(function () {});
-      } else if (installModal) {
-        updateTunnelInfoInModal();
-        installModal.style.display = 'flex';
-      }
-    };
+    // Refrescar fechas y avisos si la app sigue abierta al cambiar de día
+    var day = U.today();
+    setInterval(function () { if (U.today() !== day) { day = U.today(); W.Router.refresh(); } }, 60000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { W.Screens.focus.resume(); W.Router.refresh(); } });
 
-    function setQr(url) {
-      var input = document.getElementById('tunnelUrlInput');
-      var qrImg = document.getElementById('qrCodeImg');
-      if (input) input.value = url;
-      if (qrImg) {
-        qrImg.onerror = function () { qrImg.style.display = 'none'; };
-        qrImg.style.display = 'block';
-        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(url);
-      }
-    }
+    W.Router.init(S.settings.startScreen);
+    W.Notify.init();
+    W.Screens.focus.resume();
+    initServiceWorker();
 
-    function currentAppUrl() {
-      return window.location.href.split('#')[0];
-    }
-
-    function updateTunnelInfoInModal() {
-      var pwaBtn = document.getElementById('btnPwaBuilderLink');
-      // /api/tunnel solo existe cuando se sirve con serve.py
-      if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
-        setQr(currentAppUrl());
-        return;
-      }
-      fetch('./api/tunnel', { cache: 'no-store' }).then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      }).then(function (data) {
-        var targetUrl = (data && (data.tunnel_url || data.local_ip_url)) || currentAppUrl();
-        setQr(targetUrl);
-        var publicUrl = data && data.tunnel_url;
-        if (!publicUrl && window.location.protocol === 'https:') publicUrl = currentAppUrl();
-        if (pwaBtn && publicUrl) {
-          pwaBtn.href = 'https://www.pwabuilder.com/reportcard?site=' + encodeURIComponent(publicUrl);
-        }
-      }).catch(function () {
-        setQr(currentAppUrl());
-        if (pwaBtn && window.location.protocol === 'https:') {
-          pwaBtn.href = 'https://www.pwabuilder.com/reportcard?site=' + encodeURIComponent(currentAppUrl());
-        }
-      });
-    }
-
-    function legacyCopy(input) {
-      try {
-        input.removeAttribute('readonly');
-        input.select();
-        input.setSelectionRange(0, input.value.length);
-        var ok = document.execCommand('copy');
-        input.setAttribute('readonly', '');
-        return ok;
-      } catch (e) {
-        input.setAttribute('readonly', '');
-        return false;
-      }
-    }
-
-    var btnCopy = document.getElementById('btnCopyTunnelUrl');
-    if (btnCopy) {
-      btnCopy.addEventListener('click', function () {
-        var input = document.getElementById('tunnelUrlInput');
-        if (!input) return;
-        var done = function (ok) {
-          if (Whider.Toast) Whider.Toast.show(ok ? 'Enlace copiado al portapapeles' : 'No se pudo copiar el enlace', ok ? 'success' : 'danger');
-        };
-        // navigator.clipboard no existe en HTTP sin cifrar (p. ej. la IP Wi-Fi del PC)
-        if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
-          navigator.clipboard.writeText(input.value).then(function () { done(true); })
-            .catch(function () { done(legacyCopy(input)); });
-        } else {
-          done(legacyCopy(input));
-        }
-      });
-    }
-
-    if (btnHeaderInstall) btnHeaderInstall.addEventListener('click', openInstallDialog);
-    if (btnInstallAppPrompt) btnInstallAppPrompt.addEventListener('click', openInstallDialog);
-    if (btnTriggerPwaInstall) btnTriggerPwaInstall.addEventListener('click', openInstallDialog);
-
-    var closeDialog = function () {
-      if (installModal) installModal.style.display = 'none';
-    };
-    if (btnClose) btnClose.addEventListener('click', closeDialog);
-    if (btnDismiss) btnDismiss.addEventListener('click', closeDialog);
-    if (installModal) {
-      installModal.addEventListener('click', function (e) {
-        if (e.target === installModal) closeDialog();
-      });
-    }
+    if (!S.meta.onboarded) setTimeout(W.Onboarding.start, 250);
+    document.documentElement.classList.add('ready');
   }
 
-  async function connectClaudeDoc() {
-    try {
-      var c = window.claude;
-      if (!c || !c.use) return;
-      var user = await c.use('user');
-      var db = await c.use('db');
-      if (!user || !db) return;
-      var id = await user.id();
-      if (!id) return;
-      var ref = db.doc('data/users/' + id + '/whider');
-      ref.onSnapshot(function (snap) {
-        if (snap.metadata && snap.metadata.hasPendingWrites) return;
-        if (snap.exists) {
-          var d = snap.data();
-          // importJSON sanea los datos remotos antes de sustituir los locales
-          if (d && Array.isArray(d.tasks)) {
-            Whider.State.importJSON(JSON.stringify({ tasks: d.tasks }));
-          }
-        }
-      }, function () {});
-    } catch (e) {}
-  }
+  W.App = { handleBack: handleBack, setFab: setFab, applyAppearance: applyAppearance };
 
-  // Ejecutar cuando el DOM esté listo
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-  } else {
-    initApp();
-  }
-})();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})(window.Whider);

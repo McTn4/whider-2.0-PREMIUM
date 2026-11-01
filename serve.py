@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WHIDER PRO - Servidor local con túnel HTTPS opcional para móviles (Android / APK)
+WHIDER - Servidor local con túnel HTTPS opcional para móviles (Android / APK)
 
 Uso:
     python serve.py            # puerto 8080 (o el siguiente libre)
@@ -11,7 +11,6 @@ Si `cloudflared` está instalado (en el PATH o junto a este archivo) se crea un
 enlace HTTPS público temporal, necesario para instalar la app como WebAPK.
 """
 import http.server
-import json
 import os
 import re
 import shutil
@@ -32,7 +31,6 @@ DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 tunnel_info = {
     "https_url": None,
     "local_url": f"http://localhost:{DEFAULT_PORT}",
-    "port": DEFAULT_PORT,
 }
 
 
@@ -70,22 +68,6 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
-
-    def do_GET(self):
-        # Endpoint de API para informar a la app del enlace HTTPS del túnel
-        if self.path.split('?', 1)[0] == '/api/tunnel':
-            payload = json.dumps({
-                "tunnel_url": tunnel_info["https_url"],
-                "local_ip_url": f"http://{get_local_ip()}:{tunnel_info['port']}",
-                "local_url": tunnel_info["local_url"],
-            }).encode('utf-8')
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Content-Length', str(len(payload)))
-            self.end_headers()
-            self.wfile.write(payload)
-            return
-        return super().do_GET()
 
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store, must-revalidate')
@@ -177,11 +159,10 @@ def run():
         print(f"[!] No hay puertos libres entre {start_port} y {start_port + 19}.")
         sys.exit(1)
 
-    tunnel_info["port"] = port
     tunnel_info["local_url"] = f"http://localhost:{port}"
 
     print("\n" + "=" * 70)
-    print("  WHIDER PRO - SERVIDOR LOCAL ACTIVO")
+    print("  WHIDER - SERVIDOR LOCAL ACTIVO")
     print(f"  💻 Ordenador (PC): {tunnel_info['local_url']}")
     print(f"  📶 Red Wi-Fi Local: http://{local_ip}:{port}")
     print("  (Pulsa Ctrl+C para detener)")
