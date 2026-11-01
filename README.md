@@ -107,6 +107,7 @@ El perfil (nombre y correo) se guarda **solo en este dispositivo** (`localStorag
 - Al añadir una tarea con un filtro activo, la nueva tarea podía quedar oculta.
 - El interruptor "Avisarme si no la hago" y los chips de fecha no reflejaban bien el estado al elegir una fecha a mano.
 - Borrar una tarea desde el editor ahora pide confirmación.
+- Corregida la errata "Taskraker" → "Tasktracker" en la barra inferior y el menú lateral.
 
 **Ajustes y copia de seguridad**
 - Exportar JSON revocaba la URL antes de descargar (fallaba en algunos navegadores) y en la app Android no funcionaba: ahora se guarda en *Descargas* mediante el puente nativo.
