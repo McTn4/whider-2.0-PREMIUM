@@ -16,7 +16,22 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Firma fija para las versiones de prueba: así la huella SHA-1 es siempre la misma
+    // (en cualquier ordenador y en la compilación automática de GitHub) y Google la reconoce.
+    // SHA-1: 4F:33:7F:B5:D2:11:79:C2:20:DF:EC:0F:94:AB:C5:D2:57:60:3C:FB
+    signingConfigs {
+        debug {
+            storeFile file('whider-debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
