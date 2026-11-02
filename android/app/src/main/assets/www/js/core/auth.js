@@ -3,16 +3,18 @@
  *  - Registro con correo y contraseña, verificación del correo y recuperación de contraseña
  *  - Inicio de sesión con Google (ventana de Google en web; selector nativo de cuentas en Android)
  *  - Cierre de sesión y eliminación de la cuenta
+ *
+ * El SDK de Firebase se carga en segundo plano DESPUÉS de mostrar la app, así el arranque es inmediato.
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var CFG = window.WHIDER_CONFIG || {};
-  var F = window.WFB;
-  var app = null, auth = null, db = null;
+  var F = null, app = null, auth = null, db = null;
   var listeners = [], readyResolve, ready = new Promise(function (r) { readyResolve = r; });
-  var nativeGoogle = null;
+  var loadPromise = null, initialized = false, nativeGoogle = null;
+  var REDIRECT_FLAG = 'whider.googleRedirect';
 
   var ERRORS = {
     'auth/email-already-in-use': 'Ya existe una cuenta con este correo. Inicia sesión.',
@@ -32,55 +34,88 @@ window.Whider = window.Whider || {};
     'auth/popup-blocked': 'El navegador bloqueó la ventana de Google.',
     'auth/account-exists-with-different-credential': 'Este correo ya está registrado con otro método. Entra con correo y contraseña.',
     'auth/requires-recent-login': 'Por seguridad, vuelve a iniciar sesión y repite la acción.',
-    'auth/operation-not-allowed': 'Este método de acceso no está activado en el proyecto de Firebase.',
+    'auth/operation-not-allowed': 'Este método de acceso no está activado en Firebase.',
     'auth/unauthorized-domain': 'Este dominio no está autorizado en Firebase (Authentication → Configuración).',
     'auth/internal-error': 'Error del servidor de cuentas. Inténtalo de nuevo.',
     'whider/domain': 'Solo se admiten correos profesionales de: ',
+    'whider/load': 'No se pudo cargar el sistema de cuentas. Comprueba tu conexión.',
     'whider/google-cancelled': 'Inicio de sesión con Google cancelado.',
-    'whider/google-unavailable': 'Google no está disponible en este dispositivo.',
-    'whider/google-config': 'Falta el ID de cliente web de Google en js/config.js.'
+    'whider/google-config': 'Google no reconoce esta app. En Firebase → Configuración del proyecto → Tus apps → Android, comprueba el paquete com.whider.app y la huella SHA-1 de la firma.',
+    'whider/google-no-account': 'No hay ninguna cuenta de Google en este móvil. Añádela en Ajustes del teléfono → Cuentas.',
+    'whider/google-unavailable': 'Google no está disponible ahora mismo en este dispositivo. Inténtalo de nuevo.',
+    'whider/google-client': 'Falta el ID de cliente web de Google en js/config.js.'
   };
 
   function err(code, extra) { var e = new Error(code); e.code = code; e.extra = extra; return e; }
   function emit() { listeners.forEach(function (fn) { try { fn(Auth.user); } catch (e) { console.error(e); } }); }
+  function isAndroid() { return !!(window.WhiderAndroid && typeof window.WhiderAndroid.googleSignIn === 'function'); }
+
+  /** Carga js/vendor/firebase.js bajo demanda (una sola vez) */
+  function load() {
+    if (loadPromise) return loadPromise;
+    loadPromise = new Promise(function (resolve, reject) {
+      if (window.WFB) { resolve(window.WFB); return; }
+      var s = document.createElement('script');
+      s.src = 'js/vendor/firebase.js';
+      s.async = true;
+      s.onload = function () { window.WFB ? resolve(window.WFB) : reject(err('whider/load')); };
+      s.onerror = function () { loadPromise = null; reject(err('whider/load')); };
+      document.head.appendChild(s);
+    });
+    return loadPromise;
+  }
+
+  function setup() {
+    if (initialized) return;
+    initialized = true;
+    F = window.WFB;
+    app = F.initializeApp(CFG.firebase);
+    var opts = { persistence: [F.indexedDBLocalPersistence, F.browserLocalPersistence] };
+    // En Android el acceso con Google es nativo: no hace falta el sistema de ventanas web
+    // (que descarga un iframe de Google en cada arranque)
+    if (!isAndroid()) opts.popupRedirectResolver = F.browserPopupRedirectResolver;
+    auth = F.initializeAuth(app, opts);
+    auth.languageCode = 'es';
+    db = F.getFirestore(app);
+    if (CFG.emulator) {
+      F.connectAuthEmulator(auth, CFG.emulator.auth, { disableWarnings: true });
+      F.connectFirestoreEmulator(db, CFG.emulator.firestoreHost, CFG.emulator.firestorePort);
+    }
+    var first = true;
+    F.onAuthStateChanged(auth, function (u) {
+      Auth.user = u;
+      if (first) { first = false; readyResolve(u); }
+      emit();
+    });
+    // Solo si el usuario inició un acceso con Google por redirección en la web
+    var pending = false;
+    try { pending = sessionStorage.getItem(REDIRECT_FLAG) === '1'; sessionStorage.removeItem(REDIRECT_FLAG); } catch (e) { pending = false; }
+    if (pending && !isAndroid()) F.getRedirectResult(auth).catch(function () { /* sin resultado */ });
+    setTimeout(function () { if (first) { first = false; readyResolve(Auth.user); } }, 8000);
+  }
+
+  /** Espera a que Firebase esté cargado y la sesión restaurada */
+  function whenReady() {
+    return load().then(function () { setup(); return ready; });
+  }
 
   var Auth = {
     user: null,
     db: function () { return db; },
-    configured: function () { return !!(CFG.firebase && CFG.firebase.apiKey && F); },
+    sdk: function () { return F; },
+    configured: function () { return !!(CFG.firebase && CFG.firebase.apiKey); },
+    loaded: function () { return !!F; },
     ready: function () { return ready; },
+    whenReady: whenReady,
     onChange: function (fn) { listeners.push(fn); },
 
+    /** Arranca la carga en segundo plano (no bloquea la interfaz) */
     init: function () {
       if (!Auth.configured()) { readyResolve(null); return; }
-      try {
-        app = F.initializeApp(CFG.firebase);
-        auth = F.initializeAuth(app, {
-          persistence: [F.indexedDBLocalPersistence, F.browserLocalPersistence],
-          popupRedirectResolver: F.browserPopupRedirectResolver
-        });
-        auth.languageCode = 'es';
-        var cache;
-        try { cache = F.persistentLocalCache({ tabManager: F.persistentSingleTabManager() }); } catch (e) { cache = F.memoryLocalCache(); }
-        db = F.initializeFirestore(app, { localCache: cache });
-        if (CFG.emulator) {
-          F.connectAuthEmulator(auth, CFG.emulator.auth, { disableWarnings: true });
-          F.connectFirestoreEmulator(db, CFG.emulator.firestoreHost, CFG.emulator.firestorePort);
-        }
-      } catch (e) {
-        console.error('Firebase no se pudo iniciar', e);
-        readyResolve(null);
-        return;
-      }
-      var first = true;
-      F.onAuthStateChanged(auth, function (u) {
-        Auth.user = u;
-        if (first) { first = false; readyResolve(u); }
-        emit();
-      });
-      F.getRedirectResult(auth).catch(function () { /* sin redirección pendiente */ });
-      // Sin conexión el SDK responde igualmente con la sesión guardada; esto es solo una red de seguridad
-      setTimeout(function () { if (first) { first = false; readyResolve(Auth.user); } }, 6000);
+      var go = function () {
+        whenReady().catch(function (e) { console.warn('Firebase no disponible:', e && e.code); readyResolve(null); });
+      };
+      if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 600 }); else setTimeout(go, 120);
     },
 
     /* ---------- Validación ---------- */
@@ -88,8 +123,8 @@ window.Whider = window.Whider || {};
     domainAllowed: function (email) {
       var list = CFG.allowedEmailDomains || [];
       if (!list.length) return true;
-      var domain = String(email).split('@')[1] || '';
-      return list.some(function (d) { d = d.toLowerCase(); domain = domain.toLowerCase(); return domain === d || domain.slice(-(d.length + 1)) === '.' + d; });
+      var domain = (String(email).split('@')[1] || '').toLowerCase();
+      return list.some(function (d) { d = d.toLowerCase(); return domain === d || domain.slice(-(d.length + 1)) === '.' + d; });
     },
     passwordScore: function (p) {
       var score = 0;
@@ -110,53 +145,79 @@ window.Whider = window.Whider || {};
     register: function (name, email, password) {
       email = email.trim().toLowerCase();
       if (!Auth.domainAllowed(email)) return Promise.reject(err('whider/domain', (CFG.allowedEmailDomains || []).join(', ')));
-      return F.createUserWithEmailAndPassword(auth, email, password).then(function (cred) {
+      return whenReady().then(function () {
+        return F.createUserWithEmailAndPassword(auth, email, password);
+      }).then(function (cred) {
         return F.updateProfile(cred.user, { displayName: name }).then(function () {
           return F.sendEmailVerification(cred.user).catch(function () { /* se puede reenviar después */ });
         }).then(function () { emit(); return cred.user; });
       });
     },
     login: function (email, password) {
-      return F.signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password).then(function (c) { return c.user; });
+      return whenReady().then(function () {
+        return F.signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      }).then(function (c) { return c.user; });
     },
     google: function () {
-      var bridge = window.WhiderAndroid;
-      if (bridge && typeof bridge.googleSignIn === 'function') {
-        if (!CFG.googleWebClientId) return Promise.reject(err('whider/google-config'));
-        return new Promise(function (resolve, reject) {
+      if (isAndroid()) {
+        if (!CFG.googleWebClientId) return Promise.reject(err('whider/google-client'));
+        // El selector de cuentas se abre a la vez que se termina de cargar Firebase
+        var token = new Promise(function (resolve, reject) {
           nativeGoogle = { resolve: resolve, reject: reject };
-          try { bridge.googleSignIn(CFG.googleWebClientId); } catch (e) { nativeGoogle = null; reject(err('whider/google-unavailable')); }
-        }).then(function (idToken) {
-          return F.signInWithCredential(auth, F.GoogleAuthProvider.credential(idToken));
+          try { window.WhiderAndroid.googleSignIn(CFG.googleWebClientId); } catch (e) { nativeGoogle = null; reject(err('whider/google-unavailable')); }
+        });
+        return Promise.all([token, whenReady()]).then(function (r) {
+          return F.signInWithCredential(auth, F.GoogleAuthProvider.credential(r[0]));
         }).then(function (c) { return c.user; });
       }
-      var provider = new F.GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      return F.signInWithPopup(auth, provider).then(function (c) { return c.user; }).catch(function (e) {
-        if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) {
-          return F.signInWithRedirect(auth, provider);
-        }
-        throw e;
+      return whenReady().then(function () {
+        var provider = new F.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        return F.signInWithPopup(auth, provider).then(function (c) { return c.user; }).catch(function (e) {
+          if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) {
+            try { sessionStorage.setItem(REDIRECT_FLAG, '1'); } catch (x) { /* sin almacenamiento */ }
+            return F.signInWithRedirect(auth, provider);
+          }
+          throw e;
+        });
       });
     },
-    /** La app Android devuelve aquí el token de Google (o el error) */
-    onNativeGoogle: function (idToken, errorCode) {
+    /**
+     * La app Android devuelve aquí el token de Google, o el error con su detalle técnico.
+     * kind: cancelled · config · no-account · unavailable · invalid · client
+     */
+    onNativeGoogle: function (idToken, kind, detail) {
       var p = nativeGoogle; nativeGoogle = null;
       if (!p) return;
-      if (idToken) p.resolve(idToken);
-      else p.reject(err(errorCode === 'cancelled' ? 'whider/google-cancelled' : 'whider/google-unavailable'));
+      if (idToken) { p.resolve(idToken); return; }
+      var code = kind === 'cancelled' ? 'whider/google-cancelled'
+        : kind === 'config' ? 'whider/google-config'
+        : kind === 'no-account' ? 'whider/google-no-account'
+        : kind === 'client' ? 'whider/google-client'
+        : 'whider/google-unavailable';
+      p.reject(err(code, detail || ''));
     },
-    resetPassword: function (email) { return F.sendPasswordResetEmail(auth, email.trim().toLowerCase()); },
-    resendVerification: function () { return Auth.user ? F.sendEmailVerification(Auth.user) : Promise.resolve(); },
+    resetPassword: function (email) {
+      return whenReady().then(function () { return F.sendPasswordResetEmail(auth, email.trim().toLowerCase()); });
+    },
+    resendVerification: function () {
+      return whenReady().then(function () { return Auth.user ? F.sendEmailVerification(Auth.user) : null; });
+    },
     /** Comprueba si ya se verificó el correo (y renueva el token para que la nube lo reconozca) */
     refresh: function () {
       if (!Auth.user) return Promise.resolve(null);
       return F.reload(Auth.user).then(function () { return Auth.user.getIdToken(true); }).then(function () { emit(); return Auth.user; });
     },
+    /** Mantiene el nombre de la cuenta igual que el del perfil de la app */
+    updateName: function (name) {
+      if (!Auth.user || !F || !name) return Promise.resolve();
+      return F.updateProfile(Auth.user, { displayName: name }).catch(function () { /* sin conexión: se queda en el perfil */ });
+    },
     logout: function () {
-      var bridge = window.WhiderAndroid;
-      if (bridge && typeof bridge.googleSignOut === 'function') { try { bridge.googleSignOut(); } catch (e) { /* opcional */ } }
-      return F.signOut(auth);
+      if (isAndroid() && typeof window.WhiderAndroid.googleSignOut === 'function') {
+        try { window.WhiderAndroid.googleSignOut(); } catch (e) { /* opcional */ }
+      }
+      return auth ? F.signOut(auth) : Promise.resolve();
     },
     deleteAccount: function () {
       var u = Auth.user;

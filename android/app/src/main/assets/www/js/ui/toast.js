@@ -5,7 +5,7 @@ window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
-  var U = W.U, MAX = 3;
+  var U = W.U, MAX = 2;
   var ICONS = { success: 'check', danger: 'alert', info: 'info' };
 
   function dismiss(node) {

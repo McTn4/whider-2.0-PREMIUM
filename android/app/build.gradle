@@ -10,8 +10,8 @@ android {
         applicationId "com.whider.app"
         minSdk 24
         targetSdk 34
-        versionCode 400
-        versionName "4.0.0"
+        versionCode 410
+        versionName "4.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,6 +47,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.webkit:webkit:1.10.0'
+    // Selector de fotos del sistema (foto de perfil)
+    implementation 'androidx.activity:activity:1.9.3'
     // Inicio de sesión con Google (selector nativo de cuentas)
     implementation 'androidx.credentials:credentials:1.3.0'
     implementation 'androidx.credentials:credentials-play-services-auth:1.3.0'

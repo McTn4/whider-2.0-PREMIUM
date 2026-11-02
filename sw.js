@@ -2,7 +2,7 @@
  * WHIDER · Service Worker: funciona sin conexión y se actualiza solo
  * (estrategia "red primero" con respaldo en caché).
  */
-var CACHE_NAME = 'whider-v4.0.0';
+var CACHE_NAME = 'whider-v4.1.0';
 var ASSETS = [
   './',
   './index.html',
@@ -26,6 +26,7 @@ var ASSETS = [
   './js/ui/controls.js',
   './js/ui/editor.js',
   './js/ui/fx.js',
+  './js/ui/profile.js',
   './js/ui/sheet.js',
   './js/ui/taskcard.js',
   './js/ui/toast.js',

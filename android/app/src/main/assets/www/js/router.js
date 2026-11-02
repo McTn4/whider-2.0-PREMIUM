@@ -8,10 +8,13 @@ window.Whider = window.Whider || {};
   'use strict';
   var U = W.U;
   var ORDER = { home: 0, tasks: 1, calendar: 2, focus: 3 };
-  var SECONDARY = { progress: 'btnProfile', records: 'btnProfile', alerts: 'btnAlerts', settings: 'btnSettings' };
+  var SECONDARY = { progress: 'btnProfile', settings: 'btnProfile', alerts: 'btnAlerts' };
+  var ALIASES = { records: ['progress', 'records'], achievements: ['progress', 'achievements'] };
+  var refreshQueued = false;
 
   function screenFromHash() {
     var h = (location.hash || '').replace(/^#\/?/, '');
+    if (ALIASES[h]) return h;
     return W.Screens[h] ? h : null;
   }
 
@@ -42,6 +45,7 @@ window.Whider = window.Whider || {};
 
     go: function (id, opts) {
       opts = opts || {};
+      if (ALIASES[id]) { W.State.ui.profileTab = ALIASES[id][1]; id = ALIASES[id][0]; if (W.State.activeScreen === id) { Router.refresh(); return; } }
       if (!W.Screens[id] || id === 'onboarding') id = 'home';
       var prev = W.State.activeScreen;
       var root = document.getElementById('screen-' + id);
@@ -59,7 +63,7 @@ window.Whider = window.Whider || {};
         s.classList.remove('enter-right', 'enter-left', 'enter-up');
         s.setAttribute('aria-hidden', on ? 'false' : 'true');
       });
-      if (!opts.initial) { void root.offsetWidth; root.classList.add(cls); }
+      if (!opts.initial && !U.reducedMotion()) { void root.offsetWidth; root.classList.add(cls); }
       root.scrollTop = 0;
 
       U.$$('.dock-tab').forEach(function (b) {
@@ -80,14 +84,19 @@ window.Whider = window.Whider || {};
       W.Screens[id].render(root, true);
     },
 
-    /** Vuelve a pintar la pantalla actual tras un cambio de datos (sin animación de entrada) */
+    /** Vuelve a pintar la pantalla actual tras un cambio (varios cambios seguidos = un solo pintado) */
     refresh: function () {
-      var id = W.State.activeScreen;
-      if (!id || !W.Screens[id]) return;
-      var root = document.getElementById('screen-' + id);
-      var y = root.scrollTop;
-      W.Screens[id].render(root, false);
-      root.scrollTop = y;
+      if (refreshQueued) return;
+      refreshQueued = true;
+      requestAnimationFrame(function () {
+        refreshQueued = false;
+        var id = W.State.activeScreen;
+        if (!id || !W.Screens[id]) return;
+        var root = document.getElementById('screen-' + id);
+        var y = root.scrollTop;
+        W.Screens[id].render(root, false);
+        root.scrollTop = y;
+      });
     },
 
     placeIndicator: placeIndicator

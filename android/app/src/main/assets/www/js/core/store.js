@@ -84,6 +84,30 @@ window.Whider = window.Whider || {};
     var b = window.WhiderAndroid;
     return b && typeof b.storeGet === 'function' ? b : null;
   }
+  // Último valor escrito de cada clave: solo se guarda lo que realmente cambia
+  var written = {};
+  // Cambios pendientes para el almacén nativo (se envían agrupados y sin bloquear)
+  var nativeQueue = {}, nativeTimer = null;
+
+  function flushNative() {
+    clearTimeout(nativeTimer); nativeTimer = null;
+    var keys = Object.keys(nativeQueue);
+    if (!keys.length || !bridge()) { nativeQueue = {}; return; }
+    var batch = nativeQueue; nativeQueue = {};
+    try {
+      if (typeof bridge().storeSetMany === 'function') bridge().storeSetMany(JSON.stringify(batch));
+      else keys.forEach(function (k) { bridge().storeSet(k, batch[k]); });
+    } catch (e) { /* sin puente */ }
+  }
+  function queueNative(key, raw) {
+    if (!bridge()) return;
+    nativeQueue[key] = raw;
+    if (!nativeTimer) nativeTimer = setTimeout(flushNative, 400);
+  }
+  // Al salir de la app (o pasar a segundo plano) se guarda todo lo pendiente
+  document.addEventListener('visibilitychange', function () { if (document.hidden) flushNative(); });
+  window.addEventListener('pagehide', flushNative);
+
   function read(key) {
     var raw = null;
     try { raw = localStorage.getItem(key); } catch (e) { raw = null; }
@@ -91,16 +115,20 @@ window.Whider = window.Whider || {};
       try { raw = bridge().storeGet(key) || null; } catch (e) { raw = null; }
       if (raw != null) { try { localStorage.setItem(key, raw); } catch (e) { /* sin espacio */ } }
     }
+    if (raw != null) written[key] = raw;
     try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
   }
   function write(key, value) {
     var raw = JSON.stringify(value);
+    if (written[key] === raw) return;
+    written[key] = raw;
     try { localStorage.setItem(key, raw); } catch (e) { /* almacenamiento lleno o bloqueado */ }
-    if (bridge()) { try { bridge().storeSet(key, raw); } catch (e) { /* sin puente */ } }
+    queueNative(key, raw);
   }
   function remove(key) {
+    delete written[key];
     try { localStorage.removeItem(key); } catch (e) { /* bloqueado */ }
-    if (bridge()) { try { bridge().storeSet(key, null); } catch (e) { /* sin puente */ } }
+    queueNative(key, null);
   }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
@@ -167,23 +195,6 @@ window.Whider = window.Whider || {};
     return out.length ? out : clone(DEFAULT_LISTS);
   }
 
-  function sampleTasks() {
-    var t = U.today(), now = new Date();
-    // Hora de la primera tarea: dentro de ~2 h (o mañana si ya es tarde)
-    var h = now.getHours() + 2, firstDate = t;
-    if (h > 22) { h = 10; firstDate = U.addDays(t, 1); }
-    var firstTime = U.pad(h) + ':00';
-    var evening = now.getHours() < 19 ? '19:00' : null;
-    var mk = function (o) { return Object.assign({ id: U.uid(), example: true, createdAt: Date.now() }, o); };
-    return [
-      mk({ text: 'Planificar las prioridades de la semana', date: firstDate, time: firstTime, highlight: 'purple', warn: true, listId: 'work',
-        subtasks: [{ text: 'Revisar pendientes' }, { text: 'Elegir 3 objetivos' }] }),
-      mk({ text: 'Entrenamiento de 30 minutos', date: t, time: evening, highlight: 'none', warn: false, listId: 'health', repeat: 'weekdays' }),
-      mk({ text: 'Leer 20 páginas', date: t, highlight: 'star', listId: 'personal', repeat: 'daily' }),
-      mk({ text: 'Reunión de revisión de avances', date: U.addDays(t, 1), time: '12:30', highlight: 'danger', warn: true, listId: 'work' })
-    ];
-  }
-
   /* ---------- Carga inicial y migración ---------- */
   var savedSettings = read(KEYS.settings);
   var settings = mergeTyped(DEFAULT_SETTINGS, savedSettings);
@@ -199,7 +210,7 @@ window.Whider = window.Whider || {};
   var lists = cleanLists(read(KEYS.lists));
   var storedTasks = read(KEYS.tasks);
   var isNewUser = !(storedTasks && Array.isArray(storedTasks.tasks));
-  var tasks = isNewUser ? cleanTasks(sampleTasks(), lists) : cleanTasks(storedTasks.tasks, lists);
+  var tasks = isNewUser ? [] : cleanTasks(storedTasks.tasks, lists);
   var meta = Object.assign({ onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [], owner: null, guest: false }, read(KEYS.meta) || {});
   var focusLog = read(KEYS.focus) || {};
   var profile = read(KEYS.profile) || {};
@@ -231,10 +242,14 @@ window.Whider = window.Whider || {};
 
   // Historial diario permanente: no depende de que las tareas sigan existiendo
   var doneLog = read(KEYS.doneLog);
-  if (!doneLog || typeof doneLog !== 'object') {
-    doneLog = {};
-    tasks.forEach(function (t) { if (t.done && t.doneOn) doneLog[t.doneOn] = (doneLog[t.doneOn] || 0) + 1; });
+  if (!doneLog || typeof doneLog !== 'object') doneLog = {};
+  /** El historial nunca cuenta menos que las tareas completadas que siguen existiendo (se autocorrige) */
+  function healDoneLog(list) {
+    var counts = {};
+    list.forEach(function (t) { if (t.done && t.doneOn) counts[t.doneOn] = (counts[t.doneOn] || 0) + 1; });
+    Object.keys(counts).forEach(function (d) { if ((doneLog[d] || 0) < counts[d]) doneLog[d] = counts[d]; });
   }
+  healDoneLog(tasks);
   var records = cleanRecords(read(KEYS.records));
   var syncMeta = Object.assign({ deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 }, read(KEYS.sync) || {});
 
@@ -308,7 +323,7 @@ window.Whider = window.Whider || {};
         v: 1,
         tasks: State.tasks, lists: State.lists, settings: State.settings,
         focus: focusLog, doneLog: doneLog, records: State.records,
-        profile: { name: profile.name || '', email: profile.email || '' },
+        profile: { name: profile.name || '', email: profile.email || '', photo: profile.photo || '', photoURL: profile.photoURL || '' },
         meta: { createdAt: State.meta.createdAt, seenAchievements: State.meta.seenAchievements, onboarded: !!State.meta.onboarded },
         sync: State.syncMeta
       };
@@ -321,8 +336,17 @@ window.Whider = window.Whider || {};
       if (snap.settings) State.settings = mergeTyped(DEFAULT_SETTINGS, snap.settings);
       focusLog = snap.focus && typeof snap.focus === 'object' ? snap.focus : {};
       doneLog = snap.doneLog && typeof snap.doneLog === 'object' ? snap.doneLog : {};
+      healDoneLog(State.tasks);
       State.records = cleanRecords(snap.records);
-      if (snap.profile && snap.profile.name) { profile = Object.assign({}, profile, { name: snap.profile.name }); write(KEYS.profile, profile); }
+      if (snap.profile) {
+        var sp = snap.profile;
+        profile = Object.assign({}, profile, {
+          name: sp.name || profile.name || '', email: sp.email || profile.email || '',
+          photo: typeof sp.photo === 'string' ? sp.photo : (profile.photo || ''),
+          photoURL: typeof sp.photoURL === 'string' && sp.photoURL ? sp.photoURL : (profile.photoURL || '')
+        });
+        write(KEYS.profile, profile);
+      }
       if (snap.meta) {
         if (snap.meta.createdAt) State.meta.createdAt = Math.min(State.meta.createdAt || Date.now(), snap.meta.createdAt);
         if (Array.isArray(snap.meta.seenAchievements)) State.meta.seenAchievements = snap.meta.seenAchievements;
@@ -346,13 +370,22 @@ window.Whider = window.Whider || {};
 
     /* ---------- Perfil ---------- */
     getProfile: function () { return profile; },
-    setProfile: function (p) {
+    /**
+     * Cambia el perfil. Con { stamp: false } no cuenta como edición del usuario
+     * (p. ej. datos traídos de Google): así nunca pisa un nombre elegido en otro dispositivo.
+     */
+    setProfile: function (p, opts) {
       profile = Object.assign({}, profile, p, { updatedAt: new Date().toISOString() });
-      State.syncMeta.profileAt = Date.now();
+      if (!opts || opts.stamp !== false) State.syncMeta.profileAt = Date.now();
       write(KEYS.profile, profile);
+      write(KEYS.sync, State.syncMeta);
       State.notify('profile');
     },
     displayName: function () { return profile && profile.name ? String(profile.name).trim() : ''; },
+    /** Foto de perfil: la elegida por el usuario o, si no, la de su cuenta de Google */
+    photo: function () { return (profile && (profile.photo || profile.photoURL)) || ''; },
+    initial: function () { return (State.displayName() || 'W').charAt(0).toUpperCase(); },
+    flush: function () { State.save(); flushNative(); },
 
     /* ---------- Listas ---------- */
     getList: function (id) {
@@ -628,11 +661,13 @@ window.Whider = window.Whider || {};
       return titles[Math.min(level - 1, titles.length - 1)];
     },
     achievements: function () {
-      var s = State.stats(), map = State.doneByDay();
-      var perfectDay = Object.keys(map).some(function (d) {
-        var all = State.forDate(d);
-        return all.length >= 3 && all.every(function (t) { return t.done; });
+      var s = State.stats(), byDate = {};
+      State.tasks.forEach(function (t) {
+        if (!t.date) return;
+        var e = byDate[t.date] || (byDate[t.date] = { n: 0, done: 0 });
+        e.n++; if (t.done) e.done++;
       });
+      var perfectDay = Object.keys(byDate).some(function (d) { return byDate[d].n >= 3 && byDate[d].done === byDate[d].n; });
       var listsUsed = {};
       State.tasks.forEach(function (t) { if (t.done && t.listId) listsUsed[t.listId] = true; });
       return [

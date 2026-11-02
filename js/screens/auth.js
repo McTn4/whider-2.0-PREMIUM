@@ -47,7 +47,13 @@ window.Whider = window.Whider || {};
   function renderForm() {
     var isReg = mode === 'register';
     var errorBox = U.el('div.auth-error', { attrs: { role: 'alert' } });
-    var showError = function (msg) { errorBox.textContent = msg || ''; errorBox.classList.toggle('show', !!msg); };
+    // Mensaje claro + detalle técnico (útil para soporte)
+    var showError = function (msg, detail) {
+      U.clear(errorBox);
+      if (msg) errorBox.appendChild(document.createTextNode(msg));
+      if (msg && detail) errorBox.appendChild(U.el('small.err-detail', { text: detail }));
+      errorBox.classList.toggle('show', !!msg);
+    };
 
     var name = U.el('input.input', { attrs: { type: 'text', autocomplete: 'name', placeholder: 'Tu nombre', maxlength: 40 } });
     var email = U.el('input.input', { attrs: { type: 'email', autocomplete: 'email', inputmode: 'email', placeholder: 'tu@empresa.com', maxlength: 120 } });
@@ -111,8 +117,9 @@ window.Whider = window.Whider || {};
       setBusy(gbtn, true);
       A().google().catch(function (err) {
         setBusy(gbtn, false);
-        if (err && (err.code === 'whider/google-cancelled' || err.code === 'auth/popup-closed-by-user')) return;
-        showError(A().message(err));
+        if (err && (err.code === 'whider/google-cancelled' || err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request')) return;
+        showError(A().message(err), err && err.extra);
+        W.Audio.vibrate([30, 40, 30]);
       }).then(function () { setBusy(gbtn, false); });
     });
 

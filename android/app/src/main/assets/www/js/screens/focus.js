@@ -113,8 +113,8 @@ window.Whider.Screens = window.Whider.Screens || {};
 
     render: function (root, fresh) {
       var st = S(), f = st.settings.focus;
-      var inner = U.el('div.inner.focus' + (fresh ? '.stagger' : '') + '.mode-' + T.mode + (T.running ? '.running' : ''));
-      inner.appendChild(W.UI.pageHead('Modo concentración', 'Enfoque', MODES[T.mode].msg));
+      var inner = U.el('div.inner.focus' + '.mode-' + T.mode + (T.running ? '.running' : ''));
+      inner.appendChild(U.el('div.page-head', [U.el('div', [U.el('h1', { text: 'Enfoque' }), U.el('p', { text: MODES[T.mode].msg })])]));
 
       inner.appendChild(W.UI.segmented([
         { value: 'work', label: 'Enfoque' }, { value: 'short', label: 'Pausa' }, { value: 'long', label: 'Descanso' }
@@ -124,35 +124,29 @@ window.Whider.Screens = window.Whider.Screens || {};
       var time = U.el('div.focus-time.num', { text: fmt(rem) });
       var dots = U.el('div.focus-rounds');
       for (var i = 1; i <= f.rounds; i++) dots.appendChild(U.el('i' + (i < T.round || (i === T.round && T.mode !== 'work') ? '.done' : i === T.round ? '.cur' : '')));
-      var ring = W.Fx.ring(260, 14, 1 - rem / total, U.el('div.focus-center', [
+      var ring = W.Fx.ring(250, 10, 1 - rem / total, U.el('div.focus-center', [
         U.el('span.focus-mode', [U.icon(MODES[T.mode].icon, 'sm'), MODES[T.mode].label]), time, dots
       ]), 1 - rem / total);
       var stage = U.el('div.focus-stage', [U.el('div.focus-aura'), ring]);
       inner.appendChild(stage);
 
       inner.appendChild(U.el('div.focus-controls', [
-        U.el('button.icon-btn.lg', { attrs: { 'aria-label': 'Reiniciar' }, on: { click: function () { W.Audio.tap(); reset(); } } }, [U.icon('reset')]),
+        U.el('button.icon-btn.lg.plain', { attrs: { 'aria-label': 'Reiniciar' }, on: { click: function () { W.Audio.tap(); reset(); } } }, [U.icon('reset')]),
         U.el('button.focus-play.fx-press', { attrs: { 'aria-label': T.running ? 'Pausar' : 'Iniciar' }, on: { click: function () { if (T.running) pause(); else start(); } } },
           [U.icon(T.running ? 'pause' : 'play')]),
-        U.el('button.icon-btn.lg', { attrs: { 'aria-label': 'Saltar' }, on: { click: function () { W.Audio.tap(); complete(); } } }, [U.icon('skip')])
+        U.el('button.icon-btn.lg.plain', { attrs: { 'aria-label': 'Saltar' }, on: { click: function () { W.Audio.tap(); complete(); } } }, [U.icon('skip')])
       ]));
 
       var linked = T.taskId ? st.find(T.taskId) : null;
       if (T.taskId && (!linked || linked.done)) { T.taskId = null; persist(); linked = null; }
-      inner.appendChild(U.el('button.card.focus-task', { on: { click: pickTask } }, [
-        U.el('span.row-icon', [U.icon(linked ? 'tasks' : 'target')]),
-        U.el('span.row-main', [U.el('span.eyebrow', { text: linked ? 'Trabajando en' : 'Tarea vinculada' }),
-          U.el('span.row-label', { text: linked ? linked.text : 'Elegir una tarea (opcional)' })]),
-        U.icon('right')
+      inner.appendChild(U.el('button.focus-task', { on: { click: pickTask } }, [
+        U.icon(linked ? 'tasks' : 'target', 'sm'),
+        U.el('span', { text: linked ? linked.text : 'Vincular una tarea (opcional)' }),
+        U.icon('down', 'xs')
       ]));
 
-      var today = st.focusOn(U.today()), tot = st.focusTotals();
-      inner.appendChild(U.el('div.stat-grid.three', [
-        U.el('div.card.stat', [U.el('span.stat-v.num', { text: today.min }), U.el('span.stat-l', { text: 'min hoy' })]),
-        U.el('div.card.stat', [U.el('span.stat-v.num', { text: today.sessions }), U.el('span.stat-l', { text: 'sesiones hoy' })]),
-        U.el('div.card.stat', [U.el('span.stat-v.num', { text: Math.round(tot.min / 60 * 10) / 10 }), U.el('span.stat-l', { text: 'horas en total' })])
-      ]));
-      inner.appendChild(U.el('p.hint', { text: f.work + ' min de enfoque · ' + f.short + ' de pausa · ' + f.long + ' de descanso cada ' + f.rounds + ' rondas. Cámbialo en Ajustes.' }));
+      var today = st.focusOn(U.today());
+      inner.appendChild(U.el('p.hint', { text: today.sessions ? 'Hoy: ' + today.min + ' min · ' + U.plural(today.sessions, 'sesión', 'sesiones') : 'Tu primera sesión de hoy te espera' }));
 
       U.clear(root).appendChild(inner);
       ui = { time: time, ring: ring };

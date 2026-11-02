@@ -1,20 +1,23 @@
 /**
- * WHIDER · Sincronización con la nube (Cloud Firestore)
+ * WHIDER · Sincronización con la nube (Cloud Firestore, versión ligera)
  *
  * Modelo "local primero": todo se guarda al instante en el dispositivo y, con sesión
- * iniciada, se sube a users/{uid}/state/app. Al abrir la app o recibir cambios de otro
- * dispositivo se FUSIONAN ambas versiones (nunca se sobrescribe a ciegas):
+ * iniciada, se sincroniza con users/{uid}/state/app. Cada subida es una TRANSACCIÓN que
+ * lee la versión de la nube, la FUSIONA con la local y escribe el resultado, así dos
+ * dispositivos nunca se pisan:
  *  - Tareas y marcas personales: gana la modificación más reciente de cada elemento.
  *  - Borrados: se recuerdan para que no "resuciten" desde otro dispositivo.
  *  - Historial diario, enfoque y récords: se conserva el valor más alto.
- * Funciona sin conexión: Firestore guarda los cambios y los envía al volver la red.
+ * Se sincroniza al abrir, al volver a la app, cada minuto mientras está abierta y tras cada cambio.
+ * Sin conexión no pasa nada: los datos ya están guardados y se suben al volver la red.
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
-  var F = window.WFB, S = function () { return W.State; };
-  var ref = null, unsub = null, timer = null, applying = false, active = false, uid = null;
+  var F = function () { return W.Auth.sdk(); }, S = function () { return W.State; };
+  var ref = null, timer = null, poll = null, applying = false, active = false, uid = null;
+  var dirty = false, inFlight = null, queued = false, freshDevice = false, firstSyncPromise = null;
   var listeners = [];
 
   var Sync = {
@@ -144,71 +147,99 @@ window.Whider = window.Whider || {};
     },
 
     /* ---------- Ciclo de vida ---------- */
+    /** Se resuelve tras la primera sincronización (o a los pocos segundos si no hay red) */
+    firstSync: function () { return firstSyncPromise || Promise.resolve(); },
+
     start: function (user) {
       Sync.stop();
-      if (!user || !W.Auth.db()) return;
+      if (!user || !W.Auth.db()) return Promise.resolve();
       var st = S();
       uid = user.uid;
       // Los datos locales eran de otra cuenta: se limpian antes de cargar los de esta
       if (st.meta.owner && st.meta.owner !== uid) st.clearLocal();
-      var freshDevice = !st.meta.owner;
+      freshDevice = !st.meta.owner;
       st.setMeta('owner', uid);
       st.setMeta('guest', false);
-      ref = F.doc(W.Auth.db(), 'users', uid, 'state', 'app');
+      ref = F().doc(W.Auth.db(), 'users', uid, 'state', 'app');
       active = true;
-      var first = true;
       Sync.setStatus('connecting');
-      unsub = F.onSnapshot(ref, { includeMetadataChanges: true }, function (snap) {
-        if (snap.metadata.hasPendingWrites) { Sync.setStatus(navigator.onLine === false ? 'offline' : 'pending'); return; }
-        var remote = snap.exists() ? snap.data() : null;
-        // Un dispositivo nuevo que entra en una cuenta existente no sube sus tareas de ejemplo
-        if (first && remote && freshDevice && S().hasExamples()) {
-          S().tasks = S().tasks.filter(function (t) { return !t.example; });
-          S().save();
-        }
-        var local = S().snapshot();
-        var merged = Sync.merge(local, remote);
-        if (Sync.fingerprint(merged) !== Sync.fingerprint(local)) {
-          applying = true;
-          try { S().applySnapshot(merged, 'sync'); } finally { applying = false; }
-        }
-        if (first) {
-          first = false;
-          if (!remote || Sync.fingerprint(merged) !== Sync.fingerprint(remote)) { Sync.push(); return; }
-        }
-        Sync.setStatus(snap.metadata.fromCache && navigator.onLine === false ? 'offline' : 'synced');
-      }, function (e) {
-        console.warn('Sincronización:', e && e.code);
-        if (e && e.code === 'permission-denied') Sync.setStatus(W.Auth.isVerified() ? 'error' : 'unverified');
-        else Sync.setStatus('error');
-      });
+      var resolveFirst;
+      firstSyncPromise = new Promise(function (r) { resolveFirst = r; });
+      setTimeout(function () { resolveFirst(); }, 5000);
+      Sync.push(true).then(resolveFirst, resolveFirst);
+      clearInterval(poll);
+      poll = setInterval(function () { if (!document.hidden && active && !dirty) Sync.push(); }, 60000);
+      return firstSyncPromise;
     },
     stop: function () {
       active = false;
-      if (unsub) { try { unsub(); } catch (e) { /* ya cerrado */ } }
-      unsub = null; ref = null; uid = null;
-      clearTimeout(timer);
+      ref = null; uid = null; dirty = false;
+      clearTimeout(timer); clearInterval(poll);
       Sync.setStatus('off');
     },
-    restart: function () { if (W.Auth.user) Sync.start(W.Auth.user); },
+    restart: function () { if (W.Auth.user) return Sync.start(W.Auth.user); return Promise.resolve(); },
 
     /** Llamado tras cada cambio local */
     schedule: function () {
       if (!active || applying) return;
+      dirty = true;
       clearTimeout(timer);
       Sync.setStatus('pending');
-      timer = setTimeout(Sync.push, 1200);
+      timer = setTimeout(function () { Sync.push(); }, 1500);
     },
-    push: function () {
+
+    /**
+     * Sube los cambios: transacción que lee la nube, fusiona y escribe.
+     * Si la versión fusionada trae novedades de otro dispositivo, se aplican en local.
+     */
+    push: function (initial) {
       clearTimeout(timer);
       if (!active || !ref) return Promise.resolve();
-      var data = JSON.parse(JSON.stringify(S().snapshot()));
-      data.updatedAt = Date.now();
-      data.device = /Android/i.test(navigator.userAgent) ? 'android' : 'web';
-      Sync.setStatus(navigator.onLine === false ? 'offline' : 'pending');
-      return F.setDoc(ref, data).then(function () { Sync.setStatus('synced'); }).catch(function (e) {
-        Sync.setStatus(e && e.code === 'permission-denied' ? (W.Auth.isVerified() ? 'error' : 'unverified') : 'error');
+      if (inFlight) { queued = true; return inFlight; }
+      var myRef = ref;
+      dirty = false;
+      if (navigator.onLine === false) { Sync.setStatus('offline'); dirty = true; return Promise.resolve(); }
+      inFlight = F().runTransaction(W.Auth.db(), function (tx) {
+        return tx.get(myRef).then(function (snap) {
+          var remote = snap.exists() ? snap.data() : null;
+          // Un dispositivo nuevo que entra en una cuenta existente no sube sus tareas de ejemplo
+          if (initial && remote && freshDevice && S().hasExamples()) {
+            S().tasks = S().tasks.filter(function (t) { return !t.example; });
+          }
+          var local = S().snapshot();
+          var merged = Sync.merge(local, remote);
+          var mergedFp = Sync.fingerprint(merged);
+          if (!remote || mergedFp !== Sync.fingerprint(remote)) {
+            var data = JSON.parse(JSON.stringify(merged));
+            data.updatedAt = Date.now();
+            data.device = /Android/i.test(navigator.userAgent) ? 'android' : 'web';
+            tx.set(myRef, data);
+          }
+          return { merged: merged, changedLocal: mergedFp !== Sync.fingerprint(local) };
+        });
+      }).then(function (r) {
+        if (myRef !== ref) return;
+        if (r.changedLocal) {
+          // Se vuelve a fusionar con el estado actual por si hubo cambios durante la subida
+          var cur = S().snapshot();
+          var finalMerged = Sync.merge(cur, r.merged);
+          if (Sync.fingerprint(finalMerged) !== Sync.fingerprint(cur)) {
+            applying = true;
+            try { S().applySnapshot(finalMerged, 'sync'); } finally { applying = false; }
+          }
+        }
+        Sync.setStatus(dirty ? 'pending' : 'synced');
+      }).catch(function (e) {
+        dirty = true;
+        var code = e && e.code;
+        if (code === 'permission-denied') Sync.setStatus(W.Auth.isVerified() ? 'error' : 'unverified');
+        else if (code === 'unavailable' || navigator.onLine === false) Sync.setStatus('offline');
+        else { console.warn('Sincronización:', code || e); Sync.setStatus('error'); }
+      }).then(function () {
+        inFlight = null;
+        if (queued) { queued = false; return Sync.push(); }
       });
+      return inFlight;
     },
     /** Intenta subir lo pendiente antes de cerrar sesión (máx. 4 s) */
     flush: function () {
@@ -219,7 +250,7 @@ window.Whider = window.Whider || {};
       if (!ref) return Promise.resolve();
       var r = ref;
       Sync.stop();
-      return F.deleteDoc(r).catch(function () { /* sin permiso o sin conexión */ });
+      return F().deleteDoc(r).catch(function () { /* sin permiso o sin conexión */ });
     },
     statusText: function () {
       switch (Sync.status) {
@@ -235,5 +266,10 @@ window.Whider = window.Whider || {};
   };
 
   window.addEventListener('online', function () { if (active) Sync.push(); });
+  // Al volver a la app se traen los cambios hechos en otros dispositivos
+  document.addEventListener('visibilitychange', function () {
+    if (!active) return;
+    if (document.hidden) { if (dirty) Sync.push(); } else Sync.push();
+  });
   W.Sync = Sync;
 })(window.Whider);

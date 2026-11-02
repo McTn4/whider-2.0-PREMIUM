@@ -81,6 +81,15 @@ Para que "Continuar con Google" funcione dentro del APK, Firebase tiene que cono
 
 > Si publicas en Google Play con "Firma de apps de Google Play", añade también la SHA‑1 que aparece en Play Console → Integridad de la app.
 
+### Si "Continuar con Google" falla en el APK
+
+La app muestra el motivo exacto. El más habitual es **"Google no reconoce esta app"** (detalle técnico `[16] Account reauth failed` o `[10] Developer console is not set up correctly`). Significa que la huella SHA‑1 con la que está firmado el APK no está registrada en tu app Android de Firebase, o que el paquete no es `com.whider.app`.
+
+- Los APK que compila GitHub automáticamente están firmados siempre con la misma clave. Su huella aparece en el registro de cada compilación (pestaña **Actions → Compilar APK → paso "Mostrar la huella SHA-1 del APK"**) y es:
+  `4F:33:7F:B5:D2:11:79:C2:20:DF:EC:0F:94:AB:C5:D2:57:60:3C:FB`
+- Si compilas en tu ordenador con Android Studio, el proyecto usa esa misma clave para las versiones de prueba.
+- Después de añadir la huella en Firebase, espera unos minutos y vuelve a probar.
+
 ## 6. Versión web (opcional)
 
 Si publicas la app en una web (Firebase Hosting, GitHub Pages…), añade su dominio en **Authentication → Configuración → Dominios autorizados**. `localhost` ya viene autorizado para probar con `python serve.py`.

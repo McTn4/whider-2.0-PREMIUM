@@ -80,12 +80,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     var done = items.filter(function (t) { return t.done; }).length;
     wrap.appendChild(U.el('div.section-head', [
       U.el('div', [U.el('h2', { text: U.fmtLong(sel) }), U.el('span.sub', { text: items.length ? done + ' de ' + items.length + ' completadas' : U.fmtDay(sel) })]),
-      U.el('button.btn.soft.sm', { on: { click: function () { W.Editor.open(null, { date: sel }); } } }, [U.icon('plus', 'sm'), 'Añadir'])
+      U.el('button.icon-btn', { attrs: { 'aria-label': 'Añadir tarea este día' }, on: { click: function () { W.Editor.open(null, { date: sel }); } } }, [U.icon('plus', 'sm')])
     ]));
-    if (!items.length) {
-      wrap.appendChild(U.el('div.card.flat.mini-empty', [U.icon('calendar'), U.el('span', { text: 'Sin tareas este día.' })]));
-      return wrap;
-    }
+    if (!items.length) return wrap;
     var ul = U.el('ul.task-list.timeline');
     items.forEach(function (t) {
       var li = W.TaskCard.create(t, {});
@@ -103,9 +100,9 @@ window.Whider.Screens = window.Whider.Screens || {};
       var now = new Date(), isCurrent = cm.y === now.getFullYear() && cm.m === now.getMonth();
       var monthTasks = st.tasks.filter(function (t) { return t.date && t.date.slice(0, 7) === cm.y + '-' + U.pad(cm.m + 1); });
       var mDone = monthTasks.filter(function (t) { return t.done; }).length;
-      var inner = U.el('div.inner' + (fresh ? '.stagger' : ''));
-      inner.appendChild(W.UI.pageHead('Agenda', U.fmtMonth(cm.y, cm.m),
-        monthTasks.length ? mDone + ' de ' + monthTasks.length + ' tareas completadas este mes' : 'Sin tareas programadas este mes'));
+      var inner = U.el('div.inner');
+      inner.appendChild(U.el('div.page-head', [U.el('div', [U.el('h1', { text: U.fmtMonth(cm.y, cm.m) }),
+        U.el('p', { text: monthTasks.length ? mDone + ' de ' + monthTasks.length + ' completadas este mes' : 'Sin tareas este mes' })])]));
       var nav = U.el('div.cal-nav', [
         U.el('button.icon-btn', { attrs: { 'aria-label': 'Mes anterior' }, on: { click: function () { shift(st, -1); W.Screens.calendar.render(root); } } }, [U.icon('left')]),
         U.el('button.chip' + (isCurrent ? '.active' : ''), { text: 'Hoy', on: { click: function () {
@@ -113,9 +110,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         } } }),
         U.el('button.icon-btn', { attrs: { 'aria-label': 'Mes siguiente' }, on: { click: function () { shift(st, 1); W.Screens.calendar.render(root); } } }, [U.icon('right')])
       ]);
-      inner.appendChild(U.el('div.card.cal-card', [nav, grid(st, root),
-        U.el('div.cal-legend', [U.el('span', [U.el('i.m-acc'), 'Pendientes']), U.el('span', [U.el('i.m-warn'), 'Con aviso']), U.el('span', [U.el('i.m-danger'), 'Urgente']), U.el('span', [U.el('i.m-done'), 'Hecho'])])
-      ]));
+      inner.appendChild(U.el('div.card.cal-card', [nav, grid(st, root)]));
       inner.appendChild(agenda(st));
       U.clear(root).appendChild(inner);
     }

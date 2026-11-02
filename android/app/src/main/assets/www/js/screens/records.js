@@ -166,45 +166,41 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
   }
 
-  W.Screens.records = {
-    title: 'Marcas',
+  /** Contenido de la pestaña "Marcas" del perfil */
+  W.RecordsView = {
     newMark: function () { editMark(null); },
-    render: function (root, fresh) {
+    render: function (host) {
       var st = S(), marks = R().marks();
-      var inner = U.el('div.inner' + (fresh ? '.stagger' : ''));
-      inner.appendChild(W.UI.pageHead('Registro de marcas', 'Marcas', 'Tus récords quedan guardados para siempre, aunque borres tareas.',
-        U.el('button.icon-btn', { attrs: { 'aria-label': 'Nueva marca' }, on: { click: function () { editMark(null); } } }, [U.icon('plus')])));
-
-      inner.appendChild(U.el('div.section-head', [U.el('h2', { text: 'Récords automáticos' })]));
-      inner.appendChild(U.el('div.rec-grid', ['streak', 'day', 'week', 'focusDay'].map(autoCard)));
+      var frag = U.el('div.tab-body');
+      frag.appendChild(U.el('div.rec-grid', ['streak', 'day', 'week', 'focusDay'].map(autoCard)));
       var total = st.totalDone();
-      inner.appendChild(U.el('div.card.flat.rec-total', [U.icon('trophy'), U.el('span', [U.el('b', { text: total }), ' tareas completadas desde el principio']),
-        st.records.best.milestone ? U.el('span.tag.today', { text: 'Hito ' + st.records.best.milestone.value }) : null]));
+      frag.appendChild(U.el('p.hint.left', [U.icon('trophy', 'xs'), ' ' + U.plural(total, 'tarea completada', 'tareas completadas') + ' desde el principio']));
 
-      inner.appendChild(U.el('div.section-head', [U.el('h2', { text: 'Marcas personales' }),
+      frag.appendChild(U.el('div.section-head', [U.el('h2', { text: 'Marcas personales' }),
         U.el('button.link-btn', { on: { click: function () { editMark(null); } } }, [U.icon('plus', 'xs'), 'Nueva'])]));
       if (!marks.length) {
-        inner.appendChild(U.el('div.card.flat.mini-empty.marks-empty', [U.icon('medal'),
-          U.el('span', { text: 'Registra lo que quieras mejorar: tiempos, pesos, kilómetros, páginas…' }),
-          U.el('button.btn.soft.sm', { text: 'Crear', on: { click: function () { editMark(null); } } })]));
+        frag.appendChild(U.el('div.calm-empty.small', [
+          U.el('span.calm-empty-ic', [U.icon('medal')]),
+          U.el('span', { text: 'Registra lo que quieras mejorar: tiempos, pesos, distancias, páginas…' }),
+          U.el('button.btn.soft.sm', { on: { click: function () { editMark(null); } } }, [U.icon('plus', 'sm'), 'Crear una marca'])
+        ]));
       } else {
-        inner.appendChild(U.el('div.mark-list', marks.map(markCard)));
+        frag.appendChild(U.el('div.mark-list', marks.map(markCard)));
       }
 
-      var hist = st.records.history.slice().reverse().slice(0, 40);
-      inner.appendChild(U.el('div.section-head', [U.el('h2', { text: 'Historial de marcas' }), U.el('span.sub', { text: hist.length ? U.plural(st.records.history.length, 'marca', 'marcas') : '' })]));
-      if (!hist.length) inner.appendChild(U.el('p.hint', { text: 'Cada vez que superes una marca quedará registrada aquí con su fecha.' }));
-      else inner.appendChild(U.el('ul.timeline-list', hist.map(function (h) {
-        var meta = R().AUTO[h.type];
-        var mark = h.type === 'custom' ? R().getMark(h.markId) : null;
-        return U.el('li', [
-          U.el('span.tl-dot', [U.icon(h.type === 'milestone' ? 'trophy' : mark ? (mark.icon || 'medal') : meta ? meta.icon : 'medal', 'xs')]),
-          U.el('div', [U.el('strong', { text: R().historyText(h) }), U.el('span', { text: U.fmtLong(h.date) })])
-        ]);
-      })));
-      inner.appendChild(U.el('p.hint', [U.icon(W.Auth && W.Auth.user ? 'cloud' : 'shield', 'xs'),
-        W.Auth && W.Auth.user ? ' Guardado en tu cuenta y en este dispositivo' : ' Guardado en este dispositivo · crea una cuenta para tenerlo en la nube']));
-      U.clear(root).appendChild(inner);
+      var hist = st.records.history.slice().reverse().slice(0, 30);
+      if (hist.length) {
+        frag.appendChild(U.el('div.section-head', [U.el('h2', { text: 'Historial' })]));
+        frag.appendChild(U.el('ul.timeline-list', hist.map(function (h) {
+          var meta = R().AUTO[h.type];
+          var mark = h.type === 'custom' ? R().getMark(h.markId) : null;
+          return U.el('li', [
+            U.el('span.tl-dot', [U.icon(h.type === 'milestone' ? 'trophy' : mark ? (mark.icon || 'medal') : meta ? meta.icon : 'medal', 'xs')]),
+            U.el('div', [U.el('strong', { text: R().historyText(h) }), U.el('span', { text: U.fmtLong(h.date) })])
+          ]);
+        })));
+      }
+      U.clear(host).appendChild(frag);
     }
   };
 })(window.Whider);

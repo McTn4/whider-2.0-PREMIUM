@@ -88,13 +88,13 @@ window.Whider = window.Whider || {};
     fmtValue: fmtValue,
     bestEntry: bestEntry,
 
-    /** Primera ejecución: rellena las marcas con el historial existente, sin avisos */
+    /** Pone las marcas al día con el historial guardado (sin avisos): nunca valen menos que la realidad */
     init: function () {
-      var r = S().records;
-      if (r.best && r.best.streak) return;
-      var h = historical();
-      Object.keys(h).forEach(function (k) { if (h[k].value > 0) r.best[k] = h[k]; });
-      S().save();
+      var r = S().records, h = historical(), changed = false;
+      Object.keys(h).forEach(function (k) {
+        if (h[k].value > 0 && (!r.best[k] || r.best[k].value < h[k].value)) { r.best[k] = h[k]; changed = true; }
+      });
+      if (changed) S().save();
     },
 
     /** Comprueba si se ha batido alguna marca. Devuelve las nuevas marcas. */

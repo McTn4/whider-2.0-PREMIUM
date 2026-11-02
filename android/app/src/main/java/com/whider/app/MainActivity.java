@@ -15,6 +15,7 @@ import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -23,6 +24,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -38,6 +42,7 @@ import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.ClearCredentialException;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialException;
+import androidx.credentials.exceptions.NoCredentialException;
 import androidx.webkit.WebViewAssetLoader;
 
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
@@ -45,6 +50,9 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.Iterator;
+import java.util.Locale;
 
 import java.util.concurrent.Executor;
 
@@ -70,12 +78,27 @@ public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private WebViewAssetLoader assetLoader;
     private CredentialManager credentialManager;
+    private ValueCallback<Uri[]> pendingFileCallback;
+    private ActivityResultLauncher<PickVisualMediaRequest> photoPicker;
+    private ActivityResultLauncher<Intent> filePicker;
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Notifier.ensureChannel(this);
+
+        // Selector de fotos del sistema (sin permisos) para la foto de perfil
+        photoPicker = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            if (pendingFileCallback == null) return;
+            pendingFileCallback.onReceiveValue(uri != null ? new Uri[]{uri} : null);
+            pendingFileCallback = null;
+        });
+        filePicker = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (pendingFileCallback == null) return;
+            pendingFileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result.getResultCode(), result.getData()));
+            pendingFileCallback = null;
+        });
 
         webView = new WebView(this);
         webView.setBackgroundColor(0xFF05060A);
@@ -117,7 +140,30 @@ public class MainActivity extends AppCompatActivity {
                 return openExternally(request.getUrl());
             }
         });
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (pendingFileCallback != null) pendingFileCallback.onReceiveValue(null);
+                pendingFileCallback = callback;
+                boolean images = false;
+                for (String type : params.getAcceptTypes()) {
+                    if (type != null && type.startsWith("image")) images = true;
+                }
+                try {
+                    if (images) {
+                        photoPicker.launch(new PickVisualMediaRequest.Builder()
+                                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                                .build());
+                    } else {
+                        filePicker.launch(params.createIntent());
+                    }
+                    return true;
+                } catch (Exception e) {
+                    pendingFileCallback = null;
+                    return false;
+                }
+            }
+        });
 
         // Atrás: la web cierra hojas/presentación o vuelve a la pantalla inicial; si no, se sale
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -231,14 +277,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void sendGoogleResult(String idToken, String error) {
+    private void sendGoogleResult(String idToken, String kind, String detail) {
         runOnUiThread(() -> {
             if (webView == null) return;
             String js = "window.Whider&&Whider.Auth&&Whider.Auth.onNativeGoogle("
                     + (idToken == null ? "null" : JSONObject.quote(idToken)) + ","
-                    + (error == null ? "null" : JSONObject.quote(error)) + ");";
+                    + (kind == null ? "null" : JSONObject.quote(kind)) + ","
+                    + (detail == null ? "null" : JSONObject.quote(detail)) + ");";
             webView.evaluateJavascript(js, null);
         });
+    }
+
+    /**
+     * Android informa algunos errores de configuración (huella SHA-1 o paquete no registrados:
+     * "[16] Account reauth failed", "[10] Developer console is not set up correctly") como si
+     * el usuario hubiera cancelado. Se distinguen para poder explicarlos en la app.
+     */
+    private static String classifyGoogleError(GetCredentialException e) {
+        String msg = String.valueOf(e.getMessage()).toLowerCase(Locale.ROOT);
+        if (e instanceof NoCredentialException) return "no-account";
+        if (msg.contains("[16]") || msg.contains("reauth") || msg.contains("[10]") || msg.contains("developer")
+                || msg.contains("not set up") || msg.contains("[28444]")) return "config";
+        if (e instanceof GetCredentialCancellationException) return "cancelled";
+        return "unavailable";
     }
 
     /** Inicio de sesión con Google con el selector nativo de cuentas (Credential Manager) */
@@ -255,18 +316,18 @@ public class MainActivity extends AppCompatActivity {
                                 && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
                             try {
                                 GoogleIdTokenCredential google = GoogleIdTokenCredential.createFrom(credential.getData());
-                                sendGoogleResult(google.getIdToken(), null);
+                                sendGoogleResult(google.getIdToken(), null, null);
                             } catch (Exception e) {
-                                sendGoogleResult(null, "invalid");
+                                sendGoogleResult(null, "unavailable", "Token no válido: " + e.getMessage());
                             }
                         } else {
-                            sendGoogleResult(null, "invalid");
+                            sendGoogleResult(null, "unavailable", "Credencial inesperada: " + credential.getType());
                         }
                     }
 
                     @Override
                     public void onError(GetCredentialException e) {
-                        sendGoogleResult(null, e instanceof GetCredentialCancellationException ? "cancelled" : "unavailable");
+                        sendGoogleResult(null, classifyGoogleError(e), e.getClass().getSimpleName() + ": " + e.getMessage());
                     }
                 });
     }
@@ -284,7 +345,24 @@ public class MainActivity extends AppCompatActivity {
         public void storeSet(String key, String value) {
             SharedPreferences.Editor e = getSharedPreferences(STORE, Context.MODE_PRIVATE).edit();
             if (value == null) e.remove(key); else e.putString(key, value);
-            e.commit();
+            e.apply();
+        }
+
+        /** Varios cambios de una vez, sin bloquear (Android los escribe en disco en segundo plano) */
+        @JavascriptInterface
+        public void storeSetMany(String json) {
+            try {
+                JSONObject batch = new JSONObject(json);
+                SharedPreferences.Editor e = getSharedPreferences(STORE, Context.MODE_PRIVATE).edit();
+                Iterator<String> keys = batch.keys();
+                while (keys.hasNext()) {
+                    String k = keys.next();
+                    if (batch.isNull(k)) e.remove(k); else e.putString(k, batch.getString(k));
+                }
+                e.apply();
+            } catch (Exception ignored) {
+                // Lote no válido: se ignora (los datos siguen en el almacenamiento web)
+            }
         }
 
         /* ----- Migración desde la versión anterior (origen file://) ----- */
@@ -302,7 +380,7 @@ public class MainActivity extends AppCompatActivity {
         /* ----- Cuentas: Google ----- */
         @JavascriptInterface
         public void googleSignIn(String webClientId) {
-            if (webClientId == null || webClientId.trim().isEmpty()) { sendGoogleResult(null, "config"); return; }
+            if (webClientId == null || webClientId.trim().isEmpty()) { sendGoogleResult(null, "client", null); return; }
             runOnUiThread(() -> startGoogleSignIn(webClientId.trim()));
         }
 
