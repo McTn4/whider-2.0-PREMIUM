@@ -8,13 +8,19 @@
  * Mientras `firebase` sea null, la app funciona sin cuentas (datos solo en el dispositivo).
  */
 window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
-  // Pega aquí el objeto firebaseConfig de tu proyecto (Configuración del proyecto → Tus apps → Web):
-  // firebase: { apiKey: '...', authDomain: '...', projectId: '...', storageBucket: '...', messagingSenderId: '...', appId: '...' },
-  firebase: null,
+  // Proyecto de Firebase "whider" (Configuración del proyecto → Tus apps → Web)
+  firebase: {
+    apiKey: 'AIzaSyCiCgQxnu_X8uLj9ffJxy2jSUylPzs-BOU',
+    authDomain: 'whider.firebaseapp.com',
+    projectId: 'whider',
+    storageBucket: 'whider.firebasestorage.app',
+    messagingSenderId: '173378261361',
+    appId: '1:173378261361:web:0319ba555a829e236aa6d0'
+  },
 
   // ID de cliente OAuth de tipo "Aplicación web" (Authentication → Método de acceso → Google → Configuración del SDK web).
   // Necesario para "Continuar con Google" dentro del APK de Android.
-  googleWebClientId: '',
+  googleWebClientId: '173378261361-4je18n2pg7h9g39ei2prjmnasobc8m6v.apps.googleusercontent.com',
 
   // Pedir iniciar sesión o crear cuenta al abrir la app
   requireAccount: true,
