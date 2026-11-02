@@ -30,3 +30,6 @@ Thumbs.db
 
 # Dependencias de herramientas
 node_modules/
+
+# Registros de los emuladores de Firebase
+*-debug.log
