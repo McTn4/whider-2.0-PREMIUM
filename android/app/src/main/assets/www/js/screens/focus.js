@@ -12,9 +12,9 @@ window.Whider.Screens = window.Whider.Screens || {};
   var U = W.U, S = function () { return W.State; };
   var KEY = 'whider.focus.timer';
   var MODES = {
-    work: { label: 'Enfoque', icon: 'target', msg: 'Concéntrate en una sola cosa.' },
-    short: { label: 'Pausa corta', icon: 'coffee', msg: 'Respira, estírate, bebe agua.' },
-    long: { label: 'Pausa larga', icon: 'moon', msg: 'Desconecta de verdad unos minutos.' }
+    work: { label: 'Enfoque', icon: 'target', msg: 'Concéntrate en una sola cosa' },
+    short: { label: 'Pausa corta', icon: 'coffee', msg: 'Respira y estírate' },
+    long: { label: 'Pausa larga', icon: 'moon', msg: 'Desconecta unos minutos' }
   };
 
   var T = load();
@@ -56,13 +56,13 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (was === 'work') {
       st.addFocus(f.work, T.taskId);
       var next = T.round >= f.rounds ? 'long' : 'short';
-      W.Toast.show({ text: '¡Sesión completada! +' + f.work + ' min de enfoque', type: 'success', icon: 'target' });
-      W.Notify.system('🎯 Sesión de enfoque completada', 'Tómate un respiro: ' + MODES[next].label.toLowerCase() + '.', 'whider-focus');
+      W.Toast.show({ text: 'Sesión completada · ' + f.work + ' min de enfoque', type: 'success', icon: 'check' });
+      W.Notify.system('Sesión de enfoque completada', 'Es momento de una ' + MODES[next].label.toLowerCase() + '.', 'whider-focus');
       T.mode = next;
       if (T.round >= f.rounds) T.round = 1; else T.round += 1;
     } else {
-      W.Toast.show({ text: 'Pausa terminada. ¡A por la siguiente!', icon: 'bolt' });
-      W.Notify.system('⚡ Pausa terminada', 'Vuelve al enfoque cuando quieras.', 'whider-focus');
+      W.Toast.show({ text: 'Pausa terminada', icon: 'timer' });
+      W.Notify.system('Pausa terminada', 'Puedes volver al enfoque cuando quieras.', 'whider-focus');
       T.mode = 'work';
     }
     W.Audio.bell(); W.Audio.vibrate([80, 60, 80, 60, 160]);
@@ -93,14 +93,14 @@ window.Whider.Screens = window.Whider.Screens || {};
     else if (!T.running) document.title = 'WHIDER';
   }
 
-  function pickTask() {
+  function pickTask(anchor) {
     var st = S();
-    var pend = st.pending().sort(st.compareDeadline).slice(0, 30);
-    var options = [{ value: '', label: 'Sin tarea', desc: 'Enfoque libre', icon: 'target' }].concat(pend.map(function (t) {
+    var pend = st.pending().sort(st.compareDeadline).slice(0, 40);
+    var options = [{ value: '', label: 'Ninguna', desc: 'Enfoque libre' }].concat(pend.map(function (t) {
       var l = t.listId ? st.getList(t.listId) : null;
-      return { value: t.id, label: t.text, desc: t.date ? U.fmtDay(t.date) + (t.time ? ' · ' + U.fmtTime(t.time) : '') : 'Sin fecha', color: l ? st.ACCENTS[l.color].a : 'var(--t4)' };
+      return { value: t.id, label: t.text, desc: t.date ? U.fmtDay(t.date) + (t.time ? ', ' + U.fmtTime(t.time) : '') : 'Sin fecha', color: l ? st.ACCENTS[l.color].a : 'var(--gray-2)' };
     }));
-    W.Sheet.choose({ title: 'Vincular una tarea', value: T.taskId || '', options: options }).then(function (v) {
+    W.Sheet.choose({ anchor: anchor, title: 'Tarea en la que te enfocas', value: T.taskId || '', options: options }).then(function (v) {
       if (v === undefined) return;
       T.taskId = v || null; persist(); update();
     });
@@ -111,44 +111,46 @@ window.Whider.Screens = window.Whider.Screens || {};
     linkTask: function (id) { T.taskId = id; if (!T.running) setMode('work', true); persist(); update(); },
     resume: function () { if (T.running) { if (remaining() <= 0) complete(); else ensureTick(); } },
 
-    render: function (root, fresh) {
+    render: function (root) {
       var st = S(), f = st.settings.focus;
-      var inner = U.el('div.inner.focus' + '.mode-' + T.mode + (T.running ? '.running' : ''));
-      inner.appendChild(U.el('div.page-head', [U.el('div', [U.el('h1', { text: 'Enfoque' }), U.el('p', { text: MODES[T.mode].msg })])]));
+      var rem = remaining(), total = duration(T.mode), fresh = !T.running && rem >= total;
+      var head = W.UI.header({ title: 'Enfoque', avatar: true,
+        actions: [{ text: 'Saltar', label: 'Saltar a la siguiente fase', onTap: function () { complete(); } }] });
 
-      inner.appendChild(W.UI.segmented([
-        { value: 'work', label: 'Enfoque' }, { value: 'short', label: 'Pausa' }, { value: 'long', label: 'Descanso' }
-      ], T.mode, function (v) { setMode(v); }));
+      var seg = W.UI.segmented([
+        { value: 'work', label: 'Enfoque' }, { value: 'short', label: 'Pausa corta' }, { value: 'long', label: 'Pausa larga' }
+      ], T.mode, function (v) { setMode(v); });
+      seg.style.marginTop = '10px';
 
-      var rem = remaining(), total = duration(T.mode);
-      var time = U.el('div.focus-time.num', { text: fmt(rem) });
-      var dots = U.el('div.focus-rounds');
-      for (var i = 1; i <= f.rounds; i++) dots.appendChild(U.el('i' + (i < T.round || (i === T.round && T.mode !== 'work') ? '.done' : i === T.round ? '.cur' : '')));
-      var ring = W.Fx.ring(250, 10, 1 - rem / total, U.el('div.focus-center', [
-        U.el('span.focus-mode', [U.icon(MODES[T.mode].icon, 'sm'), MODES[T.mode].label]), time, dots
+      var time = U.el('div.focus-time', { text: fmt(rem) });
+      var ring = W.Fx.ring(248, 7, 1 - rem / total, U.el('div.focus-center', [
+        time,
+        U.el('span.focus-mode', { text: T.mode === 'work' ? 'Sesión ' + T.round + ' de ' + f.rounds : MODES[T.mode].msg })
       ]), 1 - rem / total);
-      var stage = U.el('div.focus-stage', [U.el('div.focus-aura'), ring]);
-      inner.appendChild(stage);
 
-      inner.appendChild(U.el('div.focus-controls', [
-        U.el('button.icon-btn.lg.plain', { attrs: { 'aria-label': 'Reiniciar' }, on: { click: function () { W.Audio.tap(); reset(); } } }, [U.icon('reset')]),
-        U.el('button.focus-play.fx-press', { attrs: { 'aria-label': T.running ? 'Pausar' : 'Iniciar' }, on: { click: function () { if (T.running) pause(); else start(); } } },
-          [U.icon(T.running ? 'pause' : 'play')]),
-        U.el('button.icon-btn.lg.plain', { attrs: { 'aria-label': 'Saltar' }, on: { click: function () { W.Audio.tap(); complete(); } } }, [U.icon('skip')])
-      ]));
+      var dots = U.el('div.focus-dots', { attrs: { 'aria-hidden': 'true' } });
+      for (var i = 1; i <= f.rounds; i++) dots.appendChild(U.el('i' + (i < T.round || (i === T.round && T.mode !== 'work') ? '.done' : i === T.round ? '.cur' : '')));
+
+      var controls = U.el('div.focus-controls', [
+        U.el('button.round-btn.gray', { text: 'Reiniciar', attrs: { 'aria-label': 'Reiniciar' }, on: { click: function () { reset(); } } }),
+        U.el('button.round-btn.' + (T.running ? 'pause' : 'go'), { text: T.running ? 'Pausar' : fresh ? 'Iniciar' : 'Reanudar',
+          on: { click: function () { if (T.running) pause(); else start(); } } })
+      ]);
+      controls.firstChild.disabled = fresh;
 
       var linked = T.taskId ? st.find(T.taskId) : null;
       if (T.taskId && (!linked || linked.done)) { T.taskId = null; persist(); linked = null; }
-      inner.appendChild(U.el('button.focus-task', { on: { click: pickTask } }, [
-        U.icon(linked ? 'tasks' : 'target', 'sm'),
-        U.el('span', { text: linked ? linked.text : 'Vincular una tarea (opcional)' }),
-        U.icon('down', 'xs')
-      ]));
-
       var today = st.focusOn(U.today());
-      inner.appendChild(U.el('p.hint', { text: today.sessions ? 'Hoy: ' + today.min + ' min · ' + U.plural(today.sessions, 'sesión', 'sesiones') : 'Tu primera sesión de hoy te espera' }));
+      var opts = W.UI.section({
+        items: [
+          W.UI.cell({ icon: 'target', color: 'var(--indigo)', title: 'Tarea', value: linked ? linked.text : 'Ninguna', onTap: function (e, node) { pickTask(node.querySelector('.cell-value')); } }),
+          W.UI.cell({ icon: 'timer', color: 'var(--gray-2)', title: 'Duraciones', value: f.work + ' / ' + f.short + ' / ' + f.long + ' min', onTap: function () { W.Settings.open('focus'); } })
+        ],
+        footer: today.sessions ? 'Hoy: ' + today.min + ' min de enfoque en ' + U.plural(today.sessions, 'sesión', 'sesiones') + '.' : 'Aún no has hecho ninguna sesión hoy.'
+      });
 
-      U.clear(root).appendChild(inner);
+      var inner = W.UI.mount(root, head, [seg, U.el('div.focus-stage', [ring]), dots, controls, opts]);
+      inner.className = 'inner focus mode-' + T.mode + (T.running ? ' running' : '');
       ui = { time: time, ring: ring };
       if (T.running) ensureTick();
       paint();

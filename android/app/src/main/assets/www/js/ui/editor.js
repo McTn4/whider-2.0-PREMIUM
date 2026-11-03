@@ -1,7 +1,7 @@
 /**
- * WHIDER · Editor de tareas (crear y editar).
- * Diseño progresivo: lo esencial arriba (título, nota y día) y los detalles en filas
- * tranquilas que muestran su valor y se tocan para cambiarlo.
+ * WHIDER · Editor de tareas (crear y editar), en una hoja con:
+ *  título y notas · fecha y hora · avisos y repetición · lista y prioridad · subtareas.
+ * Cada detalle es una fila que muestra su valor; las opciones se eligen en un menú.
  */
 window.Whider = window.Whider || {};
 
@@ -11,15 +11,15 @@ window.Whider = window.Whider || {};
 
   var REMIND_OPTS = [
     { value: 0, label: 'A la hora límite' },
-    { value: 5, label: '5 minutos antes' },
-    { value: 15, label: '15 minutos antes' },
-    { value: 30, label: '30 minutos antes' },
+    { value: 5, label: '5 min antes' },
+    { value: 15, label: '15 min antes' },
+    { value: 30, label: '30 min antes' },
     { value: 60, label: '1 hora antes' },
     { value: 180, label: '3 horas antes' },
     { value: 1440, label: '1 día antes' }
   ];
   var PRIO_OPTS = [
-    { value: 'none', label: 'Normal', color: 'var(--t4)' },
+    { value: 'none', label: 'Ninguna' },
     { value: 'star', label: 'Destacada', color: 'var(--p-star)' },
     { value: 'purple', label: 'Importante', color: 'var(--p-purple)' },
     { value: 'danger', label: 'Urgente', color: 'var(--p-danger)' }
@@ -30,173 +30,200 @@ window.Whider = window.Whider || {};
     return v + ' min antes';
   }
   function labelOf(list, v) { for (var i = 0; i < list.length; i++) if (list[i].value === v) return list[i].label; return ''; }
-
   function autosize(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
-
-  /** Fila de detalle: icono · etiqueta · valor (›) */
-  function detailRow(icon, label) {
-    var value = U.el('span.d-value');
-    var row = U.el('div.d-row', { attrs: { role: 'button', tabindex: '0' } }, [
-      U.el('span.d-ic', [U.icon(icon)]), U.el('span.d-label', { text: label }), value
-    ]);
-    row._value = value;
-    return row;
+  function dateLabel(d) {
+    if (!d) return '';
+    var td = U.today();
+    return d === td ? 'Hoy' : d === U.addDays(td, 1) ? 'Mañana' : d === U.addDays(td, -1) ? 'Ayer' : U.fmtLong(d);
   }
+  function defaultTime(date) {
+    if (date && date !== U.today()) return '09:00';
+    return U.pad(Math.min(23, new Date().getHours() + 1)) + ':00';
+  }
+  function openPicker(input) { try { if (input.showPicker) input.showPicker(); } catch (e) { /* el sistema lo abre al tocar */ } }
 
   var Editor = {
     REMIND_OPTS: REMIND_OPTS,
+    PRIO_OPTS: PRIO_OPTS,
     remindLabel: remindLabel,
 
     /** open(id) para editar · open(null, { date, listId }) para crear */
     open: function (taskId, preset) {
       var st = S(), src = taskId ? st.find(taskId) : null;
-      if (taskId && !src) return;
+      if (taskId && !src) return null;
       var isNew = !src;
       var d = isNew ? {
         text: '', notes: '', date: preset && preset.date !== undefined ? preset.date : U.today(), time: null,
-        highlight: 'none', warn: st.settings.defaultWarn, listId: (preset && preset.listId) || st.ui.listFilter || st.settings.defaultList,
+        highlight: (preset && preset.highlight) || 'none', warn: st.settings.defaultWarn, listId: (preset && preset.listId) || st.ui.listFilter || st.settings.defaultList,
         repeat: 'none', subtasks: [], remindBefore: null
       } : JSON.parse(JSON.stringify(src));
       if (d.listId && !st.getList(d.listId)) d.listId = null;
+      var original = JSON.stringify(d);
+      var calOpen = false;
 
-      /* ----- Título y nota ----- */
-      var title = U.el('textarea.input.input-title', { attrs: { rows: 1, maxlength: 160, placeholder: '¿Qué tienes que hacer?', enterkeyhint: 'done' } });
+      /* ----- Título y notas ----- */
+      var title = U.el('textarea.cell-input.title', { attrs: { rows: 1, maxlength: 160, placeholder: 'Título', enterkeyhint: 'done', 'aria-label': 'Título' } });
       title.value = d.text;
-      title.addEventListener('input', function () { autosize(title); });
-      title.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); save(); } });
-      var notes = U.el('textarea.input.input-note', { attrs: { rows: 1, maxlength: 2000, placeholder: 'Añadir una nota' } });
+      var notes = U.el('textarea.cell-input.note', { attrs: { rows: 1, maxlength: 2000, placeholder: 'Notas', 'aria-label': 'Notas' } });
       notes.value = d.notes || '';
+      var saveBtn = U.el('button.nav-btn.bold', { text: isNew ? 'Añadir' : 'OK', on: { click: function () { save(); } } });
+      var syncSave = function () { saveBtn.disabled = !title.value.trim(); };
+      title.addEventListener('input', function () { autosize(title); syncSave(); });
+      title.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (title.value.trim()) save(); } });
       notes.addEventListener('input', function () { autosize(notes); });
+      syncSave();
 
-      /* ----- Día ----- */
-      var dateInput = U.el('input.overlay-input', { attrs: { type: 'date', 'aria-label': 'Elegir fecha' } });
-      var dayChips = U.el('div.chips.day-chips');
-      var renderDays = function () {
-        U.clear(dayChips);
-        var td = U.today(), tm = U.addDays(td, 1);
-        [{ label: 'Hoy', v: td }, { label: 'Mañana', v: tm }, { label: 'Sin fecha', v: null }].forEach(function (q) {
-          dayChips.appendChild(U.el('button.chip' + (q.v === d.date ? '.active' : ''), { text: q.label, on: { click: function () { d.date = q.v; renderDays(); W.Audio.tap(); } } }));
-        });
-        var custom = d.date && d.date !== td && d.date !== tm;
-        dateInput.value = d.date || '';
-        dayChips.appendChild(U.el('label.chip.has-overlay' + (custom ? '.active' : ''), [U.icon('calendar', 'xs'), custom ? U.fmtShort(d.date) : 'Otro día', dateInput]));
-      };
-      dateInput.addEventListener('change', function () { if (dateInput.value) { d.date = dateInput.value; renderDays(); } });
-      renderDays();
+      /* ----- Fecha ----- */
+      var dateTog = W.UI.toggle(!!d.date, function (v) {
+        d.date = v ? (d.date || U.today()) : null;
+        if (!v) { d.time = null; calOpen = false; } else calOpen = true;
+        renderWhen();
+      }, 'Fecha');
+      var dateSub = U.el('span.cell-sub.accent');
+      var dateRow = U.el('div.cell.tap.has-icon', [
+        U.el('span.cell-icon', { style: { '--c': 'var(--red)' } }, [U.icon('calendar')]),
+        U.el('span.cell-main', [U.el('span.cell-title', { text: 'Fecha' }), dateSub]), dateTog
+      ]);
+      dateRow.addEventListener('click', function () {
+        if (!d.date) { d.date = U.today(); calOpen = true; } else calOpen = !calOpen;
+        renderWhen();
+      });
+      var picker = W.UI.datePicker(d.date, function (ds) { d.date = ds; renderWhen(true); });
+      var calRow = U.el('div.cell.col', [picker]);
 
-      /* ----- Detalles ----- */
-      var timeInput = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': 'Hora límite' } });
-      var timeRow = detailRow('clock', 'Hora');
-      var clearTime = U.el('button.d-clear', { attrs: { 'aria-label': 'Quitar hora' }, on: { click: function (e) { e.preventDefault(); e.stopPropagation(); d.time = null; renderDetails(); } } }, [U.icon('close', 'xs')]);
-      timeRow.appendChild(timeInput);
-      timeRow.appendChild(clearTime);
-      timeInput.addEventListener('change', function () { d.time = timeInput.value || null; renderDetails(); });
-      // En navegadores de escritorio, abrir el selector nativo al tocar la fila
-      [timeInput, dateInput].forEach(function (inp) {
-        inp.addEventListener('click', function () { try { if (inp.showPicker) inp.showPicker(); } catch (e) { /* el sistema ya lo abre */ } });
-      });
+      /* ----- Hora ----- */
+      var timeInput = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': 'Hora' } });
+      timeInput.addEventListener('change', function () { if (timeInput.value) { d.time = timeInput.value; renderWhen(); } });
+      timeInput.addEventListener('click', function () { openPicker(timeInput); });
+      var timeTog = W.UI.toggle(!!d.time, function (v) {
+        if (v) {
+          if (!d.date) d.date = U.today();
+          d.time = d.time || defaultTime(d.date);
+          renderWhen();
+          timeInput.value = d.time;
+          openPicker(timeInput);
+        } else { d.time = null; renderWhen(); }
+      }, 'Hora');
+      var timeSub = U.el('span.cell-sub.accent');
+      var timeMain = U.el('span.cell-main', [U.el('span.cell-title', { text: 'Hora' }), timeSub, timeInput]);
+      var timeRow = U.el('div.cell.has-icon.time-row', [U.el('span.cell-icon', { style: { '--c': 'var(--blue)' } }, [U.icon('clock')]), timeMain, timeTog]);
 
-      var prioRow = detailRow('flag', 'Prioridad');
-      prioRow.addEventListener('click', function () {
-        W.Sheet.choose({ title: 'Prioridad', value: d.highlight, options: PRIO_OPTS }).then(function (v) { if (v) { d.highlight = v; renderDetails(); } });
-      });
-      var listRow = detailRow('layers', 'Lista');
-      listRow.addEventListener('click', function () {
-        var opts = [{ value: '', label: 'Sin lista', color: 'var(--t4)' }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, color: st.ACCENTS[l.color].a }; }));
-        W.Sheet.choose({ title: 'Lista', value: d.listId || '', options: opts }).then(function (v) { if (v !== undefined) { d.listId = v || null; renderDetails(); } });
-      });
-      var warnToggle = W.UI.toggle(d.warn, function (v) { d.warn = v; renderDetails(); }, 'Avisarme si no la hago');
-      var warnRow = U.el('div.d-row', [U.el('span.d-ic', [U.icon('bell')]), U.el('span.d-label', { text: 'Avisarme si no la hago' }), warnToggle]);
-      var remindRow = detailRow('alert', 'Recordatorio');
-      remindRow.addEventListener('click', function () {
+      /* ----- Avisos y repetición ----- */
+      var warnSub = U.el('span.cell-sub');
+      var warnTog = W.UI.toggle(d.warn, function (v) { d.warn = v; renderWhen(); }, 'Avisarme si no la hago');
+      var warnRow = U.el('div.cell.has-icon', [U.el('span.cell-icon', { style: { '--c': 'var(--orange)' } }, [U.icon('bell')]),
+        U.el('span.cell-main', [U.el('span.cell-title', { text: 'Avisarme si no la hago' }), warnSub]), warnTog]);
+      var remindRow = W.UI.cell({ icon: 'alarm', color: 'var(--indigo)', title: 'Recordatorio', value: '', onTap: function (e, node) {
         var cur = typeof d.remindBefore === 'number' ? d.remindBefore : st.settings.remindBefore;
-        W.Sheet.choose({ title: 'Recordarme', value: cur, options: REMIND_OPTS }).then(function (v) { if (v !== undefined) { d.remindBefore = v; renderDetails(); } });
-      });
-      var repeatRow = detailRow('repeat', 'Repetir');
-      repeatRow.addEventListener('click', function () {
-        W.Sheet.choose({ title: 'Repetir', value: d.repeat, options: Object.keys(st.REPEATS).map(function (k) { return { value: k, label: st.REPEATS[k] }; }) })
-          .then(function (v) { if (v) { d.repeat = v; renderDetails(); } });
-      });
+        W.Menu.choose(node.querySelector('.cell-value'), { value: cur, options: REMIND_OPTS }).then(function (v) { if (v !== undefined) { d.remindBefore = v; renderWhen(); } });
+      } });
+      var repeatRow = W.UI.cell({ icon: 'repeat', color: 'var(--gray-2)', title: 'Repetir', value: '', onTap: function (e, node) {
+        W.Menu.choose(node.querySelector('.cell-value'), { value: d.repeat, options: Object.keys(st.REPEATS).map(function (k) { return { value: k, label: k === 'none' ? 'Nunca' : st.REPEATS[k] }; }) })
+          .then(function (v) { if (v) { d.repeat = v; renderWhen(); } });
+      } });
 
-      var renderDetails = function () {
+      /* ----- Lista y prioridad ----- */
+      var listIcon = U.el('span.cell-icon.round', [U.icon('list')]);
+      var listRow = W.UI.cell({ lead: listIcon, title: 'Lista', value: '', onTap: function (e, node) {
+        var opts = [{ value: '', label: 'Sin lista' }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, color: st.ACCENTS[l.color].a }; }));
+        W.Sheet.choose({ anchor: node.querySelector('.cell-value'), title: 'Lista', value: d.listId || '', options: opts }).then(function (v) { if (v !== undefined) { d.listId = v || null; renderWhen(); } });
+      } });
+      var prioRow = W.UI.cell({ icon: 'flag', color: 'var(--red)', title: 'Prioridad', value: '', onTap: function (e, node) {
+        W.Menu.choose(node.querySelector('.cell-value'), { value: d.highlight, options: PRIO_OPTS }).then(function (v) { if (v) { d.highlight = v; renderWhen(); } });
+      } });
+
+      var setValue = function (row, text) { var v = row.querySelector('.cell-value > span'); if (v) v.textContent = text; };
+      var renderWhen = function (keepCal) {
+        dateTog.querySelector('input').checked = !!d.date;
+        timeTog.querySelector('input').checked = !!d.time;
+        dateSub.textContent = dateLabel(d.date);
+        dateSub.style.display = d.date ? '' : 'none';
+        calRow.style.display = d.date && calOpen ? '' : 'none';
+        if (!keepCal) picker.setValue(d.date);
+        timeSub.textContent = d.time ? U.fmtTime(d.time) : '';
+        timeSub.style.display = d.time ? '' : 'none';
         timeInput.value = d.time || '';
-        timeRow._value.textContent = d.time ? U.fmtTime(d.time) : 'Sin hora';
-        timeRow.classList.toggle('set', !!d.time);
-        clearTime.style.display = d.time ? '' : 'none';
-        var pr = labelOf(PRIO_OPTS, d.highlight);
-        U.clear(prioRow._value);
-        prioRow._value.appendChild(U.el('i.d-dot', { style: { background: (PRIO_OPTS.filter(function (o) { return o.value === d.highlight; })[0] || PRIO_OPTS[0]).color } }));
-        prioRow._value.appendChild(document.createTextNode(pr));
-        var l = d.listId ? st.getList(d.listId) : null;
-        U.clear(listRow._value);
-        if (l) listRow._value.appendChild(U.el('i.d-dot', { style: { background: st.ACCENTS[l.color].a } }));
-        listRow._value.appendChild(document.createTextNode(l ? l.name : 'Sin lista'));
+        timeInput.style.display = d.time ? '' : 'none';
+        timeRow.classList.toggle('tap', !!d.time);
+        warnSub.textContent = !d.date && d.warn ? 'Elige una fecha para recibir avisos' : '';
+        warnSub.style.display = warnSub.textContent ? '' : 'none';
         remindRow.style.display = d.warn && d.time ? '' : 'none';
-        remindRow._value.textContent = remindLabel(typeof d.remindBefore === 'number' ? d.remindBefore : st.settings.remindBefore);
-        repeatRow._value.textContent = d.repeat === 'none' ? 'No' : st.REPEATS[d.repeat];
+        setValue(remindRow, remindLabel(typeof d.remindBefore === 'number' ? d.remindBefore : st.settings.remindBefore));
+        setValue(repeatRow, d.repeat === 'none' ? 'Nunca' : st.REPEATS[d.repeat]);
+        var l = d.listId ? st.getList(d.listId) : null;
+        listIcon.style.setProperty('--c', l ? st.ACCENTS[l.color].a : 'var(--gray-2)');
+        setValue(listRow, l ? l.name : 'Sin lista');
+        setValue(prioRow, labelOf(PRIO_OPTS, d.highlight));
       };
-      renderDetails();
+      renderWhen();
 
       /* ----- Subtareas ----- */
-      var subList = U.el('div.subtasks');
-      var subInput = U.el('input.input.sub-input', { attrs: { type: 'text', maxlength: 120, placeholder: 'Añadir subtarea', enterkeyhint: 'enter' } });
+      var subGroup = U.el('div.group');
+      var subInput = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 120, placeholder: 'Añadir subtarea', enterkeyhint: 'enter', 'aria-label': 'Añadir subtarea' } });
       var addSub = function () {
         var v = subInput.value.trim();
         if (!v) return;
         d.subtasks.push({ id: U.uid('s'), text: v, done: false });
-        subInput.value = ''; renderSubs(); W.Audio.tap();
+        subInput.value = ''; renderSubs(); subInput.focus();
       };
       subInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addSub(); } });
       var renderSubs = function () {
-        U.clear(subList);
+        U.clear(subGroup);
         d.subtasks.forEach(function (s, i) {
-          var chk = U.el('button.check.sm' + (s.done ? '.on' : ''), { attrs: { 'aria-label': 'Completar subtarea' }, on: { click: function () { s.done = !s.done; renderSubs(); W.Audio.tap(); } } });
-          chk.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.5 4.6 4.6L19 7.6' })]));
-          subList.appendChild(U.el('div.subtask' + (s.done ? '.done' : ''), [
-            chk, U.el('span', { text: s.text }),
-            U.el('button.sub-x', { attrs: { 'aria-label': 'Quitar subtarea' }, on: { click: function () { d.subtasks.splice(i, 1); renderSubs(); } } }, [U.icon('close', 'xs')])
+          var chk = U.el('button.check.sm' + (s.done ? '.on' : ''), { attrs: { 'aria-label': (s.done ? 'Desmarcar: ' : 'Completar: ') + s.text }, on: { click: function () { s.done = !s.done; W.Audio.select(); renderSubs(); } } });
+          chk.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
+          subGroup.appendChild(U.el('div.cell.sub-row' + (s.done ? '.done' : ''), [
+            chk, U.el('span.cell-title', { text: s.text }),
+            U.el('button.sub-x', { attrs: { 'aria-label': 'Quitar subtarea' }, on: { click: function () { d.subtasks.splice(i, 1); renderSubs(); } } }, [U.icon('close')])
           ]));
         });
+        subGroup.appendChild(U.el('label.cell.sub-add', [U.icon('plus-circle', 'sm'), subInput,
+          U.el('button.nav-btn', { attrs: { 'aria-label': 'Añadir' }, style: { height: '28px', minWidth: '0', padding: '0' }, on: { click: addSub } }, [U.icon('check', 'sm')])]));
       };
       renderSubs();
 
       /* ----- Guardar ----- */
+      var collect = function () { d.text = title.value.trim(); d.notes = notes.value.trim(); return d; };
+      var dirty = function () { collect(); return JSON.stringify(d) !== original && (!isNew || !!d.text || !!d.notes || d.subtasks.length > 0); };
       var save = function () {
-        var text = title.value.trim();
-        if (!text) { title.focus(); title.classList.add('shake'); setTimeout(function () { title.classList.remove('shake'); }, 450); return; }
-        d.text = text; d.notes = notes.value.trim();
+        collect();
+        if (!d.text) { title.focus(); return; }
         if (isNew) {
           var created = st.addTask(d);
           if (created) {
-            W.Audio.vibrate([10, 24, 10]);
+            W.Audio.vibrate([8]);
             if (created.warn && created.date && W.Notify.permission() === 'default') W.Notify.request();
           }
-        } else {
-          st.updateTask(src.id, d);
-          W.Audio.tap();
-        }
+        } else st.updateTask(src.id, d);
         sheet.close();
+      };
+      var askDiscard = function () {
+        W.Sheet.confirm({ title: isNew ? '¿Descartar la tarea nueva?' : '¿Descartar los cambios?', ok: 'Descartar', cancel: 'Seguir editando', danger: true })
+          .then(function (ok) { if (ok) sheet.close(); });
       };
 
       var body = [
-        U.el('div.editor-head', [title, notes]),
-        dayChips,
-        U.el('div.group.details', [timeRow, prioRow, listRow, warnRow, remindRow, repeatRow]),
-        U.el('div.sub-block', [U.el('span.field-label', { text: 'Subtareas' }), subList, U.el('div.sub-add', [subInput,
-          U.el('button.icon-btn', { attrs: { 'aria-label': 'Añadir subtarea' }, on: { click: addSub } }, [U.icon('plus', 'sm')])])])
+        U.el('div.group.editor-fields', [U.el('label.cell', [title]), U.el('label.cell', [notes])]),
+        U.el('div.group', [dateRow, calRow, timeRow]),
+        U.el('div.group', [warnRow, remindRow, repeatRow]),
+        U.el('div.group', [listRow, prioRow]),
+        W.UI.section({ header: 'Subtareas', items: subGroup })
       ];
-      if (!isNew && src.focusMin) body.push(U.el('p.hint', [U.icon('timer', 'xs'), ' ' + src.focusMin + ' min de enfoque dedicados']));
+      if (!isNew) {
+        body.push(U.el('div.group', [W.UI.cell({ title: 'Eliminar tarea', center: true, danger: true, onTap: function () {
+          W.TaskCard.actions.confirmRemove(src.id).then(function (ok) { if (ok) sheet.close(); });
+        } })]));
+        if (src.focusMin) body.push(U.el('p.hint', { text: src.focusMin + ' min de enfoque dedicados a esta tarea' }));
+      }
 
-      var foot = [];
-      if (!isNew) foot.push(U.el('button.btn.ghost.round', { attrs: { 'aria-label': 'Eliminar tarea' }, on: { click: function () {
-        W.TaskCard.actions.confirmRemove(src.id).then(function (ok) { if (ok) sheet.close(); });
-      } } }, [U.icon('trash')]));
-      foot.push(U.el('button.btn.primary', { text: isNew ? 'Crear tarea' : 'Guardar', on: { click: save } }));
-
-      var sheet = W.Sheet.open({ title: isNew ? 'Nueva tarea' : 'Editar tarea', body: body, foot: foot, className: 'editor' });
-      W.App.setFab(true);
+      var sheet = W.Sheet.open({
+        title: isNew ? 'Nueva tarea' : 'Detalles', full: true, className: 'editor', body: body,
+        lead: { text: 'Cancelar', onTap: function () { if (dirty()) askDiscard(); else sheet.close(); } },
+        trail: saveBtn,
+        guard: dirty, onGuard: askDiscard
+      });
       requestAnimationFrame(function () { autosize(title); autosize(notes); });
-      if (isNew) setTimeout(function () { title.focus(); }, 320);
+      if (isNew) setTimeout(function () { title.focus(); }, 380);
       return sheet;
     }
   };

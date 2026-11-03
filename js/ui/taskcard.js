@@ -1,70 +1,72 @@
 /**
- * WHIDER · Tarjeta de tarea (diseño tranquilo y ligero)
- *  - Tocar el círculo: completar · tocar la tarjeta: editar
+ * WHIDER · Fila de tarea
+ *  - Tocar el círculo: completar · tocar la fila: editar
  *  - Deslizar → completar · deslizar ← eliminar (con Deshacer)
- * La información secundaria es una sola línea de texto, sin "pastillas".
+ * Prioridad: !!! urgente · !! importante · bandera destacada.
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var PCOLORS = { danger: 'var(--p-danger)', purple: 'var(--p-purple)', star: 'var(--p-star)', none: '' };
+  var MARKS = { danger: { text: '!!!', color: 'var(--p-danger)' }, purple: { text: '!!', color: 'var(--p-purple)' } };
 
   var Actions = {
     toggle: function (id, animated) {
       var t = S().find(id);
       if (!t) return;
       var willBeDone = !t.done;
-      if (willBeDone) { W.Audio.success(); W.Audio.vibrate([14, 30, 18]); }
-      else W.Audio.vibrate([8]);
+      if (willBeDone) { W.Audio.success(); W.Audio.vibrate([12]); }
+      else W.Audio.select();
       var apply = function () { S().setDone(id, willBeDone); };
-      if (animated && !U.reducedMotion()) setTimeout(apply, 260); else apply();
+      if (animated && !U.reducedMotion()) setTimeout(apply, 280); else apply();
     },
     remove: function (id) {
       var snap = S().removeTask(id);
       if (!snap) return;
-      W.Audio.vibrate([16]);
+      W.Audio.select();
       W.Toast.show({ text: 'Tarea eliminada', icon: 'trash', action: { label: 'Deshacer', fn: function () { S().restoreTask(snap); } } });
     },
     confirmRemove: function (id) {
       if (!S().settings.confirmDelete) { Actions.remove(id); return Promise.resolve(true); }
       var t = S().find(id);
-      return W.Sheet.confirm({ title: '¿Eliminar tarea?', text: t ? '"' + t.text + '"' : '', ok: 'Eliminar', danger: true })
+      return W.Sheet.confirm({ title: '¿Eliminar la tarea?', text: t ? '«' + t.text + '»' : '', ok: 'Eliminar', danger: true })
         .then(function (ok) { if (ok) Actions.remove(id); return ok; });
     },
-    /** Posponer con opciones sencillas */
-    postpone: function (id) {
+    /** Posponer con opciones sencillas (menú junto al botón) */
+    postpone: function (id, anchor) {
       var now = new Date(), opts = [{ value: 60, label: 'Dentro de 1 hora', icon: 'clock' }];
-      if (now.getHours() < 17) opts.push({ value: 'evening', label: 'Esta tarde (18:00)', icon: 'sun' });
+      if (now.getHours() < 17) opts.push({ value: 'evening', label: 'Esta tarde', desc: 'Hoy a las ' + U.fmtTime('18:00'), icon: 'sun' });
       opts.push({ value: 'tomorrow', label: 'Mañana', icon: 'calendar' });
-      opts.push({ value: 'edit', label: 'Elegir fecha y hora…', icon: 'edit' });
-      W.Sheet.choose({ title: 'Posponer', options: opts }).then(function (v) {
+      opts.push({ value: 'edit', label: 'Elegir fecha y hora…', icon: 'edit', gap: true });
+      var pick = anchor ? W.Menu.open(anchor, opts) : W.Sheet.choose({ title: 'Posponer', options: opts });
+      pick.then(function (v) {
         if (v === undefined) return;
         if (v === 'edit') { W.Editor.open(id); return; }
         if (v === 'tomorrow') S().moveToTomorrow(id);
         else if (v === 'evening') S().updateTask(id, { date: U.today(), time: '18:00' });
         else S().snooze(id, v);
-        W.Audio.tap();
+        W.Toast.show({ text: 'Tarea pospuesta', icon: 'clock' });
       });
     }
   };
 
-  /** Línea de detalles: "Hoy · 10:30 · ● Trabajo · 1/3 · ↻ · 🔔" (lo que no aporta, no se muestra) */
+  /** Línea de detalles: "Mañana, 10:30 · ● Trabajo · 1/3 · ↻" (lo que no aporta, no se muestra) */
   function metaLine(t, ctx) {
     var parts = [], st = S(), late = st.isOverdue(t);
-    var showDay = t.date && !(ctx === 'today' && t.date === U.today());
-    var when = (showDay ? U.fmtDay(t.date) : '') + (t.time ? (showDay ? ' · ' : '') + U.fmtTime(t.time) : '');
-    if (ctx === 'alerts' && late) when = 'Venció ' + U.fmtRel(U.deadlineTs(t.date, t.time) - Date.now());
+    var showDay = t.date && (ctx === 'alerts' || (!(ctx === 'today' && t.date === U.today()) && ctx !== 'day'));
+    var when = (showDay ? U.fmtDay(t.date) : '') + (t.time && ctx !== 'day' ? (showDay ? ', ' : '') + U.fmtTime(t.time) : '');
+    if (t.done && t.doneOn && ctx === 'done') when = 'Completada ' + U.fmtDay(t.doneOn).toLowerCase();
     if (when) parts.push(U.el('span' + (late ? '.late' : ''), { text: when }));
     var list = t.listId ? st.getList(t.listId) : null;
     if (list && ctx !== 'list') parts.push(U.el('span.m-list', [U.el('i', { style: { background: st.ACCENTS[list.color].a } }), list.name]));
     if (t.subtasks.length) parts.push(U.el('span', { text: t.subtasks.filter(function (s) { return s.done; }).length + '/' + t.subtasks.length }));
     var icons = [];
-    if (t.repeat !== 'none') icons.push(U.icon('repeat', 'xs'));
-    if (t.warn && !t.done) icons.push(U.icon('bell', 'xs'));
-    if (t.notes) icons.push(U.icon('note', 'xs'));
-    if (icons.length) parts.push(U.el('span.m-icons', icons));
+    if (ctx === 'alerts') icons = null;   // en Vencidas basta con la fecha en rojo
+    else if (t.repeat !== 'none') icons.push(U.icon('repeat', 'xs'));
+    if (icons && t.warn && !t.done) icons.push(U.icon('bell', 'xs'));
+    if (icons && t.notes) icons.push(U.icon('note', 'xs'));
+    if (icons && icons.length) parts.push(U.el('span.m-icons', icons));
     if (!parts.length) return null;
     var line = U.el('div.task-meta');
     parts.forEach(function (p, i) { if (i) line.appendChild(U.el('span.sep', { text: '·' })); line.appendChild(p); });
@@ -72,15 +74,16 @@ window.Whider = window.Whider || {};
   }
 
   function attachSwipe(card, body, t) {
-    var sx = 0, sy = 0, dx = 0, mode = null, id = null, bgR = null, bgL = null, limit = 110;
+    var sx = 0, sy = 0, dx = 0, mode = null, id = null, bgR = null, bgL = null, limit = 96;
     var ensureBg = function () {
       if (bgR) return;
-      bgR = U.el('div.task-swipe-bg.right', [U.icon(t.done ? 'reset' : 'check')]);
-      bgL = U.el('div.task-swipe-bg.left', [U.icon('trash')]);
+      bgR = U.el('div.task-swipe-bg.right', [U.icon(t.done ? 'reset' : 'check'), U.el('span', { text: t.done ? 'Pendiente' : 'Completar' })]);
+      bgL = U.el('div.task-swipe-bg.left', [U.el('span', { text: 'Eliminar' }), U.icon('trash')]);
       card.insertBefore(bgL, body); card.insertBefore(bgR, bgL);
     };
     body.addEventListener('pointerdown', function (e) {
-      if (e.button > 0 || e.target.closest('.check, button')) return;
+      // También se puede empezar a deslizar desde el círculo (un toque sin mover sigue completando)
+      if (e.button > 0 || e.target.closest('button:not(.check)')) return;
       sx = e.clientX; sy = e.clientY; dx = 0; mode = 'pending'; id = e.pointerId;
     });
     body.addEventListener('pointermove', function (e) {
@@ -89,16 +92,16 @@ window.Whider = window.Whider || {};
       if (mode === 'pending') {
         if (Math.abs(mx) > 12 && Math.abs(mx) > Math.abs(my) * 1.4) {
           mode = 'drag'; ensureBg(); card.classList.add('dragging');
-          limit = Math.min(120, card.offsetWidth * 0.3);
+          limit = Math.min(110, card.offsetWidth * 0.28);
           try { body.setPointerCapture(id); } catch (err) { /* sin captura */ }
         } else if (Math.abs(my) > 10) { mode = null; return; } else return;
       }
       dx = mx;
-      body.style.transform = 'translate3d(' + (dx * (Math.abs(dx) > limit ? 0.55 : 1)) + 'px,0,0)';
-      bgR.style.opacity = dx > 0 ? Math.min(1, dx / limit) : 0;
-      bgL.style.opacity = dx < 0 ? Math.min(1, -dx / limit) : 0;
+      body.style.transform = 'translate3d(' + (dx * (Math.abs(dx) > limit ? 0.6 : 1)) + 'px,0,0)';
+      bgR.style.visibility = dx > 0 ? 'visible' : 'hidden';
+      bgL.style.visibility = dx < 0 ? 'visible' : 'hidden';
       var armR = dx > limit, armL = dx < -limit;
-      if (armR !== bgR.classList.contains('armed') || armL !== bgL.classList.contains('armed')) W.Audio.vibrate([5]);
+      if (armR !== bgR.classList.contains('armed') || armL !== bgL.classList.contains('armed')) W.Audio.select();
       bgR.classList.toggle('armed', armR); bgL.classList.toggle('armed', armL);
     });
     var end = function (e) {
@@ -110,35 +113,45 @@ window.Whider = window.Whider || {};
       card._swiped = true;
       setTimeout(function () { card._swiped = false; }, 60);
       if (dx > limit) {
-        body.style.transform = ''; bgR.style.opacity = 0;
+        body.style.transform = '';
         var chk = card.querySelector('.check');
         chk.classList.toggle('on', !t.done);
         Actions.toggle(t.id, true);
         if (W.Tips) W.Tips.mark('swipe');
       } else if (dx < -limit) {
         body.style.transform = 'translate3d(-110%,0,0)';
-        setTimeout(function () { Actions.remove(t.id); }, 180);
+        setTimeout(function () { Actions.remove(t.id); }, 200);
       } else {
-        body.style.transform = ''; bgR.style.opacity = 0; bgL.style.opacity = 0;
+        body.style.transform = '';
       }
     };
     body.addEventListener('pointerup', end);
     body.addEventListener('pointercancel', end);
   }
 
-  /** create(tarea, { ctx: 'today'|'list'|..., swipe, highlight }) */
+  /** create(tarea, { ctx: 'today'|'list'|'day'|'alerts'|'done', swipe, postpone, time }) */
   function create(t, opts) {
     opts = opts || {};
-    var pc = PCOLORS[t.highlight] || '';
     var check = U.el('button.check' + (t.done ? '.on' : ''), {
       attrs: { 'aria-label': (t.done ? 'Marcar como pendiente: ' : 'Completar: ') + t.text, 'aria-pressed': t.done ? 'true' : 'false' }
     });
-    check.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.5 4.6 4.6L19 7.6' })]));
-    var main = U.el('div.task-main', [U.el('span.task-title', { text: t.text })]);
+    check.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
+    var mark = MARKS[t.highlight];
+    var title = U.el('span.task-title', [mark ? U.el('span.task-prio', { text: mark.text, style: { color: mark.color } }) : null, t.text]);
+    var main = U.el('div.task-main', [title]);
     var meta = metaLine(t, opts.ctx);
     if (meta) main.appendChild(meta);
-    var body = U.el('div.task-body', { style: pc ? { '--pc': pc } : null }, [check, main]);
-    var node = U.el('li.task' + (t.done ? '.is-done' : '') + (S().isOverdue(t) ? '.overdue' : '') + (opts.highlight ? '.next' : ''), { attrs: { 'data-id': t.id } }, [body]);
+    var trail = [];
+    if (t.highlight === 'star') trail.push(U.el('span.task-flag', { attrs: { 'aria-label': 'Destacada' } }, [U.icon('flag')]));
+    if (opts.postpone && !t.done) {
+      trail.push(U.el('button.btn.xs.soft', { text: 'Posponer', on: { click: function (e) { e.stopPropagation(); Actions.postpone(t.id, e.currentTarget); } } }));
+    }
+    var body = U.el('div.task-body', [
+      opts.time !== undefined ? U.el('span.tl-time', { text: opts.time }) : null,
+      check, main,
+      trail.length ? U.el('div.task-trail', trail) : null
+    ]);
+    var node = U.el('li.task' + (t.done ? '.is-done' : '') + (S().isOverdue(t) ? '.overdue' : ''), { attrs: { 'data-id': t.id } }, [body]);
 
     var moved = function (e) { return node._down && Math.abs(e.clientX - node._down[0]) + Math.abs(e.clientY - node._down[1]) > 12; };
     body.addEventListener('pointerdown', function (e) { node._down = [e.clientX, e.clientY]; }, true);
@@ -146,7 +159,6 @@ window.Whider = window.Whider || {};
       e.stopPropagation();
       if (moved(e)) return;
       check.classList.toggle('on', !t.done);
-      check.classList.remove('pop'); void check.offsetWidth; check.classList.add('pop');
       Actions.toggle(t.id, true);
     });
     body.addEventListener('click', function (e) {
@@ -157,5 +169,14 @@ window.Whider = window.Whider || {};
     return node;
   }
 
-  W.TaskCard = { create: create, actions: Actions };
+  /** Lista agrupada de tareas */
+  function list(tasks, opts) {
+    var ul = U.el('ul.task-list');
+    var frag = document.createDocumentFragment();
+    tasks.forEach(function (t) { frag.appendChild(create(t, typeof opts === 'function' ? opts(t) : opts)); });
+    ul.appendChild(frag);
+    return ul;
+  }
+
+  W.TaskCard = { create: create, list: list, actions: Actions, metaLine: metaLine };
 })(window.Whider);

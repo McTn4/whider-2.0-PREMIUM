@@ -140,4 +140,4 @@ Los correos de verificación no se envían de verdad: el emulador muestra los en
 - **¿Qué pasa con los datos que ya tenía?** Se conservan. Si usabas la app sin cuenta, al crear la cuenta todo se sube a ella.
 - **¿Y si uso dos móviles?** Los cambios se fusionan: no se pierde lo hecho en ninguno. Si algo se borra en uno, también desaparece en el otro.
 - **¿Funciona sin internet?** Sí. Todo se guarda al momento en el dispositivo y se sincroniza al volver la conexión.
-- **¿Cómo se borra una cuenta?** Desde **Ajustes → Cuenta → Eliminar cuenta**. Se borran la cuenta y sus datos de la nube (requisito de Google Play).
+- **¿Cómo se borra una cuenta?** Toca tu foto (arriba a la derecha) → **Ajustes → Cuenta → Eliminar la cuenta**. Se borran la cuenta y sus datos de la nube (requisito de Google Play).

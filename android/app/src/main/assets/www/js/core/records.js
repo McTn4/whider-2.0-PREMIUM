@@ -123,9 +123,9 @@ window.Whider = window.Whider || {};
       if (fresh.length) st.save();
       if (!silent) fresh.forEach(function (f, i) {
         setTimeout(function () {
-          var text = f.type === 'milestone' ? '¡Hito alcanzado! ' + f.value + ' tareas completadas' : '¡Nueva marca! ' + AUTO[f.type].title + ': ' + AUTO[f.type].fmt(f.value);
+          var text = f.type === 'milestone' ? 'Hito: ' + f.value + ' tareas completadas' : 'Nueva marca · ' + AUTO[f.type].title + ': ' + AUTO[f.type].fmt(f.value);
           W.Toast.show({ text: text, type: 'success', icon: f.type === 'milestone' ? 'trophy' : AUTO[f.type].icon, duration: 4200 });
-          W.Audio.vibrate([20, 40, 20, 40, 80]);
+          W.Audio.vibrate([12]);
         }, 1200 + i * 800);
       });
       return fresh;

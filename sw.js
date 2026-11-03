@@ -2,7 +2,7 @@
  * WHIDER · Service Worker: funciona sin conexión y se actualiza solo
  * (estrategia "red primero" con respaldo en caché).
  */
-var CACHE_NAME = 'whider-v4.1.0';
+var CACHE_NAME = 'whider-v4.2.0';
 var ASSETS = [
   './',
   './index.html',
@@ -11,11 +11,7 @@ var ASSETS = [
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
   './icons/icon.svg',
-  './fonts/archivo-latin-wdth-normal.woff2',
-  './fonts/ibm-plex-sans-latin-400-normal.woff2',
-  './fonts/ibm-plex-sans-latin-500-normal.woff2',
-  './fonts/ibm-plex-sans-latin-600-normal.woff2',
-  './fonts/ibm-plex-sans-latin-700-normal.woff2',
+  './fonts/inter-latin-opsz-normal.woff2',
   './css/components.css',
   './css/layout.css',
   './css/screens.css',
@@ -26,6 +22,7 @@ var ASSETS = [
   './js/ui/controls.js',
   './js/ui/editor.js',
   './js/ui/fx.js',
+  './js/ui/menu.js',
   './js/ui/profile.js',
   './js/ui/sheet.js',
   './js/ui/taskcard.js',
@@ -38,7 +35,6 @@ var ASSETS = [
   './js/core/store.js',
   './js/core/sync.js',
   './js/core/util.js',
-  './js/screens/alerts.js',
   './js/screens/auth.js',
   './js/screens/calendar.js',
   './js/screens/focus.js',
@@ -96,7 +92,7 @@ self.addEventListener('fetch', function (event) {
 // Pulsar una notificación abre (o enfoca) la app en el centro de avisos
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-  var screen = (event.notification.data && event.notification.data.screen) || 'alerts';
+  var screen = (event.notification.data && event.notification.data.screen) || 'home';
   var target = new URL('./index.html#' + screen, self.registration.scope).href;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {

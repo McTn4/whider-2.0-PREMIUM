@@ -11,6 +11,7 @@ window.Whider = window.Whider || {};
   var MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   var WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
   var WEEKDAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  var WEEKDAYS_LETTER = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
@@ -18,6 +19,8 @@ window.Whider = window.Whider || {};
   var U = {
     MONTHS: MONTHS,
     WEEKDAYS_SHORT: WEEKDAYS_SHORT,
+    WEEKDAYS_LETTER: WEEKDAYS_LETTER,
+    WEEKDAYS: WEEKDAYS,
 
     /* ---------- DOM ---------- */
     $: function (sel, root) { return (root || document).querySelector(sel); },

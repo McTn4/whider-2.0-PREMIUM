@@ -1,6 +1,6 @@
 /**
- * WHIDER · Agenda: calendario mensual con mapa de carga, gesto de deslizar
- * para cambiar de mes y agenda del día seleccionado.
+ * WHIDER · Calendario: mes en cuadrícula (desliza para cambiar de mes)
+ * y las tareas del día seleccionado, ordenadas por hora.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -18,101 +18,83 @@ window.Whider.Screens = window.Whider.Screens || {};
     var cm = month(st), d = new Date(cm.y, cm.m + delta, 1);
     st.ui.calMonth = { y: d.getFullYear(), m: d.getMonth() };
     slideDir = delta;
-    W.Audio.tap();
+  }
+  function goToday(st) {
+    var n = new Date();
+    st.ui.calMonth = { y: n.getFullYear(), m: n.getMonth() };
+    st.ui.calSelected = U.today();
   }
 
-  function grid(st, root) {
-    var cm = month(st), td = U.today(), sel = st.ui.calSelected;
-    var ws = st.settings.weekStart; // 1 = lunes, 0 = domingo
-    var g = U.el('div.cal-grid' + (slideDir > 0 ? '.slide-l' : slideDir < 0 ? '.slide-r' : ''));
-    slideDir = 0;
-    for (var i = 0; i < 7; i++) g.appendChild(U.el('span.cal-wd', { text: U.WEEKDAYS_SHORT[(i + ws) % 7] }));
-
-    var first = new Date(cm.y, cm.m, 1), lead = (first.getDay() - ws + 7) % 7;
-    var days = new Date(cm.y, cm.m + 1, 0).getDate();
-    var load = {}, prio = {}, doneMap = {};
+  function card(st, root) {
+    var cm = month(st), td = U.today();
+    var pend = {}, late = {}, done = {};
     st.tasks.forEach(function (t) {
       if (!t.date) return;
-      if (t.done) { doneMap[t.date] = (doneMap[t.date] || 0) + 1; return; }
-      load[t.date] = (load[t.date] || 0) + 1;
-      if (t.highlight === 'danger' || (t.warn && !prio[t.date])) prio[t.date] = t.highlight === 'danger' ? 'danger' : 'warn';
+      if (t.done) { done[t.date] = (done[t.date] || 0) + 1; return; }
+      pend[t.date] = (pend[t.date] || 0) + 1;
+      if (st.isOverdue(t)) late[t.date] = true;
     });
-    var maxLoad = 1;
-    Object.keys(load).forEach(function (k) { if (load[k] > maxLoad) maxLoad = load[k]; });
-
-    for (var b = 0; b < lead; b++) g.appendChild(U.el('span.cal-blank'));
-    for (var d = 1; d <= days; d++) {
-      (function (day) {
-        var ds = U.ymd(new Date(cm.y, cm.m, day));
-        var n = load[ds] || 0, dn = doneMap[ds] || 0;
-        var cls = 'button.cal-day' + (ds === td ? '.today' : '') + (ds === sel ? '.selected' : '') + (ds < td ? '.past' : '') + (n ? '.has' : '');
-        var cell = U.el(cls, {
-          style: n ? { '--heat': (0.12 + 0.5 * (n / maxLoad)).toFixed(2) } : null,
-          attrs: { 'aria-label': U.fmtLong(ds) + (n ? ', ' + U.plural(n, 'pendiente', 'pendientes') : ''), 'aria-pressed': ds === sel ? 'true' : 'false' }
-        }, [U.el('span.cal-num', { text: day })]);
-        var marks = U.el('span.cal-marks');
-        if (n) marks.appendChild(U.el('i.' + (prio[ds] === 'danger' ? 'm-danger' : prio[ds] === 'warn' ? 'm-warn' : 'm-acc') + (ds < td ? '.m-late' : '')));
-        if (n > 1) marks.appendChild(U.el('i.m-acc'));
-        if (dn && !n) marks.appendChild(U.el('i.m-done'));
-        cell.appendChild(marks);
-        cell.addEventListener('click', function () {
-          st.ui.calSelected = ds; W.Audio.tap(); W.Screens.calendar.render(root);
-        });
-        g.appendChild(cell);
-      })(d);
-    }
-
+    var rerender = function () { W.Screens.calendar.render(root); };
+    var grid = W.UI.monthGrid({
+      y: cm.y, m: cm.m, selected: st.ui.calSelected, slide: slideDir,
+      mark: function (ds) {
+        if (pend[ds]) return { kind: late[ds] ? 'late' : 'dot', label: U.plural(pend[ds], 'pendiente', 'pendientes') };
+        if (done[ds] && ds <= td) return { kind: 'done', label: U.plural(done[ds], 'completada', 'completadas') };
+        return null;
+      },
+      onPick: function (ds) { st.ui.calSelected = ds; W.Audio.select(); rerender(); }
+    });
+    slideDir = 0;
     // Deslizar horizontalmente para cambiar de mes
     var sx = null, sy = 0;
-    g.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; });
-    g.addEventListener('pointerup', function (e) {
+    grid.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; });
+    grid.addEventListener('pointerup', function (e) {
       if (sx === null) return;
       var dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { shift(st, dx < 0 ? 1 : -1); W.Screens.calendar.render(root); }
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { shift(st, dx < 0 ? 1 : -1); rerender(); }
     });
-    return g;
+    grid.addEventListener('pointercancel', function () { sx = null; });
+    return U.el('div.group.cal', [
+      U.el('div.cal-head', [
+        U.el('strong', { text: U.fmtMonth(cm.y, cm.m) }),
+        U.el('div.cal-arrows', [
+          W.UI.navBtn({ icon: 'left', label: 'Mes anterior', onTap: function () { shift(st, -1); rerender(); } }),
+          W.UI.navBtn({ icon: 'right', label: 'Mes siguiente', onTap: function () { shift(st, 1); rerender(); } })
+        ])
+      ]),
+      grid
+    ]);
   }
 
   function agenda(st) {
     var sel = st.ui.calSelected;
     var items = st.forDate(sel).sort(function (a, b) { return (a.done - b.done) || st.compareDeadline(a, b); });
-    var wrap = U.el('div.day-agenda');
     var done = items.filter(function (t) { return t.done; }).length;
-    wrap.appendChild(U.el('div.section-head', [
-      U.el('div', [U.el('h2', { text: U.fmtLong(sel) }), U.el('span.sub', { text: items.length ? done + ' de ' + items.length + ' completadas' : U.fmtDay(sel) })]),
-      U.el('button.icon-btn', { attrs: { 'aria-label': 'Añadir tarea este día' }, on: { click: function () { W.Editor.open(null, { date: sel }); } } }, [U.icon('plus', 'sm')])
-    ]));
-    if (!items.length) return wrap;
-    var ul = U.el('ul.task-list.timeline');
-    items.forEach(function (t) {
-      var li = W.TaskCard.create(t, {});
-      li.insertBefore(U.el('span.tl-time', { text: t.time ? U.fmtTime(t.time) : '—' }), li.firstChild);
-      ul.appendChild(li);
-    });
-    wrap.appendChild(ul);
-    return wrap;
+    var td = U.today();
+    var title = sel === td ? 'Hoy' : sel === U.addDays(td, 1) ? 'Mañana' : sel === U.addDays(td, -1) ? 'Ayer' : U.fmtLong(sel);
+    var side = items.length ? U.el('small', { text: done + ' de ' + items.length }) : null;
+    var body = items.length
+      ? W.TaskCard.list(items, function (t) { return { ctx: 'day', time: t.time ? U.fmtTime(t.time) : '' }; })
+      : U.el('div.group', [W.UI.empty(null, 'Sin tareas', sel < td ? 'No hubo tareas este día.' : 'No hay nada programado para este día.',
+        sel >= td ? U.el('button.btn.sm.soft', { on: { click: function () { W.Editor.open(null, { date: sel }); } } }, ['Añadir tarea']) : null, true)]);
+    var ul = body;
+    if (items.length) ul.classList.add('timeline');
+    return W.UI.section({ title: title, side: side, items: body });
   }
 
   W.Screens.calendar = {
-    title: 'Agenda',
-    render: function (root, fresh) {
-      var st = S(), cm = month(st);
-      var now = new Date(), isCurrent = cm.y === now.getFullYear() && cm.m === now.getMonth();
-      var monthTasks = st.tasks.filter(function (t) { return t.date && t.date.slice(0, 7) === cm.y + '-' + U.pad(cm.m + 1); });
-      var mDone = monthTasks.filter(function (t) { return t.done; }).length;
-      var inner = U.el('div.inner');
-      inner.appendChild(U.el('div.page-head', [U.el('div', [U.el('h1', { text: U.fmtMonth(cm.y, cm.m) }),
-        U.el('p', { text: monthTasks.length ? mDone + ' de ' + monthTasks.length + ' completadas este mes' : 'Sin tareas este mes' })])]));
-      var nav = U.el('div.cal-nav', [
-        U.el('button.icon-btn', { attrs: { 'aria-label': 'Mes anterior' }, on: { click: function () { shift(st, -1); W.Screens.calendar.render(root); } } }, [U.icon('left')]),
-        U.el('button.chip' + (isCurrent ? '.active' : ''), { text: 'Hoy', on: { click: function () {
-          st.ui.calMonth = { y: now.getFullYear(), m: now.getMonth() }; st.ui.calSelected = U.today(); W.Audio.tap(); W.Screens.calendar.render(root);
-        } } }),
-        U.el('button.icon-btn', { attrs: { 'aria-label': 'Mes siguiente' }, on: { click: function () { shift(st, 1); W.Screens.calendar.render(root); } } }, [U.icon('right')])
-      ]);
-      inner.appendChild(U.el('div.card.cal-card', [nav, grid(st, root)]));
-      inner.appendChild(agenda(st));
-      U.clear(root).appendChild(inner);
+    title: 'Calendario',
+    render: function (root) {
+      var st = S(), cm = month(st), now = new Date();
+      var isCurrent = cm.y === now.getFullYear() && cm.m === now.getMonth() && st.ui.calSelected === U.today();
+      var head = W.UI.header({
+        title: 'Calendario', avatar: true,
+        actions: [
+          isCurrent ? null : { text: 'Hoy', onTap: function () { goToday(st); W.Screens.calendar.render(root); } },
+          { icon: 'plus', label: 'Nueva tarea este día', onTap: function () { W.Editor.open(null, { date: st.ui.calSelected }); } }
+        ].filter(Boolean)
+      });
+      W.UI.mount(root, head, [card(st, root), agenda(st)]);
     }
   };
 })(window.Whider);

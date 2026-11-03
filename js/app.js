@@ -19,35 +19,28 @@ window.Whider = window.Whider || {};
   function applyAppearance() {
     var cfg = S.settings, html = document.documentElement, acc = S.ACCENTS[cfg.accent] || S.ACCENTS.iris;
     html.style.setProperty('--accent', acc.a);
-    html.style.setProperty('--accent-2', acc.b);
     html.style.setProperty('--accent-rgb', hexToRgb(acc.a));
-    html.style.setProperty('--accent-2-rgb', hexToRgb(acc.b));
+    html.style.setProperty('--on-accent', acc.on || '#FFFFFF');
     html.setAttribute('data-text', cfg.textSize);
     html.setAttribute('data-density', cfg.density);
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
     W.Profile.refreshAll();
-    requestAnimationFrame(W.Router.placeIndicator);
-  }
-
-  function setFab(open) {
-    var f = document.getElementById('btnFab');
-    if (f) f.classList.toggle('open', !!open);
   }
 
   function newTaskFromContext() {
     var id = S.activeScreen, preset = {};
     if (id === 'calendar') preset.date = S.ui.calSelected;
-    if (id === 'tasks' && S.ui.tab === 'upcoming') preset.date = U.addDays(U.today(), 1);
     W.Editor.open(null, preset);
   }
 
-  /** Atrás (Android/Escape): hojas → acceso/presentación → pantalla inicial → salir */
+  /** Atrás (Android/Escape): menús y hojas → acceso/presentación → página anterior → pestaña inicial → salir */
   function handleBack() {
     if (W.Sheet.closeTop()) return true;
     if (W.AuthScreen.isOpen()) return W.AuthScreen.back();
     if (W.Onboarding.isOpen()) return W.Onboarding.back();
+    var cur = W.Screens[S.activeScreen];
+    if (cur && cur.back && cur.back()) return true;
     var start = S.settings.startScreen || 'home';
-    if (S.activeScreen === 'settings') { W.Router.go('progress'); return true; }
     if (S.activeScreen !== start) { W.Router.go(start); return true; }
     return false;
   }
@@ -74,9 +67,8 @@ window.Whider = window.Whider || {};
     var s = S.stats();
     if (s.todayTotal > 0 && s.todayDone === s.todayTotal && S.meta.celebrated !== U.today()) {
       S.setMeta('celebrated', U.today());
-      W.Fx.confetti();
       W.Audio.celebrate();
-      W.Toast.show({ text: '¡Día completado! Todo lo de hoy está hecho', type: 'success', icon: 'trophy', duration: 4000 });
+      W.Toast.show({ text: 'Día completado. Todo lo de hoy está hecho.', type: 'success', icon: 'check', duration: 3500 });
     }
   }
 
@@ -87,7 +79,7 @@ window.Whider = window.Whider || {};
     S.setMeta('seenAchievements', seen);
     if (silent) return;
     fresh.slice(0, 2).forEach(function (a, i) {
-      setTimeout(function () { W.Toast.show({ text: 'Logro desbloqueado: ' + a.title, type: 'success', icon: a.icon, duration: 3500 }); W.Audio.vibrate([20, 40, 60]); }, 600 + i * 900);
+      setTimeout(function () { W.Toast.show({ text: 'Logro conseguido: ' + a.title, type: 'success', icon: a.icon, duration: 3500 }); W.Audio.vibrate([12]); }, 600 + i * 900);
     });
   }
 
@@ -182,14 +174,9 @@ window.Whider = window.Whider || {};
     if (migrateFromFileOrigin()) return;
     applyAppearance();
 
-    document.getElementById('btnFab').addEventListener('click', function () { newTaskFromContext(); });
-    document.getElementById('btnProfile').addEventListener('click', function () { W.Audio.tap(); W.Router.go('progress'); });
-    document.getElementById('btnAlerts').addEventListener('click', function () { W.Audio.tap(); W.Router.go('alerts'); });
-
     S.subscribe(function (reason) {
       if (/^settings|^profile/.test(reason)) applyAppearance();
-      // En Ajustes, los propios controles ya reflejan el cambio: no se reconstruye la pantalla
-      if (!(/^settings:/.test(reason) && S.activeScreen === 'settings')) W.Router.refresh();
+      W.Router.refresh();
       W.Notify.emitBadge();
       if (reason === 'done' || reason === 'focus') scheduleLateWork(reason);
       if (reason !== 'sync') W.Sync.schedule();
@@ -231,7 +218,7 @@ window.Whider = window.Whider || {};
     document.documentElement.classList.add('ready');
   }
 
-  W.App = { handleBack: handleBack, setFab: setFab, applyAppearance: applyAppearance, afterAuth: afterAuth, logout: logout, deleteAccount: deleteAccount };
+  W.App = { handleBack: handleBack, applyAppearance: applyAppearance, afterAuth: afterAuth, logout: logout, deleteAccount: deleteAccount, newTask: newTaskFromContext };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })(window.Whider);

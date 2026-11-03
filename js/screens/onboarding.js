@@ -10,10 +10,10 @@ window.Whider = window.Whider || {};
   var root = null, steps = [], step = 0, data = {};
 
   var FEATURES = [
-    { icon: 'tasks', t: 'Tareas sin estrés', d: 'Listas, subtareas, prioridades y repeticiones.' },
-    { icon: 'bell', t: 'Avisos a tiempo', d: 'Recordatorios y alertas si algo se te pasa.' },
-    { icon: 'timer', t: 'Modo enfoque', d: 'Sesiones de concentración con tus tareas.' },
-    { icon: 'trophy', t: 'Tus marcas', d: 'Rachas, récords y logros que no se pierden.' }
+    { icon: 'tasks', t: 'Tareas y listas', d: 'Organiza lo que tienes que hacer con fechas, prioridades y subtareas.' },
+    { icon: 'bell', t: 'Avisos a tiempo', d: 'Recordatorios antes del plazo y aviso si algo se queda pendiente.' },
+    { icon: 'timer', t: 'Enfoque', d: 'Sesiones de concentración con pausas, vinculadas a tus tareas.' },
+    { icon: 'chart', t: 'Tu progreso', d: 'Rachas, marcas y logros que se guardan para siempre.' }
   ];
 
   function finish() {
@@ -24,7 +24,8 @@ window.Whider = window.Whider || {};
     if (Object.keys(patch).length) { st.setProfile(patch); if (patch.name && W.Auth) W.Auth.updateName(patch.name); }
     st.setMeta('onboarded', true);
     root.classList.remove('open');
-    setTimeout(function () { U.clear(root); root.style.display = 'none'; }, 350);
+    document.body.classList.remove('no-tabs');
+    setTimeout(function () { U.clear(root); root.style.display = 'none'; }, 320);
     W.Router.go(st.settings.startScreen || 'home');
     setTimeout(function () { W.Notify.check(); }, 1500);
   }
@@ -33,10 +34,10 @@ window.Whider = window.Whider || {};
 
   function renderWelcome() {
     return [
-      U.el('div.ob-logo', [U.svg('svg', { viewBox: '0 0 64 64' }, [U.svg('use', { href: '#logo' })])]),
-      U.el('h1', [U.el('span', { text: 'Tu día,' }), U.el('br'), U.el('span.accent-text', { text: 'bajo control.' })]),
+      U.el('div.app-icon', [U.svg('svg', { viewBox: '0 0 64 64' }, [U.svg('use', { href: '#logo' })])]),
+      U.el('h1', { text: 'Te damos la bienvenida a WHIDER' }),
       U.el('div.ob-features', FEATURES.map(function (f) {
-        return U.el('div.ob-feature', [U.el('span.row-icon', [U.icon(f.icon)]), U.el('div', [U.el('strong', { text: f.t }), U.el('span', { text: f.d })])]);
+        return U.el('div.ob-feature', [U.icon(f.icon), U.el('div', [U.el('strong', { text: f.t }), U.el('span', { text: f.d })])]);
       }))
     ];
   }
@@ -45,38 +46,46 @@ window.Whider = window.Whider || {};
     var st = S(), prof = st.getProfile() || {};
     if (data.name == null) data.name = st.displayName() || (W.Auth && W.Auth.user && W.Auth.user.displayName) || '';
     if (data.photo == null) data.photo = prof.photo || '';
-    var preview = U.el('span.avatar.xl');
+    var preview = U.el('span.avatar');
+    var link = U.el('button.link-btn');
     var paint = function () {
       U.clear(preview);
       var src = data.photo || prof.photoURL || '';
       preview.classList.toggle('has-photo', !!src);
       if (src) preview.appendChild(U.el('img', { attrs: { alt: '', src: src, referrerpolicy: 'no-referrer' } }));
       else preview.appendChild(document.createTextNode((data.name || 'W').charAt(0).toUpperCase()));
+      link.textContent = src ? 'Cambiar foto' : 'Añadir foto';
     };
-    paint();
-    var input = U.el('input.input.ob-input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'given-name', enterkeyhint: 'next' } });
+    var input = U.el('input.cell-input.ob-input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'given-name', enterkeyhint: 'next', 'aria-label': 'Tu nombre' } });
     input.value = data.name;
     input.addEventListener('input', function () { data.name = input.value.trim(); if (!preview.classList.contains('has-photo')) paint(); });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); input.blur(); next(); } });
     var pick = function () { W.Profile.choosePhoto().then(function (d) { if (d) { data.photo = d; paint(); } }); };
+    link.addEventListener('click', pick);
+    paint();
     return [
       U.el('h1', { text: 'Tu perfil' }),
-      U.el('p', { text: 'Así te verás en WHIDER. Puedes cambiarlo cuando quieras.' }),
-      U.el('div.ob-avatar', [
-        U.el('button.avatar-pick', { attrs: { 'aria-label': 'Elegir foto' }, on: { click: pick } }, [preview, U.el('span.avatar-cam', [U.icon('camera', 'sm')])]),
-        U.el('button.link-btn', { text: data.photo || prof.photoURL ? 'Cambiar foto' : 'Añadir foto', on: { click: pick } })
-      ]),
-      input
+      U.el('p', { text: 'Así aparecerás en WHIDER. Puedes cambiarlo cuando quieras.' }),
+      U.el('div.ob-avatar', [U.el('button.photo-pick', { attrs: { 'aria-label': 'Elegir foto' }, on: { click: pick } }, [preview]), link]),
+      U.el('div.group', [U.el('label.cell', [input])])
     ];
   }
 
   function renderColor() {
     var st = S();
+    var check = function (on) {
+      var c = U.el('span.check' + (on ? '.on' : ''));
+      c.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
+      return c;
+    };
+    var row = function (on, text, meta) {
+      return U.el('li.task' + (on ? '.is-done' : ''), [U.el('div.task-body', [check(on), U.el('div.task-main', [U.el('span.task-title', { text: text }), U.el('div.task-meta', { text: meta })])])]);
+    };
     return [
-      U.el('h1', { text: 'Elige tu color' }),
-      U.el('p', { text: 'Toda la app se adapta a él.' }),
-      W.UI.swatches(st.settings.accent, function (k) { st.setSetting('accent', k); }),
-      U.el('div.ob-preview', [U.el('span.check.on', [U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.5 4.6 4.6L19 7.6' })])]), U.el('span', { text: 'Así se verán tus tareas completadas' })])
+      U.el('h1', { text: 'Elige un color' }),
+      U.el('p', { text: 'Se usará en botones, casillas y elementos seleccionados.' }),
+      U.el('div.group', [U.el('div.cell.color-cell', [W.UI.swatches(st.settings.accent, function (k) { st.setSetting('accent', k); })])]),
+      U.el('div.sec.ob-preview', [U.el('div.sec-h', { text: 'Vista previa' }), U.el('ul.task-list', [row(true, 'Tarea completada', 'Hoy'), row(false, 'Tarea pendiente', 'Mañana, ' + U.fmtTime('10:00'))])])
     ];
   }
 
@@ -85,20 +94,23 @@ window.Whider = window.Whider || {};
     var kind = steps[step];
     var body = kind === 'welcome' ? renderWelcome() : kind === 'profile' ? renderProfile() : renderColor();
     var last = step === steps.length - 1;
-    var cta = U.el('button.btn.primary.block', { on: { click: function () {
+    var cta = U.el('button.btn.primary.block', { text: last ? 'Empezar' : 'Continuar', on: { click: function () {
       if (kind === 'profile') { var i = U.$('.ob-input', root); if (i) data.name = i.value.trim(); }
-      if (last) { W.Audio.celebrate(); W.Fx.confetti(); }
+      if (last) W.Audio.success();
       next();
-    } } }, [last ? 'Empezar' : 'Continuar', U.icon(last ? 'arrow' : 'right', 'sm')]);
-    var dots = U.el('div.ob-dots', steps.map(function (s, i) { return U.el('i' + (i === step ? '.on' : '')); }));
+    } } });
     root.appendChild(U.el('div.ob-card', [
-      U.el('div.ob-top', [dots, U.el('button.link-btn.muted', { text: 'Saltar', on: { click: finish } })]),
+      U.el('div.ob-top', [
+        step > 0 ? W.UI.navBtn({ icon: 'back', text: 'Atrás', back: true, onTap: function () { step--; render(); } }) : U.el('span'),
+        U.el('button.nav-btn', { text: 'Omitir', on: { click: finish } })
+      ]),
       U.el('div.ob-body', body),
       U.el('div.ob-foot', [
-        step > 0 ? U.el('button.btn.ghost.round', { attrs: { 'aria-label': 'Atrás' }, on: { click: function () { step--; render(); } } }, [U.icon('left')]) : null,
+        steps.length > 1 ? U.el('div.ob-dots', { attrs: { 'aria-hidden': 'true' } }, steps.map(function (s, i) { return U.el('i' + (i === step ? '.on' : '')); })) : null,
         cta
       ])
     ]));
+    root.scrollTop = 0;
   }
 
   W.Onboarding = {
@@ -111,6 +123,7 @@ window.Whider = window.Whider || {};
       steps = accounts ? ['profile', 'color'] : ['welcome', 'profile', 'color'];
       step = 0; data = {};
       root.style.display = 'flex';
+      document.body.classList.add('no-tabs');
       render();
       requestAnimationFrame(function () { root.classList.add('open'); });
     }

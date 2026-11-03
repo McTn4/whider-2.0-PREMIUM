@@ -1,87 +1,99 @@
 /**
- * WHIDER · Navegación entre pantallas con transiciones direccionales
- * y URL sincronizada (#pantalla) para los accesos directos.
+ * WHIDER · Navegación por pestañas, con URL sincronizada (#pantalla) para los accesos directos.
+ * Cambiar de pestaña es instantáneo; dentro de una pestaña las páginas entran desde la derecha.
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U;
-  var ORDER = { home: 0, tasks: 1, calendar: 2, focus: 3 };
-  var SECONDARY = { progress: 'btnProfile', settings: 'btnProfile', alerts: 'btnAlerts' };
-  var ALIASES = { records: ['progress', 'records'], achievements: ['progress', 'achievements'] };
+  // Rutas antiguas o secundarias → pestaña (y apartado)
+  var ALIASES = { records: ['progress', 'records'], achievements: ['progress', 'achievements'], alerts: ['home'], agenda: ['calendar'] };
   var refreshQueued = false;
 
   function screenFromHash() {
     var h = (location.hash || '').replace(/^#\/?/, '');
-    if (ALIASES[h]) return h;
+    if (ALIASES[h] || h === 'settings') return h;
     return W.Screens[h] ? h : null;
   }
 
-  function placeIndicator() {
-    var ind = document.getElementById('dockIndicator');
-    var act = U.$('.dock-tab.active');
-    if (!ind) return;
-    if (!act) { ind.classList.remove('show'); return; }
-    ind.style.width = (act.offsetWidth - 8) + 'px';
-    ind.style.transform = 'translateX(' + (act.offsetLeft + 4) + 'px)';
-    ind.classList.add('show');
+  /** La barra superior muestra el título pequeño y un fondo al hacer scroll */
+  function watchScroll(screen) {
+    var on = false, ticking = false;
+    screen.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        var now = screen.scrollTop > 36;
+        if (now !== on) { on = now; screen.classList.toggle('scrolled', on); }
+      });
+    }, { passive: true });
   }
 
   var Router = {
     init: function (initial) {
-      U.$$('.dock-tab').forEach(function (b) {
-        b.addEventListener('click', function () { Router.go(b.getAttribute('data-go')); W.Audio.tap(); });
+      U.$$('.tab').forEach(function (b) {
+        b.addEventListener('click', function () { Router.go(b.getAttribute('data-go')); });
       });
+      U.$$('.screen').forEach(watchScroll);
       window.addEventListener('hashchange', function () {
         var s = screenFromHash();
         if (s && s !== W.State.activeScreen) Router.go(s);
       });
-      window.addEventListener('resize', U.debounce(placeIndicator, 100));
-      Router.go(screenFromHash() || initial || 'home', { initial: true });
+      var first = screenFromHash();
+      Router.go(first && first !== 'settings' ? first : (initial || 'home'), { initial: true });
+      if (first === 'settings') setTimeout(function () { W.Settings.open(); }, 300);
     },
 
     current: function () { return W.State.activeScreen; },
 
     go: function (id, opts) {
       opts = opts || {};
-      if (ALIASES[id]) { W.State.ui.profileTab = ALIASES[id][1]; id = ALIASES[id][0]; if (W.State.activeScreen === id) { Router.refresh(); return; } }
-      if (!W.Screens[id] || id === 'onboarding') id = 'home';
+      if (id === 'settings') { W.Settings.open(); return; }
+      if (ALIASES[id]) { if (ALIASES[id][1]) W.State.ui.profileTab = ALIASES[id][1]; id = ALIASES[id][0]; if (W.State.activeScreen === id && !opts.initial) { Router.refresh(); return; } }
+      if (!W.Screens[id]) id = 'home';
       var prev = W.State.activeScreen;
       var root = document.getElementById('screen-' + id);
       if (prev === id && !opts.initial) {
-        if (root.scrollTop > 0) root.scrollTo({ top: 0, behavior: 'smooth' });
+        // Volver a tocar la pestaña: primero a la portada, después arriba del todo
+        if (W.Screens[id].reset && W.Screens[id].reset()) return;
+        if (root.scrollTop > 0) root.scrollTo({ top: 0, behavior: U.reducedMotion() ? 'auto' : 'smooth' });
         return;
       }
       W.State.activeScreen = id;
-
-      var cls = 'enter-up';
-      if (prev && ORDER[prev] != null && ORDER[id] != null) cls = ORDER[id] > ORDER[prev] ? 'enter-right' : 'enter-left';
       U.$$('.screen').forEach(function (s) {
         var on = s === root;
         s.classList.toggle('active', on);
-        s.classList.remove('enter-right', 'enter-left', 'enter-up');
+        s.classList.remove('push', 'pop');
         s.setAttribute('aria-hidden', on ? 'false' : 'true');
       });
-      if (!opts.initial && !U.reducedMotion()) { void root.offsetWidth; root.classList.add(cls); }
       root.scrollTop = 0;
+      root.classList.remove('scrolled');
 
-      U.$$('.dock-tab').forEach(function (b) {
+      U.$$('.tab').forEach(function (b) {
         var on = b.getAttribute('data-go') === id;
         b.classList.toggle('active', on);
         if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       });
-      Object.keys(SECONDARY).forEach(function (k) {
-        var b = document.getElementById(SECONDARY[k]);
-        if (b) b.classList.toggle('active', k === id);
-      });
-      placeIndicator();
 
       if (history.replaceState && location.protocol !== 'file:') {
         try { history.replaceState(null, '', '#' + id); } catch (e) { /* sin historial */ }
       }
       document.title = id === 'home' ? 'WHIDER' : W.Screens[id].title + ' · WHIDER';
       W.Screens[id].render(root, true);
+    },
+
+    /** Animación de entrada de una página dentro de la pestaña actual ('push' o 'pop') */
+    animate: function (kind) {
+      var root = document.getElementById('screen-' + W.State.activeScreen);
+      if (!root || U.reducedMotion()) return;
+      root.classList.remove('push', 'pop');
+      root.classList.remove('scrolled');
+      void root.offsetWidth;
+      root.classList.add(kind);
+      clearTimeout(root._animT);
+      root._animT = setTimeout(function () { root.classList.remove(kind); }, 400);
     },
 
     /** Vuelve a pintar la pantalla actual tras un cambio (varios cambios seguidos = un solo pintado) */
@@ -97,9 +109,7 @@ window.Whider = window.Whider || {};
         W.Screens[id].render(root, false);
         root.scrollTop = y;
       });
-    },
-
-    placeIndicator: placeIndicator
+    }
   };
 
   W.Router = Router;

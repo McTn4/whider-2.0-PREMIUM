@@ -17,7 +17,7 @@ window.Whider = window.Whider || {};
   'use strict';
   var F = function () { return W.Auth.sdk(); }, S = function () { return W.State; };
   var ref = null, timer = null, poll = null, applying = false, active = false, uid = null;
-  var dirty = false, inFlight = null, queued = false, freshDevice = false, firstSyncPromise = null;
+  var dirty = false, inFlight = null, queued = false, firstSyncPromise = null;
   var listeners = [];
 
   var Sync = {
@@ -157,7 +157,6 @@ window.Whider = window.Whider || {};
       uid = user.uid;
       // Los datos locales eran de otra cuenta: se limpian antes de cargar los de esta
       if (st.meta.owner && st.meta.owner !== uid) st.clearLocal();
-      freshDevice = !st.meta.owner;
       st.setMeta('owner', uid);
       st.setMeta('guest', false);
       ref = F().doc(W.Auth.db(), 'users', uid, 'state', 'app');
@@ -202,10 +201,6 @@ window.Whider = window.Whider || {};
       inFlight = F().runTransaction(W.Auth.db(), function (tx) {
         return tx.get(myRef).then(function (snap) {
           var remote = snap.exists() ? snap.data() : null;
-          // Un dispositivo nuevo que entra en una cuenta existente no sube sus tareas de ejemplo
-          if (initial && remote && freshDevice && S().hasExamples()) {
-            S().tasks = S().tasks.filter(function (t) { return !t.example; });
-          }
           var local = S().snapshot();
           var merged = Sync.merge(local, remote);
           var mergedFp = Sync.fingerprint(merged);

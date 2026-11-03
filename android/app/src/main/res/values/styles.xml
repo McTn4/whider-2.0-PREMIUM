@@ -3,7 +3,7 @@
         <item name="colorPrimary">@color/accent</item>
         <item name="android:windowBackground">@color/black</item>
         <item name="android:statusBarColor">@color/black</item>
-        <item name="android:navigationBarColor">@color/black</item>
+        <item name="android:navigationBarColor">@color/bar</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

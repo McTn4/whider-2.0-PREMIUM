@@ -19,19 +19,13 @@ window.Whider = window.Whider || {};
     if (label) btn.querySelector('.btn-label').textContent = label;
   }
 
-  function field(label, input, extra) {
-    return U.el('label.auth-field', [U.el('span', { text: label }), U.el('div.auth-input', [input].concat(extra || []))]);
+  /** Campo de formulario dentro de un grupo (sin etiqueta visible: el marcador la indica) */
+  function field(input, extra) {
+    return U.el('label.cell', [input].concat(extra || []));
   }
 
   function privacy() {
-    W.Sheet.open({ title: 'Privacidad', body: [
-      U.el('div.legal', { html:
-        '<p><b>Qué guardamos.</b> Tu nombre, tu correo y los datos que creas en la app (tareas, listas, enfoque, marcas y ajustes).</p>' +
-        '<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlos en otros dispositivos.</p>' +
-        '<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>' +
-        '<p><b>Tus derechos.</b> Puedes cerrar sesión o eliminar tu cuenta y todos sus datos en cualquier momento desde Ajustes → Cuenta.</p>' +
-        '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>' })
-    ] });
+    var sh = W.Sheet.open({ title: 'Privacidad', trail: { text: 'OK', bold: true, onTap: function () { sh.close(); } }, body: [U.el('div.legal', { html: W.PRIVACY_HTML })] });
   }
 
   function forgot(prefill) {
@@ -55,10 +49,11 @@ window.Whider = window.Whider || {};
       errorBox.classList.toggle('show', !!msg);
     };
 
-    var name = U.el('input.input', { attrs: { type: 'text', autocomplete: 'name', placeholder: 'Tu nombre', maxlength: 40 } });
-    var email = U.el('input.input', { attrs: { type: 'email', autocomplete: 'email', inputmode: 'email', placeholder: 'tu@empresa.com', maxlength: 120 } });
-    var pass = U.el('input.input', { attrs: { type: 'password', autocomplete: isReg ? 'new-password' : 'current-password', placeholder: isReg ? 'Mínimo 8 caracteres' : 'Tu contraseña', maxlength: 128 } });
-    var eye = U.el('button.auth-eye', { attrs: { type: 'button', 'aria-label': 'Mostrar contraseña' }, on: { click: function () {
+    var name = U.el('input.cell-input', { attrs: { type: 'text', autocomplete: 'name', placeholder: 'Nombre', maxlength: 40, 'aria-label': 'Nombre' } });
+    var email = U.el('input.cell-input', { attrs: { type: 'email', autocomplete: 'email', inputmode: 'email', placeholder: 'Correo electrónico', maxlength: 120, 'aria-label': 'Correo electrónico' } });
+    var pass = U.el('input.cell-input', { attrs: { type: 'password', autocomplete: isReg ? 'new-password' : 'current-password', placeholder: isReg ? 'Contraseña (mínimo 8 caracteres)' : 'Contraseña', maxlength: 128, 'aria-label': 'Contraseña' } });
+    var eye = U.el('button.auth-eye', { attrs: { type: 'button', 'aria-label': 'Mostrar contraseña' }, on: { click: function (e) {
+      e.preventDefault();
       pass.type = pass.type === 'password' ? 'text' : 'password'; eye.classList.toggle('on', pass.type === 'text');
     } } }, [U.icon('eye')]);
     var meter = U.el('div.pw-meter', [U.el('i'), U.el('i'), U.el('i'), U.el('i'), U.el('span')]);
@@ -69,18 +64,20 @@ window.Whider = window.Whider || {};
       U.$$('i', meter).forEach(function (b, i) { b.className = i <= sc - 1 || (sc === 0 && i === 0 && pass.value) ? 'on s' + sc : ''; });
       meter.lastChild.textContent = pass.value ? LABELS[sc] : '';
     });
-    var terms = U.el('input', { attrs: { type: 'checkbox' } });
+    var accepted = false;
+    var terms = U.el('button.check', { attrs: { type: 'button', role: 'checkbox', 'aria-checked': 'false', 'aria-label': 'Acepto la política de privacidad' }, on: { click: function () {
+      accepted = !accepted; terms.classList.toggle('on', accepted); terms.setAttribute('aria-checked', accepted ? 'true' : 'false'); W.Audio.select();
+    } } });
+    terms.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
 
-    var submit = U.el('button.btn.primary.block.auth-submit', { attrs: { type: 'submit' } }, [U.el('span.spinner'), U.el('span.btn-label', { text: isReg ? 'Crear cuenta' : 'Entrar' })]);
+    var submit = U.el('button.btn.primary.block.auth-submit', { attrs: { type: 'submit' } }, [U.el('span.spinner'), U.el('span.btn-label', { text: isReg ? 'Crear cuenta' : 'Iniciar sesión' })]);
     var form = U.el('form.auth-form', { attrs: { novalidate: true } }, [
-      isReg ? field('Nombre', name) : null,
-      field('Correo electrónico', email),
-      field('Contraseña', pass, [eye]),
+      U.el('div.group', [isReg ? field(name) : null, field(email), field(pass, [eye])]),
       isReg ? meter : null,
-      isReg ? U.el('label.auth-check', [terms, U.el('span', ['Acepto la ', U.el('button.link-btn', { text: 'política de privacidad', attrs: { type: 'button' }, on: { click: privacy } })])]) : null,
-      !isReg ? U.el('button.link-btn.auth-forgot', { text: '¿Has olvidado la contraseña?', attrs: { type: 'button' }, on: { click: function () { forgot(email.value); } } }) : null,
+      isReg ? U.el('div.auth-check', [terms, U.el('span', ['Acepto la ', U.el('button.link-btn', { text: 'política de privacidad', attrs: { type: 'button' }, on: { click: privacy } })])]) : null,
       errorBox,
-      submit
+      submit,
+      !isReg ? U.el('button.link-btn.auth-forgot', { text: '¿Has olvidado la contraseña?', attrs: { type: 'button' }, on: { click: function () { forgot(email.value); } } }) : null
     ]);
 
     form.addEventListener('submit', function (e) {
@@ -94,22 +91,22 @@ window.Whider = window.Whider || {};
       if (isReg) {
         var prob = A().passwordProblem(pw);
         if (prob) { showError(prob); pass.focus(); return; }
-        if (!terms.checked) { showError('Debes aceptar la política de privacidad.'); return; }
+        if (!accepted) { showError('Debes aceptar la política de privacidad.'); return; }
       } else if (!pw) { showError('Escribe tu contraseña.'); pass.focus(); return; }
       if (navigator.onLine === false) { showError(A().message({ code: 'auth/network-request-failed' })); return; }
-      setBusy(submit, true, isReg ? 'Creando cuenta…' : 'Entrando…');
+      setBusy(submit, true, isReg ? 'Creando cuenta…' : 'Iniciando sesión…');
       var action = isReg ? A().register(name.value.trim(), em, pw) : A().login(em, pw);
       action.then(function () {
         if (isReg) { W.State.setProfile({ name: name.value.trim(), email: em }); view = 'verify'; render(); }
         // Al iniciar sesión, la app cierra esta pantalla al detectar el cambio de cuenta
       }).catch(function (err) {
-        setBusy(submit, false, isReg ? 'Crear cuenta' : 'Entrar');
+        setBusy(submit, false, isReg ? 'Crear cuenta' : 'Iniciar sesión');
         showError(A().message(err));
         W.Audio.vibrate([30, 40, 30]);
       });
     });
 
-    var gbtn = U.el('button.btn.block.google-btn', { attrs: { type: 'button' } }, [U.el('span.g-logo', { html: GOOGLE_G }), U.el('span.btn-label', { text: 'Continuar con Google' })]);
+    var gbtn = U.el('button.btn.white.block.google-btn', { attrs: { type: 'button' } }, [U.el('span.g-logo', { html: GOOGLE_G }), U.el('span.btn-label', { text: 'Continuar con Google' })]);
     gbtn.addEventListener('click', function () {
       if (busy) return;
       showError('');
@@ -126,15 +123,15 @@ window.Whider = window.Whider || {};
     var tabs = W.UI.segmented([{ value: 'register', label: 'Crear cuenta' }, { value: 'login', label: 'Iniciar sesión' }], mode, function (v) { mode = v; render(); });
 
     return U.el('div.auth-card', [
-      U.el('div.auth-brand', [U.el('div.ob-logo.sm', [U.svg('svg', { viewBox: '0 0 64 64' }, [U.svg('use', { href: '#logo' })])])]),
-      U.el('h1', { text: isReg ? 'Crea tu cuenta' : 'Bienvenido de nuevo' }),
-      U.el('p.auth-sub', { text: isReg ? 'Tus tareas, marcas y progreso, seguros y en todos tus dispositivos.' : 'Entra para recuperar tus tareas y tus marcas.' }),
+      U.el('div.app-icon.sm', [U.svg('svg', { viewBox: '0 0 64 64' }, [U.svg('use', { href: '#logo' })])]),
+      U.el('h1', { text: isReg ? 'Crea tu cuenta' : 'Inicia sesión' }),
+      U.el('p.auth-sub', { text: isReg ? 'Tus tareas, marcas y progreso, seguros y en todos tus dispositivos.' : 'Recupera tus tareas y tus marcas en este dispositivo.' }),
       tabs,
       gbtn,
       U.el('div.auth-divider', [U.el('span', { text: 'o con tu correo' })]),
       form,
-      CFG.allowGuest !== false ? U.el('button.link-btn.auth-guest', { text: 'Continuar sin cuenta', on: { click: function () {
-        W.Sheet.confirm({ title: '¿Usar sin cuenta?', icon: 'info', text: 'Tus datos se guardarán solo en este dispositivo. Puedes crear una cuenta más tarde desde Ajustes y se conservará todo.', ok: 'Continuar' })
+      CFG.allowGuest !== false ? U.el('button.link-btn.muted.auth-guest', { text: 'Continuar sin cuenta', on: { click: function () {
+        W.Sheet.confirm({ title: '¿Usar WHIDER sin cuenta?', text: 'Tus datos se guardarán solo en este dispositivo. Puedes crear una cuenta más tarde desde Ajustes y se conservará todo.', ok: 'Continuar' })
           .then(function (ok) { if (ok) { W.State.setMeta('guest', true); Screen.close(); W.App.afterAuth(); } });
       } } }) : null
     ]);
@@ -148,23 +145,23 @@ window.Whider = window.Whider || {};
       A().refresh().then(function (user) {
         setBusy(check, false, 'Ya lo he verificado');
         if (user && user.emailVerified) {
-          W.Toast.show({ text: '¡Correo verificado! Tu cuenta está lista', type: 'success', icon: 'shield' });
+          W.Toast.show({ text: 'Correo verificado. Tu cuenta está lista.', type: 'success', icon: 'check' });
           if (W.Sync) W.Sync.restart();
           Screen.close(); W.App.afterAuth();
         } else W.Toast.show({ text: 'Aún no aparece como verificado. Abre el enlace del correo.', type: 'danger' });
       }).catch(function (e) { setBusy(check, false, 'Ya lo he verificado'); W.Toast.show({ text: A().message(e), type: 'danger' }); });
     });
     return U.el('div.auth-card.verify', [
-      U.el('span.ob-step-ic', [U.icon('mail', 'lg')]),
+      U.icon('mail', 'verify-ic'),
       U.el('h1', { text: 'Verifica tu correo' }),
       U.el('p.auth-sub', ['Hemos enviado un enlace de verificación a ', U.el('b', { text: u ? u.email : 'tu correo' }), '. Ábrelo para activar tu cuenta y la copia en la nube.']),
       check,
-      U.el('button.btn.ghost.block', { text: 'Reenviar correo', on: { click: function () {
+      U.el('button.btn.ghost.block', { text: 'Reenviar el correo', on: { click: function () {
         A().resendVerification().then(function () { W.Toast.show({ text: 'Correo reenviado', type: 'success', icon: 'mail' }); })
           .catch(function (e) { W.Toast.show({ text: A().message(e), type: 'danger' }); });
       } } }),
       U.el('button.link-btn.auth-guest', { text: 'Continuar y verificar más tarde', on: { click: function () { Screen.close(); W.App.afterAuth(); } } }),
-      U.el('button.link-btn.auth-guest', { text: 'Usar otra cuenta', on: { click: function () { A().logout(); view = 'form'; mode = 'login'; render(); } } })
+      U.el('button.link-btn.muted.auth-guest', { text: 'Usar otra cuenta', on: { click: function () { A().logout(); view = 'form'; mode = 'login'; render(); } } })
     ]);
   }
 
@@ -185,6 +182,7 @@ window.Whider = window.Whider || {};
       mode = opts.mode || (W.State.isNewUser ? 'register' : 'login');
       view = opts.view || 'form';
       root.style.display = 'flex';
+      document.body.classList.add('no-tabs');
       render();
       requestAnimationFrame(function () { root.classList.add('open'); });
     },
@@ -192,6 +190,7 @@ window.Whider = window.Whider || {};
     close: function () {
       if (!root) return;
       root.classList.remove('open');
+      document.body.classList.remove('no-tabs');
       setTimeout(function () { if (!root.classList.contains('open')) { U.clear(root); root.style.display = 'none'; } }, 450);
     },
     /** Atrás de Android: en la pantalla de acceso no se puede volver a la app sin cuenta */

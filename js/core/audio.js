@@ -53,16 +53,17 @@ window.Whider = window.Whider || {};
   }
 
   var Audio = {
-    /** Tarea completada: acorde ascendente brillante */
+    /** Tarea completada: un toque breve y suave */
     success: function () {
       play('success', function (c, t) {
-        [659.25, 830.61, 987.77].forEach(function (f, i) { tone(c, f, t + i * 0.055, 0.28, 'sine', 0.12); });
+        tone(c, 1046.5, t, 0.16, 'sine', 0.07);
+        tone(c, 1568, t + 0.045, 0.2, 'sine', 0.045);
       });
     },
-    /** Todas las tareas del día completadas */
+    /** Todas las tareas del día completadas: tres notas tranquilas */
     celebrate: function () {
       play('celebrate', function (c, t) {
-        [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach(function (f, i) { tone(c, f, t + i * 0.08, 0.42, 'triangle', 0.1); });
+        [783.99, 987.77, 1318.5].forEach(function (f, i) { tone(c, f, t + i * 0.09, 0.45, 'sine', 0.06); });
       });
     },
     /** Alerta por incumplimiento: dos tonos de atención */
@@ -84,7 +85,7 @@ window.Whider = window.Whider || {};
     /** Fin de una sesión de enfoque */
     bell: function () {
       play('bell', function (c, t) {
-        [1046.5, 783.99, 1046.5, 1567.98].forEach(function (f, i) { tone(c, f, t + i * 0.16, 0.7, 'sine', 0.11); });
+        [1046.5, 1318.5, 1046.5, 1318.5].forEach(function (f, i) { tone(c, f, t + i * 0.22, 0.6, 'sine', 0.08); });
       });
     },
     tick: function () {
@@ -104,7 +105,10 @@ window.Whider = window.Whider || {};
         try { navigator.vibrate(pattern); } catch (e) { /* sin vibración */ }
       }
     },
-    tap: function () { Audio.vibrate([8]); }
+    /** Respuesta háptica muy ligera para cambios de selección (interruptores, segmentos…) */
+    select: function () { Audio.vibrate([6]); },
+    /** Los toques normales no vibran ni suenan: la interfaz es silenciosa */
+    tap: function () {}
   };
 
   W.Audio = Audio;

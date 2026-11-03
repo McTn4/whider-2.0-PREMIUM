@@ -46,7 +46,7 @@ window.Whider = window.Whider || {};
       document.addEventListener('visibilitychange', function () { if (!document.hidden) Notify.check(); });
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('message', function (e) {
-          if (e.data && e.data.type === 'open-screen' && W.Router) W.Router.go(e.data.screen || 'alerts');
+          if (e.data && e.data.type === 'open-screen' && W.Router) W.Router.go(e.data.screen || 'home');
         });
       }
       S().subscribe(Notify.scheduleSync);
@@ -92,11 +92,11 @@ window.Whider = window.Whider || {};
       var b = bridge();
       if (b) { try { b.showNotification(title, body, tag); } catch (e) { /* sin puente */ } return; }
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
-      var opts = { body: body, tag: tag, renotify: true, icon: ICON, badge: ICON, data: { screen: 'alerts' } };
+      var opts = { body: body, tag: tag, renotify: true, icon: ICON, badge: ICON, data: { screen: 'home' } };
       var direct = function () {
         try {
           var n = new Notification(title, opts);
-          n.onclick = function () { window.focus(); if (W.Router) W.Router.go('alerts'); n.close(); };
+          n.onclick = function () { window.focus(); if (W.Router) W.Router.go('home'); n.close(); };
         } catch (e) { /* Android Chrome exige el Service Worker */ }
       };
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -136,24 +136,24 @@ window.Whider = window.Whider || {};
 
       reminders.forEach(function (t) {
         var mins = Math.max(1, Math.round((U.deadlineTs(t.date, t.time) - now) / 60000));
-        Notify.system('⏰ ' + t.text, 'Vence en ' + U.plural(mins, 'minuto', 'minutos') + ' (' + U.fmtTime(t.time) + ')', 'whider-pre-' + t.id);
+        Notify.system(t.text, 'Vence en ' + U.plural(mins, 'minuto', 'minutos') + ' (' + U.fmtTime(t.time) + ')', 'whider-pre-' + t.id);
       });
       if (reminders.length) {
         var r0 = reminders[0], m0 = Math.max(1, Math.round((U.deadlineTs(r0.date, r0.time) - now) / 60000));
-        W.Toast.show({ text: reminders.length === 1 ? '"' + r0.text + '" vence en ' + m0 + ' min' : U.plural(reminders.length, 'tarea vence pronto', 'tareas vencen pronto'), icon: 'clock', type: 'info' });
+        W.Toast.show({ text: reminders.length === 1 ? '«' + r0.text + '» vence en ' + m0 + ' min' : U.plural(reminders.length, 'tarea vence pronto', 'tareas vencen pronto'), icon: 'clock', type: 'info' });
       }
       alerts.forEach(function (t) {
         var reason = t.time && t.date === U.today() ? 'Superó la hora límite (' + U.fmtTime(t.time) + ')' : 'Venció ' + U.fmtDay(t.date).toLowerCase();
-        Notify.system('⚠️ ' + t.text, reason + ' · Sigue pendiente', 'whider-due-' + t.id);
+        Notify.system(t.text, reason + ' · Sigue pendiente', 'whider-due-' + t.id);
       });
       // Dentro de la app, un único aviso aunque venzan varias tareas a la vez
       if (alerts.length === 1) {
         var one = alerts[0];
-        W.Toast.show({ text: '"' + one.text + '" sigue pendiente', type: 'danger', icon: 'alert', duration: 7000,
+        W.Toast.show({ text: '«' + one.text + '» sigue pendiente', type: 'danger', icon: 'alert', duration: 7000,
           action: { label: 'Completar', fn: function () { var x = st.find(one.id); if (x && !x.done) { st.setDone(one.id, true); W.Audio.success(); } } } });
       } else if (alerts.length > 1) {
         W.Toast.show({ text: U.plural(alerts.length, 'tarea sigue pendiente', 'tareas siguen pendientes'), type: 'danger', icon: 'alert', duration: 7000,
-          action: { label: 'Ver', fn: function () { W.Router.go('alerts'); } } });
+          action: { label: 'Ver', fn: function () { W.Router.go('home'); } } });
       }
 
       if (alerts.length) { W.Audio.warning(); W.Audio.vibrate([70, 60, 70, 60, 140]); }
@@ -163,7 +163,7 @@ window.Whider = window.Whider || {};
     },
 
     emitBadge: function () {
-      var n = S().overdueWarnings().length;
+      var n = S().overdueAll().length;
       U.$$('[data-badge="alerts"]').forEach(function (b) {
         b.textContent = n > 9 ? '9+' : String(n);
         b.classList.toggle('show', n > 0);
@@ -182,12 +182,12 @@ window.Whider = window.Whider || {};
         if (t.time && before > 0) {
           var pre = afterQuiet(deadline - before * 60000);
           if (pre > now && pre < deadline && pre < horizon) {
-            out.push({ key: t.id + ':pre', at: pre, title: '⏰ ' + t.text, body: 'Vence a las ' + U.fmtTime(t.time) });
+            out.push({ key: t.id + ':pre', at: pre, title: t.text, body: 'Vence a las ' + U.fmtTime(t.time) });
           }
         }
         var due = afterQuiet(deadline);
         if (due > now && due < horizon) {
-          out.push({ key: t.id + ':due', at: due, title: '⚠️ ' + t.text, body: 'El plazo ha terminado y sigue pendiente' });
+          out.push({ key: t.id + ':due', at: due, title: t.text, body: 'El plazo ha terminado y sigue pendiente' });
         }
       });
       try { b.syncReminders(JSON.stringify(out)); } catch (e) { /* sin puente */ }

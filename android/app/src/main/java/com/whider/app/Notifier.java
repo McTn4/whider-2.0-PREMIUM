@@ -45,13 +45,13 @@ final class Notifier {
         if (!canPost(ctx)) return;
         Intent open = new Intent(ctx, MainActivity.class);
         open.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        if (openAlerts) open.putExtra(MainActivity.EXTRA_OPEN_SCREEN, "alerts");
+        if (openAlerts) open.putExtra(MainActivity.EXTRA_OPEN_SCREEN, "home");
         PendingIntent pi = PendingIntent.getActivity(ctx, tag == null ? 0 : tag.hashCode(), open,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(ctx, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_whider)
-                .setColor(0xFF8B8DFF)
+                .setColor(0xFF0A84FF)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))

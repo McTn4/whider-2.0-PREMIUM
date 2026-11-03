@@ -1,27 +1,92 @@
 {
   "name": "WHIDER",
   "short_name": "WHIDER",
-  "description": "Tareas, agenda, avisos, enfoque y progreso en una sola app.",
+  "description": "Tareas, calendario, avisos, enfoque y progreso en una sola app.",
   "id": "com.whider.app",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone"],
+  "display_override": [
+    "standalone"
+  ],
   "orientation": "any",
-  "background_color": "#05060A",
-  "theme_color": "#06070B",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "lang": "es",
-  "categories": ["productivity", "utilities"],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ],
   "shortcuts": [
-    { "name": "Mis tareas", "short_name": "Tareas", "url": "./index.html#tasks", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Agenda", "short_name": "Agenda", "url": "./index.html#calendar", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Modo enfoque", "short_name": "Enfoque", "url": "./index.html#focus", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Centro de avisos", "short_name": "Avisos", "url": "./index.html#alerts", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "Hoy",
+      "short_name": "Hoy",
+      "url": "./index.html#home",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Mis tareas",
+      "short_name": "Tareas",
+      "url": "./index.html#tasks",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Calendario",
+      "short_name": "Calendario",
+      "url": "./index.html#calendar",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Modo enfoque",
+      "short_name": "Enfoque",
+      "url": "./index.html#focus",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

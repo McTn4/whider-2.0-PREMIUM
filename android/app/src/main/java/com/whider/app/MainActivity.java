@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         webView = new WebView(this);
-        webView.setBackgroundColor(0xFF05060A);
+        webView.setBackgroundColor(0xFF000000);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setVerticalScrollBarEnabled(false);
         webView.setHorizontalScrollBarEnabled(false);

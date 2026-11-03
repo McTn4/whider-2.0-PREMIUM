@@ -79,10 +79,13 @@ window.Whider = window.Whider || {};
   }
 
   /** Hoja "Editar perfil": foto + nombre, guardados juntos */
-  function edit() {
+  function edit(after) {
     var st = S(), p = st.getProfile() || {};
     var draft = { photo: p.photo || '', removed: false };
     var preview = U.el('span.avatar.xl');
+    var name = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'name', enterkeyhint: 'done', 'aria-label': 'Nombre' } });
+    name.value = st.displayName();
+    var removeBtn = U.el('button.link-btn.danger', { text: 'Quitar foto', on: { click: function () { draft.photo = ''; draft.removed = true; renderPreview(); } } });
     var renderPreview = function () {
       U.clear(preview);
       var src = draft.photo || (!draft.removed && p.photoURL) || '';
@@ -91,36 +94,34 @@ window.Whider = window.Whider || {};
       else preview.appendChild(document.createTextNode((name.value.trim() || 'W').charAt(0).toUpperCase()));
       removeBtn.style.display = src ? '' : 'none';
     };
-    var name = U.el('input.input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'name', enterkeyhint: 'done' } });
-    name.value = st.displayName();
     name.addEventListener('input', function () { if (!preview.classList.contains('has-photo')) renderPreview(); });
     var change = function () {
       choosePhoto().then(function (data) { if (data) { draft.photo = data; draft.removed = false; renderPreview(); } });
     };
-    var removeBtn = U.el('button.link-btn.muted', { text: 'Quitar foto', on: { click: function () { draft.photo = ''; draft.removed = true; renderPreview(); } } });
     var save = function () {
       var n = name.value.trim();
-      if (!n) { name.focus(); name.classList.add('shake'); setTimeout(function () { name.classList.remove('shake'); }, 450); return; }
+      if (!n) { name.focus(); name.closest('.group').classList.add('shake'); setTimeout(function () { name.closest('.group').classList.remove('shake'); }, 450); return; }
       var patch = { name: n, photo: draft.photo };
       if (draft.removed) patch.photoURL = '';
       st.setProfile(patch);
       if (W.Auth) W.Auth.updateName(n);
-      W.Audio.tap();
       sheet.close();
+      if (after) after();
     };
     name.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); save(); } });
     var u = W.Auth && W.Auth.user;
     var sheet = W.Sheet.open({
-      title: 'Editar perfil',
+      title: 'Perfil',
+      lead: { text: 'Cancelar', onTap: function () { sheet.close(); } },
+      trail: { text: 'OK', bold: true, onTap: save },
       body: [
-        U.el('div.profile-edit', [
-          U.el('button.avatar-pick', { attrs: { 'aria-label': 'Cambiar foto' }, on: { click: change } }, [preview, U.el('span.avatar-cam', [U.icon('camera', 'sm')])]),
-          U.el('div.profile-edit-links', [U.el('button.link-btn', { text: 'Cambiar foto', on: { click: change } }), removeBtn])
+        U.el('div.profile-head', [
+          U.el('button.photo-pick', { attrs: { 'aria-label': 'Cambiar foto' }, on: { click: change } }, [preview]),
+          U.el('div.cell-row', [U.el('button.link-btn', { text: 'Cambiar foto', on: { click: change } }), removeBtn])
         ]),
-        U.el('div.field', [U.el('span.field-label', { text: 'Nombre' }), name]),
-        u && u.email ? U.el('div.field', [U.el('span.field-label', { text: 'Correo' }), U.el('div.readonly', { text: u.email })]) : null
-      ],
-      foot: [U.el('button.btn.primary.block', { text: 'Guardar', on: { click: save } })]
+        W.UI.section({ header: 'Nombre', items: [U.el('label.cell', [name])] }),
+        u && u.email ? W.UI.section({ header: 'Correo', items: [W.UI.cell({ title: u.email })] }) : null
+      ]
     });
     renderPreview();
   }

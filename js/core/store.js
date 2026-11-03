@@ -21,14 +21,23 @@ window.Whider = window.Whider || {};
   };
   var ALL_KEYS = Object.keys(KEYS).map(function (k) { return KEYS[k]; });
 
-  /* Paleta de acentos: [principal, secundario] — todos pensados para fondo oscuro */
+  /*
+   * Colores de acento y de listas: colores del sistema, sobrios y legibles sobre fondo oscuro.
+   * Las claves se conservan de versiones anteriores para no perder la elección del usuario.
+   */
   var ACCENTS = {
-    iris:  { name: 'Iris',      a: '#8B8DFF', b: '#C084FC' },
-    aqua:  { name: 'Océano',    a: '#38CFE6', b: '#6D8BFF' },
-    jade:  { name: 'Jade',      a: '#34D39A', b: '#22C7E0' },
-    ember: { name: 'Brasa',     a: '#FF9F5A', b: '#FF5D8F' },
-    rose:  { name: 'Orquídea',  a: '#FF6FA5', b: '#B57CFF' },
-    gold:  { name: 'Oro',       a: '#F2C14E', b: '#FF8A4C' }
+    iris:     { name: 'Azul',     a: '#0A84FF', on: '#FFFFFF' },
+    indigo:   { name: 'Índigo',   a: '#5E5CE6', on: '#FFFFFF' },
+    violet:   { name: 'Morado',   a: '#BF5AF2', on: '#FFFFFF' },
+    rose:     { name: 'Rosa',     a: '#FF375F', on: '#FFFFFF' },
+    red:      { name: 'Rojo',     a: '#FF453A', on: '#FFFFFF' },
+    ember:    { name: 'Naranja',  a: '#FF9F0A', on: '#000000' },
+    gold:     { name: 'Amarillo', a: '#FFD60A', on: '#000000' },
+    jade:     { name: 'Verde',    a: '#30D158', on: '#000000' },
+    mint:     { name: 'Menta',    a: '#63E6E2', on: '#000000' },
+    aqua:     { name: 'Turquesa', a: '#40CBE0', on: '#000000' },
+    brown:    { name: 'Marrón',   a: '#AC8E68', on: '#000000' },
+    graphite: { name: 'Grafito',  a: '#98989D', on: '#000000' }
   };
 
   var PRIORITIES = {
@@ -72,7 +81,7 @@ window.Whider = window.Whider || {};
 
   var DEFAULT_LISTS = [
     { id: 'personal', name: 'Personal', color: 'iris' },
-    { id: 'work', name: 'Trabajo', color: 'aqua' },
+    { id: 'work', name: 'Trabajo', color: 'ember' },
     { id: 'health', name: 'Salud', color: 'jade' }
   ];
 
@@ -195,6 +204,41 @@ window.Whider = window.Whider || {};
     return out.length ? out : clone(DEFAULT_LISTS);
   }
 
+  /*
+   * Tareas de ejemplo de versiones anteriores (2.x – 4.0). Ya no se crean, y las que
+   * quedaron guardadas se eliminan — también las copias que generaron al repetirse —,
+   * salvo que el usuario las haya convertido en suyas cambiándoles el texto.
+   * Se registran como borradas para que la nube no las devuelva.
+   */
+  var SAMPLE_TEXTS = {
+    'planificar prioridades de la semana': 1, 'planificar las prioridades de la semana': 1,
+    'entrenamiento o sesión de ejercicio': 1, 'entrenamiento de 30 minutos': 1,
+    'leer 20 páginas': 1, 'reunión de revisión de avances': 1
+  };
+  function isSampleText(t) { return !!SAMPLE_TEXTS[String(t.text || '').trim().toLowerCase()]; }
+  /** Devuelve los ids a eliminar (las de ejemplo y sus repeticiones sin modificar) */
+  function sampleIds(list) {
+    var byId = {}, out = {};
+    list.forEach(function (t) { byId[t.id] = t; });
+    list.forEach(function (t) {
+      if (!t.example) return;
+      if (!isSampleText(t)) { t.example = false; return; }   // la renombró: ya es suya
+      var cur = t, guard = 0;
+      while (cur && !out[cur.id] && guard++ < 500) {
+        if (cur !== t && !isSampleText(cur)) break;
+        out[cur.id] = true;
+        cur = cur.spawnedId ? byId[cur.spawnedId] : null;
+      }
+    });
+    return out;
+  }
+  function purgeSamples(list, deleted) {
+    var ids = sampleIds(list), now = Date.now();
+    if (!Object.keys(ids).length) return list;
+    Object.keys(ids).forEach(function (id) { deleted[id] = now; });
+    return list.filter(function (t) { return !ids[t.id]; });
+  }
+
   /* ---------- Carga inicial y migración ---------- */
   var savedSettings = read(KEYS.settings);
   var settings = mergeTyped(DEFAULT_SETTINGS, savedSettings);
@@ -211,6 +255,11 @@ window.Whider = window.Whider || {};
   var storedTasks = read(KEYS.tasks);
   var isNewUser = !(storedTasks && Array.isArray(storedTasks.tasks));
   var tasks = isNewUser ? [] : cleanTasks(storedTasks.tasks, lists);
+  var syncMeta = Object.assign({ deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 }, read(KEYS.sync) || {});
+  if (!syncMeta.deleted || typeof syncMeta.deleted !== 'object') syncMeta.deleted = {};
+  var tasksBefore = tasks.length;
+  tasks = purgeSamples(tasks, syncMeta.deleted);
+  var purgedOnLoad = tasks.length !== tasksBefore;
   var meta = Object.assign({ onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [], owner: null, guest: false }, read(KEYS.meta) || {});
   var focusLog = read(KEYS.focus) || {};
   var profile = read(KEYS.profile) || {};
@@ -251,7 +300,6 @@ window.Whider = window.Whider || {};
   }
   healDoneLog(tasks);
   var records = cleanRecords(read(KEYS.records));
-  var syncMeta = Object.assign({ deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 }, read(KEYS.sync) || {});
 
   var subscribers = [];
 
@@ -332,7 +380,9 @@ window.Whider = window.Whider || {};
     applySnapshot: function (snap, reason) {
       if (!snap) return;
       State.lists = cleanLists(snap.lists);
-      State.tasks = cleanTasks(snap.tasks, State.lists);
+      State.syncMeta = Object.assign({ deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 }, snap.sync || {});
+      State.syncMeta.deleted = Object.assign({}, State.syncMeta.deleted);
+      State.tasks = purgeSamples(cleanTasks(snap.tasks, State.lists), State.syncMeta.deleted);
       if (snap.settings) State.settings = mergeTyped(DEFAULT_SETTINGS, snap.settings);
       focusLog = snap.focus && typeof snap.focus === 'object' ? snap.focus : {};
       doneLog = snap.doneLog && typeof snap.doneLog === 'object' ? snap.doneLog : {};
@@ -352,7 +402,6 @@ window.Whider = window.Whider || {};
         if (Array.isArray(snap.meta.seenAchievements)) State.meta.seenAchievements = snap.meta.seenAchievements;
         if (snap.meta.onboarded) State.meta.onboarded = true;
       }
-      State.syncMeta = Object.assign({ deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 }, snap.sync || {});
       State.notify(reason || 'sync');
     },
     /** Borra los datos de este dispositivo (al cerrar sesión o cambiar de cuenta) */
@@ -527,12 +576,6 @@ window.Whider = window.Whider || {};
       State.notify('clear');
       return n;
     },
-    clearExamples: function () {
-      State.tasks.forEach(function (t) { if (t.example) State.markDeleted(t.id); });
-      State.tasks = State.tasks.filter(function (t) { return !t.example; });
-      State.notify('clear');
-    },
-    hasExamples: function () { return State.tasks.some(function (t) { return t.example; }); },
     resetAll: function () {
       State.tasks.forEach(function (t) { State.markDeleted(t.id); });
       State.tasks = [];
@@ -701,12 +744,15 @@ window.Whider = window.Whider || {};
   window.addEventListener('storage', function (e) {
     if (e.key === KEYS.tasks) {
       var fresh = read(KEYS.tasks);
-      if (fresh && Array.isArray(fresh.tasks)) { State.tasks = cleanTasks(fresh.tasks, State.lists); State.notify('sync'); }
+      if (fresh && Array.isArray(fresh.tasks)) { State.tasks = purgeSamples(cleanTasks(fresh.tasks, State.lists), State.syncMeta.deleted); State.notify('sync'); }
     } else if (e.key === KEYS.settings) {
       State.settings = mergeTyped(DEFAULT_SETTINGS, read(KEYS.settings));
       State.notify('settings');
     }
   });
+
+  // La limpieza de tareas de ejemplo se guarda enseguida (y se sube a la nube al sincronizar)
+  if (purgedOnLoad) State.save();
 
   W.State = State;
 })(window.Whider);
