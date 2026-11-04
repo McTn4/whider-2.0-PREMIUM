@@ -22,8 +22,9 @@ window.Whider = window.Whider || {};
   var ALL_KEYS = Object.keys(KEYS).map(function (k) { return KEYS[k]; });
 
   /*
-   * Colores de acento y de listas (paleta propia de WHIDER, legible sobre fondo oscuro).
-   * Las claves se conservan de versiones anteriores para no perder la elección del usuario.
+   * Colores de versiones anteriores. Desde la 4.4 la interfaz es en blanco y negro y no los usa,
+   * pero se conservan en los datos (listas y ajustes) para que la copia en la nube siga siendo
+   * compatible con dispositivos que aún tengan una versión antigua.
    */
   var ACCENTS = {
     iris:     { name: 'Iris',     a: '#7C83FF', on: '#FFFFFF' },
@@ -467,10 +468,6 @@ window.Whider = window.Whider || {};
       State.notify('lists');
       return true;
     },
-    listColor: function (id) {
-      var l = State.getList(id);
-      return l ? ACCENTS[l.color].a : null;
-    },
 
     /* ---------- Tareas ---------- */
     find: function (id) {
@@ -746,7 +743,7 @@ window.Whider = window.Whider || {};
         { id: 'streak30', icon: 'crown', title: 'Hábito de hierro', desc: 'Racha de 30 días', ok: s.bestStreak >= 30 },
         { id: 'focus1', icon: 'timer', title: 'Concentración', desc: 'Termina una sesión de enfoque', ok: s.focusSessions >= 1 },
         { id: 'focus10h', icon: 'target', title: 'Mente de acero', desc: '10 horas de enfoque', ok: s.focusMin >= 600 },
-        { id: 'perfect', icon: 'sparkle', title: 'Día redondo', desc: 'Completa todo un día con 3+ tareas', ok: perfectDay },
+        { id: 'perfect', icon: 'star', title: 'Día redondo', desc: 'Completa todo un día con 3+ tareas', ok: perfectDay },
         { id: 'lists', icon: 'layers', title: 'Organizado', desc: 'Completa tareas en 3 listas', ok: Object.keys(listsUsed).length >= 3 }
       ];
     },

@@ -10,39 +10,23 @@ window.Whider = window.Whider || {};
   var U = W.U, S = W.State;
   var CFG = window.WHIDER_CONFIG || {};
 
-  function hexToRgb(hex) {
-    var h = hex.replace('#', '');
-    return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)].join(', ');
-  }
-
-  /** Mezcla un color con blanco (variante clara del acento para degradados suaves) */
-  function lighten(hex, k) {
-    var h = hex.replace('#', ''), c = [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16); });
-    return '#' + c.map(function (v) { return ('0' + Math.round(v + (255 - v) * k).toString(16)).slice(-2); }).join('');
-  }
-
-  /** Aplica acento, tamaño de texto, densidad y animaciones */
+  /** Aplica tamaño de texto, densidad y animaciones (la app es en blanco y negro: no hay colores que elegir) */
   function applyAppearance() {
-    var cfg = S.settings, html = document.documentElement, acc = S.ACCENTS[cfg.accent] || S.ACCENTS.iris;
-    var ui = { a: acc.a, a2: lighten(acc.a, .22), rgb: hexToRgb(acc.a), on: acc.on || '#FFFFFF', t: cfg.textSize };
-    html.style.setProperty('--accent', ui.a);
-    html.style.setProperty('--accent-2', ui.a2);
-    html.style.setProperty('--accent-rgb', ui.rgb);
-    html.style.setProperty('--on-accent', ui.on);
+    var cfg = S.settings, html = document.documentElement;
     html.setAttribute('data-text', cfg.textSize);
     html.setAttribute('data-density', cfg.density);
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
-    // Para pintar la pantalla de carga con tu color desde el primer instante
-    try { localStorage.setItem('whider.ui', JSON.stringify(ui)); } catch (e) { /* opcional */ }
+    // El tamaño de texto se aplica antes de pintar en el siguiente arranque
+    try { localStorage.setItem('whider.ui', JSON.stringify({ t: cfg.textSize })); } catch (e) { /* opcional */ }
     W.Profile.refreshAll();
   }
 
-  /** Pantalla de carga: se mantiene lo justo para ver la animación del logotipo */
+  /** Pantalla de carga: se mantiene lo justo para ver cómo se traza la W */
   var splashDone = false;
   function hideSplash(now) {
     var sp = document.getElementById('splash');
     if (!sp || splashDone) return;
-    var min = now ? 0 : (U.reducedMotion() ? 300 : 1650);
+    var min = now ? 0 : (U.reducedMotion() ? 300 : 1500);
     setTimeout(function () {
       if (splashDone) return;
       splashDone = true;

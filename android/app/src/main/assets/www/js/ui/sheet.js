@@ -161,8 +161,8 @@ window.Whider = window.Whider || {};
       return new Promise(function (resolve) {
         var chosen;
         var cells = o.options.map(function (op) {
-          var lead = op.color ? U.el('span.dot', { style: { '--c': op.color } }) : op.icon ? U.el('span.cell-icon', [U.icon(op.icon)]) : null;
-          return U.el('button.cell' + (op.value === o.value ? '.active' : '') + (op.icon && !op.color ? '.has-icon' : ''), { on: { click: function () {
+          var lead = op.icon ? W.UI.cellIcon(op.icon) : null;
+          return U.el('button.cell' + (op.value === o.value ? '.active' : '') + (op.icon ? '.has-icon' : ''), { on: { click: function () {
             chosen = op.value; s.close();
           } } }, [
             lead,
@@ -174,7 +174,7 @@ window.Whider = window.Whider || {};
       });
     },
 
-    /** Confirmación (tarjeta centrada). confirm({ title, text, ok, cancel, danger, icon }) → Promise<boolean> */
+    /** Confirmación (tarjeta centrada, sin adornos). confirm({ title, text, ok, cancel, danger }) → Promise<boolean> */
     confirm: function (o) {
       return new Promise(function (resolve) {
         var result = false, closed = false;
@@ -195,7 +195,6 @@ window.Whider = window.Whider || {};
         var ok = U.el('button.btn.' + (o.danger ? 'danger-fill' : 'primary'), { text: okLabel, on: { click: function () { result = true; api.close(); } } });
         layer.appendChild(U.el('div.alert-scrim', { on: { click: function () { api.close(); } } }));
         layer.appendChild(U.el('div.alert', [
-          U.el('div.alert-ic' + (o.danger ? '.danger' : ''), [U.icon(o.icon || (o.danger ? 'trash' : 'info'))]),
           U.el('div.alert-title', { text: o.title }),
           o.text ? U.el('div.alert-text', { text: o.text }) : null,
           U.el('div.alert-actions' + (stackBtns ? '.stack' : ''), [cancel, ok])

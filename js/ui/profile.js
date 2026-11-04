@@ -85,7 +85,7 @@ window.Whider = window.Whider || {};
     var preview = U.el('span.avatar.xl');
     var name = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'name', enterkeyhint: 'done', 'aria-label': 'Nombre' } });
     name.value = st.displayName();
-    var removeBtn = U.el('button.link-btn.danger', { text: 'Quitar foto', on: { click: function () { draft.photo = ''; draft.removed = true; renderPreview(); } } });
+    var removeBtn = U.el('button.link-btn.muted', { text: 'Quitar foto', on: { click: function () { draft.photo = ''; draft.removed = true; renderPreview(); } } });
     var renderPreview = function () {
       U.clear(preview);
       var src = draft.photo || (!draft.removed && p.photoURL) || '';

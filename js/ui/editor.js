@@ -20,9 +20,9 @@ window.Whider = window.Whider || {};
   ];
   var PRIO_OPTS = [
     { value: 'none', label: 'Ninguna' },
-    { value: 'star', label: 'Destacada', color: 'var(--p-star)' },
-    { value: 'purple', label: 'Importante', color: 'var(--p-purple)' },
-    { value: 'danger', label: 'Urgente', color: 'var(--p-danger)' }
+    { value: 'star', label: 'Destacada' },
+    { value: 'purple', label: 'Importante' },
+    { value: 'danger', label: 'Urgente' }
   ];
 
   function remindLabel(v) {
@@ -81,7 +81,7 @@ window.Whider = window.Whider || {};
       }, 'Fecha');
       var dateSub = U.el('span.cell-sub.accent');
       var dateRow = U.el('div.cell.tap.has-icon', [
-        U.el('span.cell-icon', { style: { '--c': 'var(--red)' } }, [U.icon('calendar')]),
+        W.UI.cellIcon('calendar'),
         U.el('span.cell-main', [U.el('span.cell-title', { text: 'Fecha' }), dateSub]), dateTog
       ]);
       dateRow.addEventListener('click', function () {
@@ -106,34 +106,33 @@ window.Whider = window.Whider || {};
       }, 'Hora');
       var timeSub = U.el('span.cell-sub.accent');
       var timeMain = U.el('span.cell-main', [U.el('span.cell-title', { text: 'Hora' }), timeSub, timeInput]);
-      var timeRow = U.el('div.cell.has-icon.time-row', [U.el('span.cell-icon', { style: { '--c': 'var(--blue)' } }, [U.icon('clock')]), timeMain, timeTog]);
+      var timeRow = U.el('div.cell.has-icon.time-row', [W.UI.cellIcon('clock'), timeMain, timeTog]);
 
       /* ----- Avisos y repetición ----- */
       var warnSub = U.el('span.cell-sub');
       var warnTog = W.UI.toggle(d.warn, function (v) { d.warn = v; renderWhen(); }, 'Avisarme si no la hago');
-      var warnRow = U.el('div.cell.has-icon', [U.el('span.cell-icon', { style: { '--c': 'var(--orange)' } }, [U.icon('bell')]),
+      var warnRow = U.el('div.cell.has-icon', [W.UI.cellIcon('bell'),
         U.el('span.cell-main', [U.el('span.cell-title', { text: 'Avisarme si no la hago' }), warnSub]), warnTog]);
-      var remindRow = W.UI.cell({ icon: 'alarm', color: 'var(--indigo)', title: 'Recordatorio', value: '', onTap: function (e, node) {
+      var remindRow = W.UI.cell({ icon: 'alarm', title: 'Recordatorio', value: '', onTap: function (e, node) {
         var cur = typeof d.remindBefore === 'number' ? d.remindBefore : st.settings.remindBefore;
         W.Menu.choose(node.querySelector('.cell-value'), { value: cur, options: REMIND_OPTS }).then(function (v) { if (v !== undefined) { d.remindBefore = v; renderWhen(); } });
       } });
-      var repeatRow = W.UI.cell({ icon: 'repeat', color: 'var(--gray-2)', title: 'Repetir', value: '', onTap: function (e, node) {
+      var repeatRow = W.UI.cell({ icon: 'repeat', title: 'Repetir', value: '', onTap: function (e, node) {
         W.Menu.choose(node.querySelector('.cell-value'), { value: d.repeat, options: Object.keys(st.REPEATS).map(function (k) { return { value: k, label: k === 'none' ? 'Nunca' : st.REPEATS[k] }; }) })
           .then(function (v) { if (v) { d.repeat = v; renderWhen(); } });
       } });
 
       /* ----- Lista y prioridad ----- */
-      var listIcon = U.el('span.cell-icon.round', [U.icon('list')]);
-      var listRow = W.UI.cell({ lead: listIcon, title: 'Lista', value: '', onTap: function (e, node) {
-        var opts = [{ value: '', label: 'Sin lista' }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, color: st.ACCENTS[l.color].a }; }));
+      var listRow = W.UI.cell({ icon: 'list', title: 'Lista', value: '', onTap: function (e, node) {
+        var opts = [{ value: '', label: 'Sin lista' }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name }; }));
         W.Sheet.choose({ anchor: node.querySelector('.cell-value'), title: 'Lista', value: d.listId || '', options: opts }).then(function (v) { if (v !== undefined) { d.listId = v || null; renderWhen(); } });
       } });
       var prioBtns = PRIO_OPTS.map(function (o) {
-        return U.el('button.prio-opt', { attrs: { 'aria-pressed': 'false' }, style: o.color ? { '--pc': o.color } : null, on: { click: function () {
+        return U.el('button.prio-opt', { attrs: { 'aria-pressed': 'false' }, on: { click: function () {
           d.highlight = o.value; W.Audio.select(); renderWhen();
-        } } }, [U.el('i'), o.label]);
+        } } }, [W.UI.prio(o.value), o.label]);
       });
-      var prioRow = U.el('div.cell.col', [U.el('span.cell-row', [U.el('span.cell-icon', { style: { '--c': 'var(--orange)' } }, [U.icon('flag')]), U.el('span.cell-title', { text: 'Prioridad' })]),
+      var prioRow = U.el('div.cell.col', [U.el('span.cell-row', [W.UI.cellIcon('flag'), U.el('span.cell-title', { text: 'Prioridad' })]),
         U.el('div.prio-row', prioBtns)]);
 
       var setValue = function (row, text) { var v = row.querySelector('.cell-value > span'); if (v) v.textContent = text; };
@@ -155,7 +154,6 @@ window.Whider = window.Whider || {};
         setValue(remindRow, remindLabel(typeof d.remindBefore === 'number' ? d.remindBefore : st.settings.remindBefore));
         setValue(repeatRow, d.repeat === 'none' ? 'Nunca' : st.REPEATS[d.repeat]);
         var l = d.listId ? st.getList(d.listId) : null;
-        listIcon.style.setProperty('--c', l ? st.ACCENTS[l.color].a : 'var(--gray-2)');
         setValue(listRow, l ? l.name : 'Sin lista');
         prioBtns.forEach(function (b, i) { var on = PRIO_OPTS[i].value === d.highlight; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
       };
@@ -215,7 +213,7 @@ window.Whider = window.Whider || {};
       ];
       if (!isNew && src.focusMin) body.push(U.el('p.hint', { text: src.focusMin + ' min de enfoque dedicados a esta tarea' }));
       var foot = [];
-      if (!isNew) foot.push(U.el('button.btn.ghost', { attrs: { 'aria-label': 'Eliminar tarea', title: 'Eliminar tarea' }, style: { color: 'var(--red)', padding: '0 16px' }, on: { click: function () {
+      if (!isNew) foot.push(U.el('button.btn.ghost', { attrs: { 'aria-label': 'Eliminar tarea', title: 'Eliminar tarea' }, style: { padding: '0 16px' }, on: { click: function () {
         W.TaskCard.actions.confirmRemove(src.id).then(function (ok) { if (ok) sheet.close(); });
       } } }, [U.icon('trash')]));
       foot.push(saveBtn);

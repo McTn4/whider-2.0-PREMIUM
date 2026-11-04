@@ -7,7 +7,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; }, R = function () { return W.Records; };
-  var ICONS = ['trophy', 'flame', 'bolt', 'target', 'timer', 'medal', 'crown', 'chart', 'sparkle', 'flag'];
+  var ICONS = ['trophy', 'flame', 'bolt', 'target', 'timer', 'medal', 'crown', 'chart', 'star', 'flag'];
 
   function autoCard(key) {
     var meta = R().AUTO[key], best = S().records.best[key], cur = R().current()[key];
@@ -35,15 +35,15 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
     var last = pts[pts.length - 1].split(',');
     return U.svg('svg', { 'class': 'spark', viewBox: '0 0 ' + w + ' ' + h, preserveAspectRatio: 'none', 'aria-hidden': 'true' }, [
-      U.svg('polyline', { points: pts.join(' '), fill: 'none', stroke: 'var(--accent)', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }),
-      U.svg('circle', { cx: last[0], cy: last[1], r: '3', fill: 'var(--accent)' })
+      U.svg('polyline', { points: pts.join(' '), fill: 'none', stroke: 'var(--t1)', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }),
+      U.svg('circle', { cx: last[0], cy: last[1], r: '3', fill: 'var(--t1)' })
     ]);
   }
 
   function markCell(m) {
     var best = R().bestEntry(m), last = m.entries[m.entries.length - 1];
     return W.UI.cell({
-      icon: m.icon || 'trophy', color: 'var(--accent)', title: m.name,
+      icon: m.icon || 'trophy', title: m.name,
       sub: m.entries.length ? U.plural(m.entries.length, 'registro', 'registros') + (last ? ' · último ' + U.fmtShort(last.date) : '') : 'Sin registros',
       right: U.el('span.cell-row', [U.el('span.mark-best', [U.el('small', { text: 'Mejor' }), U.el('strong', { text: best ? R().fmtValue(m, best.value) : '—' })]), U.icon('chev', 'chev')]),
       onTap: function () { openMark(m.id); }
@@ -119,7 +119,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       ]
     });
     date.style.textAlign = 'right';
-    date.style.color = 'var(--accent)';
+    date.style.color = 'var(--t1)';
     setTimeout(function () { value.focus(); }, 420);
   }
 
@@ -175,7 +175,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         host.appendChild(W.UI.section({ title: 'Historial', items: hist.map(function (h) {
           var meta = R().AUTO[h.type];
           var mark = h.type === 'custom' ? R().getMark(h.markId) : null;
-          return W.UI.cell({ lead: U.el('span.cell-icon', { style: { '--c': 'var(--fill)' } }, [U.icon(h.type === 'milestone' ? 'trophy' : mark ? (mark.icon || 'medal') : meta ? meta.icon : 'medal', 'hist-ic')]),
+          return W.UI.cell({ lead: U.el('span.cell-icon', [U.icon(h.type === 'milestone' ? 'trophy' : mark ? (mark.icon || 'medal') : meta ? meta.icon : 'medal', 'hist-ic')]),
             title: R().historyText(h), sub: U.fmtLong(h.date) });
         }) }));
       }

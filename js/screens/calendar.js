@@ -1,7 +1,7 @@
 /**
  * WHIDER · Calendario con tres vistas:
- *  - Mes: cuadrícula con puntos del color de cada lista (rojo si hay algo vencido y en hueco
- *    las repeticiones futuras) y el día elegido con su lista por horas y un campo para añadir.
+ *  - Mes: cuadrícula con puntos (uno por tarea pendiente, uno que brilla si hay algo vencido y
+ *    uno hueco para las repeticiones futuras) y el día elegido por horas con un campo para añadir.
  *  - Semana: tira de 7 días y el día por horas; toca un hueco para crear una tarea a esa hora
  *    y mantén pulsada una tarea para arrastrarla a otra hora.
  *  - Agenda: lo vencido y los próximos 30 días, con las tareas que se repiten.
@@ -32,8 +32,6 @@ window.Whider.Screens = window.Whider.Screens || {};
     st.ui.calMonth = { y: d.getFullYear(), m: d.getMonth() };
   }
   function weekStart(st, ds) { var ws = st.settings.weekStart; return U.addDays(ds, -((U.weekday(ds) - ws + 7) % 7)); }
-  function listColor(st, t) { var l = t.listId ? st.getList(t.listId) : null; return l ? st.ACCENTS[l.color].a : null; }
-  function hexRgb(hex) { var h = (hex || '#7C83FF').replace('#', ''); return [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16); }).join(', '); }
   function dayName(ds) {
     var td = U.today();
     if (ds === td) return 'Hoy';
@@ -72,7 +70,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var check = U.el('span.check' + (t.highlight !== 'none' ? '.p-' + t.highlight : ''));
     var meta = U.el('div.task-meta', [U.el('span.rep-tag', [U.icon('repeat'), st.REPEATS[t.repeat]])]);
     var l = t.listId ? st.getList(t.listId) : null;
-    if (l) { meta.appendChild(U.el('span.sep', { text: '·' })); meta.appendChild(U.el('span.m-list', [U.el('i', { style: { background: st.ACCENTS[l.color].a } }), l.name])); }
+    if (l) { meta.appendChild(U.el('span.sep', { text: '·' })); meta.appendChild(U.el('span', { text: l.name })); }
     var body = U.el('div.task-body', [U.el('span.tl-time' + (t.time ? '' : '.none'), { text: t.time ? U.fmtTime(t.time) : '—' }), check,
       U.el('div.task-main', [U.el('span.task-title', { text: t.text }), meta])]);
     body.addEventListener('click', function () { W.Editor.open(t.id); });
@@ -123,15 +121,16 @@ window.Whider.Screens = window.Whider.Screens || {};
     var data = collect(st, from, to);
     var grid = W.UI.monthGrid({
       y: cm.y, m: cm.m, selected: st.ui.calSelected, slide: slideDir,
+      /* Hasta tres puntos: uno que brilla si hay algo vencido, uno por tarea pendiente
+         (así se ve lo cargado que está el día) y uno hueco si hay repeticiones previstas. */
       mark: function (ds) {
-        var real = data.byDate[ds] || [], proj = data.proj[ds] || [], dots = [], seen = {};
+        var real = data.byDate[ds] || [], proj = data.proj[ds] || [], dots = [];
         var pend = real.filter(function (t) { return !t.done; });
-        pend.forEach(function (t) {
-          var late = st.isOverdue(t), c = late ? 'late' : listColor(st, t) || 'var(--accent)';
-          if (seen[c]) return; seen[c] = 1;
-          dots.push(late ? { kind: 'late' } : { c: c });
-        });
-        proj.forEach(function (p) { var c = 'rep' + (listColor(st, p.base) || ''); if (seen[c]) return; seen[c] = 1; dots.push({ kind: 'rep', c: listColor(st, p.base) || 'var(--accent)' }); });
+        var late = pend.filter(function (t) { return st.isOverdue(t); }).length;
+        if (late) dots.push({ kind: 'late' });
+        var room = 3 - dots.length - (proj.length ? 1 : 0);
+        for (var i = 0; i < Math.min(pend.length - late, room); i++) dots.push({});
+        if (proj.length) dots.push({ kind: 'rep' });
         if (!pend.length && !proj.length && real.length && ds <= td) dots.push({ kind: 'done' });
         if (!dots.length) return null;
         return { dots: dots, label: pend.length ? U.plural(pend.length, 'pendiente', 'pendientes') : proj.length ? 'se repite' : 'completado' };
@@ -240,9 +239,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     // Sin hora
     var allday = U.el('div.allday', [U.el('span.allday-label', { text: untimed.length ? 'Sin hora' : 'Sin tareas sin hora · toca una hora para añadir' })]);
     untimed.forEach(function (x) {
-      var c = listColor(st, x.t);
       var chip = U.el('button.chip' + (x.t.done && !x.proj ? '.done' : ''), { attrs: { type: 'button' } }, [
-        x.proj ? U.icon('repeat') : U.el('span.dot', { style: { '--c': c || 'var(--accent)' } }), U.el('span', { text: x.t.text })]);
+        U.icon(x.proj ? 'repeat' : x.t.done ? 'check' : 'clock'), U.el('span', { text: x.t.text })]);
       chip.addEventListener('click', function () { W.Editor.open(x.t.id); });
       allday.appendChild(chip);
     });
@@ -269,11 +267,11 @@ window.Whider.Screens = window.Whider.Screens || {};
       cl.items.forEach(function (x) { x.cols = cols.length; });
     });
     timed.forEach(function (x) {
-      var m = mins(x), c = listColor(st, x.t);
-      var blk = U.el('div.blk' + (x.proj ? '.proj' : '') + (x.t.done && !x.proj ? '.done' : ''), {
+      var m = mins(x);
+      var blk = U.el('div.blk' + (x.proj ? '.proj' : '') + (x.t.done && !x.proj ? '.done' : '') + (x.t.highlight !== 'none' ? '.p-' + x.t.highlight : ''), {
         attrs: { role: 'button', tabindex: '0', 'aria-label': U.fmtTime(x.t.time) + ', ' + x.t.text + (x.proj ? ' (se repite)' : '') },
         style: { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(34, HOUR_H * 0.75 - 2) + 'px',
-          left: 'calc(' + (x.col / x.cols * 100) + '% + ' + (x.col ? 3 : 0) + 'px)', width: 'calc(' + (100 / x.cols) + '% - ' + (x.cols > 1 ? 3 : 0) + 'px)', '--bc-rgb': hexRgb(c) }
+          left: 'calc(' + (x.col / x.cols * 100) + '% + ' + (x.col ? 3 : 0) + 'px)', width: 'calc(' + (100 / x.cols) + '% - ' + (x.cols > 1 ? 3 : 0) + 'px)' }
       }, [U.el('b', { text: x.t.text }), U.el('small', { text: U.fmtTime(x.t.time) + (x.proj ? ' · se repite' : '') })]);
       if (x.proj || x.t.done) blk.addEventListener('click', function (e) { e.stopPropagation(); W.Editor.open(x.t.id); });
       else attachDrag(st, blk, x.t, startMin);
@@ -385,10 +383,10 @@ window.Whider.Screens = window.Whider.Screens || {};
       seg.style.marginTop = '12px';
       var list = v.calList ? st.getList(v.calList) : null;
       var listChip = U.el('button.chip' + (list ? '.on' : ''), { attrs: { type: 'button' } }, [
-        list ? U.el('span.dot', { style: { '--c': st.ACCENTS[list.color].a } }) : U.icon('filter'), U.el('span', { text: list ? list.name : 'Todas las listas' }), U.icon('down')]);
+        U.icon(list ? 'list' : 'filter'), U.el('span', { text: list ? list.name : 'Todas las listas' }), U.icon('down')]);
       listChip.addEventListener('click', function () {
         W.Menu.open(listChip, [{ value: '', label: 'Todas las listas', icon: 'layers', on: !list }].concat(st.lists.map(function (l) {
-          return { value: l.id, label: l.name, color: st.ACCENTS[l.color].a, on: list && list.id === l.id };
+          return { value: l.id, label: l.name, icon: 'list', on: list && list.id === l.id };
         }))).then(function (val) { if (val !== undefined) { v.calList = val || null; rerender(); } });
       });
       var doneChip = U.el('button.chip' + (v.calShowDone ? '.on' : ''), { attrs: { type: 'button', 'aria-pressed': v.calShowDone ? 'true' : 'false' } }, [U.icon('check'), U.el('span', { text: 'Completadas' })]);

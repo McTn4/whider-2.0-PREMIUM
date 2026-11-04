@@ -1,6 +1,6 @@
 /**
  * WHIDER · Creación rápida de tareas (botón + del dock).
- * Escribe con naturalidad — "Llamar a Ana mañana a las 10 #trabajo !!" — y WHIDER entiende
+ * La tarea se escribe en una línea — "Llamar a Ana mañana a las 10 #trabajo !!" — y se detectan
  * la fecha, la hora, la lista, la prioridad y la repetición. Con Intro se añade y queda listo
  * para la siguiente; "Más detalles" abre el editor completo con lo escrito.
  */
@@ -38,10 +38,11 @@ window.Whider = window.Whider || {};
       var ignore = {};          // detecciones descartadas
       var parsed = null, added = 0;
 
-      var input = U.el('textarea.qa-input', { attrs: { rows: 1, maxlength: 200, placeholder: '¿Qué tienes que hacer?', enterkeyhint: 'send', 'aria-label': 'Nueva tarea' } });
+      var input = U.el('textarea.qa-input', { attrs: { rows: 1, maxlength: 200, placeholder: 'Escribe una tarea', enterkeyhint: 'send', 'aria-label': 'Nueva tarea' } });
       var detected = U.el('div.qa-detected', { attrs: { 'aria-live': 'polite' } });
       var chips = U.el('div.chips');
-      var help = U.el('p.qa-help', ['Escribe con naturalidad: ', U.el('b', { text: '«Llamar a Ana mañana a las 10 #trabajo !!»' }), '. Entiendo fechas, horas, listas (#), prioridad (!, !!, !!!) y repeticiones.']);
+      var help = U.el('p.qa-help', ['Ej.: ', U.el('code', { text: 'Llamar a Ana mañana a las 10 #trabajo !!' }), U.el('br'),
+        'Fecha y hora en el texto · # lista · ! a !!! prioridad · «cada semana» repite.']);
       var addedNote = U.el('span.qa-added');
       var addBtn = U.el('button.btn.primary', { text: 'Añadir', on: { click: function () { submit(true); } } });
 
@@ -56,7 +57,7 @@ window.Whider = window.Whider || {};
         parsed = input.value.trim() ? W.Parse.task(input.value, { lists: st.lists, ignore: ignore }) : null;
         U.clear(detected);
         (parsed ? parsed.found : []).forEach(function (f) {
-          detected.appendChild(U.el('span.qa-tag', [U.icon(KIND_ICON[f.kind] || 'sparkle'), f.label,
+          detected.appendChild(U.el('span.qa-tag', [U.icon(KIND_ICON[f.kind] || 'note'), f.label,
             U.el('button', { attrs: { 'aria-label': 'Descartar ' + f.label, type: 'button' }, on: { click: function () { ignore[f.key] = true; reparse(); input.focus(); } } }, [U.icon('close')])]));
         });
         help.style.display = input.value.trim() ? 'none' : '';
@@ -91,14 +92,14 @@ window.Whider = window.Whider || {};
         timeChip.appendChild(ti);
         chips.appendChild(timeChip);
         chips.appendChild(chip('list', l ? l.name : 'Sin lista', !!l, function (b) {
-          W.Menu.open(b, [{ value: '', label: 'Sin lista', on: !l }].concat(st.lists.map(function (x) { return { value: x.id, label: x.name, color: st.ACCENTS[x.color].a, on: x.id === listId }; })))
+          W.Menu.open(b, [{ value: '', label: 'Sin lista', on: !l }].concat(st.lists.map(function (x) { return { value: x.id, label: x.name, on: x.id === listId }; })))
             .then(function (v) { if (v !== undefined) { manual.listId = v || null; drawChips(); } });
-        }, l ? U.el('span.dot', { style: { '--c': st.ACCENTS[l.color].a } }) : null));
+        }));
         var prio = W.Editor.PRIO_OPTS.filter(function (o) { return o.value === hl; })[0] || W.Editor.PRIO_OPTS[0];
         chips.appendChild(chip('flag', hl === 'none' ? 'Prioridad' : prio.label, hl !== 'none', function (b) {
-          W.Menu.open(b, W.Editor.PRIO_OPTS.map(function (o) { return Object.assign({}, o, { on: o.value === hl }); }))
+          W.Menu.open(b, W.Editor.PRIO_OPTS.map(function (o) { return Object.assign({ prio: o.value }, o, { on: o.value === hl }); }))
             .then(function (v) { if (v) { manual.highlight = v; drawChips(); } });
-        }, hl !== 'none' ? U.el('span.dot', { style: { '--c': prio.color } }) : null));
+        }, hl !== 'none' ? W.UI.prio(hl) : null));
         chips.appendChild(chip('repeat', repeat === 'none' ? 'Repetir' : st.REPEATS[repeat], repeat !== 'none', function (b) {
           W.Menu.open(b, Object.keys(st.REPEATS).map(function (k) { return { value: k, label: k === 'none' ? 'Nunca' : st.REPEATS[k], on: k === repeat }; }))
             .then(function (v) { if (v) { manual.repeat = v; drawChips(); } });

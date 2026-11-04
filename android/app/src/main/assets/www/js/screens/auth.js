@@ -106,7 +106,7 @@ window.Whider = window.Whider || {};
       });
     });
 
-    var gbtn = U.el('button.btn.white.block.google-btn', { attrs: { type: 'button' } }, [U.el('span.g-logo', { html: GOOGLE_G }), U.el('span.btn-label', { text: 'Continuar con Google' })]);
+    var gbtn = U.el('button.btn.block.google-btn', { attrs: { type: 'button' } }, [U.el('span.g-logo', { html: GOOGLE_G }), U.el('span.btn-label', { text: 'Continuar con Google' })]);
     gbtn.addEventListener('click', function () {
       if (busy) return;
       showError('');

@@ -2,7 +2,7 @@
  * WHIDER · Service Worker: funciona sin conexión y se actualiza solo
  * (estrategia "red primero" con respaldo en caché).
  */
-var CACHE_NAME = 'whider-v4.3.0';
+var CACHE_NAME = 'whider-v4.4.0';
 var ASSETS = [
   './',
   './index.html',
@@ -11,7 +11,9 @@ var ASSETS = [
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
   './icons/icon.svg',
-  './fonts/manrope-latin-wght-normal.woff2',
+  './fonts/ibm-plex-mono-latin-400-normal.woff2',
+  './fonts/ibm-plex-mono-latin-500-normal.woff2',
+  './fonts/ibm-plex-sans-latin-wght-normal.woff2',
   './css/components.css',
   './css/layout.css',
   './css/screens.css',

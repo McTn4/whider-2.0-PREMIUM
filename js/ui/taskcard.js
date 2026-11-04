@@ -2,7 +2,8 @@
  * WHIDER · Fila de tarea
  *  - Tocar el círculo: completar · tocar la fila: editar
  *  - Deslizar → completar · deslizar ← eliminar (con Deshacer)
- * La prioridad se ve en el color del círculo (rojo urgente · naranja importante · ámbar destacada).
+ * La prioridad se ve en la luz: el borde de la casilla brilla más y a la derecha se encienden
+ * una, dos o tres barras (destacada · importante · urgente).
  */
 window.Whider = window.Whider || {};
 
@@ -52,18 +53,18 @@ window.Whider = window.Whider || {};
     }
   };
 
-  /** Línea de detalles: "Mañana, 10:30 · ● Trabajo · 1/3 · ↻" (lo que no aporta, no se muestra) */
+  /** Línea de detalles: "Mañana, 10:30 · Trabajo · 1/3 · ↻" (lo que no aporta, no se muestra) */
   function metaLine(t, ctx) {
     var parts = [], st = S(), late = st.isOverdue(t);
     var showDay = t.date && (ctx === 'alerts' || (!(ctx === 'today' && t.date === U.today()) && ctx !== 'day'));
-    var when = (showDay ? U.fmtDay(t.date) : '') + (t.time && ctx !== 'day' ? (showDay ? ', ' : '') + U.fmtTime(t.time) : '');
-    if (t.done && t.doneOn && ctx === 'done') when = 'Completada ' + U.fmtDay(t.doneOn).toLowerCase();
-    if (when) parts.push(U.el('span' + (late ? '.late' : ''), { text: when }));
+    var day = showDay ? U.fmtDay(t.date) : '', time = t.time && ctx !== 'day' ? U.fmtTime(t.time) : '';
+    if (t.done && t.doneOn && ctx === 'done') { day = 'Completada ' + U.fmtDay(t.doneOn).toLowerCase(); time = ''; }
+    if (day || time) parts.push(U.el('span' + (late ? '.late' : ''), [day + (day && time ? ', ' : ''), time ? U.el('span.m-num', { text: time }) : null]));
     var list = t.listId ? st.getList(t.listId) : null;
-    if (list && ctx !== 'list') parts.push(U.el('span.m-list', [U.el('i', { style: { background: st.ACCENTS[list.color].a } }), list.name]));
-    if (t.subtasks.length) parts.push(U.el('span', { text: t.subtasks.filter(function (s) { return s.done; }).length + '/' + t.subtasks.length }));
+    if (list && ctx !== 'list') parts.push(U.el('span', { text: list.name }));
+    if (t.subtasks.length) parts.push(U.el('span.m-num', { text: t.subtasks.filter(function (s) { return s.done; }).length + '/' + t.subtasks.length }));
     var icons = [];
-    if (ctx === 'alerts') icons = null;   // en Vencidas basta con la fecha en rojo
+    if (ctx === 'alerts') icons = null;   // en Vencidas basta con la fecha resaltada
     else if (t.repeat !== 'none') icons.push(U.icon('repeat', 'xs'));
     if (icons && t.warn && !t.done) icons.push(U.icon('bell', 'xs'));
     if (icons && t.notes) icons.push(U.icon('note', 'xs'));
@@ -142,6 +143,7 @@ window.Whider = window.Whider || {};
     var meta = metaLine(t, opts.ctx);
     if (meta) main.appendChild(meta);
     var trail = [];
+    if (PRIO_NAME[t.highlight] && !t.done) trail.push(W.UI.prio(t.highlight));
     if (opts.postpone && !t.done) {
       trail.push(U.el('button.btn.xs.soft', { text: 'Posponer', on: { click: function (e) { e.stopPropagation(); Actions.postpone(t.id, e.currentTarget); } } }));
     }

@@ -1,7 +1,7 @@
 /**
  * WHIDER · Tareas, organizadas como listas:
- *  - Listas inteligentes: Hoy · Programadas · Todas · Prioritarias
- *  - Mis listas (Personal, Trabajo…), cada una con su color
+ *  - Listas automáticas: Hoy · Programadas · Todas · Prioritarias
+ *  - Mis listas (Personal, Trabajo…)
  * Cada lista abre su propia página; la búsqueda filtra todas las tareas.
  */
 window.Whider = window.Whider || {};
@@ -11,10 +11,10 @@ window.Whider.Screens = window.Whider.Screens || {};
   'use strict';
   var U = W.U, S = function () { return W.State; };
   var SMART = {
-    today: { title: 'Hoy', icon: 'sun', color: 'var(--blue)' },
-    scheduled: { title: 'Programadas', icon: 'calendar', color: 'var(--red)' },
-    all: { title: 'Todas', icon: 'tray', color: 'var(--gray-2)' },
-    flagged: { title: 'Prioritarias', icon: 'flag', color: 'var(--orange)' }
+    today: { title: 'Hoy', icon: 'sun' },
+    scheduled: { title: 'Programadas', icon: 'calendar' },
+    all: { title: 'Todas', icon: 'tray' },
+    flagged: { title: 'Prioritarias', icon: 'flag' }
   };
   var SORTS = [
     { value: 'smart', label: 'Fecha' },
@@ -32,14 +32,13 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   /* ---------- Listas: crear, editar y eliminar ---------- */
   function editList(list, after, afterRemove) {
-    var st = S(), color = list ? list.color : 'iris';
-    var icon = U.el('span.cell-icon.solid', { style: { '--c': st.ACCENTS[color].a } }, [U.icon('list')]);
+    var st = S();
     var name = U.el('input.list-name', { attrs: { type: 'text', maxlength: 24, placeholder: 'Nombre de la lista', enterkeyhint: 'done', 'aria-label': 'Nombre de la lista' } });
     name.value = list ? list.name : '';
     var ok = function () {
       var v = name.value.trim();
       if (!v) { name.focus(); name.classList.add('shake'); setTimeout(function () { name.classList.remove('shake'); }, 450); return; }
-      var res = list ? (st.updateList(list.id, { name: v, color: color }), list) : st.addList(v, color);
+      var res = list ? (st.updateList(list.id, { name: v }), list) : st.addList(v);
       s.close();
       if (after) after(res);
     };
@@ -49,8 +48,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       lead: { text: 'Cancelar', onTap: function () { s.close(); } },
       trail: { text: 'OK', bold: true, onTap: ok },
       body: [
-        U.el('div.group', [U.el('div.cell.col', [U.el('div.list-preview', [icon, name])])]),
-        U.el('div.group', [U.el('div.cell.color-cell', [W.UI.swatches(color, function (k) { color = k; icon.style.setProperty('--c', st.ACCENTS[k].a); })])]),
+        name,
         list && st.lists.length > 1 ? U.el('div.group', [W.UI.cell({ title: 'Eliminar lista', center: true, danger: true, onTap: function () {
           removeList(list, function () { s.close(); if (afterRemove) afterRemove(); });
         } })]) : null
@@ -138,7 +136,6 @@ window.Whider.Screens = window.Whider.Screens || {};
     var list = v.type === 'list' ? st.getList(v.id) : null;
     if (v.type === 'list' && !list) { st.ui.taskView = null; return home(root); }
     var title = viewTitle(st, v);
-    var color = list ? st.ACCENTS[list.color].a : SMART[v.id].color;
     var b = buildGroups(st, v);
     var preset = list ? { listId: list.id } : v.id === 'flagged' ? { highlight: 'star' } : { date: U.today() };
 
@@ -169,7 +166,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     };
 
     var head = W.UI.header({
-      title: title, titleColor: color,
+      title: title,
       back: { label: 'Tareas', onTap: function () { Screen.back(); } },
       actions: [{ icon: 'dots', label: 'Más opciones', onTap: more }], gear: false,
       sub: b.groups.length || b.done.length ? U.plural(b.groups.reduce(function (a, g) { return a + g.items.length; }, 0), 'pendiente', 'pendientes') + (b.done.length ? ' · ' + U.plural(b.done.length, 'completada', 'completadas') : '') : null
@@ -225,17 +222,17 @@ window.Whider.Screens = window.Whider.Screens || {};
 
     var grid = U.el('div.smart-grid', Object.keys(SMART).map(function (id) {
       var m = SMART[id];
-      return U.el('button.smart', { style: { '--c': m.color }, attrs: { 'aria-label': m.title + ': ' + smartCount(st, id) }, on: { click: function () { Screen.open({ type: 'smart', id: id }); } } }, [
-        U.el('span.smart-top', [U.el('span.cell-icon', { style: { '--c': m.color } }, [U.icon(m.icon)]), U.el('span.smart-count', { text: smartCount(st, id) })]),
+      return U.el('button.smart', { attrs: { 'aria-label': m.title + ': ' + smartCount(st, id) }, on: { click: function () { Screen.open({ type: 'smart', id: id }); } } }, [
+        U.el('span.smart-top', [W.UI.cellIcon(m.icon), U.el('span.smart-count', { text: smartCount(st, id) })]),
         U.el('span.smart-label', { text: m.title })
       ]);
     }));
     var lists = st.lists.map(function (l) {
       var n = st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length;
-      return W.UI.cell({ lead: W.UI.listIcon(st.ACCENTS[l.color].a), title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () { Screen.open({ type: 'list', id: l.id }); } });
+      return W.UI.cell({ icon: 'list', title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () { Screen.open({ type: 'list', id: l.id }); } });
     });
     browse.appendChild(grid);
-    lists.push(W.UI.cell({ lead: U.el('span.cell-icon', { style: { '--c': 'var(--accent)' } }, [U.icon('plus')]), title: 'Nueva lista', accent: true,
+    lists.push(W.UI.cell({ icon: 'plus', title: 'Nueva lista', accent: true,
       onTap: function () { editList(null, function (l) { Screen.open({ type: 'list', id: l.id }); }); } }));
     browse.appendChild(W.UI.section({ title: 'Mis listas', items: lists }));
 

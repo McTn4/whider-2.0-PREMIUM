@@ -7,7 +7,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '4.3';
+  var VERSION = '4.4';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
     { value: 'focus', label: 'Enfoque' }
@@ -18,14 +18,14 @@ window.Whider = window.Whider || {};
   function labelOf(arr, v) { for (var i = 0; i < arr.length; i++) if (arr[i].value === v) return arr[i].label; return ''; }
   /** Celda con menú: muestra el valor y al tocarla abre las opciones junto a él */
   function menuCell(o, nav) {
-    return W.UI.cell({ icon: o.icon, color: o.color, title: o.title, value: labelOf(o.options, o.value), onTap: function (e, node) {
+    return W.UI.cell({ icon: o.icon, title: o.title, value: labelOf(o.options, o.value), onTap: function (e, node) {
       W.Menu.choose(node.querySelector('.cell-value'), { value: o.value, options: o.options }).then(function (v) {
         if (v !== undefined && v !== o.value) { o.onChange(v); nav.refresh(); }
       });
     } });
   }
   function toggleCell(o) {
-    return W.UI.cell({ icon: o.icon, color: o.color, title: o.title, sub: o.sub, right: W.UI.toggle(o.value, o.onChange, o.title) });
+    return W.UI.cell({ icon: o.icon, title: o.title, sub: o.sub, right: W.UI.toggle(o.value, o.onChange, o.title) });
   }
   function timePill(value, onChange) {
     var pill = U.el('span.pill.accent', { text: U.fmtTime(value) });
@@ -56,15 +56,15 @@ window.Whider = window.Whider || {};
       body: [
         U.el('div.group', [profileCell]),
         W.UI.group([
-          W.UI.cell({ icon: 'palette', color: 'var(--blue)', title: 'Apariencia', value: st.ACCENTS[cfg.accent].name, onTap: function () { nav.push(appearancePage); } }),
-          W.UI.cell({ icon: 'tasks', color: 'var(--orange)', title: 'Tareas y listas', onTap: function () { nav.push(tasksPage); } }),
-          W.UI.cell({ icon: 'bell', color: 'var(--red)', title: 'Avisos y sonido', onTap: function () { nav.push(alertsPage); } }),
-          W.UI.cell({ icon: 'timer', color: 'var(--indigo)', title: 'Enfoque', value: cfg.focus.work + ' min', onTap: function () { nav.push(focusPage); } }),
-          W.UI.cell({ icon: 'home', color: 'var(--teal)', title: 'Pantalla al abrir', value: labelOf(SCREENS, cfg.startScreen), onTap: function () { nav.push(startPage); } })
+          W.UI.cell({ icon: 'type', title: 'Apariencia', value: 'Texto ' + labelOf(TEXT, cfg.textSize).toLowerCase(), onTap: function () { nav.push(appearancePage); } }),
+          W.UI.cell({ icon: 'tasks', title: 'Tareas y listas', onTap: function () { nav.push(tasksPage); } }),
+          W.UI.cell({ icon: 'bell', title: 'Avisos y sonido', onTap: function () { nav.push(alertsPage); } }),
+          W.UI.cell({ icon: 'timer', title: 'Enfoque', value: cfg.focus.work + ' min', onTap: function () { nav.push(focusPage); } }),
+          W.UI.cell({ icon: 'home', title: 'Pantalla al abrir', value: labelOf(SCREENS, cfg.startScreen), onTap: function () { nav.push(startPage); } })
         ]),
         W.UI.group([
-          W.UI.cell({ icon: 'hand', color: 'var(--blue)', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
-          W.UI.cell({ icon: 'shield', color: 'var(--green)', title: 'Datos', onTap: function () { nav.push(dataPage); } })
+          W.UI.cell({ icon: 'hand', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
+          W.UI.cell({ icon: 'shield', title: 'Datos', onTap: function () { nav.push(dataPage); } })
         ]),
         U.el('p.version', [U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]), 'WHIDER ' + VERSION])
       ]
@@ -75,13 +75,13 @@ window.Whider = window.Whider || {};
     var A = W.Auth, u = A.user, st = S();
     if (!u) return rootPage(nav);
     var verified = A.isVerified();
-    var syncCell = W.UI.cell({ icon: 'cloud', color: 'var(--blue)', title: 'Copia en la nube', sub: W.Sync.statusText(), onTap: function () {
+    var syncCell = W.UI.cell({ icon: 'cloud', title: 'Copia en la nube', sub: W.Sync.statusText(), onTap: function () {
       if (!verified) { nav.close(); W.AuthScreen.showVerify(); return; }
       W.Sync.push().then(function () { nav.refresh(); });
     } });
     var rows = [syncCell];
-    if (!verified) rows.push(W.UI.cell({ icon: 'mail', color: 'var(--orange)', title: 'Verificar el correo', sub: 'Abre el enlace que te enviamos', onTap: function () { nav.close(); W.AuthScreen.showVerify(); } }));
-    if (A.provider() === 'password') rows.push(W.UI.cell({ icon: 'key', color: 'var(--gray-2)', title: 'Cambiar la contraseña', onTap: function () {
+    if (!verified) rows.push(W.UI.cell({ icon: 'mail', title: 'Verificar el correo', sub: 'Abre el enlace que te enviamos', onTap: function () { nav.close(); W.AuthScreen.showVerify(); } }));
+    if (A.provider() === 'password') rows.push(W.UI.cell({ icon: 'key', title: 'Cambiar la contraseña', onTap: function () {
       A.resetPassword(u.email).then(function () { W.Toast.show({ text: 'Te hemos enviado un enlace a ' + u.email, type: 'success', icon: 'mail' }); })
         .catch(function (e) { W.Toast.show({ text: A.message(e), type: 'danger' }); });
     } }));
@@ -108,8 +108,6 @@ window.Whider = window.Whider || {};
     return {
       title: 'Apariencia',
       body: [
-        W.UI.section({ header: 'Color de acento', items: [U.el('div.cell.color-cell', [W.UI.swatches(cfg.accent, function (k) { set('accent', k); })])],
-          footer: 'Se usa en los botones, las casillas y los elementos seleccionados.' }),
         W.UI.section({ header: 'Tamaño del texto', items: U.el('div', [W.UI.segmented(TEXT, cfg.textSize, function (v) { set('textSize', v); })]) }),
         W.UI.section({ header: 'Densidad', items: U.el('div', [W.UI.segmented([{ value: 'comfortable', label: 'Cómoda' }, { value: 'compact', label: 'Compacta' }], cfg.density, function (v) { set('density', v); })]) }),
         W.UI.section({ items: [toggleCell({ title: 'Reducir movimiento', value: cfg.reduceMotion, onChange: function (v) { set('reduceMotion', v); } })],
@@ -120,25 +118,28 @@ window.Whider = window.Whider || {};
 
   function tasksPage(nav) {
     var st = S(), cfg = st.settings, set = st.setSetting;
-    var lists = st.lists.map(function (l) { return { value: l.id, label: l.name, color: st.ACCENTS[l.color].a }; });
+    var lists = st.lists.map(function (l) { return { value: l.id, label: l.name }; });
     return {
       title: 'Tareas y listas',
       body: [
         W.UI.group([
-          W.UI.cell({ icon: 'list', color: 'var(--orange)', title: 'Listas', value: String(st.lists.length), onTap: function () { nav.push(listsPage); } }),
-          menuCell({ icon: 'tray', color: 'var(--teal)', title: 'Lista por defecto', value: cfg.defaultList, options: lists, onChange: function (v) { set('defaultList', v); } }, nav),
-          W.UI.cell({ icon: 'wand', color: 'var(--purple)', title: 'Escribir tareas rápido', sub: 'Fechas, horas y listas en el propio texto', onTap: function () { nav.push(quickHelpPage); } })
+          W.UI.cell({ icon: 'list', title: 'Listas', value: String(st.lists.length), onTap: function () { nav.push(listsPage); } }),
+          menuCell({ icon: 'tray', title: 'Lista por defecto', value: cfg.defaultList, options: lists, onChange: function (v) { set('defaultList', v); } }, nav),
+          W.UI.cell({ icon: 'edit', title: 'Escribir tareas rápido', sub: 'Fecha, hora y lista en el propio texto', onTap: function () { nav.push(quickHelpPage); } })
         ]),
-        W.UI.section({ items: [toggleCell({ icon: 'trash', color: 'var(--red)', title: 'Confirmar antes de eliminar', value: cfg.confirmDelete, onChange: function (v) { set('confirmDelete', v); } })],
+        W.UI.section({ items: [toggleCell({ icon: 'trash', title: 'Confirmar antes de eliminar', value: cfg.confirmDelete, onChange: function (v) { set('confirmDelete', v); } })],
           footer: 'Al deslizar para eliminar siempre puedes deshacer.' }),
         W.UI.group([
-          menuCell({ icon: 'calendar', color: 'var(--red)', title: 'La semana empieza el', value: cfg.weekStart, options: [{ value: 1, label: 'Lunes' }, { value: 0, label: 'Domingo' }], onChange: function (v) { set('weekStart', v); } }, nav),
-          menuCell({ icon: 'clock', color: 'var(--blue)', title: 'Formato de hora', value: cfg.timeFormat, options: [{ value: '24', label: '24 horas' }, { value: '12', label: '12 horas' }], onChange: function (v) { set('timeFormat', v); } }, nav)
+          menuCell({ icon: 'calendar', title: 'La semana empieza el', value: cfg.weekStart, options: [{ value: 1, label: 'Lunes' }, { value: 0, label: 'Domingo' }], onChange: function (v) { set('weekStart', v); } }, nav),
+          menuCell({ icon: 'clock', title: 'Formato de hora', value: cfg.timeFormat, options: [{ value: '24', label: '24 horas' }, { value: '12', label: '12 horas' }], onChange: function (v) { set('timeFormat', v); } }, nav)
         ])
       ]
     };
   }
 
+  function helpRow(code, what) {
+    return U.el('div.cell', [U.el('span.help-ex', [U.el('code', { text: code }), U.el('span', { text: what })])]);
+  }
   function quickHelpPage() {
     var ex = [
       ['Llamar a Ana mañana a las 10', 'Mañana · 10:00'],
@@ -151,12 +152,12 @@ window.Whider = window.Whider || {};
     return {
       title: 'Escribir tareas rápido',
       body: [
-        U.el('p.sheet-lead-text', { text: 'Al crear una tarea con el botón +, escribe con naturalidad: WHIDER detecta la fecha, la hora, la lista y la prioridad, y las quita del título. Si algo no era una fecha, toca la × de la etiqueta.' }),
-        W.UI.section({ header: 'Ejemplos', items: ex.map(function (e) { return W.UI.cell({ icon: 'wand', color: 'var(--purple)', title: e[0], sub: e[1] }); }) }),
+        U.el('p.sheet-lead-text', { text: 'Con el botón + se puede escribir la fecha, la hora, la lista y la prioridad en el propio texto: se detectan y se quitan del título. Si algo no era una fecha, toca la × de su etiqueta.' }),
+        W.UI.section({ header: 'Ejemplos', items: ex.map(function (e) { return helpRow(e[0], e[1]); }) }),
         W.UI.section({ header: 'Atajos', items: [
-          W.UI.cell({ title: '#nombre', sub: 'Lista (por ejemplo #trabajo)' }),
-          W.UI.cell({ title: '!  ·  !!  ·  !!!', sub: 'Destacada · importante · urgente' }),
-          W.UI.cell({ title: 'cada día · cada semana · cada lunes', sub: 'Repeticiones' })
+          helpRow('#nombre', 'Lista (por ejemplo #trabajo)'),
+          helpRow('!  ·  !!  ·  !!!', 'Destacada · importante · urgente'),
+          helpRow('cada día · cada semana · cada lunes', 'Repeticiones')
         ] })
       ]
     };
@@ -166,20 +167,20 @@ window.Whider = window.Whider || {};
     var st = S();
     var rows = st.lists.map(function (l) {
       var n = st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length;
-      return W.UI.cell({ lead: W.UI.listIcon(st.ACCENTS[l.color].a), title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () {
+      return W.UI.cell({ icon: 'list', title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () {
         W.Lists.edit(l, function () { nav.refresh(); }, function () { nav.refresh(); });
       } });
     });
-    rows.push(W.UI.cell({ lead: U.el('span.cell-icon', { style: { '--c': 'var(--accent)' } }, [U.icon('plus')]), title: 'Nueva lista', accent: true, chevron: false,
+    rows.push(W.UI.cell({ icon: 'plus', title: 'Nueva lista', accent: true, chevron: false,
       onTap: function () { W.Lists.edit(null, function () { nav.refresh(); }); } }));
-    return { title: 'Listas', body: [W.UI.section({ items: rows, footer: 'Toca una lista para cambiar su nombre o su color, o para eliminarla.' })] };
+    return { title: 'Listas', body: [W.UI.section({ items: rows, footer: 'Toca una lista para cambiarle el nombre o eliminarla.' })] };
   }
 
   function alertsPage(nav) {
     var st = S(), cfg = st.settings, set = st.setSetting, q = cfg.quietHours;
     var perm = W.Notify.permission();
     var permText = { granted: 'Activadas', denied: 'Bloqueadas', unsupported: 'No disponibles', 'default': 'Desactivadas' }[perm] || perm;
-    var quiet = [toggleCell({ icon: 'moon', color: 'var(--indigo)', title: 'Horas de silencio', value: q.enabled, onChange: function (v) { q.enabled = v; st.saveSettings('settings:quiet'); nav.refresh(); } })];
+    var quiet = [toggleCell({ icon: 'moon', title: 'Horas de silencio', value: q.enabled, onChange: function (v) { q.enabled = v; st.saveSettings('settings:quiet'); nav.refresh(); } })];
     if (q.enabled) {
       quiet.push(W.UI.cell({ title: 'Desde', right: timePill(q.from, function (v) { q.from = v; st.saveSettings('settings:quiet'); }) }));
       quiet.push(W.UI.cell({ title: 'Hasta', right: timePill(q.to, function (v) { q.to = v; st.saveSettings('settings:quiet'); }) }));
@@ -187,17 +188,17 @@ window.Whider = window.Whider || {};
     return {
       title: 'Avisos y sonido',
       body: [
-        W.UI.section({ items: [W.UI.cell({ icon: 'bell', color: 'var(--red)', title: 'Notificaciones', value: permText,
+        W.UI.section({ items: [W.UI.cell({ icon: 'bell', title: 'Notificaciones', value: permText,
           onTap: perm === 'default' ? function () { W.Notify.request(); setTimeout(function () { nav.refresh(); }, 1500); } : null })],
           footer: perm === 'denied' ? 'Están bloqueadas: actívalas en los ajustes del teléfono para recibir los avisos.' : null }),
         W.UI.group([
-          toggleCell({ icon: 'alert', color: 'var(--orange)', title: 'Avisar en las tareas nuevas', value: cfg.defaultWarn, onChange: function (v) { set('defaultWarn', v); } }),
-          menuCell({ icon: 'alarm', color: 'var(--indigo)', title: 'Recordatorio previo', value: cfg.remindBefore, options: W.Editor.REMIND_OPTS, onChange: function (v) { set('remindBefore', v); } }, nav),
-          menuCell({ icon: 'repeat', color: 'var(--gray-2)', title: 'Repetir alerta vencida', value: cfg.rewarn, options: REWARN, onChange: function (v) { set('rewarn', v); } }, nav)
+          toggleCell({ icon: 'alert', title: 'Avisar en las tareas nuevas', value: cfg.defaultWarn, onChange: function (v) { set('defaultWarn', v); } }),
+          menuCell({ icon: 'alarm', title: 'Recordatorio previo', value: cfg.remindBefore, options: W.Editor.REMIND_OPTS, onChange: function (v) { set('remindBefore', v); } }, nav),
+          menuCell({ icon: 'repeat', title: 'Repetir alerta vencida', value: cfg.rewarn, options: REWARN, onChange: function (v) { set('rewarn', v); } }, nav)
         ]),
         W.UI.group([
-          toggleCell({ icon: 'sound', color: 'var(--pink)', title: 'Sonidos', value: cfg.sound, onChange: function (v) { set('sound', v); if (v) W.Audio.success(); } }),
-          toggleCell({ icon: 'vibrate', color: 'var(--gray-2)', title: 'Vibración', value: cfg.vibrate, onChange: function (v) { set('vibrate', v); if (v) W.Audio.vibrate([20]); } })
+          toggleCell({ icon: 'sound', title: 'Sonidos', value: cfg.sound, onChange: function (v) { set('sound', v); if (v) W.Audio.success(); } }),
+          toggleCell({ icon: 'vibrate', title: 'Vibración', value: cfg.vibrate, onChange: function (v) { set('vibrate', v); if (v) W.Audio.vibrate([20]); } })
         ]),
         W.UI.section({ items: quiet, footer: 'Durante las horas de silencio no suenan avisos ni llegan notificaciones.' }),
         W.UI.group([W.UI.cell({ title: 'Probar el aviso', accent: true, center: true, onTap: function () { W.Audio.warning(); W.Audio.vibrate([70, 60, 70]); } })])

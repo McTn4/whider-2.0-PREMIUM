@@ -1,12 +1,13 @@
 /**
  * WHIDER · Controles reutilizables: cabecera de pantalla, secciones y celdas,
- * segmentado, interruptor, paso a paso, colores y calendario mensual.
+ * segmentado, interruptor, paso a paso, prioridad y calendario mensual.
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U;
+  var PRIO_LEVEL = { star: 1, purple: 2, danger: 3 };
 
   function placeThumb(wrap) {
     var thumb = wrap.querySelector('.seg-thumb'), act = wrap.querySelector('button.active');
@@ -45,7 +46,7 @@ window.Whider = window.Whider || {};
 
     /**
      * Cabecera de pantalla: barra superior fija + título.
-     * header({ title, sub, back: { label, onTap }, actions: [spec], profile, gear, titleColor })
+     * header({ title, sub, back: { label, onTap }, actions: [spec], profile, gear })
      *  - profile: foto a la izquierda (abre el Perfil) · gear: engranaje a la derecha (abre Ajustes)
      */
     header: function (o) {
@@ -54,7 +55,7 @@ window.Whider = window.Whider || {};
       var nav = U.el('header.nav', [lead, U.el('div.nav-title', { text: o.compact || o.title }), trail]);
       var lt = U.el('div.lt', [
         U.el('div.lt-text', [
-          U.el('h1', { text: o.title, style: o.titleColor ? { color: o.titleColor } : null }),
+          U.el('h1', { text: o.title }),
           o.sub ? U.el('span.lt-sub', o.sub.nodeType ? [o.sub] : { text: o.sub }) : null
         ])
       ]);
@@ -86,11 +87,11 @@ window.Whider = window.Whider || {};
     group: function (cells) { return U.el('div.group', cells); },
 
     /**
-     * Celda: cell({ icon, color, round, lead, title, sub, subCls, value, right, chevron, onTap, danger, accent, center, cls, attrs })
+     * Celda: cell({ icon, lead, title, sub, subCls, value, right, chevron, onTap, danger, accent, center, cls, attrs })
      */
     cell: function (o) {
       var tappable = !!o.onTap;
-      var lead = o.lead || (o.icon ? U.el('span.cell-icon' + (o.round ? '.round' : ''), { style: { '--c': o.color || 'var(--gray-2)' } }, [U.icon(o.icon)]) : null);
+      var lead = o.lead || (o.icon ? UI.cellIcon(o.icon) : null);
       var right = o.right || null;
       if (!right && (o.value != null || (tappable && !o.center && !o.accent && o.chevron !== false))) {
         right = U.el('span.cell-value', [
@@ -110,12 +111,21 @@ window.Whider = window.Whider || {};
 
     /** Compatibilidad: row({ icon, label, desc, value, right, onTap, danger }) */
     row: function (o) {
-      return UI.cell({ icon: o.icon, color: o.color, title: o.label, sub: o.desc, value: o.value, right: o.right, onTap: o.onTap, danger: o.danger, chevron: o.onTap ? true : undefined });
+      return UI.cell({ icon: o.icon, title: o.label, sub: o.desc, value: o.value, right: o.right, onTap: o.onTap, danger: o.danger, chevron: o.onTap ? true : undefined });
     },
 
-    /** Icono redondo de lista (color de la lista) */
-    listIcon: function (color, icon) {
-      return U.el('span.cell-icon', { style: { '--c': color } }, [U.icon(icon || 'list')]);
+    /** Icono de fila (solo el trazo, en gris) */
+    cellIcon: function (icon) {
+      return U.el('span.cell-icon', [U.icon(icon)]);
+    },
+
+    /**
+     * Prioridad en tres barras: 'star' (destacada) enciende una, 'purple' (importante) dos
+     * y 'danger' (urgente) las tres, con un leve brillo. 'none' las deja apagadas.
+     */
+    prio: function (highlight) {
+      var n = PRIO_LEVEL[highlight] || 0;
+      return U.el('span.prio.p' + n, { attrs: { 'aria-hidden': 'true' } }, [U.el('i'), U.el('i'), U.el('i')]);
     },
 
     segmented: function (options, value, onChange, opts) {
@@ -164,24 +174,6 @@ window.Whider = window.Whider || {};
       return U.el('span.cell-row', [out, U.el('span.stepper', [minus, plus])]);
     },
 
-    swatches: function (value, onChange) {
-      var A = W.State.ACCENTS;
-      var wrap = U.el('div.swatches', { attrs: { role: 'radiogroup' } });
-      Object.keys(A).forEach(function (k) {
-        var b = U.el('button.swatch' + (k === value ? '.active' : ''), {
-          attrs: { role: 'radio', 'aria-checked': k === value ? 'true' : 'false', 'aria-label': A[k].name, title: A[k].name }, style: { '--a': A[k].a }
-        });
-        b.addEventListener('click', function () {
-          U.$$('.swatch', wrap).forEach(function (x) { x.classList.remove('active'); x.setAttribute('aria-checked', 'false'); });
-          b.classList.add('active'); b.setAttribute('aria-checked', 'true');
-          W.Audio.select();
-          onChange(k);
-        });
-        wrap.appendChild(b);
-      });
-      return wrap;
-    },
-
     /** Estado vacío: icono gris, título y texto (y una acción opcional) */
     empty: function (icon, title, text, action, small) {
       return U.el('div.empty-state' + (small ? '.small' : ''), [
@@ -194,7 +186,7 @@ window.Whider = window.Whider || {};
 
     /**
      * Mes en cuadrícula (pantalla Calendario y selector de fecha).
-     * monthGrid({ y, m, selected, mark(ds) → { dots: [{ c, kind: 'late'|'rep'|'done' }], label } | null, onPick(ds), slide })
+     * monthGrid({ y, m, selected, mark(ds) → { dots: [{ kind: 'late'|'rep'|'done' }], label } | null, onPick(ds), slide })
      */
     monthGrid: function (o) {
       var ws = W.State.settings.weekStart, td = U.today();
@@ -210,7 +202,7 @@ window.Whider = window.Whider || {};
           var cell = U.el('button.cal-day' + (ds === td ? '.today' : '') + (ds === o.selected ? '.selected' : '') + (ds < td ? '.past' : ''), {
             attrs: { 'aria-label': U.fmtLong(ds) + (mk && mk.label ? ', ' + mk.label : ''), 'aria-pressed': ds === o.selected ? 'true' : 'false' }
           }, [U.el('span.cal-num', { text: day }), U.el('span.cal-dots', (mk && mk.dots ? mk.dots : []).slice(0, 3).map(function (d) {
-            return U.el('i' + (d.kind ? '.' + d.kind : ''), { style: d.c ? { '--c': d.c } : null });
+            return U.el('i' + (d.kind ? '.' + d.kind : ''));
           }))]);
           cell.addEventListener('click', function () { o.onPick(ds); });
           g.appendChild(cell);

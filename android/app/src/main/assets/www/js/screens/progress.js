@@ -65,9 +65,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     return U.el('div.group.card', [
       U.el('div.card-head', [U.el('strong', { text: 'Por listas' })]),
       U.el('div.list-bars', rows.map(function (r) {
-        var c = st.ACCENTS[r.l.color].a;
-        return U.el('div', [U.el('div.list-bar-top', [U.el('span', [U.el('span.dot', { style: { '--c': c } }), r.l.name]), U.el('b', { text: r.done + ' de ' + r.all })]),
-          U.el('div.bar', [U.el('i', { style: { width: Math.round(r.done / r.all * 100) + '%', background: c } })])]);
+        return U.el('div', [U.el('div.list-bar-top', [U.el('span', { text: r.l.name }), U.el('b', { text: r.done + ' de ' + r.all })]),
+          U.el('div.bar', [U.el('i', { style: { width: Math.round(r.done / r.all * 100) + '%' } })])]);
       }))
     ]);
   }
@@ -134,7 +133,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         tab, function (v) { st.ui.profileTab = v; W.Screens.progress.render(root); });
       seg.style.marginTop = '16px';
       var settingsRow = W.UI.section({ items: [
-        W.UI.cell({ icon: 'gear', color: 'var(--accent)', title: 'Ajustes', sub: 'Apariencia, avisos, enfoque, cuenta y datos', onTap: function () { W.Settings.open(); } })
+        W.UI.cell({ icon: 'gear', title: 'Ajustes', sub: 'Apariencia, avisos, enfoque, cuenta y datos', onTap: function () { W.Settings.open(); } })
       ] });
       settingsRow.style.marginTop = '14px';
       W.UI.mount(root, head, [profileCard(st), settingsRow, seg, host]);

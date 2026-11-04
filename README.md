@@ -1,9 +1,9 @@
-# WHIDER 4.3
+# WHIDER 4.4
 
-**Tu día, bajo control.** WHIDER es una app de productividad para Android (y cualquier navegador) que reúne tareas y listas, calendario, avisos por incumplimiento, modo enfoque y seguimiento de progreso. Tiene un **diseño propio, minimalista y con profundidad suave**: fondo de tinta oscura, tarjetas con sombras moderadas, un color de acento de marca y la tipografía Manrope. Al abrirla, la **W del logotipo se dibuja como una gráfica**. Incluye **cuentas de usuario** (correo y contraseña o Google) con **copia en la nube** y un **registro de marcas** que conserva tus récords para siempre. Funciona también sin conexión.
+**Tu día, bajo control.** WHIDER es una app de productividad para Android (y cualquier navegador) que reúne tareas y listas, calendario, avisos por incumplimiento, modo enfoque y seguimiento de progreso. Su diseño es **en blanco y negro**: fondo negro, niveles de gris, sombras profundas y un brillo blanco contenido en lo que está activo, con las tipografías **IBM Plex Sans** y **IBM Plex Mono** (para cifras y horas). Al abrirla, **la silueta de la W se traza y se ilumina**. Incluye **cuentas de usuario** (correo y contraseña o Google) con **copia en la nube** y un **registro de marcas** que conserva tus récords para siempre. Funciona también sin conexión.
 
 <p align="center">
-  <img src="docs/capturas/00-carga.jpg" width="200" alt="Pantalla de carga: la W como gráfica">
+  <img src="docs/capturas/00-carga.jpg" width="200" alt="Pantalla de carga: la silueta de la W">
   <img src="docs/capturas/02-hoy.jpg" width="200" alt="Hoy">
   <img src="docs/capturas/04-nueva-tarea.jpg" width="200" alt="Creación rápida de tareas">
   <img src="docs/capturas/05-calendario-mes.jpg" width="200" alt="Calendario: mes">
@@ -45,8 +45,8 @@ Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resum
 
 **Tareas y listas**
 - **Creación rápida en lenguaje natural**: «mañana», «el lunes», «el 15», «20/11», «en 3 días», «a las 5 de la tarde», «cada semana», «#lista» y «!»/«!!»/«!!!» para la prioridad. Lo detectado aparece en etiquetas que puedes descartar; con Intro se añade y queda listo para la siguiente.
-- Prioridad en el **color del círculo**: rojo urgente, naranja importante y ámbar destacada.
-- **Listas** con su color, más cuatro **listas inteligentes** que se rellenan solas.
+- La prioridad se ve con **luz**: a la derecha de cada tarea se encienden una, dos o tres barras (destacada, importante y urgente) y el borde de la casilla brilla más cuanto más importante es.
+- **Listas** propias, más cuatro **listas automáticas** que se rellenan solas (Hoy, Programadas, Todas y Prioritarias).
 - Fecha con **calendario integrado**, hora, **subtareas**, **notas** y **repeticiones** (cada día, días laborables, cada semana, cada mes).
 - **Gestos**: desliza → para completar y ← para eliminar, con **Deshacer**.
 - Búsqueda en títulos, notas y subtareas; orden por fecha, prioridad, recientes o título.
@@ -58,7 +58,7 @@ Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resum
 - En la app Android, los recordatorios **suenan aunque la app esté cerrada** y se restauran al reiniciar el móvil.
 
 **Calendario**
-- **Mes**: puntos del color de cada lista (rojo si hay algo vencido y en hueco las repeticiones futuras), menú para saltar de mes y el día elegido con sus tareas por hora y un campo para **añadir directamente a ese día**.
+- **Mes**: un punto por tarea pendiente (hasta tres), uno que brilla si hay algo vencido y uno hueco para las repeticiones futuras; menú para saltar de mes y el día elegido con sus tareas por hora y un campo para **añadir directamente a ese día**.
 - **Semana**: tira de 7 días con su progreso y el **día por horas** con la hora actual; **toca un hueco** para crear una tarea a esa hora y **mantén pulsada una tarea para arrastrarla** a otra hora.
 - **Agenda**: lo vencido y los próximos 30 días, día a día.
 - Las tareas que se repiten se ven también en los días futuros, filtro por lista y opción de ocultar las completadas.
@@ -78,7 +78,6 @@ Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resum
 - Con cuenta, también en la nube: al iniciar sesión en otro móvil lo recuperas todo.
 
 **Personalización (Ajustes)**
-- **12 colores de acento** propios (iris, azul, violeta, rosa, coral, naranja, ámbar, verde, menta, cian, arena y plata): toda la app cambia al instante, también la pantalla de carga.
 - Tamaño de texto (4 niveles), densidad cómoda o compacta y movimiento reducido.
 - Pantalla al abrir, lista por defecto, aviso por defecto, primer día de la semana, formato 12/24 h y confirmación al eliminar.
 - Duración de las sesiones de enfoque y de las pausas.
@@ -91,7 +90,7 @@ Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resum
 - Se adapta a móviles pequeños (360 px), grandes, en horizontal y a tablets.
 - En el APK, el tamaño de fuente del sistema no descuadra el diseño: el tamaño del texto se controla desde **Ajustes → Apariencia**.
 - Teclado: los formularios se redimensionan para no quedar tapados.
-- Icono adaptable (Android 8+) en tinta oscura, blanco y el color iris de la marca, icono temático (Android 13+) e icono propio en la barra de notificaciones.
+- Icono adaptable (Android 8+) con la W en blanco sobre negro, icono temático (Android 13+) e icono propio en la barra de notificaciones.
 - Botón **Atrás**: cierra menús y hojas, vuelve a la página anterior (de una lista a Tareas, del Perfil a la pestaña en la que estabas o dentro de Ajustes), después a la pestaña inicial y solo entonces sale.
 
 ---
@@ -131,7 +130,7 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 ├── manifest.json           # PWA: iconos y accesos directos (#home, #tasks, #calendar, #focus)
 ├── sw.js                   # Funcionamiento sin conexión y clic en notificaciones
 ├── css/
-│   ├── tokens.css          # Colores, sombras, tipografía, tamaños y movimiento
+│   ├── tokens.css          # Grises, sombras, brillos, tipografía, tamaños y movimiento
 │   ├── layout.css          # Pantalla de carga, estructura a pantalla completa, barra superior y dock
 │   ├── components.css      # Celdas agrupadas, botones, hojas, alertas, menús, interruptores…
 │   └── screens.css         # Estilos de cada pantalla
@@ -146,7 +145,7 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 │   ├── router.js
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable
-├── fonts/                  # Manrope (variable, local) y su licencia OFL
+├── fonts/                  # IBM Plex Sans (variable) e IBM Plex Mono, locales, y su licencia OFL
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones)
 ├── tools/firebase-bundle/  # Cómo regenerar js/vendor/firebase.js
 ├── serve.py                # Servidor local para PC y móvil
@@ -158,6 +157,29 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y sus datos desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 4.4
+
+**Blanco y negro**
+- Toda la interfaz pasa a **blanco y negro**: fondo negro, superficies en grises, sombras profundas bajo cada tarjeta y un **brillo blanco contenido** en lo activo (botón principal, día elegido, pestaña actual, casillas marcadas y la hora actual del calendario).
+- Desaparecen los colores de acento y los colores de las listas, junto con sus selectores. No se pierde ningún dato: los colores elegidos en versiones anteriores simplemente dejan de usarse.
+- La prioridad se ve con **luz**: tres barras que se encienden (destacada, importante, urgente) y un borde de la casilla más brillante cuanto más importante es la tarea. Lo vencido se señala con un punto que brilla.
+
+**Tipografía nueva**
+- **IBM Plex Sans** para el texto e **IBM Plex Mono** para cifras, horas y fechas (contadores, calendario, estadísticas y marcas). Títulos con pesos más moderados.
+
+**Sin aspecto de plantilla**
+- Iconos de trazo sin baldosas de colores, diálogos sin adornos y textos más directos, sin primera persona.
+- Presentación inicial reducida a la W, el nombre de la app y un paso para tu perfil.
+- El botón + se integra en el dock en lugar de flotar sobre él.
+
+**Pantalla de carga más simple**
+- Solo la **silueta de la W**: se traza de un solo gesto y se ilumina. Sin gráfica, sin puntos y sin rótulo.
+
+**Icono**
+- La W en blanco con un brillo suave sobre negro, en la web, en Android y en el icono adaptable.
+
+**Rendimiento** (móvil de gama media simulado, 120 tareas): primer render 303 ms (antes 329); completar una tarea sigue en 41 ms.
 
 ## 📝 Novedades de la 4.3
 

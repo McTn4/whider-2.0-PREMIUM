@@ -98,7 +98,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var pend = st.pending().sort(st.compareDeadline).slice(0, 40);
     var options = [{ value: '', label: 'Ninguna', desc: 'Enfoque libre' }].concat(pend.map(function (t) {
       var l = t.listId ? st.getList(t.listId) : null;
-      return { value: t.id, label: t.text, desc: t.date ? U.fmtDay(t.date) + (t.time ? ', ' + U.fmtTime(t.time) : '') : 'Sin fecha', color: l ? st.ACCENTS[l.color].a : 'var(--gray-2)' };
+      return { value: t.id, label: t.text, desc: (t.date ? U.fmtDay(t.date) + (t.time ? ', ' + U.fmtTime(t.time) : '') : 'Sin fecha') + (l ? ' · ' + l.name : '') };
     }));
     W.Sheet.choose({ anchor: anchor, title: 'Tarea en la que te enfocas', value: T.taskId || '', options: options }).then(function (v) {
       if (v === undefined) return;
@@ -143,8 +143,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       var today = st.focusOn(U.today());
       var opts = W.UI.section({
         items: [
-          W.UI.cell({ icon: 'target', color: 'var(--indigo)', title: 'Tarea', value: linked ? linked.text : 'Ninguna', onTap: function (e, node) { pickTask(node.querySelector('.cell-value')); } }),
-          W.UI.cell({ icon: 'timer', color: 'var(--gray-2)', title: 'Duraciones', value: f.work + ' / ' + f.short + ' / ' + f.long + ' min', onTap: function () { W.Settings.open('focus'); } })
+          W.UI.cell({ icon: 'target', title: 'Tarea', value: linked ? linked.text : 'Ninguna', onTap: function (e, node) { pickTask(node.querySelector('.cell-value')); } }),
+          W.UI.cell({ icon: 'timer', title: 'Duraciones', value: f.work + ' / ' + f.short + ' / ' + f.long + ' min', onTap: function () { W.Settings.open('focus'); } })
         ],
         footer: today.sessions ? 'Hoy: ' + today.min + ' min de enfoque en ' + U.plural(today.sessions, 'sesión', 'sesiones') + '.' : 'Aún no has hecho ninguna sesión hoy.'
       });

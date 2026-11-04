@@ -1,6 +1,6 @@
 /**
  * WHIDER · Presentación inicial (solo la primera vez).
- * Con cuentas: 2 pasos (tu perfil y tu color). Sin cuentas: bienvenida + esos 2 pasos.
+ * Con cuentas: un paso (tu perfil). Sin cuentas: bienvenida + tu perfil.
  */
 window.Whider = window.Whider || {};
 
@@ -8,13 +8,6 @@ window.Whider = window.Whider || {};
   'use strict';
   var U = W.U, S = function () { return W.State; };
   var root = null, steps = [], step = 0, data = {};
-
-  var FEATURES = [
-    { icon: 'tasks', c: 'var(--accent)', t: 'Tareas y listas', d: 'Escribe «mañana a las 10» y WHIDER pone la fecha y la hora por ti.' },
-    { icon: 'calendar', c: 'var(--teal)', t: 'Calendario', d: 'Mes, semana por horas y agenda, con tus tareas que se repiten.' },
-    { icon: 'bell', c: 'var(--orange)', t: 'Avisos a tiempo', d: 'Recordatorios antes del plazo y aviso si algo se queda pendiente.' },
-    { icon: 'chart', c: 'var(--green)', t: 'Tu progreso', d: 'Enfoque, rachas, marcas y logros que se guardan para siempre.' }
-  ];
 
   function finish() {
     var st = S(), prof = st.getProfile() || {};
@@ -34,12 +27,9 @@ window.Whider = window.Whider || {};
 
   function renderWelcome() {
     return [
-      U.el('div.app-icon', [U.svg('svg', { viewBox: '0 0 64 64' }, [U.svg('use', { href: '#logo' })])]),
-      U.el('h1', { text: 'Te damos la bienvenida a WHIDER' }),
-      U.el('div.ob-features', FEATURES.map(function (f, i) {
-        return U.el('div.ob-feature', { style: { animation: 'fade-up .45s ' + (0.08 * i + 0.1) + 's var(--ease-out) both' } }, [
-          U.el('span.cell-icon', { style: { '--c': f.c } }, [U.icon(f.icon)]), U.el('div', [U.el('strong', { text: f.t }), U.el('span', { text: f.d })])]);
-      }))
+      U.svg('svg', { viewBox: '0 0 64 64', class: 'ob-mark', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
+      U.el('h1', { text: 'WHIDER' }),
+      U.el('p', { text: 'Tareas, calendario, avisos y enfoque.' })
     ];
   }
 
@@ -72,25 +62,10 @@ window.Whider = window.Whider || {};
     ];
   }
 
-  /** Color de acento: la vista previa muestra controles reales, nunca tareas de ejemplo */
-  function renderColor() {
-    var st = S();
-    var check = U.el('span.check.on');
-    check.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
-    var sw = W.UI.toggle(true, function () {}, 'Ejemplo de interruptor');
-    var ring = W.Fx.ring(46, 6, .68, U.el('span', { text: '' }), 0);
-    return [
-      U.el('h1', { text: 'Elige un color' }),
-      U.el('p', { text: 'Se usará en botones, casillas, gráficas y elementos seleccionados.' }),
-      U.el('div.group', [U.el('div.cell.color-cell', [W.UI.swatches(st.settings.accent, function (k) { st.setSetting('accent', k); })])]),
-      U.el('div.ob-sample', { attrs: { 'aria-hidden': 'true' } }, [check, sw, ring, U.el('span.btn.primary.sm', { text: 'WHIDER' })])
-    ];
-  }
-
   function render() {
     U.clear(root);
     var kind = steps[step];
-    var body = kind === 'welcome' ? renderWelcome() : kind === 'profile' ? renderProfile() : renderColor();
+    var body = kind === 'welcome' ? renderWelcome() : renderProfile();
     var last = step === steps.length - 1;
     var cta = U.el('button.btn.primary.block', { text: last ? 'Empezar' : 'Continuar', on: { click: function () {
       if (kind === 'profile') { var i = U.$('.ob-input', root); if (i) data.name = i.value.trim(); }
@@ -102,7 +77,7 @@ window.Whider = window.Whider || {};
         step > 0 ? W.UI.navBtn({ icon: 'back', text: 'Atrás', back: true, onTap: function () { step--; render(); } }) : U.el('span'),
         U.el('button.nav-btn', { text: 'Omitir', on: { click: finish } })
       ]),
-      U.el('div.ob-body', body),
+      U.el('div.ob-body' + (kind === 'welcome' ? '.welcome' : ''), body),
       U.el('div.ob-foot', [
         steps.length > 1 ? U.el('div.ob-dots', { attrs: { 'aria-hidden': 'true' } }, steps.map(function (s, i) { return U.el('i' + (i === step ? '.on' : '')); })) : null,
         cta
@@ -118,7 +93,7 @@ window.Whider = window.Whider || {};
       root = document.getElementById('onboardingRoot');
       if (!root || W.Onboarding.isOpen()) return;   // nunca se reinicia a medias
       var accounts = W.Auth && W.Auth.configured() && !S().meta.guest;
-      steps = accounts ? ['profile', 'color'] : ['welcome', 'profile', 'color'];
+      steps = accounts ? ['profile'] : ['welcome', 'profile'];
       step = 0; data = {};
       root.style.display = 'flex';
       document.body.classList.add('no-tabs');

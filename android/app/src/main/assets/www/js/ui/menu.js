@@ -30,7 +30,7 @@ window.Whider = window.Whider || {};
   var Menu = {
     /**
      * open(anchor, items, { title }) → Promise con el valor elegido (o undefined)
-     * items: [{ value, label, desc, icon, color, on, destructive, gap }]
+     * items: [{ value, label, desc, icon, prio, on, destructive, gap }]  (prio: barras de prioridad)
      */
     open: function (anchor, items, opts) {
       opts = opts || {};
@@ -43,7 +43,7 @@ window.Whider = window.Whider || {};
         items.forEach(function (it) {
           if (it.gap) menu.appendChild(U.el('div.menu-gap'));
           var lead = U.icon('check', 'mi-check');
-          var trail = it.color ? U.el('span.dot', { style: { '--c': it.color } }) : it.icon ? U.icon(it.icon, 'mi-ic') : null;
+          var trail = it.prio ? W.UI.prio(it.prio) : it.icon ? U.icon(it.icon, 'mi-ic') : null;
           var b = U.el('button.menu-item' + (it.on ? '.on' : '') + (it.destructive ? '.destructive' : ''), { attrs: { role: 'menuitem' } }, [
             lead,
             U.el('span.mi-label', [it.label, it.desc ? U.el('span.mi-desc', { text: it.desc }) : null]),
