@@ -22,22 +22,22 @@ window.Whider = window.Whider || {};
   var ALL_KEYS = Object.keys(KEYS).map(function (k) { return KEYS[k]; });
 
   /*
-   * Colores de acento y de listas: colores del sistema, sobrios y legibles sobre fondo oscuro.
+   * Colores de acento y de listas (paleta propia de WHIDER, legible sobre fondo oscuro).
    * Las claves se conservan de versiones anteriores para no perder la elección del usuario.
    */
   var ACCENTS = {
-    iris:     { name: 'Azul',     a: '#0A84FF', on: '#FFFFFF' },
-    indigo:   { name: 'Índigo',   a: '#5E5CE6', on: '#FFFFFF' },
-    violet:   { name: 'Morado',   a: '#BF5AF2', on: '#FFFFFF' },
-    rose:     { name: 'Rosa',     a: '#FF375F', on: '#FFFFFF' },
-    red:      { name: 'Rojo',     a: '#FF453A', on: '#FFFFFF' },
-    ember:    { name: 'Naranja',  a: '#FF9F0A', on: '#000000' },
-    gold:     { name: 'Amarillo', a: '#FFD60A', on: '#000000' },
-    jade:     { name: 'Verde',    a: '#30D158', on: '#000000' },
-    mint:     { name: 'Menta',    a: '#63E6E2', on: '#000000' },
-    aqua:     { name: 'Turquesa', a: '#40CBE0', on: '#000000' },
-    brown:    { name: 'Marrón',   a: '#AC8E68', on: '#000000' },
-    graphite: { name: 'Grafito',  a: '#98989D', on: '#000000' }
+    iris:     { name: 'Iris',     a: '#7C83FF', on: '#FFFFFF' },
+    indigo:   { name: 'Azul',     a: '#4C8DFF', on: '#FFFFFF' },
+    violet:   { name: 'Violeta',  a: '#A98BFF', on: '#FFFFFF' },
+    rose:     { name: 'Rosa',     a: '#FF6B9A', on: '#FFFFFF' },
+    red:      { name: 'Coral',    a: '#FF6B5E', on: '#FFFFFF' },
+    ember:    { name: 'Naranja',  a: '#FF9A4D', on: '#1A1206' },
+    gold:     { name: 'Ámbar',    a: '#F5BE4B', on: '#1A1406' },
+    jade:     { name: 'Verde',    a: '#3DD68C', on: '#06180F' },
+    mint:     { name: 'Menta',    a: '#5EE0C8', on: '#061814' },
+    aqua:     { name: 'Cian',     a: '#3CC6E0', on: '#061418' },
+    brown:    { name: 'Arena',    a: '#C9A27C', on: '#1A1209' },
+    graphite: { name: 'Plata',    a: '#A3AAB9', on: '#101217' }
   };
 
   var PRIORITIES = {
@@ -185,7 +185,8 @@ window.Whider = window.Whider || {};
       focusMin: typeof item.focusMin === 'number' ? item.focusMin : 0,
       createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
       updatedAt: typeof item.updatedAt === 'number' ? item.updatedAt : (typeof item.createdAt === 'number' ? item.createdAt : Date.now()),
-      example: !!item.example
+      example: !!item.example,
+      mine: !!item.mine
     };
   }
 
@@ -205,9 +206,11 @@ window.Whider = window.Whider || {};
   }
 
   /*
-   * Tareas de ejemplo de versiones anteriores (2.x – 4.0). Ya no se crean, y las que
-   * quedaron guardadas se eliminan — también las copias que generaron al repetirse —,
-   * salvo que el usuario las haya convertido en suyas cambiándoles el texto.
+   * Tareas de ejemplo de versiones anteriores (2.x – 4.0). Ya no se crean y se eliminan
+   * SIEMPRE que aparezcan — en el dispositivo o llegadas de la nube —, aunque estén
+   * completadas, repetidas, sin la marca de ejemplo o cambiadas de fecha.
+   * Solo se respetan las que el usuario escribió a mano en esta versión (marca "mine")
+   * y las de ejemplo a las que cambió el texto (ya son suyas).
    * Se registran como borradas para que la nube no las devuelva.
    */
   var SAMPLE_TEXTS = {
@@ -215,20 +218,15 @@ window.Whider = window.Whider || {};
     'entrenamiento o sesión de ejercicio': 1, 'entrenamiento de 30 minutos': 1,
     'leer 20 páginas': 1, 'reunión de revisión de avances': 1
   };
-  function isSampleText(t) { return !!SAMPLE_TEXTS[String(t.text || '').trim().toLowerCase()]; }
-  /** Devuelve los ids a eliminar (las de ejemplo y sus repeticiones sin modificar) */
+  function normText(t) { return String(t.text || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+  function isSampleText(t) { return !!SAMPLE_TEXTS[normText(t)]; }
+  /** Devuelve los ids a eliminar */
   function sampleIds(list) {
-    var byId = {}, out = {};
-    list.forEach(function (t) { byId[t.id] = t; });
+    var out = {};
     list.forEach(function (t) {
-      if (!t.example) return;
-      if (!isSampleText(t)) { t.example = false; return; }   // la renombró: ya es suya
-      var cur = t, guard = 0;
-      while (cur && !out[cur.id] && guard++ < 500) {
-        if (cur !== t && !isSampleText(cur)) break;
-        out[cur.id] = true;
-        cur = cur.spawnedId ? byId[cur.spawnedId] : null;
-      }
+      if (t.mine) return;
+      if (isSampleText(t)) out[t.id] = true;
+      else if (t.example) t.example = false;   // la renombró: ya es suya
     });
     return out;
   }
@@ -382,7 +380,9 @@ window.Whider = window.Whider || {};
       State.lists = cleanLists(snap.lists);
       State.syncMeta = Object.assign({ deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 }, snap.sync || {});
       State.syncMeta.deleted = Object.assign({}, State.syncMeta.deleted);
-      State.tasks = purgeSamples(cleanTasks(snap.tasks, State.lists), State.syncMeta.deleted);
+      var incoming = cleanTasks(snap.tasks, State.lists);
+      State.tasks = purgeSamples(incoming, State.syncMeta.deleted);
+      var purged = State.tasks.length !== incoming.length;
       if (snap.settings) State.settings = mergeTyped(DEFAULT_SETTINGS, snap.settings);
       focusLog = snap.focus && typeof snap.focus === 'object' ? snap.focus : {};
       doneLog = snap.doneLog && typeof snap.doneLog === 'object' ? snap.doneLog : {};
@@ -402,7 +402,8 @@ window.Whider = window.Whider || {};
         if (Array.isArray(snap.meta.seenAchievements)) State.meta.seenAchievements = snap.meta.seenAchievements;
         if (snap.meta.onboarded) State.meta.onboarded = true;
       }
-      State.notify(reason || 'sync');
+      // Si llegaron tareas de ejemplo de la nube, se borran y el borrado se sube enseguida
+      State.notify(purged ? 'purge' : (reason || 'sync'));
     },
     /** Borra los datos de este dispositivo (al cerrar sesión o cambiar de cuenta) */
     clearLocal: function () {
@@ -478,7 +479,8 @@ window.Whider = window.Whider || {};
     },
     addTask: function (fields) {
       var listIds = {}; State.lists.forEach(function (l) { listIds[l.id] = true; });
-      var t = cleanTask(Object.assign({ id: U.uid(), createdAt: Date.now() }, fields), listIds);
+      // "mine": escrita por el usuario; nunca se confunde con una tarea de ejemplo
+      var t = cleanTask(Object.assign({ id: U.uid(), createdAt: Date.now() }, fields, { mine: true }), listIds);
       if (!t) return null;
       State.tasks.push(t);
       State.notify('add');
@@ -589,6 +591,27 @@ window.Whider = window.Whider || {};
     },
 
     /* ---------- Consultas ---------- */
+    /**
+     * Próximas fechas de una tarea que se repite (solo pendientes y desde hoy), para verlas en el
+     * calendario aunque todavía no existan como tarea. occurrences(t, desde, hasta, máximo)
+     */
+    occurrences: function (t, from, to, max) {
+      if (!t || t.done || !t.date || !REPEATS[t.repeat] || t.repeat === 'none') return [];
+      var out = [], k = 1, d = t.date, guard = 0, td = U.today();
+      if (from < td) from = td;
+      max = max || 62;
+      while (out.length < max && guard++ < 1500) {
+        if (t.repeat === 'weekdays') {
+          d = U.addDays(d, 1);
+          var wd = U.weekday(d);
+          if (wd === 0 || wd === 6) { if (d > to) break; continue; }
+        } else d = t.repeat === 'daily' ? U.addDays(t.date, k) : t.repeat === 'weekly' ? U.addDays(t.date, 7 * k) : U.addMonths(t.date, k);
+        k++;
+        if (d > to) break;
+        if (d >= from && d > t.date) out.push(d);
+      }
+      return out;
+    },
     isOverdue: function (t) { return isOverdue(t); },
     pending: function () { return State.tasks.filter(function (t) { return !t.done; }); },
     forDate: function (d) { return State.tasks.filter(function (t) { return t.date === d; }); },

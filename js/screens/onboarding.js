@@ -10,10 +10,10 @@ window.Whider = window.Whider || {};
   var root = null, steps = [], step = 0, data = {};
 
   var FEATURES = [
-    { icon: 'tasks', t: 'Tareas y listas', d: 'Organiza lo que tienes que hacer con fechas, prioridades y subtareas.' },
-    { icon: 'bell', t: 'Avisos a tiempo', d: 'Recordatorios antes del plazo y aviso si algo se queda pendiente.' },
-    { icon: 'timer', t: 'Enfoque', d: 'Sesiones de concentración con pausas, vinculadas a tus tareas.' },
-    { icon: 'chart', t: 'Tu progreso', d: 'Rachas, marcas y logros que se guardan para siempre.' }
+    { icon: 'tasks', c: 'var(--accent)', t: 'Tareas y listas', d: 'Escribe «mañana a las 10» y WHIDER pone la fecha y la hora por ti.' },
+    { icon: 'calendar', c: 'var(--teal)', t: 'Calendario', d: 'Mes, semana por horas y agenda, con tus tareas que se repiten.' },
+    { icon: 'bell', c: 'var(--orange)', t: 'Avisos a tiempo', d: 'Recordatorios antes del plazo y aviso si algo se queda pendiente.' },
+    { icon: 'chart', c: 'var(--green)', t: 'Tu progreso', d: 'Enfoque, rachas, marcas y logros que se guardan para siempre.' }
   ];
 
   function finish() {
@@ -36,8 +36,9 @@ window.Whider = window.Whider || {};
     return [
       U.el('div.app-icon', [U.svg('svg', { viewBox: '0 0 64 64' }, [U.svg('use', { href: '#logo' })])]),
       U.el('h1', { text: 'Te damos la bienvenida a WHIDER' }),
-      U.el('div.ob-features', FEATURES.map(function (f) {
-        return U.el('div.ob-feature', [U.icon(f.icon), U.el('div', [U.el('strong', { text: f.t }), U.el('span', { text: f.d })])]);
+      U.el('div.ob-features', FEATURES.map(function (f, i) {
+        return U.el('div.ob-feature', { style: { animation: 'fade-up .45s ' + (0.08 * i + 0.1) + 's var(--ease-out) both' } }, [
+          U.el('span.cell-icon', { style: { '--c': f.c } }, [U.icon(f.icon)]), U.el('div', [U.el('strong', { text: f.t }), U.el('span', { text: f.d })])]);
       }))
     ];
   }
@@ -71,21 +72,18 @@ window.Whider = window.Whider || {};
     ];
   }
 
+  /** Color de acento: la vista previa muestra controles reales, nunca tareas de ejemplo */
   function renderColor() {
     var st = S();
-    var check = function (on) {
-      var c = U.el('span.check' + (on ? '.on' : ''));
-      c.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
-      return c;
-    };
-    var row = function (on, text, meta) {
-      return U.el('li.task' + (on ? '.is-done' : ''), [U.el('div.task-body', [check(on), U.el('div.task-main', [U.el('span.task-title', { text: text }), U.el('div.task-meta', { text: meta })])])]);
-    };
+    var check = U.el('span.check.on');
+    check.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
+    var sw = W.UI.toggle(true, function () {}, 'Ejemplo de interruptor');
+    var ring = W.Fx.ring(46, 6, .68, U.el('span', { text: '' }), 0);
     return [
       U.el('h1', { text: 'Elige un color' }),
-      U.el('p', { text: 'Se usará en botones, casillas y elementos seleccionados.' }),
+      U.el('p', { text: 'Se usará en botones, casillas, gráficas y elementos seleccionados.' }),
       U.el('div.group', [U.el('div.cell.color-cell', [W.UI.swatches(st.settings.accent, function (k) { st.setSetting('accent', k); })])]),
-      U.el('div.sec.ob-preview', [U.el('div.sec-h', { text: 'Vista previa' }), U.el('ul.task-list', [row(true, 'Tarea completada', 'Hoy'), row(false, 'Tarea pendiente', 'Mañana, ' + U.fmtTime('10:00'))])])
+      U.el('div.ob-sample', { attrs: { 'aria-hidden': 'true' } }, [check, sw, ring, U.el('span.btn.primary.sm', { text: 'WHIDER' })])
     ];
   }
 

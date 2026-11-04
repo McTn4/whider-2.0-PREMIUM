@@ -14,40 +14,49 @@ window.Whider = window.Whider || {};
     var first = !wrap._placed;
     if (first) thumb.style.transition = 'none';
     thumb.style.width = act.offsetWidth + 'px';
-    thumb.style.transform = 'translateX(' + (act.offsetLeft - 2) + 'px)';
+    thumb.style.transform = 'translateX(' + (act.offsetLeft - 4) + 'px)';
+    if (wrap.classList.contains('mini')) thumb.style.transform = 'translateX(' + (act.offsetLeft - 3) + 'px)';
     if (first) { void thumb.offsetWidth; thumb.style.transition = ''; wrap._placed = true; }
     U.$$('button', wrap).forEach(function (b) { b.classList.toggle('after-active', b.previousElementSibling === act); });
   }
 
-  /** Botón de barra de navegación: { icon, text, label, onTap, bold, back } o un nodo */
+  /** Botón de barra: { icon, text, label, onTap, back, round } o un nodo. Con solo icono, botón redondeado. */
   function navBtn(spec) {
     if (!spec) return null;
     if (spec.nodeType) return spec;
-    var b = U.el('button.nav-btn' + (spec.bold ? '.bold' : '') + (spec.back ? '.back' : ''), { attrs: spec.label ? { 'aria-label': spec.label } : null },
+    var iconOnly = spec.icon && !spec.text && !spec.back;
+    var b = U.el('button.' + (iconOnly ? 'nav-icon' : 'nav-btn') + (spec.back ? '.back' : ''), { attrs: spec.label ? { 'aria-label': spec.label, title: spec.label } : null },
       [spec.icon ? U.icon(spec.icon) : null, spec.text ? U.el('span', { text: spec.text }) : null]);
     if (spec.onTap) b.addEventListener('click', function (e) { spec.onTap(e, b); });
     if (spec.disabled) b.disabled = true;
     return b;
   }
 
+  /** Foto de perfil (abre el Perfil) y engranaje (abre los Ajustes): siempre a mano */
+  function profileBtn() {
+    return U.el('button.avatar-btn', { attrs: { 'aria-label': 'Tu perfil y resumen', title: 'Perfil' }, on: { click: function () { W.Router.go('progress'); } } }, [W.Profile.avatar()]);
+  }
+  function gearBtn() {
+    return navBtn({ icon: 'gear', label: 'Ajustes', onTap: function () { W.Settings.open(); } });
+  }
+
   var UI = {
     navBtn: navBtn,
 
     /**
-     * Cabecera de pantalla: barra de navegación fija + título grande.
-     * header({ title, eyebrow, back: { label, onTap }, actions: [spec], avatar, titleColor })
+     * Cabecera de pantalla: barra superior fija + título.
+     * header({ title, sub, back: { label, onTap }, actions: [spec], profile, gear, titleColor })
+     *  - profile: foto a la izquierda (abre el Perfil) · gear: engranaje a la derecha (abre Ajustes)
      */
     header: function (o) {
-      var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: 'Volver a ' + o.back.label, onTap: o.back.onTap, back: true }) : null]);
-      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn));
+      var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: 'Volver a ' + o.back.label, onTap: o.back.onTap, back: true }) : o.profile ? profileBtn() : null]);
+      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false ? [] : [gearBtn()]));
       var nav = U.el('header.nav', [lead, U.el('div.nav-title', { text: o.compact || o.title }), trail]);
-      var avatar = o.avatar ? U.el('button.avatar-btn', { attrs: { 'aria-label': 'Perfil y ajustes' }, on: { click: function () { W.Settings.open(); } } }, [W.Profile.avatar()]) : null;
       var lt = U.el('div.lt', [
         U.el('div.lt-text', [
-          o.eyebrow ? U.el('span.eyebrow', { text: o.eyebrow }) : null,
-          U.el('h1', { text: o.title, style: o.titleColor ? { color: o.titleColor } : null })
-        ]),
-        avatar
+          U.el('h1', { text: o.title, style: o.titleColor ? { color: o.titleColor } : null }),
+          o.sub ? U.el('span.lt-sub', o.sub.nodeType ? [o.sub] : { text: o.sub }) : null
+        ])
       ]);
       return { nav: nav, lt: lt };
     },
@@ -106,7 +115,7 @@ window.Whider = window.Whider || {};
 
     /** Icono redondo de lista (color de la lista) */
     listIcon: function (color, icon) {
-      return U.el('span.cell-icon.round', { style: { '--c': color } }, [U.icon(icon || 'list')]);
+      return U.el('span.cell-icon', { style: { '--c': color } }, [U.icon(icon || 'list')]);
     },
 
     segmented: function (options, value, onChange, opts) {
@@ -176,7 +185,7 @@ window.Whider = window.Whider || {};
     /** Estado vacío: icono gris, título y texto (y una acción opcional) */
     empty: function (icon, title, text, action, small) {
       return U.el('div.empty-state' + (small ? '.small' : ''), [
-        icon ? U.icon(icon, 'es-ic') : null,
+        icon ? U.el('span.es-art', [U.icon(icon)]) : null,
         U.el('strong', { text: title }),
         text ? U.el('span', { text: text }) : null,
         action || null
@@ -185,7 +194,7 @@ window.Whider = window.Whider || {};
 
     /**
      * Mes en cuadrícula (pantalla Calendario y selector de fecha).
-     * monthGrid({ y, m, selected, mark(ds) → 'dot'|'late'|'done'|null, onPick(ds), slide })
+     * monthGrid({ y, m, selected, mark(ds) → { dots: [{ c, kind: 'late'|'rep'|'done' }], label } | null, onPick(ds), slide })
      */
     monthGrid: function (o) {
       var ws = W.State.settings.weekStart, td = U.today();
@@ -200,7 +209,9 @@ window.Whider = window.Whider || {};
           var mk = o.mark ? o.mark(ds) : null;
           var cell = U.el('button.cal-day' + (ds === td ? '.today' : '') + (ds === o.selected ? '.selected' : '') + (ds < td ? '.past' : ''), {
             attrs: { 'aria-label': U.fmtLong(ds) + (mk && mk.label ? ', ' + mk.label : ''), 'aria-pressed': ds === o.selected ? 'true' : 'false' }
-          }, [U.el('span.cal-num', { text: day }), mk ? U.el('i.cal-dot' + (mk.kind && mk.kind !== 'dot' ? '.' + mk.kind : '')) : null]);
+          }, [U.el('span.cal-num', { text: day }), U.el('span.cal-dots', (mk && mk.dots ? mk.dots : []).slice(0, 3).map(function (d) {
+            return U.el('i' + (d.kind ? '.' + d.kind : ''), { style: d.c ? { '--c': d.c } : null });
+          }))]);
           cell.addEventListener('click', function () { o.onPick(ds); });
           g.appendChild(cell);
         })(d);

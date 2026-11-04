@@ -53,9 +53,9 @@ window.Whider = window.Whider || {};
       if (taskId && !src) return null;
       var isNew = !src;
       var d = isNew ? {
-        text: '', notes: '', date: preset && preset.date !== undefined ? preset.date : U.today(), time: null,
+        text: (preset && preset.text) || '', notes: '', date: preset && preset.date !== undefined ? preset.date : U.today(), time: (preset && preset.time) || null,
         highlight: (preset && preset.highlight) || 'none', warn: st.settings.defaultWarn, listId: (preset && preset.listId) || st.ui.listFilter || st.settings.defaultList,
-        repeat: 'none', subtasks: [], remindBefore: null
+        repeat: (preset && preset.repeat) || 'none', subtasks: [], remindBefore: null
       } : JSON.parse(JSON.stringify(src));
       if (d.listId && !st.getList(d.listId)) d.listId = null;
       var original = JSON.stringify(d);
@@ -66,7 +66,7 @@ window.Whider = window.Whider || {};
       title.value = d.text;
       var notes = U.el('textarea.cell-input.note', { attrs: { rows: 1, maxlength: 2000, placeholder: 'Notas', 'aria-label': 'Notas' } });
       notes.value = d.notes || '';
-      var saveBtn = U.el('button.nav-btn.bold', { text: isNew ? 'Añadir' : 'OK', on: { click: function () { save(); } } });
+      var saveBtn = U.el('button.btn.primary', { text: isNew ? 'Crear tarea' : 'Guardar cambios', on: { click: function () { save(); } } });
       var syncSave = function () { saveBtn.disabled = !title.value.trim(); };
       title.addEventListener('input', function () { autosize(title); syncSave(); });
       title.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (title.value.trim()) save(); } });
@@ -128,9 +128,13 @@ window.Whider = window.Whider || {};
         var opts = [{ value: '', label: 'Sin lista' }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, color: st.ACCENTS[l.color].a }; }));
         W.Sheet.choose({ anchor: node.querySelector('.cell-value'), title: 'Lista', value: d.listId || '', options: opts }).then(function (v) { if (v !== undefined) { d.listId = v || null; renderWhen(); } });
       } });
-      var prioRow = W.UI.cell({ icon: 'flag', color: 'var(--red)', title: 'Prioridad', value: '', onTap: function (e, node) {
-        W.Menu.choose(node.querySelector('.cell-value'), { value: d.highlight, options: PRIO_OPTS }).then(function (v) { if (v) { d.highlight = v; renderWhen(); } });
-      } });
+      var prioBtns = PRIO_OPTS.map(function (o) {
+        return U.el('button.prio-opt', { attrs: { 'aria-pressed': 'false' }, style: o.color ? { '--pc': o.color } : null, on: { click: function () {
+          d.highlight = o.value; W.Audio.select(); renderWhen();
+        } } }, [U.el('i'), o.label]);
+      });
+      var prioRow = U.el('div.cell.col', [U.el('span.cell-row', [U.el('span.cell-icon', { style: { '--c': 'var(--orange)' } }, [U.icon('flag')]), U.el('span.cell-title', { text: 'Prioridad' })]),
+        U.el('div.prio-row', prioBtns)]);
 
       var setValue = function (row, text) { var v = row.querySelector('.cell-value > span'); if (v) v.textContent = text; };
       var renderWhen = function (keepCal) {
@@ -153,7 +157,7 @@ window.Whider = window.Whider || {};
         var l = d.listId ? st.getList(d.listId) : null;
         listIcon.style.setProperty('--c', l ? st.ACCENTS[l.color].a : 'var(--gray-2)');
         setValue(listRow, l ? l.name : 'Sin lista');
-        setValue(prioRow, labelOf(PRIO_OPTS, d.highlight));
+        prioBtns.forEach(function (b, i) { var on = PRIO_OPTS[i].value === d.highlight; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
       };
       renderWhen();
 
@@ -209,17 +213,17 @@ window.Whider = window.Whider || {};
         U.el('div.group', [listRow, prioRow]),
         W.UI.section({ header: 'Subtareas', items: subGroup })
       ];
-      if (!isNew) {
-        body.push(U.el('div.group', [W.UI.cell({ title: 'Eliminar tarea', center: true, danger: true, onTap: function () {
-          W.TaskCard.actions.confirmRemove(src.id).then(function (ok) { if (ok) sheet.close(); });
-        } })]));
-        if (src.focusMin) body.push(U.el('p.hint', { text: src.focusMin + ' min de enfoque dedicados a esta tarea' }));
-      }
+      if (!isNew && src.focusMin) body.push(U.el('p.hint', { text: src.focusMin + ' min de enfoque dedicados a esta tarea' }));
+      var foot = [];
+      if (!isNew) foot.push(U.el('button.btn.ghost', { attrs: { 'aria-label': 'Eliminar tarea', title: 'Eliminar tarea' }, style: { color: 'var(--red)', padding: '0 16px' }, on: { click: function () {
+        W.TaskCard.actions.confirmRemove(src.id).then(function (ok) { if (ok) sheet.close(); });
+      } } }, [U.icon('trash')]));
+      foot.push(saveBtn);
 
       var sheet = W.Sheet.open({
-        title: isNew ? 'Nueva tarea' : 'Detalles', full: true, className: 'editor', body: body,
-        lead: { text: 'Cancelar', onTap: function () { if (dirty()) askDiscard(); else sheet.close(); } },
-        trail: saveBtn,
+        title: isNew ? 'Nueva tarea' : 'Editar tarea', full: true, className: 'editor', body: body,
+        trail: U.el('button.circle-btn', { attrs: { 'aria-label': 'Cerrar' }, on: { click: function () { if (dirty()) askDiscard(); else sheet.close(); } } }, [U.icon('close')]),
+        foot: foot,
         guard: dirty, onGuard: askDiscard
       });
       requestAnimationFrame(function () { autosize(title); autosize(notes); });

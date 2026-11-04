@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>WHIDER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#0A0B0F">
   <meta name="color-scheme" content="dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,20 +18,63 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-  <link rel="preload" href="fonts/inter-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/screens.css">
+  <script>
+    /* Color de acento y tamaño de texto antes de pintar (sin parpadeos en la pantalla de carga) */
+    (function () {
+      try {
+        var ui = JSON.parse(localStorage.getItem('whider.ui') || 'null'), st = document.documentElement.style;
+        if (!ui) return;
+        if (ui.a) { st.setProperty('--accent', ui.a); st.setProperty('--accent-2', ui.a2); st.setProperty('--accent-rgb', ui.rgb); st.setProperty('--on-accent', ui.on); }
+        if (ui.t) document.documentElement.setAttribute('data-text', ui.t);
+      } catch (e) { /* valores por defecto */ }
+    })();
+  </script>
 </head>
 <body>
 
-<!-- ========== ICONOS (sprite propio, trazo fino en rejilla de 24) ========== -->
+<!-- ========== PANTALLA DE CARGA: la W se dibuja como una gráfica ========== -->
+<div class="splash" id="splash" aria-hidden="true">
+  <svg class="splash-art" viewBox="0 0 160 116">
+    <defs>
+      <linearGradient id="spLine" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#F3F4F8"/>
+        <stop offset=".55" stop-color="#F3F4F8"/>
+        <stop offset="1" style="stop-color: var(--accent)"/>
+      </linearGradient>
+      <linearGradient id="spArea" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style="stop-color: var(--accent); stop-opacity: .32"/>
+        <stop offset="1" style="stop-color: var(--accent); stop-opacity: 0"/>
+      </linearGradient>
+    </defs>
+    <g class="sp-grid">
+      <line x1="10" y1="16" x2="150" y2="16"/>
+      <line x1="10" y1="44" x2="150" y2="44"/>
+      <line x1="10" y1="72" x2="150" y2="72"/>
+      <line x1="10" y1="100" x2="150" y2="100" class="base"/>
+    </g>
+    <path class="sp-area" d="M23 32 53.5 97.2 79.6 52.3 105.7 97.2 137.6 16V100H23Z" fill="url(#spArea)"/>
+    <polyline class="sp-line" points="23,32 53.5,97.2 79.6,52.3 105.7,97.2 137.6,16" fill="none" stroke="url(#spLine)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle class="sp-pt p1" cx="23" cy="32" r="4.2" fill="#0A0B0F" stroke="#F3F4F8" stroke-width="2.4"/>
+    <circle class="sp-pt p2" cx="53.5" cy="97.2" r="4.2" fill="#0A0B0F" stroke="#F3F4F8" stroke-width="2.4"/>
+    <circle class="sp-pt p3" cx="79.6" cy="52.3" r="4.2" fill="#0A0B0F" stroke="#F3F4F8" stroke-width="2.4"/>
+    <circle class="sp-pt p4" cx="105.7" cy="97.2" r="4.2" fill="#0A0B0F" stroke="#F3F4F8" stroke-width="2.4"/>
+    <circle class="sp-ring" cx="137.6" cy="16" r="6.5" fill="none" style="stroke: var(--accent)" stroke-width="1.6"/>
+    <circle class="sp-dot" cx="137.6" cy="16" r="6.5" style="fill: var(--accent)"/>
+  </svg>
+  <div class="splash-word">WHIDER</div>
+</div>
+
+<!-- ========== ICONOS (sprite propio, rejilla de 24) ========== -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="logo" viewBox="0 0 64 64">
-      <path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#FFFFFF" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="52" cy="17" r="3.6" style="fill: var(--accent)"/>
+      <path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F3F4F8" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="52" cy="17" r="3.8" style="fill: var(--accent)"/>
     </symbol>
   </defs>
   <!-- Pestañas: contorno (inactiva) y relleno (activa) -->
@@ -111,6 +154,12 @@
   <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.2-1.8a1.5 1.5 0 0 1 1.2-.7h3a1.5 1.5 0 0 1 1.2.7L15.9 6h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.3" r="3.4"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2M12 7.8h.01"/></symbol>
   <symbol id="i-swipe" viewBox="0 0 24 24"><path d="M9 11.5V6a1.5 1.5 0 0 1 3 0v5l4.2.8a2 2 0 0 1 1.6 2.3l-.8 4.2a2 2 0 0 1-2 1.7h-4.4a2 2 0 0 1-1.6-.8L6 15.5a1.5 1.5 0 0 1 2.2-2z"/></symbol>
+  <symbol id="i-week" viewBox="0 0 24 24"><rect x="3.5" y="4.8" width="17" height="15.7" rx="3.4"/><path d="M3.5 9.6h17M8 2.9v3.6M16 2.9v3.6"/><path d="M7 13.5h10M7 17h6" stroke-width="2"/></symbol>
+  <symbol id="i-agenda" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><rect x="3.5" y="4.6" width="3.4" height="3.8" rx="1"/><rect x="3.5" y="10.1" width="3.4" height="3.8" rx="1"/><rect x="3.5" y="15.6" width="3.4" height="3.8" rx="1"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+  <symbol id="i-today" viewBox="0 0 24 24"><rect x="3.5" y="4.8" width="17" height="15.7" rx="3.4"/><path d="M3.5 9.6h17M8 2.9v3.6M16 2.9v3.6"/><circle cx="12" cy="15" r="2.2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="m4 20 10.5-10.5M14.5 9.5l2 2"/><path d="M17.5 3.5v3M16 5h3M20 9.5v2M19 10.5h2M11 3.5v2M10 4.5h2"/></symbol>
+  <symbol id="i-hash" viewBox="0 0 24 24"><path d="M9.5 4 7.5 20M16.5 4l-2 16M4.5 9h15M3.8 15h15"/></symbol>
 </svg>
 
 <div class="app" id="app">
@@ -119,15 +168,15 @@
     <section class="screen" id="screen-tasks" data-screen="tasks" aria-label="Tareas"></section>
     <section class="screen" id="screen-calendar" data-screen="calendar" aria-label="Calendario"></section>
     <section class="screen" id="screen-focus" data-screen="focus" aria-label="Enfoque"></section>
-    <section class="screen" id="screen-progress" data-screen="progress" aria-label="Resumen"></section>
+    <section class="screen" id="screen-progress" data-screen="progress" aria-label="Perfil y resumen"></section>
   </main>
 
-  <nav class="tabbar" aria-label="Navegación principal">
+  <nav class="dock" aria-label="Navegación principal">
     <button class="tab" data-go="home"><span class="tab-ic"><svg class="ic off"><use href="#i-sun"/></svg><svg class="ic on"><use href="#i-sun-fill"/></svg><span class="tab-badge" data-badge="alerts"></span></span><span class="tab-label">Hoy</span></button>
     <button class="tab" data-go="tasks"><span class="tab-ic"><svg class="ic off"><use href="#i-tasks"/></svg><svg class="ic on"><use href="#i-tasks-fill"/></svg></span><span class="tab-label">Tareas</span></button>
+    <button class="fab" id="fab" aria-label="Nueva tarea"><svg class="ic"><use href="#i-plus"/></svg></button>
     <button class="tab" data-go="calendar"><span class="tab-ic"><svg class="ic off"><use href="#i-calendar"/></svg><svg class="ic on"><use href="#i-calendar-fill"/></svg></span><span class="tab-label">Calendario</span></button>
     <button class="tab" data-go="focus"><span class="tab-ic"><svg class="ic off"><use href="#i-timer"/></svg><svg class="ic on"><use href="#i-timer-fill"/></svg></span><span class="tab-label">Enfoque</span></button>
-    <button class="tab" data-go="progress"><span class="tab-ic"><svg class="ic off"><use href="#i-chart"/></svg><svg class="ic on"><use href="#i-chart-fill"/></svg></span><span class="tab-label">Resumen</span></button>
   </nav>
 </div>
 
@@ -139,6 +188,7 @@
 <script src="js/config.js"></script>
 <script src="js/core/util.js"></script>
 <script src="js/core/store.js"></script>
+<script src="js/core/parse.js"></script>
 <script src="js/core/audio.js"></script>
 <script src="js/ui/fx.js"></script>
 <script src="js/ui/toast.js"></script>
@@ -151,6 +201,7 @@
 <script src="js/core/sync.js"></script>
 <script src="js/ui/profile.js"></script>
 <script src="js/ui/editor.js"></script>
+<script src="js/ui/quickadd.js"></script>
 <script src="js/ui/taskcard.js"></script>
 <script src="js/screens/home.js"></script>
 <script src="js/screens/tasks.js"></script>

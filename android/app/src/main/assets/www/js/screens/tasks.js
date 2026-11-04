@@ -33,7 +33,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   /* ---------- Listas: crear, editar y eliminar ---------- */
   function editList(list, after, afterRemove) {
     var st = S(), color = list ? list.color : 'iris';
-    var icon = U.el('span.cell-icon.round', { style: { '--c': st.ACCENTS[color].a } }, [U.icon('list')]);
+    var icon = U.el('span.cell-icon.solid', { style: { '--c': st.ACCENTS[color].a } }, [U.icon('list')]);
     var name = U.el('input.list-name', { attrs: { type: 'text', maxlength: 24, placeholder: 'Nombre de la lista', enterkeyhint: 'done', 'aria-label': 'Nombre de la lista' } });
     name.value = list ? list.name : '';
     var ok = function () {
@@ -171,7 +171,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     var head = W.UI.header({
       title: title, titleColor: color,
       back: { label: 'Tareas', onTap: function () { Screen.back(); } },
-      actions: [{ icon: 'ellipsis', label: 'Más opciones', onTap: more }, { icon: 'plus', label: 'Nueva tarea', onTap: function () { W.Editor.open(null, preset); } }]
+      actions: [{ icon: 'dots', label: 'Más opciones', onTap: more }], gear: false,
+      sub: b.groups.length || b.done.length ? U.plural(b.groups.reduce(function (a, g) { return a + g.items.length; }, 0), 'pendiente', 'pendientes') + (b.done.length ? ' · ' + U.plural(b.done.length, 'completada', 'completadas') : '') : null
     });
     var content = [];
     b.groups.forEach(function (g, i) {
@@ -181,7 +182,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (!b.groups.length) {
       content.push(W.UI.empty(SMART[v.id] ? SMART[v.id].icon : 'list', b.done.length ? 'Todo hecho' : 'Sin tareas',
         b.done.length ? 'No queda nada pendiente aquí.' : 'Pulsa + para añadir una tarea.',
-        U.el('button.btn.sm.soft', { on: { click: function () { W.Editor.open(null, preset); } } }, ['Nueva tarea'])));
+        U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open(preset); } } }, [U.icon('plus', 'sm'), 'Nueva tarea'])));
     }
     if (b.done.length) {
       var host = U.el('div.sec');
@@ -213,7 +214,8 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   function home(root) {
     var st = S();
-    var head = W.UI.header({ title: 'Tareas', avatar: true, actions: [{ icon: 'plus', label: 'Nueva tarea', onTap: function () { W.Editor.open(null); } }] });
+    var pendingAll = st.tasks.filter(function (t) { return !t.done; }).length;
+    var head = W.UI.header({ title: 'Tareas', profile: true, sub: pendingAll ? U.plural(pendingAll, 'tarea pendiente', 'tareas pendientes') : 'Todo al día' });
     var input = U.el('input.input', { attrs: { type: 'search', placeholder: 'Buscar', 'aria-label': 'Buscar tareas', enterkeyhint: 'search', autocomplete: 'off' } });
     input.value = st.ui.query || '';
     var search = U.el('div.search' + (input.value ? '.has-value' : ''), [U.icon('search'), input,
@@ -223,8 +225,8 @@ window.Whider.Screens = window.Whider.Screens || {};
 
     var grid = U.el('div.smart-grid', Object.keys(SMART).map(function (id) {
       var m = SMART[id];
-      return U.el('button.smart', { attrs: { 'aria-label': m.title + ': ' + smartCount(st, id) }, on: { click: function () { Screen.open({ type: 'smart', id: id }); } } }, [
-        U.el('span.smart-top', [U.el('span.cell-icon.round', { style: { '--c': m.color } }, [U.icon(m.icon)]), U.el('span.smart-count', { text: smartCount(st, id) })]),
+      return U.el('button.smart', { style: { '--c': m.color }, attrs: { 'aria-label': m.title + ': ' + smartCount(st, id) }, on: { click: function () { Screen.open({ type: 'smart', id: id }); } } }, [
+        U.el('span.smart-top', [U.el('span.cell-icon', { style: { '--c': m.color } }, [U.icon(m.icon)]), U.el('span.smart-count', { text: smartCount(st, id) })]),
         U.el('span.smart-label', { text: m.title })
       ]);
     }));
@@ -233,10 +235,9 @@ window.Whider.Screens = window.Whider.Screens || {};
       return W.UI.cell({ lead: W.UI.listIcon(st.ACCENTS[l.color].a), title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () { Screen.open({ type: 'list', id: l.id }); } });
     });
     browse.appendChild(grid);
+    lists.push(W.UI.cell({ lead: U.el('span.cell-icon', { style: { '--c': 'var(--accent)' } }, [U.icon('plus')]), title: 'Nueva lista', accent: true,
+      onTap: function () { editList(null, function (l) { Screen.open({ type: 'list', id: l.id }); }); } }));
     browse.appendChild(W.UI.section({ title: 'Mis listas', items: lists }));
-    browse.appendChild(U.el('div.cell-row', { style: { justifyContent: 'flex-end', padding: '6px 4px 0' } }, [
-      U.el('button.link-btn', { on: { click: function () { editList(null, function (l) { Screen.open({ type: 'list', id: l.id }); }); } } }, ['Añadir lista'])
-    ]));
 
     var update = function () {
       var q = (st.ui.query || '').trim();

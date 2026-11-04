@@ -1,35 +1,35 @@
-# WHIDER 4.2
+# WHIDER 4.3
 
-**Tu día, bajo control.** WHIDER es una app de productividad para Android (y cualquier navegador) que reúne tareas y listas, calendario, avisos por incumplimiento, modo enfoque y seguimiento de progreso. Desde la 4.2 tiene un **diseño sobrio inspirado en las apps de Apple**: fondo negro, celdas agrupadas, un único color de acento, tipografía limpia y nada de efectos llamativos. Incluye **cuentas de usuario** (correo y contraseña o Google) con **copia en la nube** y un **registro de marcas** que conserva tus récords para siempre. Funciona también sin conexión.
+**Tu día, bajo control.** WHIDER es una app de productividad para Android (y cualquier navegador) que reúne tareas y listas, calendario, avisos por incumplimiento, modo enfoque y seguimiento de progreso. Tiene un **diseño propio, minimalista y con profundidad suave**: fondo de tinta oscura, tarjetas con sombras moderadas, un color de acento de marca y la tipografía Manrope. Al abrirla, la **W del logotipo se dibuja como una gráfica**. Incluye **cuentas de usuario** (correo y contraseña o Google) con **copia en la nube** y un **registro de marcas** que conserva tus récords para siempre. Funciona también sin conexión.
 
 <p align="center">
+  <img src="docs/capturas/00-carga.jpg" width="200" alt="Pantalla de carga: la W como gráfica">
   <img src="docs/capturas/02-hoy.jpg" width="200" alt="Hoy">
-  <img src="docs/capturas/03-tareas.jpg" width="200" alt="Tareas y listas">
-  <img src="docs/capturas/04-programadas.jpg" width="200" alt="Lista Programadas">
-  <img src="docs/capturas/05-editor.jpg" width="200" alt="Editor de tareas">
+  <img src="docs/capturas/04-nueva-tarea.jpg" width="200" alt="Creación rápida de tareas">
+  <img src="docs/capturas/05-calendario-mes.jpg" width="200" alt="Calendario: mes">
 </p>
 <p align="center">
-  <img src="docs/capturas/06-calendario.jpg" width="200" alt="Calendario">
-  <img src="docs/capturas/07-enfoque.jpg" width="200" alt="Enfoque">
-  <img src="docs/capturas/08-resumen.jpg" width="200" alt="Resumen">
-  <img src="docs/capturas/10-ajustes.jpg" width="200" alt="Ajustes">
+  <img src="docs/capturas/06-calendario-semana.jpg" width="200" alt="Calendario: semana por horas">
+  <img src="docs/capturas/03-tareas.jpg" width="200" alt="Tareas y listas">
+  <img src="docs/capturas/07-editor.jpg" width="200" alt="Editor de tareas">
+  <img src="docs/capturas/09-perfil.jpg" width="200" alt="Perfil y resumen">
 </p>
 
 ---
 
 ## 🧭 Organización
 
-Cinco pestañas fijas abajo, siempre en el mismo sitio:
+Un dock flotante abajo con cuatro pestañas y el botón **+** en el centro:
 
 | Pestaña | Qué encontrarás |
 | --- | --- |
 | **Hoy** | Progreso del día, lo **vencido** (con *Posponer*) y lo que toca hoy. La pestaña muestra cuántas tareas están vencidas. |
 | **Tareas** | Buscador, **listas inteligentes** (Hoy · Programadas · Todas · Prioritarias) y **Mis listas** (Personal, Trabajo…). Cada lista abre su propia página. |
-| **Calendario** | Mes en cuadrícula (desliza para cambiar de mes) y las tareas del día elegido, ordenadas por hora. |
+| **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la lista y la prioridad. |
+| **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**, con filtro por lista y tus tareas que se repiten. |
 | **Enfoque** | Temporizador de sesiones y pausas, con la tarea en la que te concentras. |
-| **Resumen** | Actividad (gráfica, constancia, listas y nivel), **Marcas** y **Logros**. |
 
-Tu **foto de perfil** (arriba a la derecha) abre **Ajustes**: cuenta y copia en la nube, apariencia, tareas y listas, avisos y sonido, enfoque, pantalla al abrir, privacidad y datos. Cada apartado es una página, como en los ajustes del teléfono. El botón **+** de la barra superior crea una tarea en cualquier pantalla.
+Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resumen** (actividad, marcas y logros) y el **engranaje** (derecha) abre los **Ajustes**, con una página por apartado.
 
 ---
 
@@ -44,7 +44,8 @@ Tu **foto de perfil** (arriba a la derecha) abre **Ajustes**: cuenta y copia en 
 - Configuración: [docs/CONFIGURAR-CUENTAS.md](docs/CONFIGURAR-CUENTAS.md).
 
 **Tareas y listas**
-- Prioridades al estilo de Recordatorios: **!!! urgente**, **!! importante** y **bandera** para las destacadas.
+- **Creación rápida en lenguaje natural**: «mañana», «el lunes», «el 15», «20/11», «en 3 días», «a las 5 de la tarde», «cada semana», «#lista» y «!»/«!!»/«!!!» para la prioridad. Lo detectado aparece en etiquetas que puedes descartar; con Intro se añade y queda listo para la siguiente.
+- Prioridad en el **color del círculo**: rojo urgente, naranja importante y ámbar destacada.
 - **Listas** con su color, más cuatro **listas inteligentes** que se rellenan solas.
 - Fecha con **calendario integrado**, hora, **subtareas**, **notas** y **repeticiones** (cada día, días laborables, cada semana, cada mes).
 - **Gestos**: desliza → para completar y ← para eliminar, con **Deshacer**.
@@ -57,14 +58,17 @@ Tu **foto de perfil** (arriba a la derecha) abre **Ajustes**: cuenta y copia en 
 - En la app Android, los recordatorios **suenan aunque la app esté cerrada** y se restauran al reiniciar el móvil.
 
 **Calendario**
-- Mes completo con un punto en los días con tareas (rojo si hay algo vencido) y lista del día con su hora.
+- **Mes**: puntos del color de cada lista (rojo si hay algo vencido y en hueco las repeticiones futuras), menú para saltar de mes y el día elegido con sus tareas por hora y un campo para **añadir directamente a ese día**.
+- **Semana**: tira de 7 días con su progreso y el **día por horas** con la hora actual; **toca un hueco** para crear una tarea a esa hora y **mantén pulsada una tarea para arrastrarla** a otra hora.
+- **Agenda**: lo vencido y los próximos 30 días, día a día.
+- Las tareas que se repiten se ven también en los días futuros, filtro por lista y opción de ocultar las completadas.
 
 **Enfoque**
 - Sesiones y pausas cortas o largas, con pausas automáticas opcionales y una tarea vinculada.
 - Exacto aunque la app pase a segundo plano. Notificación y sonido suave al terminar.
 
-**Resumen, marcas y logros**
-- Completadas, racha y minutos de enfoque; gráfica de 7 o 30 días, **mapa de constancia** de 15 semanas, reparto por listas y nivel.
+**Perfil, marcas y logros**
+- Tu foto, nombre y **nivel**; completadas, racha y minutos de enfoque; gráfica de 7 o 30 días, **mapa de constancia** de 15 semanas y reparto por listas.
 - **Récords automáticos** (mejor racha, más tareas en un día, mejor semana, más enfoque en un día) e **hitos**.
 - **Marcas personales**: tiempos, pesos, distancias, páginas… con su evolución. El historial es permanente: **no se borra aunque elimines tareas**.
 - **11 logros** desbloqueables.
@@ -74,7 +78,7 @@ Tu **foto de perfil** (arriba a la derecha) abre **Ajustes**: cuenta y copia en 
 - Con cuenta, también en la nube: al iniciar sesión en otro móvil lo recuperas todo.
 
 **Personalización (Ajustes)**
-- **12 colores de acento** del sistema (azul, índigo, morado, rosa, rojo, naranja, amarillo, verde, menta, turquesa, marrón y grafito).
+- **12 colores de acento** propios (iris, azul, violeta, rosa, coral, naranja, ámbar, verde, menta, cian, arena y plata): toda la app cambia al instante, también la pantalla de carga.
 - Tamaño de texto (4 niveles), densidad cómoda o compacta y movimiento reducido.
 - Pantalla al abrir, lista por defecto, aviso por defecto, primer día de la semana, formato 12/24 h y confirmación al eliminar.
 - Duración de las sesiones de enfoque y de las pausas.
@@ -83,12 +87,12 @@ Tu **foto de perfil** (arriba a la derecha) abre **Ajustes**: cuenta y copia en 
 
 ## 📱 Pantalla y Android
 
-- La interfaz ocupa exactamente la pantalla del dispositivo (barra de navegación, contenido con scroll y barra de pestañas) y respeta las zonas seguras (muesca y barra de gestos). Las barras del sistema de Android usan los mismos tonos que la app.
+- La interfaz ocupa exactamente la pantalla del dispositivo (barra superior, contenido con scroll y dock flotante) y respeta las zonas seguras (muesca y barra de gestos). Las barras del sistema de Android usan los mismos tonos que la app.
 - Se adapta a móviles pequeños (360 px), grandes, en horizontal y a tablets.
 - En el APK, el tamaño de fuente del sistema no descuadra el diseño: el tamaño del texto se controla desde **Ajustes → Apariencia**.
 - Teclado: los formularios se redimensionan para no quedar tapados.
-- Icono adaptable (Android 8+) en grafito, blanco y azul, icono temático (Android 13+) e icono propio en la barra de notificaciones.
-- Botón **Atrás**: cierra menús y hojas, vuelve a la página anterior (por ejemplo, de una lista a Tareas, o dentro de Ajustes), después a la pestaña inicial y solo entonces sale.
+- Icono adaptable (Android 8+) en tinta oscura, blanco y el color iris de la marca, icono temático (Android 13+) e icono propio en la barra de notificaciones.
+- Botón **Atrás**: cierra menús y hojas, vuelve a la página anterior (de una lista a Tareas, del Perfil a la pestaña en la que estabas o dentro de Ajustes), después a la pestaña inicial y solo entonces sale.
 
 ---
 
@@ -127,8 +131,8 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 ├── manifest.json           # PWA: iconos y accesos directos (#home, #tasks, #calendar, #focus)
 ├── sw.js                   # Funcionamiento sin conexión y clic en notificaciones
 ├── css/
-│   ├── tokens.css          # Colores del sistema, tipografía, tamaños y movimiento
-│   ├── layout.css          # Estructura a pantalla completa, barra de navegación y barra de pestañas
+│   ├── tokens.css          # Colores, sombras, tipografía, tamaños y movimiento
+│   ├── layout.css          # Pantalla de carga, estructura a pantalla completa, barra superior y dock
 │   ├── components.css      # Celdas agrupadas, botones, hojas, alertas, menús, interruptores…
 │   └── screens.css         # Estilos de cada pantalla
 ├── firestore.rules         # Reglas de seguridad de la base de datos (cada usuario, solo sus datos)
@@ -136,13 +140,13 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 ├── js/
 │   ├── config.js           # ← Configuración de cuentas (Firebase): ver docs/CONFIGURAR-CUENTAS.md
 │   ├── vendor/firebase.js  # SDK de Firebase empaquetado (funciona sin CDN)
-│   ├── core/               # util, store, audio, notify, records (marcas), auth (cuentas), sync (nube)
-│   ├── ui/                 # anillos, avisos breves, menús, hojas, controles, perfil, editor y fila de tarea
-│   ├── screens/            # home (Hoy), tasks, calendar, focus, progress (Resumen), records, settings, onboarding, auth
+│   ├── core/               # util, store, parse (lenguaje natural), audio, notify, records, auth (cuentas), sync (nube)
+│   ├── ui/                 # anillos, avisos breves, menús, hojas, controles, perfil, editor, creación rápida y fila de tarea
+│   ├── screens/            # home (Hoy), tasks, calendar, focus, progress (Perfil), records, settings, onboarding, auth
 │   ├── router.js
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable
-├── fonts/                  # Inter (variable, local) y su licencia OFL
+├── fonts/                  # Manrope (variable, local) y su licencia OFL
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones)
 ├── tools/firebase-bundle/  # Cómo regenerar js/vendor/firebase.js
 ├── serve.py                # Servidor local para PC y móvil
@@ -154,6 +158,29 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y sus datos desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 4.3
+
+**Diseño propio, minimalista y con profundidad**
+- Se mantiene la estructura limpia de la 4.2, pero con identidad WHIDER en lugar de copiar a Apple: tipografía **Manrope**, fondo de tinta oscura con un leve tono azulado, tarjetas con **sombras suaves**, brillo moderado en los elementos de acento y transiciones cortas.
+- Controles propios: interruptores, pestañas segmentadas, diálogos con botones, menús y avisos rediseñados; prioridad en el color del círculo de cada tarea.
+- Paleta propia de 12 colores (iris por defecto) e icono de la app con el punto en el color de la marca.
+
+**Pantalla de carga**
+- Al abrir la app, la **W del logotipo se dibuja como una gráfica**: líneas de fondo, la línea que pasa por cada punto, el relleno y el último punto que se ilumina con tu color. Dura menos de dos segundos y se puede saltar tocándola.
+
+**Más fácil de usar**
+- **Ajustes siempre a mano**: el engranaje está en la barra superior de todas las pantallas (y en el Perfil).
+- **Botón + central** en el dock con **creación rápida en lenguaje natural** y «Más detalles» para abrir el editor completo.
+- El editor guarda con un botón grande abajo y elige la prioridad con botones visuales.
+
+**Calendario mucho más completo**
+- Vistas de **Mes**, **Semana por horas** y **Agenda**; repeticiones previstas, filtro por lista, ocultar completadas, añadir directamente a un día, tocar un hueco para crear a esa hora y **arrastrar una tarea para cambiar su hora**.
+
+**Adiós definitivo a las tareas de ejemplo**
+- Se eliminan todas las tareas de ejemplo de cualquier versión anterior aunque estén completadas, repetidas, sin su marca o copiadas en la nube, y el borrado se sube a tu cuenta. Las tareas que escribes tú nunca se tocan.
+
+**Rendimiento** (móvil de gama media simulado, 120 tareas): primer render 329 ms (antes 368) y completar una tarea 41 ms (antes 52).
 
 ## 📝 Novedades de la 4.2
 

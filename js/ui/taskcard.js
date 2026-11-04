@@ -2,14 +2,15 @@
  * WHIDER · Fila de tarea
  *  - Tocar el círculo: completar · tocar la fila: editar
  *  - Deslizar → completar · deslizar ← eliminar (con Deshacer)
- * Prioridad: !!! urgente · !! importante · bandera destacada.
+ * La prioridad se ve en el color del círculo (rojo urgente · naranja importante · ámbar destacada).
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var MARKS = { danger: { text: '!!!', color: 'var(--p-danger)' }, purple: { text: '!!', color: 'var(--p-purple)' } };
+  var PRIO_CLS = { danger: '.p-danger', purple: '.p-purple', star: '.p-star', none: '' };
+  var PRIO_NAME = { danger: 'urgente', purple: 'importante', star: 'destacada' };
 
   var Actions = {
     toggle: function (id, animated) {
@@ -132,17 +133,15 @@ window.Whider = window.Whider || {};
   /** create(tarea, { ctx: 'today'|'list'|'day'|'alerts'|'done', swipe, postpone, time }) */
   function create(t, opts) {
     opts = opts || {};
-    var check = U.el('button.check' + (t.done ? '.on' : ''), {
-      attrs: { 'aria-label': (t.done ? 'Marcar como pendiente: ' : 'Completar: ') + t.text, 'aria-pressed': t.done ? 'true' : 'false' }
+    var check = U.el('button.check' + (PRIO_CLS[t.highlight] || '') + (t.done ? '.on' : ''), {
+      attrs: { 'aria-label': (t.done ? 'Marcar como pendiente: ' : 'Completar: ') + t.text + (PRIO_NAME[t.highlight] ? ' (' + PRIO_NAME[t.highlight] + ')' : ''), 'aria-pressed': t.done ? 'true' : 'false' }
     });
     check.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
-    var mark = MARKS[t.highlight];
-    var title = U.el('span.task-title', [mark ? U.el('span.task-prio', { text: mark.text, style: { color: mark.color } }) : null, t.text]);
+    var title = U.el('span.task-title', { text: t.text });
     var main = U.el('div.task-main', [title]);
     var meta = metaLine(t, opts.ctx);
     if (meta) main.appendChild(meta);
     var trail = [];
-    if (t.highlight === 'star') trail.push(U.el('span.task-flag', { attrs: { 'aria-label': 'Destacada' } }, [U.icon('flag')]));
     if (opts.postpone && !t.done) {
       trail.push(U.el('button.btn.xs.soft', { text: 'Posponer', on: { click: function (e) { e.stopPropagation(); Actions.postpone(t.id, e.currentTarget); } } }));
     }
@@ -159,6 +158,7 @@ window.Whider = window.Whider || {};
       e.stopPropagation();
       if (moved(e)) return;
       check.classList.toggle('on', !t.done);
+      check.classList.remove('pop'); void check.offsetWidth; check.classList.add('pop');
       Actions.toggle(t.id, true);
     });
     body.addEventListener('click', function (e) {

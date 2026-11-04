@@ -111,12 +111,11 @@ window.Whider = window.Whider || {};
     name.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); save(); } });
     var u = W.Auth && W.Auth.user;
     var sheet = W.Sheet.open({
-      title: 'Perfil',
-      lead: { text: 'Cancelar', onTap: function () { sheet.close(); } },
-      trail: { text: 'OK', bold: true, onTap: save },
+      title: 'Editar perfil',
+      foot: [U.el('button.btn.primary', { text: 'Guardar', on: { click: save } })],
       body: [
         U.el('div.profile-head', [
-          U.el('button.photo-pick', { attrs: { 'aria-label': 'Cambiar foto' }, on: { click: change } }, [preview]),
+          U.el('button.photo-pick', { attrs: { 'aria-label': 'Cambiar foto' }, on: { click: change } }, [preview, U.el('span.cam', [U.icon('camera')])]),
           U.el('div.cell-row', [U.el('button.link-btn', { text: 'Cambiar foto', on: { click: change } }), removeBtn])
         ]),
         W.UI.section({ header: 'Nombre', items: [U.el('label.cell', [name])] }),

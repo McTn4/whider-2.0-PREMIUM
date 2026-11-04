@@ -51,7 +51,7 @@ final class Notifier {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(ctx, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_whider)
-                .setColor(0xFF0A84FF)
+                .setColor(0xFF7C83FF)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))

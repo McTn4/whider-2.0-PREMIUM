@@ -12,15 +12,15 @@ window.Whider.Screens = window.Whider.Screens || {};
   function summary(s) {
     var pct = s.todayPct, from = lastPct;
     lastPct = pct;
-    var ring = W.Fx.ring(52, 6, pct / 100, U.el('span.ring-pct', { text: pct + '%' }), from / 100);
+    var ring = W.Fx.ring(62, 7, pct / 100, U.el('span.ring-pct', { text: pct + '%' }), from / 100);
     var line1 = s.todayTotal ? s.todayDone + ' de ' + U.plural(s.todayTotal, 'tarea completada', 'tareas completadas') : 'Nada programado para hoy';
-    var bits = [];
-    if (s.streak) bits.push('Racha de ' + U.plural(s.streak, 'día', 'días'));
-    if (s.focusToday) bits.push(s.focusToday + ' min de enfoque');
-    if (!bits.length) bits.push(s.todayTotal && s.todayPct === 100 ? 'Día completado' : 'Ver tu resumen');
-    return U.el('button.group.summary', { attrs: { 'aria-label': 'Ver resumen' }, on: { click: function () { W.Router.go('progress'); } } }, [
+    var chips = [];
+    if (s.streak) chips.push(U.el('span.hero-chip', [U.icon('flame'), U.plural(s.streak, 'día', 'días') + ' de racha']));
+    if (s.focusToday) chips.push(U.el('span.hero-chip', [U.icon('timer'), s.focusToday + ' min']));
+    if (!chips.length) chips.push(U.el('span.hero-chip', [U.icon('chart'), s.todayTotal && pct === 100 ? 'Día completado' : 'Ver tu resumen']));
+    return U.el('button.hero', { attrs: { 'aria-label': 'Ver tu perfil y resumen' }, on: { click: function () { W.Router.go('progress'); } } }, [
       ring,
-      U.el('span.summary-text', [U.el('strong', { text: line1 }), U.el('span', { text: bits.join(' · ') })]),
+      U.el('span.hero-text', [U.el('strong', { text: line1 }), U.el('span.hero-chips', chips)]),
       U.icon('chev', 'chev')
     ]);
   }
@@ -29,9 +29,10 @@ window.Whider.Screens = window.Whider.Screens || {};
     title: 'Hoy',
     render: function (root) {
       var st = S(), s = st.stats(), td = U.today();
+      var name = st.displayName();
       var head = W.UI.header({
-        title: 'Hoy', eyebrow: U.fmtLong(td), avatar: true,
-        actions: [{ icon: 'plus', label: 'Nueva tarea', onTap: function () { W.Editor.open(null); } }]
+        title: 'Hoy', profile: true,
+        sub: U.el('span', [U.greeting() + (name ? ', ' : ''), name ? U.el('b', { text: name.split(' ')[0] }) : null, ' · ' + U.fmtLong(td).toLowerCase()])
       });
       var content = [summary(s)];
 
@@ -61,7 +62,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         items: today.length ? W.TaskCard.list(today, { ctx: 'today' }) : U.el('div.group', [W.UI.empty(doneToday.length ? 'check' : 'sun',
           doneToday.length ? 'Todo hecho por hoy' : 'Nada pendiente',
           doneToday.length ? 'Has completado ' + U.plural(doneToday.length, 'tarea', 'tareas') + '.' : 'Añade lo que quieras hacer hoy.',
-          doneToday.length ? null : U.el('button.btn.sm.soft', { on: { click: function () { W.Editor.open(null); } } }, ['Nueva tarea']), true)]) });
+          doneToday.length ? null : U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), 'Nueva tarea']), true)]) });
       content.push(todaySec);
 
       if (doneToday.length) {

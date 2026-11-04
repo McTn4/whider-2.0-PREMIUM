@@ -1,6 +1,6 @@
 /**
- * WHIDER · Resumen: actividad (estadísticas, gráfico, constancia, listas y nivel),
- * marcas personales y logros.
+ * WHIDER · Perfil y resumen: tu foto, nombre y nivel; actividad (estadísticas, gráfico,
+ * constancia y listas), marcas personales y logros. Acceso directo a Ajustes.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -82,11 +82,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       ]),
       chart(st, rerender),
       heatmap(st),
-      byList(st),
-      U.el('div.group.card.level', [
-        U.el('div.card-head', [U.el('strong', { text: 'Nivel ' + s.level }), U.el('span.muted', { text: st.levelTitle(s.level) })]),
-        U.el('div.bar', [U.el('i', { style: { width: Math.round(s.levelProgress * 100) + '%' } })])
-      ])
+      byList(st)
     ];
     U.clear(host);
     nodes.forEach(function (n) { if (n) { n.classList.add('sec'); host.appendChild(n); } });
@@ -107,12 +103,26 @@ window.Whider.Screens = window.Whider.Screens || {};
     }));
   }
 
+  /** Tarjeta de perfil: foto, nombre, cuenta y nivel */
+  function profileCard(st) {
+    var s = st.stats(), u = W.Auth && W.Auth.user, name = st.displayName();
+    return U.el('div.profile-card', [
+      U.el('button.photo-pick', { attrs: { 'aria-label': 'Editar nombre y foto' }, on: { click: function () { W.Profile.edit(); } } }, [W.Profile.avatar('lg'), U.el('span.cam', [U.icon('camera')])]),
+      U.el('div.profile-id', [
+        U.el('strong', { text: name || 'Tu perfil' }),
+        U.el('span', { text: u && u.email ? u.email : (W.Auth && W.Auth.configured() ? 'Sin cuenta · datos solo en este dispositivo' : 'Datos guardados en este dispositivo') }),
+        U.el('div.level', [U.el('b', { text: 'Nivel ' + s.level + ' · ' + st.levelTitle(s.level) }), U.el('div.bar', [U.el('i', { style: { width: Math.round(s.levelProgress * 100) + '%' } })])])
+      ])
+    ]);
+  }
+
   W.Screens.progress = {
-    title: 'Resumen',
+    title: 'Perfil',
+    back: function () { W.Router.back(); return true; },
     render: function (root) {
       var st = S(), tab = st.ui.profileTab || 'summary';
       if (tab !== 'records' && tab !== 'achievements') tab = 'summary';
-      var head = W.UI.header({ title: 'Resumen', avatar: true,
+      var head = W.UI.header({ title: 'Perfil', back: { label: 'Atrás', onTap: function () { W.Router.back(); } },
         actions: tab === 'records' ? [{ icon: 'plus', label: 'Nueva marca', onTap: function () { W.RecordsView.newMark(); } }] : [] });
       var host = U.el('div');
       var draw = function () {
@@ -122,8 +132,12 @@ window.Whider.Screens = window.Whider.Screens || {};
       };
       var seg = W.UI.segmented([{ value: 'summary', label: 'Actividad' }, { value: 'records', label: 'Marcas' }, { value: 'achievements', label: 'Logros' }],
         tab, function (v) { st.ui.profileTab = v; W.Screens.progress.render(root); });
-      seg.style.marginTop = '10px';
-      W.UI.mount(root, head, [seg, host]);
+      seg.style.marginTop = '16px';
+      var settingsRow = W.UI.section({ items: [
+        W.UI.cell({ icon: 'gear', color: 'var(--accent)', title: 'Ajustes', sub: 'Apariencia, avisos, enfoque, cuenta y datos', onTap: function () { W.Settings.open(); } })
+      ] });
+      settingsRow.style.marginTop = '14px';
+      W.UI.mount(root, head, [profileCard(st), settingsRow, seg, host]);
       draw();
     }
   };

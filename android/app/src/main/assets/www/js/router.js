@@ -1,15 +1,16 @@
 /**
- * WHIDER · Navegación por pestañas, con URL sincronizada (#pantalla) para los accesos directos.
- * Cambiar de pestaña es instantáneo; dentro de una pestaña las páginas entran desde la derecha.
+ * WHIDER · Navegación: cuatro pestañas en el dock (Hoy, Tareas, Calendario, Enfoque)
+ * y una pantalla de Perfil y resumen (desde tu foto). URL sincronizada (#pantalla).
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U;
-  // Rutas antiguas o secundarias → pestaña (y apartado)
-  var ALIASES = { records: ['progress', 'records'], achievements: ['progress', 'achievements'], alerts: ['home'], agenda: ['calendar'] };
-  var refreshQueued = false;
+  var TABS = { home: 1, tasks: 1, calendar: 1, focus: 1 };
+  // Rutas antiguas o secundarias → pantalla (y apartado)
+  var ALIASES = { records: ['progress', 'records'], achievements: ['progress', 'achievements'], alerts: ['home'], agenda: ['calendar'], profile: ['progress'] };
+  var refreshQueued = false, lastTab = 'home';
 
   function screenFromHash() {
     var h = (location.hash || '').replace(/^#\/?/, '');
@@ -17,7 +18,7 @@ window.Whider = window.Whider || {};
     return W.Screens[h] ? h : null;
   }
 
-  /** La barra superior muestra el título pequeño y un fondo al hacer scroll */
+  /** La barra superior muestra el título pequeño y una sombra al hacer scroll */
   function watchScroll(screen) {
     var on = false, ticking = false;
     screen.addEventListener('scroll', function () {
@@ -25,10 +26,19 @@ window.Whider = window.Whider || {};
       ticking = true;
       requestAnimationFrame(function () {
         ticking = false;
-        var now = screen.scrollTop > 36;
+        var now = screen.scrollTop > 40;
         if (now !== on) { on = now; screen.classList.toggle('scrolled', on); }
       });
     }, { passive: true });
+  }
+
+  function animate(root, kind) {
+    if (U.reducedMotion()) return;
+    root.classList.remove('push', 'pop', 'enter');
+    void root.offsetWidth;
+    root.classList.add(kind);
+    clearTimeout(root._animT);
+    root._animT = setTimeout(function () { root.classList.remove(kind); }, 420);
   }
 
   var Router = {
@@ -61,11 +71,12 @@ window.Whider = window.Whider || {};
         if (root.scrollTop > 0) root.scrollTo({ top: 0, behavior: U.reducedMotion() ? 'auto' : 'smooth' });
         return;
       }
+      if (TABS[prev]) lastTab = prev;
       W.State.activeScreen = id;
       U.$$('.screen').forEach(function (s) {
         var on = s === root;
         s.classList.toggle('active', on);
-        s.classList.remove('push', 'pop');
+        s.classList.remove('push', 'pop', 'enter');
         s.setAttribute('aria-hidden', on ? 'false' : 'true');
       });
       root.scrollTop = 0;
@@ -82,18 +93,18 @@ window.Whider = window.Whider || {};
       }
       document.title = id === 'home' ? 'WHIDER' : W.Screens[id].title + ' · WHIDER';
       W.Screens[id].render(root, true);
+      if (!opts.initial) animate(root, TABS[id] ? 'enter' : 'push');
     },
 
-    /** Animación de entrada de una página dentro de la pestaña actual ('push' o 'pop') */
+    /** Desde el Perfil, vuelve a la pestaña en la que estabas */
+    back: function () { Router.go(lastTab || 'home'); },
+
+    /** Animación de una página dentro de la pestaña actual ('push' o 'pop') */
     animate: function (kind) {
       var root = document.getElementById('screen-' + W.State.activeScreen);
-      if (!root || U.reducedMotion()) return;
-      root.classList.remove('push', 'pop');
+      if (!root) return;
       root.classList.remove('scrolled');
-      void root.offsetWidth;
-      root.classList.add(kind);
-      clearTimeout(root._animT);
-      root._animT = setTimeout(function () { root.classList.remove(kind); }, 400);
+      animate(root, kind);
     },
 
     /** Vuelve a pintar la pantalla actual tras un cambio (varios cambios seguidos = un solo pintado) */

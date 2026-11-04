@@ -114,8 +114,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     render: function (root) {
       var st = S(), f = st.settings.focus;
       var rem = remaining(), total = duration(T.mode), fresh = !T.running && rem >= total;
-      var head = W.UI.header({ title: 'Enfoque', avatar: true,
-        actions: [{ text: 'Saltar', label: 'Saltar a la siguiente fase', onTap: function () { complete(); } }] });
+      var head = W.UI.header({ title: 'Enfoque', profile: true, sub: T.running ? MODES[T.mode].label + ' en marcha' : MODES[T.mode].msg });
 
       var seg = W.UI.segmented([
         { value: 'work', label: 'Enfoque' }, { value: 'short', label: 'Pausa corta' }, { value: 'long', label: 'Pausa larga' }
@@ -132,9 +131,10 @@ window.Whider.Screens = window.Whider.Screens || {};
       for (var i = 1; i <= f.rounds; i++) dots.appendChild(U.el('i' + (i < T.round || (i === T.round && T.mode !== 'work') ? '.done' : i === T.round ? '.cur' : '')));
 
       var controls = U.el('div.focus-controls', [
-        U.el('button.round-btn.gray', { text: 'Reiniciar', attrs: { 'aria-label': 'Reiniciar' }, on: { click: function () { reset(); } } }),
-        U.el('button.round-btn.' + (T.running ? 'pause' : 'go'), { text: T.running ? 'Pausar' : fresh ? 'Iniciar' : 'Reanudar',
-          on: { click: function () { if (T.running) pause(); else start(); } } })
+        U.el('button.focus-side', { attrs: { 'aria-label': 'Reiniciar', title: 'Reiniciar' }, on: { click: function () { reset(); } } }, [U.icon('reset')]),
+        U.el('button.focus-play', { attrs: { 'aria-label': T.running ? 'Pausar' : fresh ? 'Iniciar' : 'Reanudar' }, on: { click: function () { if (T.running) pause(); else start(); } } },
+          [U.icon(T.running ? 'pause' : 'play')]),
+        U.el('button.focus-side', { attrs: { 'aria-label': 'Saltar a la siguiente fase', title: 'Saltar fase' }, on: { click: function () { complete(); } } }, [U.icon('skip')])
       ]);
       controls.firstChild.disabled = fresh;
 

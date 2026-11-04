@@ -15,22 +15,52 @@ window.Whider = window.Whider || {};
     return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)].join(', ');
   }
 
+  /** Mezcla un color con blanco (variante clara del acento para degradados suaves) */
+  function lighten(hex, k) {
+    var h = hex.replace('#', ''), c = [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16); });
+    return '#' + c.map(function (v) { return ('0' + Math.round(v + (255 - v) * k).toString(16)).slice(-2); }).join('');
+  }
+
   /** Aplica acento, tamaño de texto, densidad y animaciones */
   function applyAppearance() {
     var cfg = S.settings, html = document.documentElement, acc = S.ACCENTS[cfg.accent] || S.ACCENTS.iris;
-    html.style.setProperty('--accent', acc.a);
-    html.style.setProperty('--accent-rgb', hexToRgb(acc.a));
-    html.style.setProperty('--on-accent', acc.on || '#FFFFFF');
+    var ui = { a: acc.a, a2: lighten(acc.a, .22), rgb: hexToRgb(acc.a), on: acc.on || '#FFFFFF', t: cfg.textSize };
+    html.style.setProperty('--accent', ui.a);
+    html.style.setProperty('--accent-2', ui.a2);
+    html.style.setProperty('--accent-rgb', ui.rgb);
+    html.style.setProperty('--on-accent', ui.on);
     html.setAttribute('data-text', cfg.textSize);
     html.setAttribute('data-density', cfg.density);
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
+    // Para pintar la pantalla de carga con tu color desde el primer instante
+    try { localStorage.setItem('whider.ui', JSON.stringify(ui)); } catch (e) { /* opcional */ }
     W.Profile.refreshAll();
   }
 
+  /** Pantalla de carga: se mantiene lo justo para ver la animación del logotipo */
+  var splashDone = false;
+  function hideSplash(now) {
+    var sp = document.getElementById('splash');
+    if (!sp || splashDone) return;
+    var min = now ? 0 : (U.reducedMotion() ? 300 : 1650);
+    setTimeout(function () {
+      if (splashDone) return;
+      splashDone = true;
+      sp.classList.add('hide');
+      setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 600);
+    }, Math.max(0, min - performance.now()));
+  }
+
+  /** Nueva tarea según dónde estás: el día del calendario, la lista abierta… */
   function newTaskFromContext() {
-    var id = S.activeScreen, preset = {};
+    var id = S.activeScreen, preset = {}, v = S.ui.taskView;
     if (id === 'calendar') preset.date = S.ui.calSelected;
-    W.Editor.open(null, preset);
+    if (id === 'tasks' && v) {
+      if (v.type === 'list') preset.listId = v.id;
+      else if (v.id === 'flagged') preset.highlight = 'star';
+      else if (v.id === 'scheduled' || v.id === 'today') preset.date = U.today();
+    }
+    W.QuickAdd.open(preset);
   }
 
   /** Atrás (Android/Escape): menús y hojas → acceso/presentación → página anterior → pestaña inicial → salir */
@@ -40,6 +70,7 @@ window.Whider = window.Whider || {};
     if (W.Onboarding.isOpen()) return W.Onboarding.back();
     var cur = W.Screens[S.activeScreen];
     if (cur && cur.back && cur.back()) return true;
+    if (S.activeScreen === 'progress') { W.Router.back(); return true; }
     var start = S.settings.startScreen || 'home';
     if (S.activeScreen !== start) { W.Router.go(start); return true; }
     return false;
@@ -179,7 +210,8 @@ window.Whider = window.Whider || {};
       W.Router.refresh();
       W.Notify.emitBadge();
       if (reason === 'done' || reason === 'focus') scheduleLateWork(reason);
-      if (reason !== 'sync') W.Sync.schedule();
+      if (reason === 'purge') setTimeout(function () { W.Sync.schedule(); }, 0);
+      else if (reason !== 'sync') W.Sync.schedule();
     });
 
     window.addEventListener('keydown', function (e) {
@@ -196,6 +228,10 @@ window.Whider = window.Whider || {};
       if (document.hidden) { S.flush(); return; }
       W.Screens.focus.resume(); W.Router.refresh();
     });
+
+    document.getElementById('fab').addEventListener('click', function () { newTaskFromContext(); });
+    var sp = document.getElementById('splash');
+    if (sp) sp.addEventListener('click', function () { hideSplash(true); });
 
     W.Router.init(S.settings.startScreen);
 
@@ -216,9 +252,10 @@ window.Whider = window.Whider || {};
       }, 0);
     });
     document.documentElement.classList.add('ready');
+    hideSplash();
   }
 
-  W.App = { handleBack: handleBack, applyAppearance: applyAppearance, afterAuth: afterAuth, logout: logout, deleteAccount: deleteAccount, newTask: newTaskFromContext };
+  W.App = { handleBack: handleBack, applyAppearance: applyAppearance, afterAuth: afterAuth, logout: logout, deleteAccount: deleteAccount, newTask: newTaskFromContext, hideSplash: hideSplash };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })(window.Whider);

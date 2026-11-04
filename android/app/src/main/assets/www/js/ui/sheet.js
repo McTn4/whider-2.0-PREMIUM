@@ -10,6 +10,7 @@ window.Whider = window.Whider || {};
   var stack = [];
 
   function root() { return document.getElementById('sheetRoot'); }
+  function syncBody() { document.body.classList.toggle('sheet-open', stack.length > 0); }
 
   /** Botón de cabecera a partir de un nodo o de { text, bold, icon, label, onTap, disabled } */
   function headBtn(spec) {
@@ -82,6 +83,7 @@ window.Whider = window.Whider || {};
           if (closed) return;
           closed = true;
           stack = stack.filter(function (s) { return s !== api; });
+          syncBody();
           layer.classList.remove('open');
           sheet.style.transform = '';
           if (o.onClose) try { o.onClose(result); } catch (e) { console.error(e); }
@@ -95,6 +97,7 @@ window.Whider = window.Whider || {};
         enableDrag(sheet, head, function () { api.dismiss(); });
       }
       stack.push(api);
+      syncBody();
       requestAnimationFrame(function () { requestAnimationFrame(function () { layer.classList.add('open'); }); });
       return api;
     },
@@ -117,7 +120,7 @@ window.Whider = window.Whider || {};
     navigator: function (rootPage, opts) {
       opts = opts || {};
       var entries = [];
-      var done = { text: opts.doneText || 'OK', bold: true, onTap: function () { s.close(); } };
+      var done = 'close';
       var s = Sheet.open({ title: '', body: [], full: opts.full !== false, className: 'nav-sheet', onClose: opts.onClose, lead: null, trail: done });
       var nav = {
         sheet: s,
@@ -171,13 +174,13 @@ window.Whider = window.Whider || {};
       });
     },
 
-    /** Confirmación (alerta centrada). confirm({ title, text, ok, cancel, danger }) → Promise<boolean> */
+    /** Confirmación (tarjeta centrada). confirm({ title, text, ok, cancel, danger, icon }) → Promise<boolean> */
     confirm: function (o) {
       return new Promise(function (resolve) {
         var result = false, closed = false;
         var layer = U.el('div.alert-layer', { attrs: { role: 'alertdialog', 'aria-modal': 'true', 'aria-label': o.title } });
         var okLabel = o.ok || 'Aceptar', cancelLabel = o.cancel || 'Cancelar';
-        var stackBtns = okLabel.length > 13 || cancelLabel.length > 13;
+        var stackBtns = okLabel.length + cancelLabel.length > 24;
         var api = {
           close: function () {
             if (closed) return;
@@ -188,12 +191,14 @@ window.Whider = window.Whider || {};
             resolve(result);
           }
         };
-        var cancel = U.el('button' + (o.danger ? '.bold' : ''), { text: cancelLabel, on: { click: function () { api.close(); } } });
-        var ok = U.el('button' + (o.danger ? '.destructive' : '.bold'), { text: okLabel, on: { click: function () { result = true; api.close(); } } });
-        layer.appendChild(U.el('div.alert-scrim'));
+        var cancel = U.el('button.btn.ghost', { text: cancelLabel, on: { click: function () { api.close(); } } });
+        var ok = U.el('button.btn.' + (o.danger ? 'danger-fill' : 'primary'), { text: okLabel, on: { click: function () { result = true; api.close(); } } });
+        layer.appendChild(U.el('div.alert-scrim', { on: { click: function () { api.close(); } } }));
         layer.appendChild(U.el('div.alert', [
-          U.el('div.alert-body', [U.el('div.alert-title', { text: o.title }), o.text ? U.el('div.alert-text', { text: o.text }) : null]),
-          U.el('div.alert-actions' + (stackBtns ? '.stack' : ''), stackBtns ? [ok, cancel] : [cancel, ok])
+          U.el('div.alert-ic' + (o.danger ? '.danger' : ''), [U.icon(o.icon || (o.danger ? 'trash' : 'info'))]),
+          U.el('div.alert-title', { text: o.title }),
+          o.text ? U.el('div.alert-text', { text: o.text }) : null,
+          U.el('div.alert-actions' + (stackBtns ? '.stack' : ''), [cancel, ok])
         ]));
         root().appendChild(layer);
         stack.push(api);
@@ -215,9 +220,8 @@ window.Whider = window.Whider || {};
         input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
         var s = Sheet.open({
           title: o.title,
-          lead: { text: 'Cancelar', onTap: function () { s.close(); } },
-          trail: { text: o.ok || 'OK', bold: true, onTap: submit },
           body: [o.text ? U.el('p.sheet-lead-text', { text: o.text }) : null, U.el('div.group', [U.el('label.cell', [input])])].concat(o.extra || []),
+          foot: [U.el('button.btn.primary', { text: o.ok || 'Aceptar', on: { click: submit } })],
           onClose: function () { resolve(result); }
         });
         setTimeout(function () { input.focus(); }, 420);
