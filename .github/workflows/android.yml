@@ -1,10 +1,15 @@
-# Compila el APK de WHIDER automáticamente en GitHub cada vez que se suben cambios.
+# Compila el APK de WHIDER en GitHub.
 # Descarga: pestaña "Releases" del repositorio → "WHIDER (última versión)" → app-debug.apk
+# La versión móvil está en pausa: el APK solo se recompila al cambiar el proyecto Android
+# o a mano desde Actions → "Compilar APK" → "Run workflow" (con la app web más reciente).
 name: Compilar APK
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/android.yml'
   workflow_dispatch:
 
 permissions:

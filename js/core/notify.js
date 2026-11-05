@@ -96,7 +96,12 @@ window.Whider = window.Whider || {};
       var direct = function () {
         try {
           var n = new Notification(title, opts);
-          n.onclick = function () { window.focus(); if (W.Router) W.Router.go('home'); n.close(); };
+          n.onclick = function () {
+            // En la app de escritorio la ventana puede estar oculta en la bandeja
+            if (window.WhiderDesktop) window.WhiderDesktop.showWindow(); else window.focus();
+            if (W.Router) W.Router.go('home');
+            n.close();
+          };
         } catch (e) { /* Android Chrome exige el Service Worker */ }
       };
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -164,6 +169,7 @@ window.Whider = window.Whider || {};
 
     emitBadge: function () {
       var n = S().overdueAll().length;
+      if (window.WhiderDesktop && typeof window.WhiderDesktop.setBadge === 'function') { try { window.WhiderDesktop.setBadge(n); } catch (e) { /* opcional */ } }
       U.$$('[data-badge="alerts"]').forEach(function (b) {
         b.textContent = n > 9 ? '9+' : String(n);
         b.classList.toggle('show', n > 0);

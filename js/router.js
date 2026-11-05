@@ -1,6 +1,7 @@
 /**
- * WHIDER · Navegación: cuatro pestañas en el dock (Hoy, Tareas, Calendario, Enfoque)
- * y una pantalla de Perfil y resumen (desde tu foto). URL sincronizada (#pantalla).
+ * WHIDER · Navegación: cuatro secciones (Hoy, Tareas, Calendario, Enfoque) en el dock del
+ * móvil o en la barra lateral del ordenador, y una pantalla de Perfil y resumen (desde tu foto).
+ * URL sincronizada (#pantalla).
  */
 window.Whider = window.Whider || {};
 
@@ -30,6 +31,13 @@ window.Whider = window.Whider || {};
         if (now !== on) { on = now; screen.classList.toggle('scrolled', on); }
       });
     }, { passive: true });
+  }
+
+  /** Título de la ventana (y de la franja superior en la app de escritorio) */
+  function setTitle(text) {
+    document.title = text;
+    var bar = document.getElementById('titlebar');
+    if (bar) bar.textContent = text;
   }
 
   function animate(root, kind) {
@@ -91,9 +99,10 @@ window.Whider = window.Whider || {};
       if (history.replaceState && location.protocol !== 'file:') {
         try { history.replaceState(null, '', '#' + id); } catch (e) { /* sin historial */ }
       }
-      document.title = id === 'home' ? 'WHIDER' : W.Screens[id].title + ' · WHIDER';
+      setTitle(id === 'home' ? 'WHIDER' : W.Screens[id].title + ' · WHIDER');
       W.Screens[id].render(root, true);
       if (!opts.initial) animate(root, TABS[id] ? 'enter' : 'push');
+      if (W.Sidebar) W.Sidebar.refresh();
     },
 
     /** Desde el Perfil, vuelve a la pestaña en la que estabas */
@@ -105,6 +114,7 @@ window.Whider = window.Whider || {};
       if (!root) return;
       root.classList.remove('scrolled');
       animate(root, kind);
+      if (W.Sidebar) W.Sidebar.refresh();
     },
 
     /** Vuelve a pintar la pantalla actual tras un cambio (varios cambios seguidos = un solo pintado) */
@@ -119,6 +129,7 @@ window.Whider = window.Whider || {};
         var y = root.scrollTop;
         W.Screens[id].render(root, false);
         root.scrollTop = y;
+        if (W.Sidebar) W.Sidebar.refresh();
       });
     }
   };

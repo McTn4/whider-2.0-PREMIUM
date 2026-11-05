@@ -84,6 +84,10 @@ window.Whider.Screens = window.Whider.Screens || {};
       byList(st)
     ];
     U.clear(host);
+    // En el ordenador: cifras a lo ancho, la gráfica y el mapa de constancia lado a lado
+    host.classList.toggle('activity-grid', W.Layout.desktop);
+    nodes[0].classList.add('wide');
+    if (nodes[3]) nodes[3].classList.add('wide');
     nodes.forEach(function (n) { if (n) { n.classList.add('sec'); host.appendChild(n); } });
     host.firstChild.classList.add('first');
   }
@@ -91,6 +95,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   function achievements(st, host) {
     var list = st.achievements(), got = list.filter(function (a) { return a.ok; }).length;
     U.clear(host);
+    host.classList.remove('activity-grid');
     host.appendChild(W.UI.section({ first: true,
       items: U.el('div.group.badges', list.map(function (a) {
         return U.el('div.badge' + (a.ok ? '.ok' : ''), [

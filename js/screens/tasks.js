@@ -54,7 +54,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         } })]) : null
       ]
     });
-    if (!list) setTimeout(function () { name.focus(); }, 420);
+    if (!list) setTimeout(function () { name.focus(); }, W.Layout.desktop ? 30 : 420);
   }
   function removeList(list, after) {
     var st = S();
@@ -172,14 +172,16 @@ window.Whider.Screens = window.Whider.Screens || {};
       sub: b.groups.length || b.done.length ? U.plural(b.groups.reduce(function (a, g) { return a + g.items.length; }, 0), 'pendiente', 'pendientes') + (b.done.length ? ' · ' + U.plural(b.done.length, 'completada', 'completadas') : '') : null
     });
     var content = [];
+    // En el ordenador se añade escribiendo aquí mismo (con la lista o el filtro de esta página)
+    if (W.Layout.desktop) content.push(W.QuickAdd.inline(preset, list ? 'Añadir a ' + list.name + '…' : 'Añadir una tarea…'));
     b.groups.forEach(function (g, i) {
       content.push(W.UI.section({ title: g.title, red: g.red, first: i === 0, side: U.el('small', { text: g.items.length }),
         items: W.TaskCard.list(g.items, { ctx: v.type === 'list' ? (g.ctx === 'alerts' ? 'alerts' : 'list') : g.ctx, postpone: !!g.red }) }));
     });
     if (!b.groups.length) {
       content.push(W.UI.empty(SMART[v.id] ? SMART[v.id].icon : 'list', b.done.length ? 'Todo hecho' : 'Sin tareas',
-        b.done.length ? 'No queda nada pendiente aquí.' : 'Pulsa + para añadir una tarea.',
-        U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open(preset); } } }, [U.icon('plus', 'sm'), 'Nueva tarea'])));
+        b.done.length ? 'No queda nada pendiente aquí.' : W.Layout.desktop ? 'Escribe arriba para añadir una tarea.' : 'Pulsa + para añadir una tarea.',
+        W.Layout.desktop ? null : U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open(preset); } } }, [U.icon('plus', 'sm'), 'Nueva tarea'])));
     }
     if (b.done.length) {
       var host = U.el('div.sec');
@@ -192,7 +194,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       drawDone();
       content.push(host);
     }
-    if (b.groups.length && W.Tips.show('swipe')) content.push(U.el('p.hint', { text: 'Desliza una tarea hacia la derecha para completarla o hacia la izquierda para eliminarla.' }));
+    if (b.groups.length && !W.Layout.desktop && W.Tips.show('swipe')) content.push(U.el('p.hint', { text: 'Desliza una tarea hacia la derecha para completarla o hacia la izquierda para eliminarla.' }));
     W.UI.mount(root, head, content);
   }
 

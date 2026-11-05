@@ -164,6 +164,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     render: function (host) {
       var st = S(), marks = R().marks();
       U.clear(host);
+      host.classList.remove('activity-grid');
       host.appendChild(W.UI.section({ title: 'Récords', first: true, items: U.el('div.rec-grid', ['streak', 'day', 'week', 'focusDay'].map(autoCard)),
         footer: U.plural(st.totalDone(), 'tarea completada', 'tareas completadas') + ' desde el principio.' }));
       host.appendChild(W.UI.section({ title: 'Marcas personales',

@@ -40,6 +40,7 @@ window.Whider = window.Whider || {};
     'whider/domain': 'Solo se admiten correos profesionales de: ',
     'whider/load': 'No se pudo cargar el sistema de cuentas. Comprueba tu conexión.',
     'whider/google-cancelled': 'Inicio de sesión con Google cancelado.',
+    'whider/google-timeout': 'No se completó el acceso con Google en el navegador. Inténtalo de nuevo.',
     'whider/google-config': 'Google no reconoce esta app. En Firebase → Configuración del proyecto → Tus apps → Android, comprueba el paquete com.whider.app y la huella SHA-1 de la firma.',
     'whider/google-no-account': 'No hay ninguna cuenta de Google en este móvil. Añádela en Ajustes del teléfono → Cuentas.',
     'whider/google-unavailable': 'Google no está disponible ahora mismo en este dispositivo. Inténtalo de nuevo.',
@@ -49,6 +50,8 @@ window.Whider = window.Whider || {};
   function err(code, extra) { var e = new Error(code); e.code = code; e.extra = extra; return e; }
   function emit() { listeners.forEach(function (fn) { try { fn(Auth.user); } catch (e) { console.error(e); } }); }
   function isAndroid() { return !!(window.WhiderAndroid && typeof window.WhiderAndroid.googleSignIn === 'function'); }
+  /** App de escritorio: Google se abre en el navegador del ordenador y devuelve aquí sus credenciales */
+  function isDesktopApp() { return !!(window.WhiderDesktop && typeof window.WhiderDesktop.googleSignIn === 'function'); }
 
   /** Carga js/vendor/firebase.js bajo demanda (una sola vez) */
   function load() {
@@ -73,7 +76,7 @@ window.Whider = window.Whider || {};
     var opts = { persistence: [F.indexedDBLocalPersistence, F.browserLocalPersistence] };
     // En Android el acceso con Google es nativo: no hace falta el sistema de ventanas web
     // (que descarga un iframe de Google en cada arranque)
-    if (!isAndroid()) opts.popupRedirectResolver = F.browserPopupRedirectResolver;
+    if (!isAndroid() && !isDesktopApp()) opts.popupRedirectResolver = F.browserPopupRedirectResolver;
     auth = F.initializeAuth(app, opts);
     auth.languageCode = 'es';
     db = F.getFirestore(app);
@@ -90,7 +93,7 @@ window.Whider = window.Whider || {};
     // Solo si el usuario inició un acceso con Google por redirección en la web
     var pending = false;
     try { pending = sessionStorage.getItem(REDIRECT_FLAG) === '1'; sessionStorage.removeItem(REDIRECT_FLAG); } catch (e) { pending = false; }
-    if (pending && !isAndroid()) F.getRedirectResult(auth).catch(function () { /* sin resultado */ });
+    if (pending && !isAndroid() && !isDesktopApp()) F.getRedirectResult(auth).catch(function () { /* sin resultado */ });
     setTimeout(function () { if (first) { first = false; readyResolve(Auth.user); } }, 8000);
   }
 
@@ -168,6 +171,14 @@ window.Whider = window.Whider || {};
         });
         return Promise.all([token, whenReady()]).then(function (r) {
           return F.signInWithCredential(auth, F.GoogleAuthProvider.credential(r[0]));
+        }).then(function (c) { return c.user; });
+      }
+      if (isDesktopApp()) {
+        // Se abre el navegador del ordenador (Google no permite entrar desde ventanas integradas)
+        return Promise.all([window.WhiderDesktop.googleSignIn(), whenReady()]).then(function (r) {
+          var res = r[0] || {};
+          if (!res.ok) throw err(res.kind === 'cancelled' ? 'whider/google-cancelled' : res.kind === 'timeout' ? 'whider/google-timeout' : 'whider/google-unavailable', res.detail || '');
+          return F.signInWithCredential(auth, F.GoogleAuthProvider.credential(res.idToken || null, res.accessToken || null));
         }).then(function (c) { return c.user; });
       }
       return whenReady().then(function () {

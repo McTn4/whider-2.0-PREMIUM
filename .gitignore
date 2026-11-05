@@ -33,3 +33,7 @@ node_modules/
 
 # Registros de los emuladores de Firebase
 *-debug.log
+
+# App de escritorio (se generan al compilar)
+desktop/www/
+desktop/dist/

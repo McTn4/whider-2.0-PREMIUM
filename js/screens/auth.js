@@ -112,6 +112,9 @@ window.Whider = window.Whider || {};
       showError('');
       if (navigator.onLine === false) { showError(A().message({ code: 'auth/network-request-failed' })); return; }
       setBusy(gbtn, true);
+      // App de escritorio: el acceso con Google se completa en el navegador del ordenador
+      if (window.WhiderDesktop) W.Toast.show({ text: 'Se ha abierto tu navegador: entra allí con Google y vuelve a WHIDER.', icon: 'info', duration: 20000,
+        action: { label: 'Cancelar', fn: function () { window.WhiderDesktop.cancelGoogle(); } } });
       A().google().catch(function (err) {
         setBusy(gbtn, false);
         if (err && (err.code === 'whider/google-cancelled' || err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request')) return;

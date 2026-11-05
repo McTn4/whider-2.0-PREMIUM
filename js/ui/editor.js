@@ -225,7 +225,7 @@ window.Whider = window.Whider || {};
         guard: dirty, onGuard: askDiscard
       });
       requestAnimationFrame(function () { autosize(title); autosize(notes); });
-      if (isNew) setTimeout(function () { title.focus(); }, 380);
+      if (isNew) setTimeout(function () { title.focus(); }, W.Layout.desktop ? 30 : 380);
       return sheet;
     }
   };

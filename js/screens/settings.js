@@ -7,7 +7,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '4.4';
+  var VERSION = '5.0';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
     { value: 'focus', label: 'Enfoque' }
@@ -62,6 +62,10 @@ window.Whider = window.Whider || {};
           W.UI.cell({ icon: 'timer', title: 'Enfoque', value: cfg.focus.work + ' min', onTap: function () { nav.push(focusPage); } }),
           W.UI.cell({ icon: 'home', title: 'Pantalla al abrir', value: labelOf(SCREENS, cfg.startScreen), onTap: function () { nav.push(startPage); } })
         ]),
+        W.Layout.desktop || W.Layout.app ? W.UI.group([
+          W.Layout.app ? W.UI.cell({ icon: 'monitor', title: 'Ordenador', sub: 'Inicio, bandeja y versión de la app', onTap: function () { nav.push(desktopPage); } }) : null,
+          W.Layout.desktop ? W.UI.cell({ icon: 'keyboard', title: 'Atajos de teclado', value: '?', onTap: function () { nav.close(); setTimeout(function () { W.Keys.help(); }, 120); } }) : null
+        ].filter(Boolean)) : null,
         W.UI.group([
           W.UI.cell({ icon: 'hand', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
           W.UI.cell({ icon: 'shield', title: 'Datos', onTap: function () { nav.push(dataPage); } })
@@ -250,6 +254,26 @@ window.Whider = window.Whider || {};
     };
   }
 
+  /** App de escritorio: abrir al iniciar el ordenador y seguir en la bandeja al cerrar */
+  function desktopPage(nav) {
+    var D = window.WhiderDesktop, prefs = W.DesktopPrefs || {};
+    var set = function (k, v) { prefs[k] = v; W.DesktopPrefs = prefs; if (D) D.setSetting(k, v); nav.refresh(); };
+    var tray = D && D.platform === 'darwin' ? 'el Dock' : 'la bandeja del sistema';
+    return {
+      title: 'Ordenador',
+      body: [
+        W.UI.section({ items: [toggleCell({ icon: 'power', title: 'Abrir WHIDER al iniciar el ordenador', value: !!prefs.openAtLogin, onChange: function (v) { set('openAtLogin', v); } })],
+          footer: 'Se abre en segundo plano, sin ventana, para que los avisos lleguen desde el primer momento.' }),
+        W.UI.section({ items: [toggleCell({ icon: 'bell', title: 'Seguir abierta al cerrar la ventana', value: prefs.closeToTray !== false, onChange: function (v) { set('closeToTray', v); } })],
+          footer: 'WHIDER sigue en ' + tray + ' y te avisa de tus tareas aunque no tengas la ventana abierta. Para salir del todo, usa «Salir» en su menú.' }),
+        W.UI.section({ items: [
+          W.UI.cell({ title: 'Versión de la app', value: prefs.version || '' }),
+          W.UI.cell({ title: 'Descargar la última versión', onTap: function () { if (D) D.openExternal('https://github.com/McTn4/whider-2.0-PREMIUM/releases/tag/desktop-latest'); } })
+        ] })
+      ]
+    };
+  }
+
   function privacyPage() {
     return {
       title: 'Privacidad',
@@ -264,7 +288,7 @@ window.Whider = window.Whider || {};
     '<p><b>Tus derechos.</b> Puedes cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
     '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>';
 
-  var PAGES = { account: accountPage, appearance: appearancePage, tasks: tasksPage, lists: listsPage, alerts: alertsPage, focus: focusPage, start: startPage, data: dataPage, privacy: privacyPage };
+  var PAGES = { desktop: desktopPage, account: accountPage, appearance: appearancePage, tasks: tasksPage, lists: listsPage, alerts: alertsPage, focus: focusPage, start: startPage, data: dataPage, privacy: privacyPage };
   var current = null;
 
   W.Settings = {

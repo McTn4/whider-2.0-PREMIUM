@@ -54,7 +54,7 @@ window.Whider = window.Whider || {};
      * Devuelve { el, body, close, setTitle, setLead, setTrail }
      */
     open: function (o) {
-      var layer = U.el('div.sheet-layer');
+      var layer = U.el('div.sheet-layer' + (o.className ? '.for-' + o.className.split('.')[0] : ''));
       var scrim = U.el('div.sheet-scrim');
       var title = U.el('h3', { text: o.title || '' });
       var lead = U.el('div.sh-lead'), trail = U.el('div.sh-trail');
@@ -84,6 +84,8 @@ window.Whider = window.Whider || {};
           closed = true;
           stack = stack.filter(function (s) { return s !== api; });
           syncBody();
+          // El foco no se queda en un campo que está desapareciendo (los atajos vuelven a funcionar)
+          if (layer.contains(document.activeElement)) document.activeElement.blur();
           layer.classList.remove('open');
           sheet.style.transform = '';
           if (o.onClose) try { o.onClose(result); } catch (e) { console.error(e); }
@@ -94,7 +96,8 @@ window.Whider = window.Whider || {};
       api.setTrail(o.trail !== undefined ? o.trail : (o.lead ? null : 'close'));
       if (o.dismissible !== false) {
         scrim.addEventListener('click', function () { api.dismiss(); });
-        enableDrag(sheet, head, function () { api.dismiss(); });
+        // Arrastrar hacia abajo para cerrar: solo con el dedo (en el ordenador es un diálogo fijo)
+        if (!(W.Layout && W.Layout.desktop)) enableDrag(sheet, head, function () { api.dismiss(); });
       }
       stack.push(api);
       syncBody();
@@ -186,6 +189,7 @@ window.Whider = window.Whider || {};
             if (closed) return;
             closed = true;
             stack = stack.filter(function (s) { return s !== api; });
+            if (layer.contains(document.activeElement)) document.activeElement.blur();
             layer.classList.remove('open');
             setTimeout(function () { if (layer.parentNode) layer.parentNode.removeChild(layer); }, 260);
             resolve(result);
@@ -223,7 +227,7 @@ window.Whider = window.Whider || {};
           foot: [U.el('button.btn.primary', { text: o.ok || 'Aceptar', on: { click: submit } })],
           onClose: function () { resolve(result); }
         });
-        setTimeout(function () { input.focus(); }, 420);
+        setTimeout(function () { input.focus(); }, W.Layout && W.Layout.desktop ? 30 : 420);
       });
     }
   };

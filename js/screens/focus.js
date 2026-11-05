@@ -74,7 +74,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (tickId) return;
     tickId = setInterval(function () {
       if (!T.running) { clearInterval(tickId); tickId = null; return; }
-      if (remaining() <= 0) complete(); else paint();
+      if (remaining() <= 0) complete(); else { paint(); if (W.Sidebar) W.Sidebar.tick(); }
     }, 250);
   }
 
@@ -88,6 +88,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   function update() {
+    if (W.Sidebar) W.Sidebar.refresh();
     var root = document.getElementById('screen-focus');
     if (root && W.State.activeScreen === 'focus') W.Screens.focus.render(root);
     else if (!T.running) document.title = 'WHIDER';
@@ -109,6 +110,10 @@ window.Whider.Screens = window.Whider.Screens || {};
   W.Screens.focus = {
     title: 'Enfoque',
     linkTask: function (id) { T.taskId = id; if (!T.running) setMode('work', true); persist(); update(); },
+    /** Estado para la barra lateral y la paleta de comandos */
+    status: function () { return { running: T.running, mode: T.mode, label: MODES[T.mode].label, text: fmt(remaining()) }; },
+    /** Empezar o pausar desde fuera de la pantalla (atajo, paleta, menú de la bandeja) */
+    toggle: function () { if (T.running) pause(); else start(); },
     resume: function () { if (T.running) { if (remaining() <= 0) complete(); else ensureTick(); } },
 
     render: function (root) {

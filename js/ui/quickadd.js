@@ -21,6 +21,33 @@ window.Whider = window.Whider || {};
   var QuickAdd = {
     isOpen: function () { return !!current; },
 
+    /**
+     * Campo para añadir sin abrir nada (ordenador): se escribe, Intro y queda creada.
+     * Entiende fecha, hora, #lista y prioridad; lo que no se escriba sale de `preset`.
+     */
+    inline: function (preset, placeholder) {
+      var st = S();
+      var input = U.el('input', { attrs: { type: 'text', maxlength: 200, placeholder: placeholder || 'Añadir una tarea…', enterkeyhint: 'done', 'aria-label': placeholder || 'Añadir una tarea' } });
+      var add = function () {
+        var raw = input.value.trim();
+        if (!raw) return;
+        var p = W.Parse.task(raw, { lists: st.lists });
+        if (!p.text) return;
+        st.addTask({
+          text: p.text, date: p.date !== undefined ? p.date : (preset.date !== undefined ? preset.date : null),
+          time: p.time || null, listId: p.listId || preset.listId || st.settings.defaultList,
+          highlight: p.highlight || preset.highlight || 'none', repeat: p.repeat || 'none',
+          warn: st.settings.defaultWarn, notes: '', subtasks: []
+        });
+        W.Audio.vibrate([8]);
+        // La pantalla se vuelve a pintar: el foco vuelve al campo para seguir escribiendo
+        var sel = '.screen.active .inline-add input';
+        requestAnimationFrame(function () { requestAnimationFrame(function () { var i = U.$(sel); if (i) i.focus(); }); });
+      };
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+      return U.el('label.inline-add', [U.icon('plus'), input, U.el('span.ia-hint', [U.el('kbd', { text: 'Intro' })])]);
+    },
+
     /** open({ date, time, listId, highlight }) — valores de partida según la pantalla */
     open: function (preset) {
       if (current) return current;
@@ -152,7 +179,7 @@ window.Whider = window.Whider || {};
       var fab = document.getElementById('fab');
       if (fab) fab.classList.add('open');
       reparse();
-      setTimeout(function () { input.focus(); }, 380);
+      setTimeout(function () { input.focus(); }, W.Layout.desktop ? 30 : 380);
       return sheet;
     }
   };

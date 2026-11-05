@@ -50,8 +50,10 @@ window.Whider = window.Whider || {};
      *  - profile: foto a la izquierda (abre el Perfil) · gear: engranaje a la derecha (abre Ajustes)
      */
     header: function (o) {
-      var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: 'Volver a ' + o.back.label, onTap: o.back.onTap, back: true }) : o.profile ? profileBtn() : null]);
-      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false ? [] : [gearBtn()]));
+      // En el ordenador, la foto y los ajustes están en la barra lateral
+      var desk = W.Layout && W.Layout.desktop;
+      var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: 'Volver a ' + o.back.label, onTap: o.back.onTap, back: true }) : o.profile && !desk ? profileBtn() : null]);
+      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false || desk ? [] : [gearBtn()]));
       var nav = U.el('header.nav', [lead, U.el('div.nav-title', { text: o.compact || o.title }), trail]);
       var lt = U.el('div.lt', [
         U.el('div.lt-text', [

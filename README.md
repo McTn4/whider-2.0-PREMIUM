@@ -1,6 +1,76 @@
-# WHIDER 4.4
+# WHIDER 5.0
 
-**Tu día, bajo control.** WHIDER es una app de productividad para Android (y cualquier navegador) que reúne tareas y listas, calendario, avisos por incumplimiento, modo enfoque y seguimiento de progreso. Su diseño es **en blanco y negro**: fondo negro, niveles de gris, sombras profundas y un brillo blanco contenido en lo que está activo, con las tipografías **IBM Plex Sans** y **IBM Plex Mono** (para cifras y horas). Al abrirla, **la silueta de la W se traza y se ilumina**. Incluye **cuentas de usuario** (correo y contraseña o Google) con **copia en la nube** y un **registro de marcas** que conserva tus récords para siempre. Funciona también sin conexión.
+**Tu día, bajo control.** WHIDER es una app de productividad **para ordenador (Windows, macOS y Linux) y Android** que reúne tareas y listas, calendario, avisos por incumplimiento, modo enfoque y seguimiento de progreso. Su diseño es **en blanco y negro**: fondo negro, niveles de gris, sombras profundas y un brillo blanco contenido en lo que está activo, con las tipografías **IBM Plex Sans** y **IBM Plex Mono** (para cifras y horas). Al abrirla, **la silueta de la W se traza y se ilumina**. Incluye **cuentas de usuario** (correo y contraseña o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y un **registro de marcas** que conserva tus récords para siempre. Funciona también sin conexión.
+
+<p align="center">
+  <img src="docs/capturas/pc-01-hoy.jpg" width="900" alt="WHIDER en el ordenador: Hoy">
+</p>
+
+---
+
+## 💻 WHIDER para ordenador
+
+| Sistema | Descarga | Instalación |
+| --- | --- | --- |
+| **Windows 10 y 11** | [WHIDER-Setup.exe](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-Setup.exe) | Ábrelo y se instala solo (crea un acceso directo). Si aparece «Windows protegió su PC»: **Más información → Ejecutar de todas formas** (la app no está firmada con un certificado de pago). |
+| **macOS** | [WHIDER-mac.dmg](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-mac.dmg) | Arrastra WHIDER a Aplicaciones. La primera vez, ábrela con **clic derecho → Abrir**. |
+| **Linux** | [WHIDER-linux.AppImage](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-linux.AppImage) | Dale permiso de ejecución y ábrelo. |
+
+Los instaladores se compilan solos en GitHub con cada cambio (pestaña **Releases → WHIDER para ordenador**). La app también funciona en el navegador del ordenador con el mismo diseño.
+
+**Pensada para pantalla grande, ratón y teclado**
+- **Barra lateral** con *Nueva tarea*, *Buscar*, las cuatro secciones (Hoy muestra lo vencido y Enfoque el tiempo que queda), **tus listas** y, abajo, tu perfil y los ajustes.
+- **Hoy a dos columnas**: tus tareas a la izquierda y, a la derecha, el resumen del día y **los próximos 7 días**.
+- **Calendario grande**: el **mes** con las tareas dentro de cada día y el día elegido al lado, y la **semana en 7 columnas por horas** con la hora actual. Haz clic en un hueco para crear una tarea a esa hora y **arrastra** cualquier tarea a otro día u otra hora.
+- **Editor en un panel a la derecha**, sin perder de vista la lista; diálogos centrados y la creación rápida arriba, como una barra de comandos.
+- **Campo para añadir** en Hoy y en cada lista: escribe y pulsa Intro (entiende fecha, hora, `#lista` y `!` de prioridad).
+- **Clic derecho** en una tarea: completar, editar, pasarla a hoy, a mañana o al lunes, cambiar la prioridad o la lista, enfocarte en ella o eliminarla.
+- **Arrastra** una tarea a una lista de la barra lateral para moverla, a «Hoy» para hacerla hoy o a un día del calendario.
+- **Buscar** (`Ctrl K` / `⌘ K`): encuentra tareas y listas, ve a cualquier sección o crea la tarea con lo que has escrito.
+
+**Atajos de teclado** (pulsa `?` para verlos en la app)
+
+| Atajo | Acción |
+| --- | --- |
+| `N` | Nueva tarea |
+| `Ctrl K` · `/` | Buscar tareas y acciones |
+| `1` `2` `3` `4` | Hoy · Tareas · Calendario · Enfoque |
+| `P` · `Ctrl ,` | Perfil · Ajustes |
+| `↑` `↓` · `Espacio` · `Intro` · `Supr` | Moverse por la lista · completar · editar · eliminar |
+| `←` `→` · `T` · `M` `S` `A` | En el calendario: anterior y siguiente · hoy · mes, semana y agenda |
+| `Ctrl Intro` · `Esc` | Guardar · cerrar |
+
+**La app de escritorio**
+- Ventana con la franja de título integrada en el diseño (Windows y macOS); recuerda su tamaño y posición.
+- **Sigue en la bandeja del sistema** al cerrar la ventana para avisarte de tus tareas, y puede **abrirse al iniciar el ordenador** (Ajustes → Ordenador). Desde la bandeja: abrir, nueva tarea, buscar, enfoque y salir.
+- Notificaciones del sistema y aviso en el icono de la barra de tareas cuando hay tareas vencidas.
+- **Entrar con Google**: se abre tu navegador, eliges la cuenta y vuelves a la app (Google no permite iniciar sesión dentro de otras apps). Con correo y contraseña se entra directamente.
+- Funciona sin conexión: la app web va dentro y tus datos se guardan en el ordenador (y en tu cuenta, si has iniciado sesión).
+
+<p align="center">
+  <img src="docs/capturas/pc-02-calendario-mes.jpg" width="440" alt="Calendario: mes">
+  <img src="docs/capturas/pc-03-calendario-semana.jpg" width="440" alt="Calendario: semana por horas">
+</p>
+<p align="center">
+  <img src="docs/capturas/pc-04-editor.jpg" width="440" alt="Editor en panel lateral">
+  <img src="docs/capturas/pc-05-buscar.jpg" width="440" alt="Buscar tareas y acciones">
+</p>
+
+---
+
+## 🧭 Organización
+
+En el ordenador, las secciones están en la barra lateral. En el móvil, un dock flotante abajo con cuatro pestañas y el botón **+** en el centro:
+
+| Pestaña | Qué encontrarás |
+| --- | --- |
+| **Hoy** | Progreso del día, lo **vencido** (con *Posponer*) y lo que toca hoy. La pestaña muestra cuántas tareas están vencidas. |
+| **Tareas** | Buscador, **listas inteligentes** (Hoy · Programadas · Todas · Prioritarias) y **Mis listas** (Personal, Trabajo…). Cada lista abre su propia página. |
+| **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la lista y la prioridad. |
+| **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**, con filtro por lista y tus tareas que se repiten. |
+| **Enfoque** | Temporizador de sesiones y pausas, con la tarea en la que te concentras. |
+
+Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resumen** (actividad, marcas y logros) y el **engranaje** (derecha) abre los **Ajustes**, con una página por apartado.
 
 <p align="center">
   <img src="docs/capturas/00-carga.jpg" width="200" alt="Pantalla de carga: la silueta de la W">
@@ -14,22 +84,6 @@
   <img src="docs/capturas/07-editor.jpg" width="200" alt="Editor de tareas">
   <img src="docs/capturas/09-perfil.jpg" width="200" alt="Perfil y resumen">
 </p>
-
----
-
-## 🧭 Organización
-
-Un dock flotante abajo con cuatro pestañas y el botón **+** en el centro:
-
-| Pestaña | Qué encontrarás |
-| --- | --- |
-| **Hoy** | Progreso del día, lo **vencido** (con *Posponer*) y lo que toca hoy. La pestaña muestra cuántas tareas están vencidas. |
-| **Tareas** | Buscador, **listas inteligentes** (Hoy · Programadas · Todas · Prioritarias) y **Mis listas** (Personal, Trabajo…). Cada lista abre su propia página. |
-| **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la lista y la prioridad. |
-| **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**, con filtro por lista y tus tareas que se repiten. |
-| **Enfoque** | Temporizador de sesiones y pausas, con la tarea en la que te concentras. |
-
-Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resumen** (actividad, marcas y logros) y el **engranaje** (derecha) abre los **Ajustes**, con una página por apartado.
 
 ---
 
@@ -86,6 +140,8 @@ Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resum
 
 ## 📱 Pantalla y Android
 
+> La versión móvil se queda en la **4.4** mientras se trabaja en la de ordenador: el APK ya no se recompila con cada cambio. Para compilarlo con la app más reciente: **Actions → Compilar APK → Run workflow**.
+
 - La interfaz ocupa exactamente la pantalla del dispositivo (barra superior, contenido con scroll y dock flotante) y respeta las zonas seguras (muesca y barra de gestos). Las barras del sistema de Android usan los mismos tonos que la app.
 - Se adapta a móviles pequeños (360 px), grandes, en horizontal y a tablets.
 - En el APK, el tamaño de fuente del sistema no descuadra el diseño: el tamaño del texto se controla desde **Ajustes → Apariencia**.
@@ -95,7 +151,7 @@ Arriba, en todas las pantallas: **tu foto** (izquierda) abre tu **Perfil y resum
 
 ---
 
-## ▶️ Probar en el ordenador
+## ▶️ Probar en el navegador
 
 Con Python 3.8 o superior:
 
@@ -106,6 +162,18 @@ python serve.py
 Se abre `http://localhost:8080` y la consola muestra también la dirección para el móvil en tu red Wi‑Fi. Opciones: `python serve.py 9000` (otro puerto) y `python serve.py --no-open`.
 
 Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) instalado, el servidor crea además un enlace HTTPS temporal: ábrelo en Chrome del móvil y usa **⋮ → Instalar aplicación** para instalarla como app.
+
+## 🛠️ Abrir y compilar la app de escritorio
+
+Con Node.js 20 o superior:
+
+```bash
+cd desktop
+npm install
+npm start
+```
+
+`npm start` copia la app web a `desktop/www` y abre WHIDER. Para crear el instalador de tu sistema: `npm run dist` (queda en `desktop/dist`).
 
 ## 🛠️ Compilar el APK (Android Studio)
 
@@ -133,19 +201,22 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 │   ├── tokens.css          # Grises, sombras, brillos, tipografía, tamaños y movimiento
 │   ├── layout.css          # Pantalla de carga, estructura a pantalla completa, barra superior y dock
 │   ├── components.css      # Celdas agrupadas, botones, hojas, alertas, menús, interruptores…
-│   └── screens.css         # Estilos de cada pantalla
+│   ├── screens.css         # Estilos de cada pantalla
+│   └── desktop.css         # Ordenador: barra lateral, diálogos, calendario grande, ratón y teclado
 ├── firestore.rules         # Reglas de seguridad de la base de datos (cada usuario, solo sus datos)
 ├── firebase.json           # Configuración de Firebase (reglas, hosting y emuladores)
 ├── js/
 │   ├── config.js           # ← Configuración de cuentas (Firebase): ver docs/CONFIGURAR-CUENTAS.md
 │   ├── vendor/firebase.js  # SDK de Firebase empaquetado (funciona sin CDN)
 │   ├── core/               # util, store, parse (lenguaje natural), audio, notify, records, auth (cuentas), sync (nube)
-│   ├── ui/                 # anillos, avisos breves, menús, hojas, controles, perfil, editor, creación rápida y fila de tarea
+│   ├── ui/                 # anillos, avisos, menús, hojas, controles, perfil, editor, creación rápida, fila de tarea,
+│   │                       #   diseño (layout), barra lateral, búsqueda (palette) y atajos (keys)
 │   ├── screens/            # home (Hoy), tasks, calendar, focus, progress (Perfil), records, settings, onboarding, auth
 │   ├── router.js
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable
 ├── fonts/                  # IBM Plex Sans (variable) e IBM Plex Mono, locales, y su licencia OFL
+├── desktop/                # App de escritorio (Electron): ventana, bandeja, acceso con Google por el navegador
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones)
 ├── tools/firebase-bundle/  # Cómo regenerar js/vendor/firebase.js
 ├── serve.py                # Servidor local para PC y móvil
@@ -157,6 +228,20 @@ Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/conne
 Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y sus datos desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 5.0
+
+**WHIDER para ordenador**
+- App de escritorio para **Windows, macOS y Linux**, con instaladores que se compilan solos en GitHub.
+- Diseño propio para pantalla grande: barra lateral con secciones y listas, Hoy a dos columnas con los próximos días, editor en un panel a la derecha y diálogos centrados.
+- **Calendario grande**: mes con las tareas dentro de cada día y semana en 7 columnas por horas; clic en un hueco para crear y arrastrar para cambiar de día o de hora.
+- **Ratón**: clic derecho en las tareas y arrastrarlas a una lista, a «Hoy» o a un día del calendario.
+- **Teclado**: búsqueda y acciones con `Ctrl K`, atajos para todo y ayuda con `?`.
+- Bandeja del sistema, abrir al iniciar el ordenador, notificaciones del sistema y aviso de tareas vencidas en el icono.
+- Entrar con Google desde el navegador del ordenador y vuelta automática a la app.
+
+**Móvil**
+- Sin cambios: se mantiene la 4.4 y su APK.
 
 ## 📝 Novedades de la 4.4
 

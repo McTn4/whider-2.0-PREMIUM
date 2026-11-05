@@ -2,6 +2,8 @@
  * WHIDER · Fila de tarea
  *  - Tocar el círculo: completar · tocar la fila: editar
  *  - Deslizar → completar · deslizar ← eliminar (con Deshacer)
+ *  - En el ordenador: clic derecho para más opciones y arrastrar la tarea a una lista,
+ *    a «Hoy» o a un día del calendario
  * La prioridad se ve en la luz: el borde de la casilla brilla más y a la derecha se encienden
  * una, dos o tres barras (destacada · importante · urgente).
  */
@@ -50,8 +52,56 @@ window.Whider = window.Whider || {};
         else S().snooze(id, v);
         W.Toast.show({ text: 'Tarea pospuesta', icon: 'clock' });
       });
+    },
+    /** Menú del botón derecho (o de la tecla de menú) */
+    menu: function (id, at) {
+      var st = S(), t = st.find(id);
+      if (!t) return;
+      var td = U.today(), next = U.addDays(td, (8 - new Date().getDay()) % 7 || 7);
+      var items = [
+        { value: 'toggle', label: t.done ? 'Marcar como pendiente' : 'Completar', icon: t.done ? 'reset' : 'check' },
+        { value: 'edit', label: 'Editar…', icon: 'edit' }
+      ];
+      if (!t.done) {
+        items.push({ value: 'today', label: 'Para hoy', icon: 'sun', gap: true, on: t.date === td });
+        items.push({ value: 'tomorrow', label: 'Para mañana', icon: 'calendar', on: t.date === U.addDays(td, 1) });
+        items.push({ value: 'monday', label: 'Para el lunes', desc: U.fmtLong(next), icon: 'week', on: t.date === next });
+        items.push({ value: 'prio', label: 'Prioridad…', icon: 'flag', gap: true });
+        items.push({ value: 'list', label: 'Mover a otra lista…', icon: 'list' });
+        items.push({ value: 'focus', label: 'Enfocarme en esta tarea', icon: 'target' });
+      }
+      items.push({ value: 'delete', label: 'Eliminar', icon: 'trash', destructive: true, gap: true });
+      var again = function (list) { return new Promise(function (r) { setTimeout(function () { r(W.Menu.open(at, list)); }, 40); }); };
+      W.Menu.open(at, items).then(function (v) {
+        if (!v) return;
+        if (v === 'toggle') Actions.toggle(id, false);
+        else if (v === 'edit') W.Editor.open(id);
+        else if (v === 'today') st.updateTask(id, { date: td });
+        else if (v === 'tomorrow') st.updateTask(id, { date: U.addDays(td, 1) });
+        else if (v === 'monday') st.updateTask(id, { date: next });
+        else if (v === 'prio') again(W.Editor.PRIO_OPTS.map(function (o) { return { value: o.value, label: o.label, prio: o.value, on: o.value === t.highlight }; }))
+          .then(function (h) { if (h) st.updateTask(id, { highlight: h }); });
+        else if (v === 'list') again([{ value: '', label: 'Sin lista', on: !t.listId }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, icon: 'list', on: l.id === t.listId }; })))
+          .then(function (l) { if (l !== undefined) st.updateTask(id, { listId: l || null }); });
+        else if (v === 'focus') { W.Screens.focus.linkTask(id); W.Router.go('focus'); }
+        else if (v === 'delete') Actions.confirmRemove(id);
+      });
     }
   };
+
+  /** Arrastrar con el ratón (ordenador): se suelta en una lista, en «Hoy» o en un día del calendario */
+  function attachDragDrop(node, t) {
+    node.draggable = true;
+    node.addEventListener('dragstart', function (e) {
+      if (!e.dataTransfer) return;
+      e.dataTransfer.setData(W.Sidebar.DRAG_TYPE, t.id);
+      e.dataTransfer.setData('text/plain', t.text);
+      e.dataTransfer.effectAllowed = 'move';
+      node.classList.add('drag-src');
+      requestAnimationFrame(function () { document.body.classList.add('dnd'); });
+    });
+    node.addEventListener('dragend', function () { node.classList.remove('drag-src'); document.body.classList.remove('dnd'); });
+  }
 
   /** Línea de detalles: "Mañana, 10:30 · Trabajo · 1/3 · ↻" (lo que no aporta, no se muestra) */
   function metaLine(t, ctx) {
@@ -153,6 +203,8 @@ window.Whider = window.Whider || {};
       trail.length ? U.el('div.task-trail', trail) : null
     ]);
     var node = U.el('li.task' + (t.done ? '.is-done' : '') + (S().isOverdue(t) ? '.overdue' : ''), { attrs: { 'data-id': t.id } }, [body]);
+    body.setAttribute('tabindex', '-1');
+    node.addEventListener('contextmenu', function (e) { e.preventDefault(); Actions.menu(t.id, { x: e.clientX, y: e.clientY }); });
 
     var moved = function (e) { return node._down && Math.abs(e.clientX - node._down[0]) + Math.abs(e.clientY - node._down[1]) > 12; };
     body.addEventListener('pointerdown', function (e) { node._down = [e.clientX, e.clientY]; }, true);
@@ -167,7 +219,9 @@ window.Whider = window.Whider || {};
       if (node._swiped || moved(e)) return;
       W.Editor.open(t.id);
     });
-    if (opts.swipe !== false) attachSwipe(node, body, t);
+    // Con ratón se arrastra a otro sitio; con el dedo se desliza para completar o eliminar
+    if (W.Layout && W.Layout.desktop) { if (!t.done) attachDragDrop(node, t); }
+    else if (opts.swipe !== false) attachSwipe(node, body, t);
     return node;
   }
 

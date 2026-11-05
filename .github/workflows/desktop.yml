@@ -1,0 +1,105 @@
+# Compila WHIDER para ordenador (Windows, macOS y Linux) cada vez que cambia la app.
+# Descarga: pestaña "Releases" del repositorio → "WHIDER para ordenador (última versión)"
+name: Compilar app de escritorio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'desktop/**'
+      - 'index.html'
+      - 'manifest.json'
+      - 'css/**'
+      - 'js/**'
+      - 'fonts/**'
+      - 'icons/**'
+      - '.github/workflows/desktop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+            target: --win
+          - os: macos-latest
+            name: macOS
+            target: --mac
+          - os: ubuntu-latest
+            name: Linux
+            target: --linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: desktop
+        run: npm ci
+
+      - name: Copiar la app web
+        working-directory: desktop
+        run: npm run sync
+
+      - name: Compilar
+        working-directory: desktop
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Guardar como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: whider-${{ matrix.name }}
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/*.dmg
+            desktop/dist/*.AppImage
+          if-no-files-found: error
+
+  publish:
+    name: Publicar
+    needs: build
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          pattern: whider-*
+          merge-multiple: true
+
+      - name: Archivos compilados
+        run: ls -la out
+
+      - name: Publicar en "Releases"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: desktop-latest
+          name: WHIDER para ordenador (última versión)
+          prerelease: false
+          make_latest: false
+          body: |
+            Compilado automáticamente desde el commit ${{ github.sha }}.
+
+            **Windows**: descarga **WHIDER-Setup.exe** y ábrelo. Se instala solo y crea un acceso directo.
+            Si Windows muestra «Windows protegió su PC», pulsa «Más información» → «Ejecutar de todas formas»
+            (aparece porque la app no está firmada con un certificado de pago).
+
+            **macOS**: descarga **WHIDER-mac.dmg**, arrastra WHIDER a Aplicaciones y la primera vez ábrela con
+            clic derecho → «Abrir».
+
+            **Linux**: descarga **WHIDER-linux.AppImage**, dale permiso de ejecución y ábrelo.
+          files: out/*

@@ -47,14 +47,18 @@ window.Whider = window.Whider || {};
     W.QuickAdd.open(preset);
   }
 
-  /** Atrás (Android/Escape): menús y hojas → acceso/presentación → página anterior → pestaña inicial → salir */
-  function handleBack() {
+  /**
+   * Atrás (Android/Escape): menús y hojas → acceso/presentación → página anterior → pestaña inicial → salir.
+   * En el ordenador, Escape no cambia de sección: solo cierra y vuelve dentro de la sección.
+   */
+  function handleBack(opts) {
     if (W.Sheet.closeTop()) return true;
     if (W.AuthScreen.isOpen()) return W.AuthScreen.back();
     if (W.Onboarding.isOpen()) return W.Onboarding.back();
     var cur = W.Screens[S.activeScreen];
     if (cur && cur.back && cur.back()) return true;
     if (S.activeScreen === 'progress') { W.Router.back(); return true; }
+    if (opts && opts.keyboard && W.Layout.desktop) return false;
     var start = S.settings.startScreen || 'home';
     if (S.activeScreen !== start) { W.Router.go(start); return true; }
     return false;
@@ -185,6 +189,22 @@ window.Whider = window.Whider || {};
     navigator.serviceWorker.register('./sw.js').catch(function (err) { console.warn('Service Worker no registrado:', err); });
   }
 
+  /** App de escritorio: órdenes del menú, de la bandeja y de los atajos del sistema */
+  function initDesktopApp() {
+    var D = window.WhiderDesktop;
+    if (!D || typeof D.onCommand !== 'function') return;
+    // Preferencias propias de la app (abrir al iniciar, seguir en la bandeja, versión)
+    D.getSettings().then(function (p) { W.DesktopPrefs = p || {}; }).catch(function () { W.DesktopPrefs = {}; });
+    D.onCommand(function (cmd) {
+      if (cmd === 'new-task') { if (!W.QuickAdd.isOpen()) newTaskFromContext(); }
+      else if (cmd === 'search') { if (!W.Palette.isOpen()) W.Palette.open(); }
+      else if (cmd === 'settings') { if (!W.Settings.isOpen()) W.Settings.open(); }
+      else if (cmd === 'shortcuts') W.Keys.help();
+      else if (cmd === 'focus-toggle') W.Screens.focus.toggle();
+      else if (cmd.indexOf('go:') === 0) W.Router.go(cmd.slice(3));
+    });
+  }
+
   function init() {
     if (migrateFromFileOrigin()) return;
     applyAppearance();
@@ -198,12 +218,11 @@ window.Whider = window.Whider || {};
       else if (reason !== 'sync') W.Sync.schedule();
     });
 
-    window.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { handleBack(); return; }
-      var tag = document.activeElement ? document.activeElement.tagName : '';
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || W.Sheet.isOpen()) return;
-      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); newTaskFromContext(); }
-    });
+    W.Keys.init();
+    W.Sidebar.init();
+    // Al pasar de móvil a ordenador (o al revés) se vuelve a pintar con el otro diseño
+    W.Layout.onChange(function () { W.Menu.close(); W.Router.refresh(); W.Sidebar.refresh(); });
+    initDesktopApp();
 
     // Refrescar fechas y avisos si la app sigue abierta al cambiar de día
     var day = U.today();

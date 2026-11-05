@@ -190,3 +190,18 @@ input:focus-visible, textarea:focus-visible { outline: none; }
 @media (min-width: 720px) {
   :root { --pad: 26px; }
 }
+
+/* ---------- Franja de título de la app de escritorio (Windows y macOS) ---------- */
+.titlebar { display: none; }
+html.desktop-app.os-win32, html.desktop-app.os-darwin { --titlebar-h: 34px; --safe-t: 34px; }
+html.desktop-app.os-win32 .titlebar, html.desktop-app.os-darwin .titlebar {
+  position: fixed; z-index: 90; top: 0; left: 0; right: 0; height: var(--titlebar-h);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  font-size: 12px; color: var(--t3); letter-spacing: .02em; white-space: nowrap;
+  -webkit-app-region: drag; app-region: drag;
+}
+html.desktop-app .sheet-root, html.desktop-app .toast-root { -webkit-app-region: no-drag; app-region: no-drag; }
+
+/* Barra lateral: solo en el ordenador (desktop.css) */
+.sidebar { display: none; }

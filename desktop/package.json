@@ -1,0 +1,88 @@
+{
+  "name": "whider-desktop",
+  "productName": "WHIDER",
+  "version": "5.0.0",
+  "description": "WHIDER para ordenador: tareas, calendario, avisos y enfoque.",
+  "main": "main.js",
+  "author": "McTn4",
+  "license": "UNLICENSED",
+  "repository": "github:McTn4/whider-2.0-PREMIUM",
+  "desktopName": "whider.desktop",
+  "private": true,
+  "scripts": {
+    "sync": "node scripts/sync-web.js",
+    "start": "node scripts/sync-web.js && electron .",
+    "dist": "node scripts/sync-web.js && electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "45.2.2",
+    "electron-builder": "26.18.1"
+  },
+  "build": {
+    "appId": "com.whider.desktop",
+    "productName": "WHIDER",
+    "copyright": "WHIDER",
+    "publish": null,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**",
+      "assets/**",
+      "www/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon-win.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "WHIDER",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "WHIDER-Setup.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "artifactName": "WHIDER-mac.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office",
+      "icon": "build/icon.png",
+      "artifactName": "WHIDER-linux.${ext}",
+      "executableName": "whider",
+      "syncDesktopName": true
+    }
+  }
+}
