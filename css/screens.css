@@ -721,9 +721,9 @@
 /* Imprimir o guardar en PDF: solo el informe, en negro sobre blanco */
 @media print {
   @page { margin: 14mm; }
-  html, body { background: #FFFFFF !important; }
-  body * { visibility: hidden !important; }
-  .rp-doc, .rp-doc * { visibility: visible !important; }
+  html:has(#screen-reports.active), html:has(#screen-reports.active) body, body.printing-report { background: #FFFFFF !important; }
+  html:has(#screen-reports.active) body *, body.printing-report * { visibility: hidden !important; }
+  html:has(#screen-reports.active) .rp-doc, html:has(#screen-reports.active) .rp-doc *, body.printing-report .rp-doc, body.printing-report .rp-doc * { visibility: visible !important; }
   .rp-doc { position: absolute; left: 0; top: 0; width: 100%; padding: 0; border-radius: 0; box-shadow: none; background: #FFFFFF; }
   .rp-sec { break-inside: avoid-page; }
   .rp-day { break-inside: avoid; }
