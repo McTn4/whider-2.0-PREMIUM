@@ -69,7 +69,7 @@ window.Whider = window.Whider || {};
       var detected = U.el('div.qa-detected', { attrs: { 'aria-live': 'polite' } });
       var chips = U.el('div.chips');
       var help = U.el('p.qa-help', ['Ej.: ', U.el('code', { text: 'Llamar a Ana mañana a las 10 #trabajo !!' }), U.el('br'),
-        'Fecha y hora en el texto · # lista · ! a !!! prioridad · «cada semana» repite.']);
+        'Fecha y hora en el texto · # categoría · ! a !!! prioridad · «cada semana» repite.']);
       var addedNote = U.el('span.qa-added');
       var addBtn = U.el('button.btn.primary', { text: 'Añadir', on: { click: function () { submit(true); } } });
 
@@ -118,7 +118,7 @@ window.Whider = window.Whider || {};
         ti.addEventListener('change', function () { manual.time = ti.value || null; if (manual.time && !value('date')) manual.date = U.today(); drawChips(); });
         timeChip.appendChild(ti);
         chips.appendChild(timeChip);
-        chips.appendChild(chip('list', l ? l.name : 'Sin lista', !!l, function (b) {
+        chips.appendChild(chip(l ? W.Lists.icon(l) : 'list', l ? l.name : 'Sin categoría', !!l, function (b) {
           W.Menu.open(b, [{ value: '', label: 'Sin lista', on: !l }].concat(st.lists.map(function (x) { return { value: x.id, label: x.name, on: x.id === listId }; })))
             .then(function (v) { if (v !== undefined) { manual.listId = v || null; drawChips(); } });
         }));
@@ -171,7 +171,7 @@ window.Whider = window.Whider || {};
 
       var sheet = W.Sheet.open({
         title: 'Nueva tarea', className: 'quick-add',
-        body: [U.el('div.qa-box', [input, detected]), chips, help, addedNote],
+        body: [U.el('div.qa-box', [input, detected]), chips, W.Templates.row(function () { sheet.close(); }), help, addedNote],
         foot: [more, addBtn],
         onClose: function () { current = null; var f = document.getElementById('fab'); if (f) f.classList.remove('open'); }
       });

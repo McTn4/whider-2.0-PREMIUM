@@ -1,7 +1,7 @@
 {
   "name": "WHIDER",
   "short_name": "WHIDER",
-  "description": "Tareas, calendario, avisos, enfoque y progreso en una sola app.",
+  "description": "WHIDER: tareas, calendario, hábitos, apuntes, enfoque y progreso, con tu personaje y tus amigos.",
   "id": "com.whider.app",
   "start_url": "./index.html",
   "scope": "./",
@@ -45,9 +45,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Hoy",
-      "short_name": "Hoy",
-      "url": "./index.html#home",
+      "name": "Nueva tarea",
+      "short_name": "Tarea",
+      "url": "./index.html#new-task",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -56,9 +56,9 @@
       ]
     },
     {
-      "name": "Mis tareas",
-      "short_name": "Tareas",
-      "url": "./index.html#tasks",
+      "name": "Nuevo apunte",
+      "short_name": "Apunte",
+      "url": "./index.html#new-note",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -67,20 +67,9 @@
       ]
     },
     {
-      "name": "Calendario",
-      "short_name": "Calendario",
-      "url": "./index.html#calendar",
-      "icons": [
-        {
-          "src": "icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Modo enfoque",
-      "short_name": "Enfoque",
-      "url": "./index.html#focus",
+      "name": "Hábitos de hoy",
+      "short_name": "Hábitos",
+      "url": "./index.html#habits",
       "icons": [
         {
           "src": "icons/icon-192.png",

@@ -1,15 +1,61 @@
 rules_version = '2';
 
 // WHIDER · Reglas de seguridad de Cloud Firestore
-// Cada usuario solo puede leer y escribir SUS datos (users/{uid}/...), y solo
-// cuando su correo está verificado (las cuentas de Google ya vienen verificadas).
+//  - users/{uid}/...  Tus datos (tareas, apuntes, hábitos…): solo tú.
+//  - profiles/{uid}   Perfil público de la comunidad: lo leen las cuentas verificadas, solo lo escribe su dueño.
+//  - codes/{código}   Código de amigo → cuenta. Cada uno solo crea o borra el suyo.
+//  - inbox/{uid}      Buzón: solicitudes, aceptaciones, ánimos e invitaciones. El dueño lo lee y lo vacía;
+//                     los demás solo pueden escribir SU propia entrada (la clave es su uid).
+//  - spaces/{id}      Espacios compartidos: solo sus miembros; los miembros solo puede cambiarlos el creador
+//                     (cada miembro puede salir del espacio).
+// Todo exige un correo verificado (las cuentas de Google ya vienen verificadas).
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+
     match /users/{uid}/{document=**} {
-      allow read, write: if request.auth != null
-                         && request.auth.uid == uid
-                         && request.auth.token.email_verified == true;
+      allow read, write: if isMe(uid);
     }
+
+    match /profiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isMe(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'code', 'buddy', 'level', 'title', 'xp', 'streak', 'bestStreak', 'weekDone', 'weekFocus', 'week', 'updatedAt'])
+        && request.resource.data.uid == uid;
+      allow delete: if isMe(uid);
+    }
+
+    match /codes/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid && request.resource.data.keys().hasOnly(['uid', 'at']);
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Solo cambia la entrada de quien escribe en cada apartado del buzón
+    function onlyMine(after, before) {
+      return after.keys().hasOnly(['requests', 'accepted', 'cheers', 'spaces'])
+        && after.get('requests', {}).diff(before.get('requests', {})).affectedKeys().hasOnly([request.auth.uid])
+        && after.get('accepted', {}).diff(before.get('accepted', {})).affectedKeys().hasOnly([request.auth.uid])
+        && after.get('cheers', {}).diff(before.get('cheers', {})).affectedKeys().hasOnly([request.auth.uid])
+        && after.get('spaces', {}).diff(before.get('spaces', {})).affectedKeys().hasOnly([request.auth.uid]);
+    }
+    match /inbox/{uid} {
+      allow read, write: if isMe(uid);
+      allow create: if signedIn() && request.auth.uid != uid && onlyMine(request.resource.data, {});
+      allow update: if signedIn() && request.auth.uid != uid && onlyMine(request.resource.data, resource.data);
+    }
+
+    match /spaces/{sid} {
+      allow read: if signedIn() && request.auth.uid in resource.data.members;
+      allow create: if signedIn() && request.resource.data.owner == request.auth.uid && request.auth.uid in request.resource.data.members;
+      allow update: if signedIn() && request.auth.uid in resource.data.members
+        && request.resource.data.owner == resource.data.owner
+        && (request.auth.uid == resource.data.owner
+            || request.resource.data.members.diff(resource.data.members).affectedKeys().hasOnly([request.auth.uid]));
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+    }
+
     // Todo lo demás está cerrado
     match /{document=**} {
       allow read, write: if false;

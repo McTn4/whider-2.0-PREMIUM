@@ -26,10 +26,11 @@ function page(state) {
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WHIDER · Entrar con Google</title>
 <style>
+  @font-face { font-family: 'Hanken Grotesk'; src: url('/font.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #050505; color: #F2F2F2;
-    font: 16px/1.5 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    font: 16px/1.5 'Hanken Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
   main { width: min(26rem, 100%); padding: 36px 28px 30px; border-radius: 22px; text-align: center; background: #111;
     border: 1px solid rgba(255,255,255,.08); box-shadow: 0 30px 70px -30px #000, inset 0 1px 0 rgba(255,255,255,.05); }
   svg.w { width: 64px; height: 64px; filter: drop-shadow(0 0 12px rgba(255,255,255,.35)); }
@@ -135,6 +136,9 @@ function signIn(opts) {
       }
       if (req.method === 'GET' && u.pathname === '/firebase.js') {
         return fs.readFile(path.join(opts.www, 'js', 'vendor', 'firebase.js'), function (e, buf) { e ? send(res, 404, 'text/plain', '') : send(res, 200, 'text/javascript; charset=utf-8', buf); });
+      }
+      if (req.method === 'GET' && u.pathname === '/font.woff2') {
+        return fs.readFile(path.join(opts.www, 'fonts', 'hanken-grotesk-latin-wght-normal.woff2'), function (e, buf) { e ? send(res, 404, 'text/plain', '') : send(res, 200, 'font/woff2', buf); });
       }
       if (req.method === 'GET' && u.pathname === '/config.js') {
         if (opts.config) return send(res, 200, 'text/javascript; charset=utf-8', opts.config);

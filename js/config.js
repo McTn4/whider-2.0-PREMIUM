@@ -32,6 +32,14 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
   // Vacío = cualquier correo.
   allowedEmailDomains: [],
 
+  // Planes (Gratis y Premium): precios que muestra la app, días de prueba y cómo se activa Premium.
+  //  - checkoutUrl / checkoutUrlYearly: tu enlace de pago (por ejemplo un «Payment Link» de Stripe).
+  //    Si los dejas en null, la app ofrece la prueba gratuita y los códigos de activación.
+  //  - codes: códigos de activación guardados como SHA-256 del código en MAYÚSCULAS. Para crear uno:
+  //    node -e "console.log(require('crypto').createHash('sha256').update('MI-CODIGO').digest('hex'))"
+  //  Ver docs/CONFIGURAR-CUENTAS.md, apartado «Planes y pagos».
+  premium: { currency: '€', monthly: 3.99, yearly: 29.99, trialDays: 14, checkoutUrl: null, checkoutUrlYearly: null, codes: [] },
+
   // Solo para pruebas locales con Firebase Emulator Suite
   emulator: null
 };

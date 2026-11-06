@@ -17,6 +17,14 @@ window.Whider = window.Whider || {};
     meta: 'whider.meta.v1',
     doneLog: 'whider.donelog.v1',   // Historial permanente de tareas completadas por día
     records: 'whider.records.v1',   // Marcas automáticas y personales
+    habits: 'whider.habits.v1',     // Hábitos y su registro diario
+    notes: 'whider.notes.v1',       // Apuntes
+    plan: 'whider.plan.v1',         // Plan (Gratis o Premium)
+    character: 'whider.character.v1', // Tu personaje
+    social: 'whider.social.v1',     // Amigos, dispositivos y enfoque compartido
+    templates: 'whider.templates.v1', // Plantillas de un toque (acciones rápidas)
+    rules: 'whider.rules.v1',       // Automatizaciones
+    filters: 'whider.filters.v1',   // Listas personalizadas (filtros guardados)
     sync: 'whider.sync.v1'          // Marcas de tiempo y borrados para la sincronización
   };
   var ALL_KEYS = Object.keys(KEYS).map(function (k) { return KEYS[k]; });
@@ -75,16 +83,30 @@ window.Whider = window.Whider || {};
     rewarn: 20,
     sort: 'smart',
     sound: true,
+    sounds: { buttons: true, notify: true, events: true, volume: 70, style: 'soft' },
     vibrate: true,
     quietHours: { enabled: false, from: '22:00', to: '08:00' },
-    focus: { work: 25, short: 5, long: 15, rounds: 4, autoBreaks: true }
+    focus: { work: 25, short: 5, long: 15, rounds: 4, autoBreaks: true },
+    homeHabits: true,
+    homeBuddy: true,
+    contrast: 'normal',
+    // Personalización avanzada del ordenador
+    desk: {
+      sidebar: { habits: true, notes: true, focus: true, stats: true, reports: true, automations: true, friends: true, filters: true, counts: true, compact: false },
+      widgets: { buddy: true, summary: true, habits: true, upcoming: true, focus: false },
+      widgetOrder: 'buddy,summary,habits,upcoming,focus',
+      calView: 'month', calStartH: 7, calEndH: 21, weekends: true,
+      wide: false, contrast: 'normal'
+    }
   };
 
   var DEFAULT_LISTS = [
-    { id: 'personal', name: 'Personal', color: 'iris' },
-    { id: 'work', name: 'Trabajo', color: 'ember' },
-    { id: 'health', name: 'Salud', color: 'jade' }
+    { id: 'personal', name: 'Personal', color: 'iris', icon: 'user' },
+    { id: 'work', name: 'Trabajo', color: 'ember', icon: 'briefcase' },
+    { id: 'health', name: 'Salud', color: 'jade', icon: 'heart' }
   ];
+  var DEFAULT_LIST_ICON = { personal: 'user', work: 'briefcase', health: 'heart' };
+  function cleanIcon(ic, id) { return typeof ic === 'string' && /^[a-z-]{2,20}$/.test(ic) ? ic : (DEFAULT_LIST_ICON[id] || 'list'); }
 
   /*
    * Persistencia doble: localStorage + espejo nativo en Android (SharedPreferences).
@@ -184,6 +206,7 @@ window.Whider = window.Whider || {};
       spawnedId: typeof item.spawnedId === 'string' ? item.spawnedId : null,
       subtasks: subs,
       focusMin: typeof item.focusMin === 'number' ? item.focusMin : 0,
+      duration: typeof item.duration === 'number' && item.duration >= 5 && item.duration <= 720 ? Math.round(item.duration) : null,
       createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
       updatedAt: typeof item.updatedAt === 'number' ? item.updatedAt : (typeof item.createdAt === 'number' ? item.createdAt : Date.now()),
       example: !!item.example,
@@ -202,7 +225,7 @@ window.Whider = window.Whider || {};
   function cleanLists(arr) {
     if (!Array.isArray(arr) || !arr.length) return clone(DEFAULT_LISTS);
     var out = arr.filter(function (l) { return l && typeof l.id === 'string' && typeof l.name === 'string' && l.name.trim(); })
-      .map(function (l) { return { id: l.id, name: l.name.trim().slice(0, 24), color: ACCENTS[l.color] ? l.color : 'iris' }; });
+      .map(function (l) { return { id: l.id, name: l.name.trim().slice(0, 24), color: ACCENTS[l.color] ? l.color : 'iris', icon: cleanIcon(l.icon, l.id) }; });
     return out.length ? out : clone(DEFAULT_LISTS);
   }
 
@@ -288,6 +311,176 @@ window.Whider = window.Whider || {};
     return out;
   }
 
+  /* ---------- Hábitos ---------- */
+  var HABIT_FREQS = { daily: 1, days: 1, weekly: 1 };
+  function cleanHabit(h, i) {
+    if (!h || typeof h.name !== 'string' || !h.name.trim()) return null;
+    var days = Array.isArray(h.days) ? h.days.filter(function (d) { return d >= 0 && d <= 6; }).map(Number) : [];
+    return {
+      id: typeof h.id === 'string' ? h.id : U.uid('h'),
+      name: h.name.trim().slice(0, 40),
+      icon: typeof h.icon === 'string' ? h.icon.slice(0, 20) : 'target',
+      freq: HABIT_FREQS[h.freq] ? h.freq : 'daily',
+      days: days.length ? days.filter(function (d, k) { return days.indexOf(d) === k; }).sort() : [1, 2, 3, 4, 5],
+      perWeek: Math.max(1, Math.min(7, Math.round(+h.perWeek || 3))),
+      target: Math.max(1, Math.min(50, Math.round(+h.target || 1))),
+      unit: typeof h.unit === 'string' ? h.unit.trim().slice(0, 14) : '',
+      reminder: isTime(h.reminder) ? h.reminder : null,
+      archived: !!h.archived,
+      order: typeof h.order === 'number' ? h.order : (i || 0),
+      createdAt: typeof h.createdAt === 'number' ? h.createdAt : Date.now(),
+      updatedAt: typeof h.updatedAt === 'number' ? h.updatedAt : Date.now()
+    };
+  }
+  function cleanHabits(arr) {
+    var out = [];
+    (Array.isArray(arr) ? arr : []).forEach(function (h, i) { var c = cleanHabit(h, i); if (c) out.push(c); });
+    return out.sort(function (a, b) { return a.order - b.order || a.createdAt - b.createdAt; });
+  }
+  /** Registro: { idHábito: { 'AAAA-MM-DD': { n: veces, at: marca de tiempo } } } */
+  function cleanHabitLog(log) {
+    var out = {};
+    if (!log || typeof log !== 'object') return out;
+    Object.keys(log).forEach(function (id) {
+      var days = log[id], dst = {};
+      if (!days || typeof days !== 'object') return;
+      Object.keys(days).forEach(function (d) {
+        var e = days[d];
+        if (!isDate(d) || !e || typeof e.n !== 'number' || !isFinite(e.n)) return;
+        dst[d] = { n: Math.max(0, Math.min(99, Math.round(e.n))), at: typeof e.at === 'number' ? e.at : 0 };
+      });
+      out[id] = dst;
+    });
+    return out;
+  }
+
+  /* ---------- Automatizaciones ---------- */
+  var RULE_TRIGGERS = { created: 1, completed: 1, overdue: 1, daily: 1 };
+  function cleanRule(r) {
+    if (!r || typeof r.id !== 'string' || !r.trigger || !RULE_TRIGGERS[r.trigger.type]) return null;
+    var simple = function (v) { return typeof v === 'string' ? v.slice(0, 160) : typeof v === 'number' && isFinite(v) ? v : typeof v === 'boolean' ? v : null; };
+    return {
+      id: r.id,
+      name: typeof r.name === 'string' && r.name.trim() ? r.name.trim().slice(0, 60) : 'Regla',
+      enabled: r.enabled !== false,
+      trigger: { type: r.trigger.type, time: isTime(r.trigger.time) ? r.trigger.time : (r.trigger.type === 'daily' ? '07:00' : null) },
+      conditions: (Array.isArray(r.conditions) ? r.conditions : []).slice(0, 10).filter(function (c) { return c && typeof c.field === 'string' && typeof c.op === 'string'; })
+        .map(function (c) { return { field: c.field.slice(0, 20), op: c.op.slice(0, 20), value: simple(c.value) }; }),
+      actions: (Array.isArray(r.actions) ? r.actions : []).slice(0, 8).filter(function (a) { return a && typeof a.type === 'string'; })
+        .map(function (a) { return { type: a.type.slice(0, 20), value: simple(a.value), value2: simple(a.value2) }; }),
+      template: typeof r.template === 'string' ? r.template.slice(0, 30) : null,
+      runs: typeof r.runs === 'number' ? r.runs : 0,
+      lastRun: typeof r.lastRun === 'number' ? r.lastRun : null,
+      createdAt: typeof r.createdAt === 'number' ? r.createdAt : Date.now(),
+      updatedAt: typeof r.updatedAt === 'number' ? r.updatedAt : Date.now()
+    };
+  }
+  function cleanRules(arr) { return (Array.isArray(arr) ? arr : []).map(cleanRule).filter(Boolean); }
+
+  /* ---------- Listas personalizadas (filtros guardados) ---------- */
+  var FILTER_WHEN = { any: 1, today: 1, week: 1, next7: 1, overdue: 1, nodate: 1, dated: 1 };
+  function cleanFilter(f, i) {
+    if (!f || typeof f.name !== 'string' || !f.name.trim()) return null;
+    var ids = function (a) { return Array.isArray(a) ? a.filter(function (x) { return typeof x === 'string'; }).slice(0, 40) : []; };
+    return {
+      id: typeof f.id === 'string' ? f.id : U.uid('f'),
+      name: f.name.trim().slice(0, 24),
+      lists: ids(f.lists),
+      priorities: ids(f.priorities).filter(function (x) { return PRIORITIES[x]; }),
+      when: FILTER_WHEN[f.when] ? f.when : 'any',
+      text: typeof f.text === 'string' ? f.text.trim().slice(0, 40) : '',
+      status: f.status === 'all' || f.status === 'done' ? f.status : 'pending',
+      order: typeof f.order === 'number' ? f.order : (i || 0),
+      createdAt: typeof f.createdAt === 'number' ? f.createdAt : Date.now(),
+      updatedAt: typeof f.updatedAt === 'number' ? f.updatedAt : Date.now()
+    };
+  }
+  function cleanFilters(arr) {
+    var out = [];
+    (Array.isArray(arr) ? arr : []).forEach(function (f, i) { var c = cleanFilter(f, i); if (c) out.push(c); });
+    return out.sort(function (a, b) { return a.order - b.order; });
+  }
+
+  /* ---------- Apuntes ---------- */
+  function cleanNote(n) {
+    if (!n || typeof n.id !== 'string') return null;
+    var title = typeof n.title === 'string' ? n.title.slice(0, 120) : '', body = typeof n.body === 'string' ? n.body.slice(0, 20000) : '';
+    if (!title.trim() && !body.trim()) return null;
+    return {
+      id: n.id, title: title, body: body,
+      listId: typeof n.listId === 'string' ? n.listId : null,
+      pinned: !!n.pinned,
+      createdAt: typeof n.createdAt === 'number' ? n.createdAt : Date.now(),
+      updatedAt: typeof n.updatedAt === 'number' ? n.updatedAt : Date.now()
+    };
+  }
+  function cleanNotes(arr) { return (Array.isArray(arr) ? arr : []).map(cleanNote).filter(Boolean); }
+
+  /* ---------- Plan, personaje, amigos y dispositivos ---------- */
+  var FREE_PLAN = { tier: 'free', source: null, until: null, trialUsed: false, code: null, at: 0 };
+  function cleanPlan(p) {
+    if (!p || typeof p !== 'object') return clone(FREE_PLAN);
+    return {
+      tier: p.tier === 'premium' ? 'premium' : 'free',
+      source: p.source === 'trial' || p.source === 'code' || p.source === 'purchase' ? p.source : null,
+      until: typeof p.until === 'number' ? p.until : null,
+      trialUsed: !!p.trialUsed,
+      code: typeof p.code === 'string' ? p.code.slice(0, 12) : null,
+      at: typeof p.at === 'number' ? p.at : 0
+    };
+  }
+  function cleanCharacter(c) {
+    var out = {};
+    if (c && typeof c === 'object') Object.keys(c).forEach(function (k) {
+      if (!/^[a-z]{2,12}$/.test(k)) return;
+      var v = c[k];
+      if (typeof v === 'string') out[k] = v.slice(0, k === 'name' ? 16 : 24);
+      else if (typeof v === 'number' && isFinite(v)) out[k] = v;
+      else if (typeof v === 'boolean') out[k] = v;
+    });
+    if (typeof out.at !== 'number') out.at = 0;
+    return out;
+  }
+  function cleanSocial(s) {
+    var out = { friends: {}, devices: {}, focus: null, cheers: [], spaces: {}, code: null, enabled: false, enabledAt: 0 };
+    if (!s || typeof s !== 'object') return out;
+    if (typeof s.code === 'string' && /^[A-Z0-9-]{4,16}$/.test(s.code)) out.code = s.code;
+    out.enabled = !!s.enabled; out.enabledAt = typeof s.enabledAt === 'number' ? s.enabledAt : 0;
+    if (s.spaces && typeof s.spaces === 'object') Object.keys(s.spaces).forEach(function (id) {
+      var x = s.spaces[id];
+      if (x && typeof x.at === 'number' && /^[A-Za-z0-9_-]{4,40}$/.test(id)) out.spaces[id] = { name: typeof x.name === 'string' ? x.name.slice(0, 40) : 'Espacio', at: x.at, left: !!x.left };
+    });
+    if (s.friends && typeof s.friends === 'object') Object.keys(s.friends).forEach(function (uid) {
+      var f = s.friends[uid];
+      if (f && typeof f.at === 'number') out.friends[uid] = { name: typeof f.name === 'string' ? f.name.slice(0, 40) : '', code: typeof f.code === 'string' ? f.code.slice(0, 12) : '', at: f.at, removed: !!f.removed };
+    });
+    if (s.devices && typeof s.devices === 'object') Object.keys(s.devices).forEach(function (id) {
+      var d = s.devices[id];
+      if (d && typeof d.seen === 'number') out.devices[id] = { name: typeof d.name === 'string' ? d.name.slice(0, 40) : 'Dispositivo', kind: d.kind === 'pc' ? 'pc' : 'mobile', seen: d.seen };
+    });
+    if (s.focus && typeof s.focus === 'object' && typeof s.focus.at === 'number') {
+      var f0 = s.focus;
+      out.focus = { mode: f0.mode === 'short' || f0.mode === 'long' ? f0.mode : 'work', running: !!f0.running, endAt: typeof f0.endAt === 'number' ? f0.endAt : 0,
+        remaining: typeof f0.remaining === 'number' ? f0.remaining : null, round: typeof f0.round === 'number' ? f0.round : 1,
+        taskId: typeof f0.taskId === 'string' ? f0.taskId : null, at: f0.at, device: typeof f0.device === 'string' ? f0.device : '' };
+    }
+    if (Array.isArray(s.cheers)) out.cheers = s.cheers.filter(function (c) { return c && typeof c.at === 'number'; }).slice(-30);
+    return out;
+  }
+  function cleanTemplates(arr) {
+    return (Array.isArray(arr) ? arr : []).filter(function (t) { return t && typeof t.id === 'string' && typeof t.name === 'string' && t.name.trim(); }).map(function (t) {
+      return {
+        id: t.id, name: t.name.trim().slice(0, 40), icon: typeof t.icon === 'string' ? t.icon.slice(0, 20) : 'bolt',
+        tasks: (Array.isArray(t.tasks) ? t.tasks : []).filter(function (x) { return x && typeof x.text === 'string' && x.text.trim(); }).slice(0, 20).map(function (x) {
+          return { text: x.text.trim().slice(0, 160), time: isTime(x.time) ? x.time : null, highlight: PRIORITIES[x.highlight] ? x.highlight : 'none', listId: typeof x.listId === 'string' ? x.listId : null };
+        }),
+        order: typeof t.order === 'number' ? t.order : 0,
+        createdAt: typeof t.createdAt === 'number' ? t.createdAt : Date.now(),
+        updatedAt: typeof t.updatedAt === 'number' ? t.updatedAt : Date.now()
+      };
+    });
+  }
+
   // Historial diario permanente: no depende de que las tareas sigan existiendo
   var doneLog = read(KEYS.doneLog);
   if (!doneLog || typeof doneLog !== 'object') doneLog = {};
@@ -299,8 +492,20 @@ window.Whider = window.Whider || {};
   }
   healDoneLog(tasks);
   var records = cleanRecords(read(KEYS.records));
+  var storedHabits = read(KEYS.habits) || {};
+  var habits = cleanHabits(storedHabits.habits);
+  var habitLog = cleanHabitLog(storedHabits.log);
+  var rules = cleanRules(read(KEYS.rules));
+  var notes = cleanNotes(read(KEYS.notes));
+  var planData = cleanPlan(read(KEYS.plan));
+  var character = cleanCharacter(read(KEYS.character));
+  var social = cleanSocial(read(KEYS.social));
+  var templates = cleanTemplates(read(KEYS.templates));
+  if (!meta.achievedAt || typeof meta.achievedAt !== 'object') meta.achievedAt = {};
+  var filters = cleanFilters(read(KEYS.filters));
 
   var subscribers = [];
+  var batching = 0, batchReason = null;
 
   function isOverdue(t, now) {
     if (t.done || !t.date) return false;
@@ -332,6 +537,15 @@ window.Whider = window.Whider || {};
     settings: settings,
     meta: meta,
     records: records,
+    habits: habits,
+    habitLog: habitLog,
+    rules: rules,
+    filters: filters,
+    notes: notes,
+    plan: planData,
+    character: character,
+    social: social,
+    templates: templates,
     syncMeta: syncMeta,
     isNewUser: isNewUser,
     activeScreen: null,
@@ -343,8 +557,17 @@ window.Whider = window.Whider || {};
       return function () { subscribers = subscribers.filter(function (s) { return s !== fn; }); };
     },
     notify: function (reason) {
+      if (batching) { batchReason = reason || 'change'; return; }
       State.save();
       subscribers.forEach(function (fn) { try { fn(reason || 'change'); } catch (e) { console.error(e); } });
+    },
+    /** Agrupa varios cambios: se guarda y se avisa una sola vez al terminar */
+    batch: function (fn) {
+      batching++;
+      try { return fn(); } finally {
+        batching--;
+        if (!batching && batchReason) { var r = batchReason; batchReason = null; State.notify(r); }
+      }
     },
     save: function () {
       write(KEYS.tasks, { tasks: State.tasks });
@@ -354,6 +577,14 @@ window.Whider = window.Whider || {};
       write(KEYS.focus, focusLog);
       write(KEYS.doneLog, doneLog);
       write(KEYS.records, State.records);
+      write(KEYS.habits, { habits: State.habits, log: State.habitLog });
+      write(KEYS.rules, State.rules);
+      write(KEYS.filters, State.filters);
+      write(KEYS.notes, State.notes);
+      write(KEYS.plan, State.plan);
+      write(KEYS.character, State.character);
+      write(KEYS.social, State.social);
+      write(KEYS.templates, State.templates);
       write(KEYS.sync, State.syncMeta);
     },
     saveSettings: function (reason) {
@@ -370,8 +601,10 @@ window.Whider = window.Whider || {};
         v: 1,
         tasks: State.tasks, lists: State.lists, settings: State.settings,
         focus: focusLog, doneLog: doneLog, records: State.records,
+        habits: State.habits, habitLog: State.habitLog, rules: State.rules, filters: State.filters,
+        notes: State.notes, plan: State.plan, character: State.character, social: State.social, templates: State.templates,
         profile: { name: profile.name || '', email: profile.email || '', photo: profile.photo || '', photoURL: profile.photoURL || '' },
-        meta: { createdAt: State.meta.createdAt, seenAchievements: State.meta.seenAchievements, onboarded: !!State.meta.onboarded },
+        meta: { createdAt: State.meta.createdAt, seenAchievements: State.meta.seenAchievements, achievedAt: State.meta.achievedAt, onboarded: !!State.meta.onboarded },
         sync: State.syncMeta
       };
     },
@@ -389,6 +622,15 @@ window.Whider = window.Whider || {};
       doneLog = snap.doneLog && typeof snap.doneLog === 'object' ? snap.doneLog : {};
       healDoneLog(State.tasks);
       State.records = cleanRecords(snap.records);
+      State.habits = cleanHabits(snap.habits);
+      State.habitLog = cleanHabitLog(snap.habitLog);
+      State.rules = cleanRules(snap.rules);
+      State.filters = cleanFilters(snap.filters);
+      State.notes = cleanNotes(snap.notes);
+      if (snap.plan) State.plan = cleanPlan(snap.plan);
+      if (snap.character) State.character = cleanCharacter(snap.character);
+      if (snap.social) State.social = cleanSocial(snap.social);
+      State.templates = cleanTemplates(snap.templates);
       if (snap.profile) {
         var sp = snap.profile;
         profile = Object.assign({}, profile, {
@@ -401,6 +643,7 @@ window.Whider = window.Whider || {};
       if (snap.meta) {
         if (snap.meta.createdAt) State.meta.createdAt = Math.min(State.meta.createdAt || Date.now(), snap.meta.createdAt);
         if (Array.isArray(snap.meta.seenAchievements)) State.meta.seenAchievements = snap.meta.seenAchievements;
+        if (snap.meta.achievedAt && typeof snap.meta.achievedAt === 'object') State.meta.achievedAt = Object.assign({}, snap.meta.achievedAt);
         if (snap.meta.onboarded) State.meta.onboarded = true;
       }
       // Si llegaron tareas de ejemplo de la nube, se borran y el borrado se sube enseguida
@@ -413,8 +656,10 @@ window.Whider = window.Whider || {};
       profile = {};
       State.tasks = []; State.lists = cleanLists(null); State.settings = clone(DEFAULT_SETTINGS);
       focusLog = {}; doneLog = {}; State.records = emptyRecords();
+      State.habits = []; State.habitLog = {}; State.rules = []; State.filters = [];
+      State.notes = []; State.plan = clone(FREE_PLAN); State.character = cleanCharacter(null); State.social = cleanSocial(null); State.templates = [];
       State.syncMeta = { deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 };
-      State.meta = { onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [], owner: null, guest: false };
+      State.meta = { onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [], achievedAt: {}, owner: null, guest: false };
       State.save();
       State.notify('reset');
     },
@@ -443,8 +688,8 @@ window.Whider = window.Whider || {};
       for (var i = 0; i < State.lists.length; i++) if (State.lists[i].id === id) return State.lists[i];
       return null;
     },
-    addList: function (name, color) {
-      var l = { id: U.uid('l'), name: name.trim().slice(0, 24), color: ACCENTS[color] ? color : 'iris' };
+    addList: function (name, color, icon) {
+      var l = { id: U.uid('l'), name: name.trim().slice(0, 24), color: ACCENTS[color] ? color : 'iris', icon: cleanIcon(icon) };
       State.lists.push(l);
       State.syncMeta.listsAt = Date.now();
       State.notify('lists');
@@ -455,6 +700,7 @@ window.Whider = window.Whider || {};
       if (!l) return;
       if (fields.name && fields.name.trim()) l.name = fields.name.trim().slice(0, 24);
       if (fields.color && ACCENTS[fields.color]) l.color = fields.color;
+      if (fields.icon) l.icon = cleanIcon(fields.icon, l.id);
       State.syncMeta.listsAt = Date.now();
       State.notify('lists');
     },
@@ -581,6 +827,10 @@ window.Whider = window.Whider || {};
       focusLog = {};
       doneLog = {};
       State.records = emptyRecords();
+      State.habits.forEach(function (h) { State.markDeleted('habit:' + h.id); });
+      State.habits = []; State.habitLog = {};
+      State.notes.forEach(function (n) { State.markDeleted('note:' + n.id); });
+      State.notes = [];
       State.syncMeta.resetAt = Date.now();
       State.meta.celebrated = null;
       State.meta.seenAchievements = [];
@@ -757,7 +1007,295 @@ window.Whider = window.Whider || {};
       obj[parts[parts.length - 1]] = value;
       State.saveSettings('settings:' + path);
     },
-    setMeta: function (k, v) { State.meta[k] = v; write(KEYS.meta, State.meta); }
+    setMeta: function (k, v) { State.meta[k] = v; write(KEYS.meta, State.meta); },
+
+    /* ---------- Hábitos ---------- */
+    getHabit: function (id) {
+      for (var i = 0; i < State.habits.length; i++) if (State.habits[i].id === id) return State.habits[i];
+      return null;
+    },
+    addHabit: function (fields) {
+      var order = State.habits.reduce(function (m, h) { return Math.max(m, h.order); }, -1) + 1;
+      var h = cleanHabit(Object.assign({}, fields, { id: U.uid('h'), order: order, createdAt: Date.now(), updatedAt: Date.now() }));
+      if (!h) return null;
+      State.habits.push(h);
+      State.notify('habits');
+      return h;
+    },
+    updateHabit: function (id, fields) {
+      var h = State.getHabit(id);
+      if (!h) return null;
+      var c = cleanHabit(Object.assign({}, h, fields, { id: h.id, createdAt: h.createdAt, updatedAt: Date.now() }));
+      if (!c) return null;
+      Object.keys(c).forEach(function (k) { h[k] = c[k]; });
+      State.habits.sort(function (a, b) { return a.order - b.order || a.createdAt - b.createdAt; });
+      State.notify('habits');
+      return h;
+    },
+    removeHabit: function (id) {
+      var h = State.getHabit(id);
+      if (!h) return null;
+      State.habits = State.habits.filter(function (x) { return x.id !== id; });
+      var log = State.habitLog[id];
+      delete State.habitLog[id];
+      State.markDeleted('habit:' + id);
+      State.notify('habits');
+      return { habit: h, log: log };
+    },
+    restoreHabit: function (snap) {
+      if (!snap || !snap.habit || State.getHabit(snap.habit.id)) return;
+      delete State.syncMeta.deleted['habit:' + snap.habit.id];
+      snap.habit.updatedAt = Date.now();
+      State.habits.push(snap.habit);
+      if (snap.log) State.habitLog[snap.habit.id] = snap.log;
+      State.habits.sort(function (a, b) { return a.order - b.order; });
+      State.notify('habits');
+    },
+    /** Cambia el orden: delta -1 sube, +1 baja */
+    moveHabit: function (id, delta) {
+      var list = State.habits.slice().sort(function (a, b) { return a.order - b.order; });
+      var i = list.findIndex(function (h) { return h.id === id; }), j = i + delta;
+      if (i < 0 || j < 0 || j >= list.length) return;
+      var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+      list.forEach(function (h, k) { if (h.order !== k) { h.order = k; h.updatedAt = Date.now(); } });
+      State.habits = list;
+      State.notify('habits');
+    },
+    habitCount: function (id, d) { var e = State.habitLog[id] && State.habitLog[id][d]; return e ? e.n : 0; },
+    setHabitCount: function (id, d, n) {
+      var h = State.getHabit(id);
+      if (!h || !isDate(d)) return;
+      var log = State.habitLog[id] || (State.habitLog[id] = {});
+      log[d] = { n: Math.max(0, Math.min(99, Math.round(n))), at: Date.now() };
+      State.notify('habit');
+    },
+
+    /* ---------- Automatizaciones ---------- */
+    getRule: function (id) {
+      for (var i = 0; i < State.rules.length; i++) if (State.rules[i].id === id) return State.rules[i];
+      return null;
+    },
+    saveRule: function (rule) {
+      var existing = rule.id ? State.getRule(rule.id) : null;
+      var c = cleanRule(Object.assign({}, existing || {}, rule, { id: rule.id || U.uid('r'), updatedAt: Date.now(), createdAt: existing ? existing.createdAt : Date.now() }));
+      if (!c) return null;
+      if (existing) Object.keys(c).forEach(function (k) { existing[k] = c[k]; }); else State.rules.push(c);
+      delete State.syncMeta.deleted['rule:' + c.id];
+      State.notify('rules');
+      return existing || c;
+    },
+    removeRule: function (id) {
+      State.rules = State.rules.filter(function (r) { return r.id !== id; });
+      State.markDeleted('rule:' + id);
+      State.notify('rules');
+    },
+    /** Anota una ejecución sin contar como edición (no gana a cambios hechos en otro dispositivo) */
+    ruleRan: function (id, n) {
+      var r = State.getRule(id);
+      if (!r) return;
+      r.runs += n; r.lastRun = Date.now();
+    },
+
+    /* ---------- Listas personalizadas ---------- */
+    getFilter: function (id) {
+      for (var i = 0; i < State.filters.length; i++) if (State.filters[i].id === id) return State.filters[i];
+      return null;
+    },
+    saveFilter: function (f) {
+      var existing = f.id ? State.getFilter(f.id) : null;
+      var order = existing ? existing.order : State.filters.reduce(function (m, x) { return Math.max(m, x.order); }, -1) + 1;
+      var c = cleanFilter(Object.assign({}, existing || {}, f, { id: f.id || U.uid('f'), order: order, updatedAt: Date.now(), createdAt: existing ? existing.createdAt : Date.now() }));
+      if (!c) return null;
+      if (existing) Object.keys(c).forEach(function (k) { existing[k] = c[k]; }); else State.filters.push(c);
+      delete State.syncMeta.deleted['filter:' + c.id];
+      State.notify('filters');
+      return existing || c;
+    },
+    /** Cambia el orden de los filtros: delta -1 sube, +1 baja */
+    moveFilter: function (id, delta) {
+      var list = State.filters.slice().sort(function (a, b) { return a.order - b.order; });
+      var i = list.findIndex(function (f) { return f.id === id; }), j = i + delta;
+      if (i < 0 || j < 0 || j >= list.length) return;
+      var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+      list.forEach(function (f, k) { if (f.order !== k) { f.order = k; f.updatedAt = Date.now(); } });
+      State.filters = list;
+      State.notify('filters');
+    },
+    removeFilter: function (id) {
+      State.filters = State.filters.filter(function (f) { return f.id !== id; });
+      State.markDeleted('filter:' + id);
+      State.notify('filters');
+    },
+    /** Tareas que cumple un filtro guardado */
+    filterTasks: function (f) {
+      var td = U.today(), weekEnd = U.addDays(td, 6 - ((U.weekday(td) - State.settings.weekStart + 7) % 7)), now = Date.now();
+      var q = (f.text || '').toLowerCase();
+      return State.tasks.filter(function (t) {
+        if (f.status === 'pending' && t.done) return false;
+        if (f.status === 'done' && !t.done) return false;
+        if (f.lists.length && f.lists.indexOf(t.listId || '') < 0) return false;
+        if (f.priorities.length && f.priorities.indexOf(t.highlight) < 0) return false;
+        if (q && t.text.toLowerCase().indexOf(q) < 0 && (t.notes || '').toLowerCase().indexOf(q) < 0) return false;
+        switch (f.when) {
+          case 'today': return t.date === td || (!t.done && isOverdue(t, now));
+          case 'week': return !!t.date && t.date >= td && t.date <= weekEnd;
+          case 'next7': return !!t.date && t.date >= td && t.date <= U.addDays(td, 6);
+          case 'overdue': return isOverdue(t, now);
+          case 'nodate': return !t.date;
+          case 'dated': return !!t.date;
+          default: return true;
+        }
+      });
+    },
+
+    /* ---------- Apuntes ---------- */
+    getNote: function (id) {
+      for (var i = 0; i < State.notes.length; i++) if (State.notes[i].id === id) return State.notes[i];
+      return null;
+    },
+    saveNote: function (n) {
+      var existing = n.id ? State.getNote(n.id) : null;
+      var c = cleanNote(Object.assign({}, existing || {}, n, { id: n.id || U.uid('n'), createdAt: existing ? existing.createdAt : Date.now(), updatedAt: Date.now() }));
+      if (!c) return existing ? (State.removeNote(existing.id), null) : null;
+      if (existing) Object.keys(c).forEach(function (k) { existing[k] = c[k]; }); else State.notes.push(c);
+      delete State.syncMeta.deleted['note:' + c.id];
+      State.notify('notes');
+      return existing || c;
+    },
+    removeNote: function (id) {
+      var n = State.getNote(id);
+      if (!n) return null;
+      State.notes = State.notes.filter(function (x) { return x.id !== id; });
+      State.markDeleted('note:' + id);
+      State.notify('notes');
+      return n;
+    },
+    restoreNote: function (n) {
+      if (!n || State.getNote(n.id)) return;
+      delete State.syncMeta.deleted['note:' + n.id];
+      n.updatedAt = Date.now();
+      State.notes.push(n);
+      State.notify('notes');
+    },
+
+    /* ---------- Plan ---------- */
+    setPlan: function (p) {
+      State.plan = cleanPlan(Object.assign({}, State.plan, p, { at: Date.now() }));
+      State.notify('plan');
+    },
+
+    /* ---------- Personaje ---------- */
+    setCharacter: function (c) {
+      State.character = cleanCharacter(Object.assign({}, State.character, c, { at: Date.now() }));
+      State.notify('character');
+    },
+
+    /* ---------- Amigos, dispositivos y enfoque compartido ---------- */
+    setFriend: function (uid, info) {
+      State.social.friends[uid] = Object.assign({}, State.social.friends[uid] || {}, info, { at: Date.now() });
+      State.notify('social');
+    },
+    friends: function () {
+      var f = State.social.friends;
+      return Object.keys(f).filter(function (k) { return !f[k].removed; }).map(function (k) { return Object.assign({ uid: k }, f[k]); });
+    },
+    /** Este dispositivo sigue conectado (sin contar como cambio del usuario) */
+    seeDevice: function (id, info) {
+      State.social.devices[id] = Object.assign({}, State.social.devices[id] || {}, info, { seen: Date.now() });
+      write(KEYS.social, State.social);
+    },
+    setSharedFocus: function (f) {
+      State.social.focus = f ? Object.assign({}, f, { at: Date.now() }) : null;
+      write(KEYS.social, State.social);
+      State.notify('focus-shared');
+    },
+
+    /* ---------- Plantillas de un toque ---------- */
+    saveTemplate: function (t) {
+      var list = State.templates, existing = null;
+      for (var i = 0; i < list.length; i++) if (list[i].id === t.id) existing = list[i];
+      var c = cleanTemplates([Object.assign({}, existing || {}, t, { id: t.id || U.uid('tp'), createdAt: existing ? existing.createdAt : Date.now(), updatedAt: Date.now() })])[0];
+      if (!c) return null;
+      if (existing) Object.keys(c).forEach(function (k) { existing[k] = c[k]; }); else list.push(c);
+      delete State.syncMeta.deleted['tpl:' + c.id];
+      State.notify('templates');
+      return existing || c;
+    },
+    removeTemplate: function (id) {
+      State.templates = State.templates.filter(function (t) { return t.id !== id; });
+      State.markDeleted('tpl:' + id);
+      State.notify('templates');
+    },
+
+    /* ---------- Logros: fecha en que se consiguió cada uno ---------- */
+    achieved: function (id) {
+      if (State.meta.achievedAt[id]) return false;
+      State.meta.achievedAt[id] = Date.now();
+      write(KEYS.meta, State.meta);
+      return true;
+    },
+
+    /* ---------- Listas: orden ---------- */
+    moveList: function (id, delta) {
+      var i = State.lists.findIndex(function (l) { return l.id === id; }), j = i + delta;
+      if (i < 0 || j < 0 || j >= State.lists.length) return;
+      var tmp = State.lists[i]; State.lists[i] = State.lists[j]; State.lists[j] = tmp;
+      State.syncMeta.listsAt = Date.now();
+      State.notify('lists');
+    },
+
+    /* ---------- Varias tareas a la vez (un solo guardado y un solo aviso) ---------- */
+    bulkUpdate: function (ids, fields) {
+      var n = 0, listIds = {};
+      State.lists.forEach(function (l) { listIds[l.id] = true; });
+      ids.forEach(function (id) {
+        var t = State.find(id);
+        if (!t) return;
+        var old = (t.date || '') + ' ' + (t.time || '');
+        var c = cleanTask(Object.assign({}, t, typeof fields === 'function' ? fields(t) : fields), listIds);
+        if (!c) return;
+        Object.keys(c).forEach(function (k) { t[k] = c[k]; });
+        if ((t.date || '') + ' ' + (t.time || '') !== old) { t.warnedAt = null; t.remindedAt = null; }
+        t.updatedAt = Date.now();
+        n++;
+      });
+      if (n) State.notify('update');
+      return n;
+    },
+    bulkRemove: function (ids) {
+      var removed = [];
+      ids.forEach(function (id) {
+        for (var i = 0; i < State.tasks.length; i++) if (State.tasks[i].id === id) {
+          removed.push({ task: State.tasks[i], index: i });
+          State.tasks.splice(i, 1);
+          State.markDeleted(id);
+          break;
+        }
+      });
+      if (removed.length) State.notify('remove');
+      return removed;
+    },
+    bulkRestore: function (snaps) {
+      (snaps || []).slice().reverse().forEach(function (s) {
+        if (!s || !s.task || State.find(s.task.id)) return;
+        delete State.syncMeta.deleted[s.task.id];
+        s.task.updatedAt = Date.now();
+        State.tasks.splice(Math.min(s.index, State.tasks.length), 0, s.task);
+      });
+      State.notify('restore');
+    },
+    /** Tareas nuevas a partir de datos importados (copia de seguridad o CSV) */
+    importTasks: function (items) {
+      var listIds = {}, n = 0;
+      State.lists.forEach(function (l) { listIds[l.id] = true; });
+      items.forEach(function (it) {
+        if (it.id && State.find(it.id)) return;
+        var t = cleanTask(Object.assign({}, it, { id: it.id || U.uid(), mine: true, createdAt: it.createdAt || Date.now(), updatedAt: Date.now() }), listIds);
+        if (t) { State.tasks.push(t); n++; }
+      });
+      if (n) State.notify('add');
+      return n;
+    }
   };
 
   // Mantener sincronizadas varias pestañas/ventanas de la app

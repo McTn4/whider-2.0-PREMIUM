@@ -1,6 +1,7 @@
 /**
- * WHIDER · Perfil y resumen: tu foto, nombre y nivel; actividad (estadísticas, gráfico,
- * constancia y listas), marcas personales y logros. Acceso directo a Ajustes.
+ * WHIDER · Perfil y resumen: tu foto, nombre y plan; tu personaje con su nivel; actividad
+ * (estadísticas, gráfico, constancia y categorías), marcas personales y logros por familias
+ * con sus grados y recompensas. Accesos a Hábitos, Apuntes, Amigos, Sistemas, Planes y Ajustes.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -63,7 +64,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     }).filter(function (r) { return r.all; });
     if (!rows.length) return null;
     return U.el('div.group.card', [
-      U.el('div.card-head', [U.el('strong', { text: 'Por listas' })]),
+      U.el('div.card-head', [U.el('strong', { text: 'Por categorías' })]),
       U.el('div.list-bars', rows.map(function (r) {
         return U.el('div', [U.el('div.list-bar-top', [U.el('span', { text: r.l.name }), U.el('b', { text: r.done + ' de ' + r.all })]),
           U.el('div.bar', [U.el('i', { style: { width: Math.round(r.done / r.all * 100) + '%' } })])]);
@@ -92,32 +93,94 @@ window.Whider.Screens = window.Whider.Screens || {};
     host.firstChild.classList.add('first');
   }
 
+  function fmtN(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+  /** Logros: nivel y XP, de dónde sale la experiencia, familias con sus grados y lo último conseguido */
   function achievements(st, host) {
-    var list = st.achievements(), got = list.filter(function (a) { return a.ok; }).length;
+    var G = W.Game, g = G.get(), fams = G.families();
+    var got = g.list.filter(function (a) { return a.ok; }).length;
     U.clear(host);
+    host.classList.toggle('ach-grid', W.Layout.desktop);
     host.classList.remove('activity-grid');
-    host.appendChild(W.UI.section({ first: true,
-      items: U.el('div.group.badges', list.map(function (a) {
-        return U.el('div.badge' + (a.ok ? '.ok' : ''), [
-          U.el('span.badge-ic', [U.icon(a.ok ? a.icon : 'lock')]),
-          U.el('strong', { text: a.title }), U.el('small', { text: a.desc })
-        ]);
-      })),
-      footer: got + ' de ' + list.length + ' logros conseguidos.'
+    var next = null;
+    for (var L = g.level + 1; L <= g.level + 12 && !next; L++) { var u = W.Character.unlocksAt(L); if (u.length) next = { level: L, items: u }; }
+    var levelCard = U.el('div.group.card.lv-card', [
+      U.el('div.lv-top', [U.el('span.lv-num', [U.el('small', { text: 'Nivel' }), U.el('b', { text: g.level })]),
+        U.el('div.lv-main', [U.el('strong', { text: G.title(g.level) }),
+          U.el('span', { text: fmtN(g.xp) + ' XP · faltan ' + fmtN(Math.max(0, g.to - g.xp)) + ' para el nivel ' + (g.level + 1) }),
+          U.el('div.bar', [U.el('i', { style: { width: Math.round(g.progress * 100) + '%' } })])])]),
+      next ? U.el('div.lv-next', [U.el('span', { text: 'Próxima recompensa · nivel ' + next.level }),
+        U.el('div.lv-rewards', next.items.map(function (it) { return U.el('span.lv-reward', [U.el('span.cel-mini', [W.Character.svg({ size: 40, cfg: it.cfg })]), U.el('span', { text: it.name })]); }))]) : null
+    ]);
+    var parts = U.el('div.group.card.xp-card', [U.el('div.card-head', [U.el('strong', { text: 'De dónde sale tu experiencia' })]),
+      U.el('div.xp-rows', g.parts.filter(function (p) { return p.xp > 0; }).map(function (p) {
+        return U.el('div.xp-row', [U.el('span', { text: p.label }), U.el('b', { text: '+' + fmtN(p.xp) })]);
+      }).concat(g.parts.some(function (p) { return p.xp > 0; }) ? [] : [U.el('p.muted', { text: 'Completa tareas, enfócate y cumple hábitos para ganar experiencia.' })]))]);
+    var famGrid = U.el('div.fam-grid', fams.map(function (f) {
+      var pips = U.el('span.fam-pips', []);
+      for (var i = 0; i < f.tiers; i++) pips.appendChild(U.el('i' + (i <= f.tier ? '.on' : '')));
+      return U.el('div.fam' + (f.tier >= 0 ? '.got' : ''), [
+        U.el('div.fam-top', [U.el('span.fam-ic', [U.icon(f.tier >= 0 ? f.icon : 'lock')]),
+          U.el('div.fam-t', [U.el('strong', { text: f.tier >= 0 ? f.name + ' · ' + G.ROMAN[f.tier] : f.title }), U.el('small', { text: f.cat })]), pips]),
+        U.el('div.bar', [U.el('i', { style: { width: Math.round(f.progress * 100) + '%' } })]),
+        U.el('small.fam-sub', { text: f.next ? fmtN(f.value) + ' de ' + fmtN(f.next.need) + ' ' + f.unit + ' · siguiente: ' + f.next.name : 'Completado: ' + fmtN(f.value) + ' ' + f.unit })
+      ]);
     }));
+    var recent = G.recent(5);
+    host.appendChild(W.UI.section({ first: true, items: levelCard }));
+    host.appendChild(W.UI.section({ title: 'Logros', side: U.el('small', { text: got + '/' + g.list.length }), items: famGrid }));
+    host.appendChild(W.UI.section({ items: parts }));
+    if (recent.length) host.appendChild(W.UI.section({ header: 'Lo último que has conseguido', items: recent.map(function (a) {
+      return W.UI.cell({ icon: a.icon, title: a.title, sub: U.cap(a.desc), value: U.fmtDay(U.ymd(new Date(a.at))) });
+    }) }));
   }
 
-  /** Tarjeta de perfil: foto, nombre, cuenta y nivel */
+  /** Tarjeta de perfil: foto, nombre, cuenta y plan */
   function profileCard(st) {
-    var s = st.stats(), u = W.Auth && W.Auth.user, name = st.displayName();
+    var u = W.Auth && W.Auth.user, name = st.displayName(), P = W.Plan;
     return U.el('div.profile-card', [
       U.el('button.photo-pick', { attrs: { 'aria-label': 'Editar nombre y foto' }, on: { click: function () { W.Profile.edit(); } } }, [W.Profile.avatar('lg'), U.el('span.cam', [U.icon('camera')])]),
       U.el('div.profile-id', [
         U.el('strong', { text: name || 'Tu perfil' }),
         U.el('span', { text: u && u.email ? u.email : (W.Auth && W.Auth.configured() ? 'Sin cuenta · datos solo en este dispositivo' : 'Datos guardados en este dispositivo') }),
-        U.el('div.level', [U.el('b', { text: 'Nivel ' + s.level + ' · ' + st.levelTitle(s.level) }), U.el('div.bar', [U.el('i', { style: { width: Math.round(s.levelProgress * 100) + '%' } })])])
+        U.el('button.plan-pill', { attrs: { type: 'button', title: 'Planes y precios' }, on: { click: function () { P.open(); } } },
+          P.isPremium() ? [U.el('span.premium-chip', [U.icon('gem'), 'Premium']), U.el('span', { text: P.isTrial() ? P.status() : '' })] : [U.el('span.premium-chip.ghost', { text: 'Gratis' }), U.el('span', { text: 'Mejorar a Premium' })])
       ])
     ]);
+  }
+
+  /** Tu personaje con su nivel (toca para hablar con él) */
+  function buddyCard(st) {
+    var g = W.Game.get(), c = W.Character.config();
+    var bubble = U.el('div.buddy-bubble.static', [U.el('span', { text: W.Character.lines()[0].text })]);
+    var b = W.Character.node({ size: 92, bubble: false });
+    var i = 0;
+    b.addEventListener('click', function () { var l = W.Character.lines(); U.clear(bubble); bubble.appendChild(U.el('span', { text: l[++i % l.length].text })); bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop'); });
+    return U.el('div.group.card.buddy-card.profile-buddy', [
+      U.el('div.buddy-row', [b, U.el('div.buddy-meta', [U.el('strong', { text: c.name || 'Tu personaje' }),
+        U.el('span', { text: 'Nivel ' + g.level + ' · ' + W.Game.title(g.level) + ' · ' + fmtN(g.xp) + ' XP' }),
+        U.el('div.bar', [U.el('i', { style: { width: Math.round(g.progress * 100) + '%' } })])]),
+        W.Layout.desktop ? U.el('button.btn.sm.soft', { on: { click: function () { W.Character.edit(); } } }, [U.icon('palette', 'sm'), 'Personalizar'])
+          : U.el('button.circle-btn', { attrs: { 'aria-label': 'Personalizar tu personaje' }, on: { click: function () { W.Character.edit(); } } }, [U.icon('palette')])]),
+      bubble
+    ]);
+  }
+
+  /** Accesos (en el móvil están aquí; en el ordenador, en la barra lateral) */
+  function shortcuts(st) {
+    var desk = W.Layout.desktop, P = W.Plan, items = [];
+    if (!desk) {
+      var hs = W.Habits.todaySummary();
+      items.push(W.UI.cell({ icon: 'target', title: 'Hábitos', value: hs.total ? hs.done + ' de ' + hs.total + ' hoy' : '', onTap: function () { W.Router.go('habits'); } }));
+      items.push(W.UI.cell({ icon: 'notebook', title: 'Apuntes', value: st.notes.length ? String(st.notes.length) : '', onTap: function () { W.Router.go('notes'); } }));
+      items.push(W.UI.cell({ icon: 'users', title: 'Amigos', value: P.isPremium() ? String(st.friends().length || '') : 'Premium', onTap: function () { W.Router.go('friends'); } }));
+      items.push(W.UI.cell({ icon: 'system', title: 'Sistemas y automatizaciones', onTap: function () { W.Router.go('automations'); } }));
+      items.push(W.UI.cell({ icon: 'chart', title: 'Estadísticas e informe semanal', onTap: function () { W.Router.go('stats'); } }));
+    }
+    items.push(W.UI.cell({ icon: desk ? 'monitor' : 'phone', title: 'Mis dispositivos', sub: desk ? 'Enfoque compartido con tu móvil' : 'Gestiona el ordenador desde aquí', value: P.isPremium() ? '' : 'Premium', onTap: function () { W.Devices.sheet(); } }));
+    items.push(W.UI.cell({ icon: 'gem', title: 'Planes y precios', value: P.label(), onTap: function () { P.open(); } }));
+    items.push(W.UI.cell({ icon: 'gear', title: 'Ajustes', sub: desk ? null : 'Apariencia, sonidos, avisos, cuenta y datos', onTap: function () { W.Settings.open(); } }));
+    return W.UI.section({ items: items });
   }
 
   W.Screens.progress = {
@@ -137,11 +200,10 @@ window.Whider.Screens = window.Whider.Screens || {};
       var seg = W.UI.segmented([{ value: 'summary', label: 'Actividad' }, { value: 'records', label: 'Marcas' }, { value: 'achievements', label: 'Logros' }],
         tab, function (v) { st.ui.profileTab = v; W.Screens.progress.render(root); });
       seg.style.marginTop = '16px';
-      var settingsRow = W.UI.section({ items: [
-        W.UI.cell({ icon: 'gear', title: 'Ajustes', sub: 'Apariencia, avisos, enfoque, cuenta y datos', onTap: function () { W.Settings.open(); } })
-      ] });
-      settingsRow.style.marginTop = '14px';
-      W.UI.mount(root, head, [profileCard(st), settingsRow, seg, host]);
+      var links = shortcuts(st);
+      links.style.marginTop = '14px';
+      var top = W.Layout.desktop ? U.el('div.profile-top', [profileCard(st), buddyCard(st)]) : U.el('div', [profileCard(st), buddyCard(st)]);
+      W.UI.mount(root, head, [top, links, seg, host]);
       draw();
     }
   };

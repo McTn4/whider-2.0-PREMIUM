@@ -63,7 +63,7 @@ allowedEmailDomains: ['tuempresa.com'],
 2. Elige una ubicación en Europa (por ejemplo `eur3` o `europe-west1`) y el **modo de producción**.
 3. En la pestaña **Reglas**, sustituye el contenido por el del archivo [`firestore.rules`](../firestore.rules) de este repositorio y pulsa **Publicar**.
 
-Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios datos**, y solo con el correo verificado.
+Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios datos**, y solo con el correo verificado. Desde la 6.0 incluyen también la **comunidad de amigos** (perfil público, códigos, buzón y espacios compartidos): si actualizas desde una versión anterior, **vuelve a copiar y publicar** el archivo completo; si no, la pantalla *Amigos* no podrá conectar.
 
 ## 5. Google en el APK de Android
 
@@ -117,6 +117,25 @@ cd android
 ```
 
 ---
+
+## 8. Planes y pagos (Premium)
+
+WHIDER funciona con **Gratis** y **Premium**. En [`js/config.js`](../js/config.js), apartado `premium`:
+
+| Opción | Para qué |
+| --- | --- |
+| `monthly`, `yearly`, `currency` | Precios que se muestran (por defecto 3,99 € al mes y 29,99 € al año). |
+| `trialDays` | Días de la prueba gratuita (14). Cada cuenta puede probarlo una vez. |
+| `checkoutUrl`, `checkoutUrlYearly` | Tu página de pago, por ejemplo un *Payment Link* de Stripe. La app añade `client_reference_id` con el identificador de la cuenta. |
+| `codes` | Códigos de activación (SHA-256 del código en mayúsculas). |
+
+**Opción sencilla (sin servidor):** crea un *Payment Link* en Stripe, ponlo en `checkoutUrl` y, cuando alguien pague, envíale un código de activación. Para generar el hash de un código nuevo:
+
+```bash
+node -e "console.log(require('crypto').createHash('sha256').update('MI-CODIGO-2026').digest('hex'))"
+```
+
+**Opción automática:** una Cloud Function que reciba el *webhook* de Stripe (`checkout.session.completed`), lea `client_reference_id` y active Premium en esa cuenta. Es el paso que falta para cobrar de forma totalmente automática; la app ya está preparada para mostrar el estado del plan sincronizado con la cuenta.
 
 ## Probar sin tocar el proyecto real (emuladores)
 

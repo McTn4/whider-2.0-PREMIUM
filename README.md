@@ -1,9 +1,47 @@
-# WHIDER 5.0
+# WHIDER 6.0
 
-**Tu día, bajo control.** WHIDER es una app de productividad **para ordenador (Windows, macOS y Linux) y Android** que reúne tareas y listas, calendario, avisos por incumplimiento, modo enfoque y seguimiento de progreso. Su diseño es **en blanco y negro**: fondo negro, niveles de gris, sombras profundas y un brillo blanco contenido en lo que está activo, con las tipografías **IBM Plex Sans** y **IBM Plex Mono** (para cifras y horas). Al abrirla, **la silueta de la W se traza y se ilumina**. Incluye **cuentas de usuario** (correo y contraseña o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y un **registro de marcas** que conserva tus récords para siempre. Funciona también sin conexión.
+**Tu día, bajo control.** WHIDER es una app de productividad **para ordenador (Windows, macOS y Linux) y Android** que reúne tareas por categorías, calendario profesional, hábitos, apuntes, avisos, enfoque, estadísticas e informes, con **tu propio personaje** que te acompaña, **logros y niveles** y una **comunidad para avanzar con tus amigos**. Su diseño es **en blanco y negro** (fondo negro, niveles de gris y un brillo blanco contenido en lo activo) con la tipografía **Hanken Grotesk**, una grotesca limpia de la familia de Arial y Helvetica. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión.
 
 <p align="center">
-  <img src="docs/capturas/pc-01-hoy.jpg" width="900" alt="WHIDER en el ordenador: Hoy">
+  <img src="docs/capturas/pc-60-hoy.jpg" width="900" alt="WHIDER 6.0 en el ordenador: Hoy con tu personaje">
+</p>
+
+---
+
+## 🧩 Estructura de WHIDER
+
+La app se divide en tres grandes apartados:
+
+| Apartado | Objetivo |
+| --- | --- |
+| **PC** | Experiencia avanzada, organización y productividad profesional. |
+| **Móvil** | Experiencia rápida, accesible y conectada con el ordenador. |
+| **General** | Personalización, juego (personaje, logros y niveles), sonidos, notificaciones y planes. |
+
+### Gratis y Premium
+
+| | Gratis | Premium |
+| --- | --- | --- |
+| **PC** | Calendario profesional (mes, semana y **día**; duración de las tareas, arrastrar y estirar, exportar a `.ics`) · Tareas por **categorías** con icono · Más orden y organización (**hábitos**, **selección múltiple**, hasta 3 **filtros**, estadísticas de 30 días, informe semanal) · **Apuntes** | **Sistemas profesionales** (GTD, Eisenhower, bloques de tiempo, 1-3-5, revisión semanal, bandeja a cero, Pomodoro) y **automatizaciones** a medida · Organización muy avanzada (**tablero**, filtros sin límite, **estadísticas de hasta un año**, **informes completos** en PDF, CSV y JSON) · **Personalización avanzada** · **Comunidad de trabajo con amigos** |
+| **Móvil** | Calendario · Tareas por categorías · **Mejor ecosistema**: una sola app sincronizada con el ordenador | **Mayor rapidez** (plantillas de un toque y sincronización al instante) · **Gestionar el ordenador** (dispositivos y enfoque a distancia) · **Conectar con amigos** |
+| **General** | Sonidos de botones y avisos · Personaje personalizable · Logros y niveles · Notificaciones | Objetos exclusivos para tu personaje · Copia en la nube al instante |
+
+**Precios:** Gratis para siempre · **Premium 3,99 € al mes o 29,99 € al año** (2,50 € al mes, un 37 % menos), con **14 días de prueba gratis**. Se cambian en [`js/config.js`](js/config.js).
+
+<p align="center">
+  <img src="docs/capturas/pc-60-planes.jpg" width="440" alt="Planes y precios">
+  <img src="docs/capturas/pc-60-sistemas.jpg" width="440" alt="Sistemas profesionales">
+</p>
+<p align="center">
+  <img src="docs/capturas/pc-60-estadisticas.jpg" width="440" alt="Estadísticas avanzadas">
+  <img src="docs/capturas/pc-60-apuntes.jpg" width="440" alt="Apuntes a dos paneles">
+</p>
+<p align="center">
+  <img src="docs/capturas/pc-60-habitos.jpg" width="440" alt="Hábitos en cuadrícula">
+  <img src="docs/capturas/pc-60-logros.jpg" width="440" alt="Logros, niveles y tu personaje">
+</p>
+<p align="center">
+  <img src="docs/capturas/movil-60.jpg" width="900" alt="WHIDER 6.0 en el móvil: Hoy con tu personaje, editor del personaje, hábitos y tu semana">
 </p>
 
 ---
@@ -19,8 +57,10 @@
 Los instaladores se compilan solos en GitHub con cada cambio (pestaña **Releases → WHIDER para ordenador**). La app también funciona en el navegador del ordenador con el mismo diseño.
 
 **Pensada para pantalla grande, ratón y teclado**
-- **Barra lateral** con *Nueva tarea*, *Buscar*, las cuatro secciones (Hoy muestra lo vencido y Enfoque el tiempo que queda), **tus listas** y, abajo, tu perfil y los ajustes.
-- **Hoy a dos columnas**: tus tareas a la izquierda y, a la derecha, el resumen del día y **los próximos 7 días**.
+- **Barra lateral** con *Nueva tarea*, *Buscar*, Hoy, Tareas, Calendario, Hábitos, Apuntes y Enfoque; **Estadísticas, Informes, Sistemas y Amigos**; tus **categorías** y **filtros**; y abajo, tu perfil, tu plan y los ajustes. Qué se ve, los contadores y el tamaño se eligen en *Personalización*.
+- **Hoy a dos columnas**: tus tareas a la izquierda y, a la derecha, **tu personaje**, el resumen del día, los hábitos, **los próximos 7 días** y el enfoque (bloques y orden a tu gusto).
+- **Varias tareas a la vez**: `Ctrl`/`⌘` clic, `Mayús` clic o `Ctrl A` y una barra para cambiar fecha, hora, prioridad, categoría, repetición y avisos, duplicar, completar o eliminar (con Deshacer). Arrastra cualquiera de ellas y se mueven todas.
+- **Apuntes a dos paneles**, **hábitos en cuadrícula** de 7, 14 o 30 días, **estadísticas** con gráficos y conclusiones e **informes** listos para imprimir o guardar en PDF.
 - **Calendario grande**: el **mes** con las tareas dentro de cada día y el día elegido al lado, y la **semana en 7 columnas por horas** con la hora actual. Haz clic en un hueco para crear una tarea a esa hora y **arrastra** cualquier tarea a otro día u otra hora.
 - **Editor en un panel a la derecha**, sin perder de vista la lista; diálogos centrados y la creación rápida arriba, como una barra de comandos.
 - **Campo para añadir** en Hoy y en cada lista: escribe y pulsa Intro (entiende fecha, hora, `#lista` y `!` de prioridad).
@@ -34,10 +74,12 @@ Los instaladores se compilan solos en GitHub con cada cambio (pestaña **Release
 | --- | --- |
 | `N` | Nueva tarea |
 | `Ctrl K` · `/` | Buscar tareas y acciones |
-| `1` `2` `3` `4` | Hoy · Tareas · Calendario · Enfoque |
+| `1` … `9` | Hoy · Tareas · Calendario · Hábitos · Apuntes · Enfoque · Estadísticas · Informes · Sistemas |
 | `P` · `Ctrl ,` | Perfil · Ajustes |
 | `↑` `↓` · `Espacio` · `Intro` · `Supr` | Moverse por la lista · completar · editar · eliminar |
-| `←` `→` · `T` · `M` `S` `A` | En el calendario: anterior y siguiente · hoy · mes, semana y agenda |
+| `←` `→` · `T` · `M` `S` `D` `A` | En el calendario: anterior y siguiente · hoy · mes, semana, día y agenda |
+| `Ctrl` clic · `Mayús` clic · `Ctrl A` | Seleccionar varias tareas · un tramo · todas (`Espacio` las completa, `Supr` las elimina) |
+| `Ctrl P` | Informe en PDF (app de escritorio) |
 | `Ctrl Intro` · `Esc` | Guardar · cerrar |
 
 **La app de escritorio**
@@ -195,7 +237,7 @@ npm start
 ```text
 .
 ├── index.html              # Estructura de la app + juego de iconos SVG propio
-├── manifest.json           # PWA: iconos y accesos directos (#home, #tasks, #calendar, #focus)
+├── manifest.json           # PWA: iconos y accesos directos (nueva tarea, nuevo apunte, hábitos)
 ├── sw.js                   # Funcionamiento sin conexión y clic en notificaciones
 ├── css/
 │   ├── tokens.css          # Grises, sombras, brillos, tipografía, tamaños y movimiento
@@ -203,19 +245,23 @@ npm start
 │   ├── components.css      # Celdas agrupadas, botones, hojas, alertas, menús, interruptores…
 │   ├── screens.css         # Estilos de cada pantalla
 │   └── desktop.css         # Ordenador: barra lateral, diálogos, calendario grande, ratón y teclado
-├── firestore.rules         # Reglas de seguridad de la base de datos (cada usuario, solo sus datos)
+├── firestore.rules         # Reglas de seguridad: tus datos solo tuyos; perfil público, buzón y espacios de la comunidad
 ├── firebase.json           # Configuración de Firebase (reglas, hosting y emuladores)
 ├── js/
 │   ├── config.js           # ← Configuración de cuentas (Firebase): ver docs/CONFIGURAR-CUENTAS.md
 │   ├── vendor/firebase.js  # SDK de Firebase empaquetado (funciona sin CDN)
-│   ├── core/               # util, store, parse (lenguaje natural), audio, notify, records, auth (cuentas), sync (nube)
+│   ├── core/               # util, store, parse (lenguaje natural), audio (sonidos), notify, records, auth (cuentas),
+│   │                       #   sync (nube), habits, plan (Gratis/Premium), game (logros y niveles),
+│   │                       #   automations (motor de reglas) y stats (estadísticas)
 │   ├── ui/                 # anillos, avisos, menús, hojas, controles, perfil, editor, creación rápida, fila de tarea,
-│   │                       #   diseño (layout), barra lateral, búsqueda (palette) y atajos (keys)
-│   ├── screens/            # home (Hoy), tasks, calendar, focus, progress (Perfil), records, settings, onboarding, auth
+│   │                       #   diseño (layout), barra lateral, búsqueda, atajos, selección múltiple (select),
+│   │                       #   filtros, personaje (character), gráficos (charts) y dispositivos/plantillas (devices)
+│   ├── screens/            # home (Hoy), tasks, calendar, habits, notes (Apuntes), focus, stats, reports,
+│   │                       #   automations (Sistemas), friends (Amigos), plans (Planes), progress (Perfil), settings…
 │   ├── router.js
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable
-├── fonts/                  # IBM Plex Sans (variable) e IBM Plex Mono, locales, y su licencia OFL
+├── fonts/                  # Hanken Grotesk (variable), local, y su licencia OFL
 ├── desktop/                # App de escritorio (Electron): ventana, bandeja, acceso con Google por el navegador
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones)
 ├── tools/firebase-bundle/  # Cómo regenerar js/vendor/firebase.js
@@ -223,11 +269,44 @@ npm start
 └── package_apk.py          # Copia la web a android/…/assets/www y crea el ZIP del proyecto
 ```
 
+## 💎 Planes, pagos y comunidad (para quien publica la app)
+
+- **Prueba gratuita**: 14 días, una vez por cuenta, desde *Planes* o desde cualquier función Premium.
+- **Códigos de activación**: se canjean en *Planes → Código de activación*. Se guardan cifrados (SHA-256) en [`js/config.js`](js/config.js); el código de fundador incluido es `WHIDER-FUNDADOR-2026`.
+- **Cobrar**: pon tu enlace de pago (por ejemplo un *Payment Link* de Stripe) en `premium.checkoutUrl` de [`js/config.js`](js/config.js). Tras el pago, envía al cliente un código de activación. Para activar Premium automáticamente al pagar hace falta un pequeño servidor (por ejemplo una Cloud Function con el *webhook* de Stripe); los pasos están en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md).
+- **Comunidad**: para que Amigos funcione en tu proyecto, publica las reglas nuevas de [`firestore.rules`](firestore.rules) en *Firebase → Firestore Database → Reglas*.
+
 ## 🔒 Privacidad
 
-Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y sus datos desde Ajustes.
+Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). En la comunidad, tus amigos solo ven tu perfil público (nombre, personaje, nivel, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tus apuntes. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y sus datos desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 6.0
+
+**Estructura PC · Móvil · General, con plan Gratis y Premium**
+- **Planes y precios** con la comparativa por PC, Móvil y General, prueba de 14 días, códigos de activación y enlace de pago configurable.
+- **Tipografía nueva**: Hanken Grotesk en el móvil y en el ordenador.
+
+**PC**
+- **Calendario profesional**: vista **Día**, **duración** de las tareas (bloques que se estiran arrastrando), fines de semana y horas a tu gusto y **exportar a otros calendarios** (`.ics`).
+- **Categorías con icono** (antes «listas»), **filtros guardados** y **tablero** por categoría, prioridad o fecha.
+- **Selección múltiple** con barra de acciones completa e importar/exportar tareas en **CSV** y copias en **JSON**.
+- **Apuntes** a dos paneles con formato ligero; las casillas se convierten en tareas.
+- **Hábitos**: cuadrícula de días, rachas, mapa de 18 semanas, objetivos diarios y recordatorios.
+- **Estadísticas** (cifras con variación, por día, semana y hora, categorías, prioridades, enfoque, hábitos, año entero y conclusiones) e **informes** imprimibles, en PDF, CSV o JSON.
+- **Sistemas profesionales** de un toque y **automatizaciones** «Cuando… Si… Entonces…» con prueba e historial.
+- **Personalización avanzada**: barra lateral, bloques de Hoy y su orden, calendario y ancho del contenido.
+- **Comunidad**: código de amigo, solicitudes, ranking semanal, ánimos y **espacios compartidos**.
+
+**Móvil**
+- Hábitos en Hoy, apuntes, selección (mantén pulsada una tarea), estadísticas resumidas y «Tu semana».
+- **Premium**: **plantillas de un toque**, sincronización al instante, **gestionar el ordenador** (dispositivos y enfoque a distancia) y amigos.
+
+**General**
+- **Tu personaje**: cuerpo, tono, ojos, boca, cabeza y accesorios; estados de ánimo según tu día; te habla al tocarlo y aparece en Hoy, el perfil, el enfoque, las pantallas vacías y las celebraciones.
+- **Logros y niveles** renovados: 16 familias con grados, barras de progreso, experiencia de todo lo que haces y **recompensas** para tu personaje al subir de nivel.
+- **Sonidos**: botones, avisos y logros por separado, cuatro estilos y volumen. Alto contraste en Apariencia.
 
 ## 📝 Novedades de la 5.0
 

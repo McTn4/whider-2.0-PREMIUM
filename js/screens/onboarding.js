@@ -15,6 +15,7 @@ window.Whider = window.Whider || {};
     if (data.name && data.name !== st.displayName()) patch.name = data.name;
     if (data.photo && data.photo !== prof.photo) patch.photo = data.photo;
     if (Object.keys(patch).length) { st.setProfile(patch); if (patch.name && W.Auth) W.Auth.updateName(patch.name); }
+    if (data.buddy) st.setCharacter({ name: data.buddy.name || 'Whi', body: data.buddy.body, tone: data.buddy.tone });
     st.setMeta('onboarded', true);
     root.classList.remove('open');
     document.body.classList.remove('no-tabs');
@@ -62,10 +63,38 @@ window.Whider = window.Whider || {};
     ];
   }
 
+  /** Paso nuevo: elegir el compañero (cuerpo, tono y nombre); el resto, en el perfil */
+  function renderBuddy() {
+    var C = W.Character;
+    if (!data.buddy) data.buddy = Object.assign({}, C.config());
+    var stage = U.el('div.ob-buddy');
+    var draw = function () { U.clear(stage); stage.appendChild(C.svg({ size: 150, mood: 'happy', cfg: data.buddy })); };
+    var row = function (cat, ids) {
+      return U.el('div.ob-pick', ids.map(function (id) {
+        var cfg = Object.assign({}, data.buddy); cfg[cat] = id;
+        var b = U.el('button.be-opt' + (data.buddy[cat] === id ? '.on' : ''), { attrs: { type: 'button', 'aria-label': id } }, [C.svg({ size: 52, cfg: cfg, mood: 'happy' })]);
+        b.addEventListener('click', function () { data.buddy[cat] = id; W.Audio.boop(); render(); });
+        return b;
+      }));
+    };
+    var input = U.el('input.cell-input.ob-input', { attrs: { type: 'text', maxlength: 16, placeholder: 'Nombre de tu compañero', 'aria-label': 'Nombre de tu compañero' } });
+    input.value = data.buddy.name || '';
+    input.addEventListener('input', function () { data.buddy.name = input.value.trim(); });
+    draw();
+    return [
+      U.el('h1', { text: 'Tu compañero' }),
+      U.el('p', { text: 'Te acompaña en el día, celebra tus avances y gana objetos nuevos cuando subes de nivel.' }),
+      stage,
+      row('body', ['gota', 'cubo', 'capsula']),
+      row('tone', ['blanco', 'perla']),
+      U.el('div.group', [U.el('label.cell', [input])])
+    ];
+  }
+
   function render() {
     U.clear(root);
     var kind = steps[step];
-    var body = kind === 'welcome' ? renderWelcome() : renderProfile();
+    var body = kind === 'welcome' ? renderWelcome() : kind === 'buddy' ? renderBuddy() : renderProfile();
     var last = step === steps.length - 1;
     var cta = U.el('button.btn.primary.block', { text: last ? 'Empezar' : 'Continuar', on: { click: function () {
       if (kind === 'profile') { var i = U.$('.ob-input', root); if (i) data.name = i.value.trim(); }
@@ -93,7 +122,7 @@ window.Whider = window.Whider || {};
       root = document.getElementById('onboardingRoot');
       if (!root || W.Onboarding.isOpen()) return;   // nunca se reinicia a medias
       var accounts = W.Auth && W.Auth.configured() && !S().meta.guest;
-      steps = accounts ? ['profile'] : ['welcome', 'profile'];
+      steps = accounts ? ['profile', 'buddy'] : ['welcome', 'profile', 'buddy'];
       step = 0; data = {};
       root.style.display = 'flex';
       document.body.classList.add('no-tabs');

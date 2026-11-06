@@ -1,6 +1,7 @@
 /**
  * WHIDER · Motor de avisos: recordatorios previos, alertas por incumplimiento,
- * horas de silencio, notificaciones del sistema y recordatorios nativos (Android).
+ * recordatorios de hábitos, horas de silencio, notificaciones del sistema y
+ * recordatorios nativos (Android).
  */
 window.Whider = window.Whider || {};
 
@@ -10,6 +11,26 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
   var timer = null;
   var ICON = 'icons/icon-192.png';
+  var HABIT_SENT = 'whider.habitsent';   // hábitos ya recordados hoy (solo en este dispositivo)
+  var HABIT_WINDOW = 120;                // minutos tras su hora en los que aún se recuerda
+
+  function habitSent() { try { return JSON.parse(localStorage.getItem(HABIT_SENT) || '{}') || {}; } catch (e) { return {}; } }
+  function saveHabitSent(m) { try { localStorage.setItem(HABIT_SENT, JSON.stringify(m)); } catch (e) { /* sin espacio */ } }
+
+  /** Hábitos con recordatorio a los que les toca aviso ahora (una vez al día, si siguen sin hacer) */
+  function dueHabits() {
+    if (!W.Habits) return [];
+    var sent = habitSent(), td = U.today(), now = U.hmToMin(U.nowHM()), out = [], changed = false;
+    W.Habits.list().forEach(function (h) {
+      if (!h.reminder || sent[h.id] === td) return;
+      var at = U.hmToMin(h.reminder);
+      if (now < at || now - at > HABIT_WINDOW) return;
+      if (!W.Habits.pendingToday(h)) return;
+      sent[h.id] = td; changed = true; out.push(h);
+    });
+    if (changed) saveHabitSent(sent);
+    return out;
+  }
 
   function bridge() {
     var b = window.WhiderAndroid;
@@ -161,8 +182,22 @@ window.Whider = window.Whider || {};
           action: { label: 'Ver', fn: function () { W.Router.go('home'); } } });
       }
 
+      // Hábitos: a su hora, si hoy toca y aún no está hecho
+      var habits = dueHabits();
+      habits.forEach(function (h) {
+        Notify.system(h.name, h.target > 1 ? 'Llevas ' + W.Habits.count(h, U.today()) + ' de ' + h.target + (h.unit ? ' ' + h.unit : '') + ' hoy' : 'Todavía no lo has marcado hoy', 'whider-habit-' + h.id);
+      });
+      if (habits.length === 1) {
+        var hb = habits[0];
+        W.Toast.show({ text: 'Hábito: ' + hb.name, icon: hb.icon || 'target', duration: 7000,
+          action: { label: hb.target > 1 ? 'Sumar uno' : 'Hecho', fn: function () { var x = st.getHabit(hb.id); if (x) W.Habits.tap(x, U.today()); } } });
+      } else if (habits.length > 1) {
+        W.Toast.show({ text: U.plural(habits.length, 'hábito pendiente', 'hábitos pendientes') + ' para hoy', icon: 'target', duration: 7000,
+          action: { label: 'Ver', fn: function () { W.Router.go('habits'); } } });
+      }
+
       if (alerts.length) { W.Audio.warning(); W.Audio.vibrate([70, 60, 70, 60, 140]); }
-      else if (reminders.length) { W.Audio.chime(); W.Audio.vibrate([30, 50, 30]); }
+      else if (reminders.length || habits.length) { W.Audio.chime(); W.Audio.vibrate([30, 50, 30]); }
       if (dirty) st.save();
       Notify.emitBadge();
     },
@@ -196,6 +231,22 @@ window.Whider = window.Whider || {};
           out.push({ key: t.id + ':due', at: due, title: t.text, body: 'El plazo ha terminado y sigue pendiente' });
         }
       });
+      // Hábitos: los próximos 7 días a su hora (hoy, solo si sigue sin hacer)
+      if (W.Habits) {
+        var td = U.today();
+        W.Habits.list().forEach(function (h) {
+          if (!h.reminder) return;
+          for (var i = 0; i < 7; i++) {
+            var ds = U.addDays(td, i);
+            if (h.freq === 'weekly' ? i > 0 : !W.Habits.isDue(h, ds)) continue;
+            if (i === 0 && !W.Habits.pendingToday(h)) continue;
+            var p = h.reminder.split(':'), d = U.parse(ds);
+            d.setHours(+p[0], +p[1], 0, 0);
+            var at = afterQuiet(d.getTime());
+            if (at > now) out.push({ key: 'habit:' + h.id + ':' + ds, at: at, title: h.name, body: h.target > 1 ? 'Objetivo de hoy: ' + h.target + (h.unit ? ' ' + h.unit : '') : 'Recuerda tu hábito de hoy' });
+          }
+        });
+      }
       try { b.syncReminders(JSON.stringify(out)); } catch (e) { /* sin puente */ }
     }, 600)
   };

@@ -1,7 +1,8 @@
 /**
  * WHIDER · Atajos de teclado (pensados para el ordenador; en el móvil no estorban).
- *  N nueva tarea · Ctrl/⌘ K o / buscar · 1–4 secciones · P perfil · Ctrl/⌘ , ajustes · ? ayuda
+ *  N nueva tarea · Ctrl/⌘ K o / buscar · 1–9 secciones · P perfil · Ctrl/⌘ , ajustes · ? ayuda
  *  En una lista: ↑ ↓ para moverse, Espacio completa, Intro edita, Supr elimina
+ *  Selección: Ctrl/⌘ clic, Mayús clic, Ctrl/⌘ A todas, Esc quitar (las acciones valen para todas)
  *  En el calendario: ← → anterior y siguiente, T hoy, M S A mes, semana y agenda
  *  En un diálogo: Ctrl/⌘ Intro guarda, Esc cierra
  */
@@ -10,7 +11,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var SECTIONS = { 1: 'home', 2: 'tasks', 3: 'calendar', 4: 'focus' };
+  var SECTIONS = { 1: 'home', 2: 'tasks', 3: 'calendar', 4: 'habits', 5: 'notes', 6: 'focus', 7: 'stats', 8: 'reports', 9: 'automations' };
 
   function typing() {
     var a = document.activeElement;
@@ -19,7 +20,7 @@ window.Whider = window.Whider || {};
     return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || a.isContentEditable;
   }
   function overlayOpen() {
-    return W.Sheet.isOpen() || (W.AuthScreen && W.AuthScreen.isOpen()) || (W.Onboarding && W.Onboarding.isOpen());
+    return W.Sheet.isOpen() || (W.AuthScreen && W.AuthScreen.isOpen()) || (W.Onboarding && W.Onboarding.isOpen()) || !!document.querySelector('.celebrate.open');
   }
   /** El botón principal del diálogo de arriba (para Ctrl/⌘ Intro) */
   function topPrimary() {
@@ -100,6 +101,8 @@ window.Whider = window.Whider || {};
     }
     if (mod && k === ',') { e.preventDefault(); if (!W.Settings.isOpen()) W.Settings.open(); return; }
     if (typing() || overlayOpen() || e.isComposing) return;
+    // Ctrl/⌘ A: todas las tareas que se ven en la pantalla
+    if (mod && !e.altKey && (k === 'a' || k === 'A') && W.Select && W.Select.all()) { e.preventDefault(); return; }
     if (e.altKey && SECTIONS[k]) { e.preventDefault(); W.Router.go(SECTIONS[k]); return; }
     if (mod || e.altKey) return;
 
@@ -111,6 +114,7 @@ window.Whider = window.Whider || {};
 
     var screen = W.Screens[S().activeScreen];
     if (screen && screen.key && screen.key(e)) { e.preventDefault(); return; }
+    if (W.Select && W.Select.key(e)) { e.preventDefault(); return; }
     if (taskKeys(e)) e.preventDefault();
   }
 
@@ -118,16 +122,22 @@ window.Whider = window.Whider || {};
     var K = W.Layout.keys;
     return [
       { title: 'General', rows: [
-        ['Nueva tarea', ['N']], ['Buscar tareas y acciones', [K('K'), '/']], ['Hoy · Tareas · Calendario · Enfoque', ['1', '2', '3', '4']],
+        ['Nueva tarea', ['N']], ['Buscar tareas y acciones', [K('K'), '/']], ['Hoy · Tareas · Calendario', ['1', '2', '3']],
+        ['Hábitos · Apuntes · Enfoque', ['4', '5', '6']], ['Estadísticas · Informes · Sistemas', ['7', '8', '9']],
         ['Perfil y resumen', ['P']], ['Ajustes', [K(',')]], ['Atajos de teclado', ['?']], ['Cerrar o volver', ['Esc']]
       ] },
-      { title: 'En una lista de tareas', rows: [
+      { title: 'En una página de tareas', rows: [
         ['Moverse entre tareas', ['↑', '↓']], ['Completar o desmarcar', ['Espacio']], ['Abrir el editor', ['Intro']],
-        ['Eliminar', ['Supr']], ['Más opciones', null, 'Clic derecho'], ['Mover a otra lista o a hoy', null, 'Arrástrala a la barra lateral']
+        ['Eliminar', ['Supr']], ['Más opciones', null, 'Clic derecho'], ['Cambiar de categoría o pasar a hoy', null, 'Arrástrala a la barra lateral']
+      ] },
+      { title: 'Varias tareas a la vez', rows: [
+        ['Añadir o quitar de la selección', [K('clic')]], ['Seleccionar un tramo', ['Mayús', 'clic']], ['Seleccionar todas', [K('A')]],
+        ['Completar las seleccionadas', ['Espacio']], ['Eliminar las seleccionadas', ['Supr']], ['Quitar la selección', ['Esc']],
+        ['Mover todas a otra categoría o día', null, 'Arrastra cualquiera de ellas']
       ] },
       { title: 'En el calendario', rows: [
-        ['Anterior y siguiente', ['←', '→']], ['Ir a hoy', ['T']], ['Mes · semana · agenda', ['M', 'S', 'A']],
-        ['Cambiar de día o de hora una tarea', null, 'Arrástrala']
+        ['Anterior y siguiente', ['←', '→']], ['Ir a hoy', ['T']], ['Mes · semana · día · agenda', ['M', 'S', 'D', 'A']],
+        ['Cambiar de día o de hora una tarea', null, 'Arrástrala'], ['Cambiar la duración', null, 'Estira el bloque por abajo']
       ] },
       { title: 'Al escribir una tarea', rows: [
         ['Guardar', [K('Intro')]], ['Añadir y seguir escribiendo', ['Intro']], ['Cerrar', ['Esc']]

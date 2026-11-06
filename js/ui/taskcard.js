@@ -67,7 +67,7 @@ window.Whider = window.Whider || {};
         items.push({ value: 'tomorrow', label: 'Para mañana', icon: 'calendar', on: t.date === U.addDays(td, 1) });
         items.push({ value: 'monday', label: 'Para el lunes', desc: U.fmtLong(next), icon: 'week', on: t.date === next });
         items.push({ value: 'prio', label: 'Prioridad…', icon: 'flag', gap: true });
-        items.push({ value: 'list', label: 'Mover a otra lista…', icon: 'list' });
+        items.push({ value: 'list', label: 'Cambiar de categoría…', icon: 'list' });
         items.push({ value: 'focus', label: 'Enfocarme en esta tarea', icon: 'target' });
       }
       items.push({ value: 'delete', label: 'Eliminar', icon: 'trash', destructive: true, gap: true });
@@ -81,7 +81,7 @@ window.Whider = window.Whider || {};
         else if (v === 'monday') st.updateTask(id, { date: next });
         else if (v === 'prio') again(W.Editor.PRIO_OPTS.map(function (o) { return { value: o.value, label: o.label, prio: o.value, on: o.value === t.highlight }; }))
           .then(function (h) { if (h) st.updateTask(id, { highlight: h }); });
-        else if (v === 'list') again([{ value: '', label: 'Sin lista', on: !t.listId }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, icon: 'list', on: l.id === t.listId }; })))
+        else if (v === 'list') again([{ value: '', label: 'Sin categoría', on: !t.listId }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, icon: W.Lists.icon(l), on: l.id === t.listId }; })))
           .then(function (l) { if (l !== undefined) st.updateTask(id, { listId: l || null }); });
         else if (v === 'focus') { W.Screens.focus.linkTask(id); W.Router.go('focus'); }
         else if (v === 'delete') Actions.confirmRemove(id);
@@ -89,18 +89,51 @@ window.Whider = window.Whider || {};
     }
   };
 
-  /** Arrastrar con el ratón (ordenador): se suelta en una lista, en «Hoy» o en un día del calendario */
+  /**
+   * Arrastrar con el ratón (ordenador): se suelta en una categoría, en «Hoy» o en un día del calendario.
+   * Si la tarea está seleccionada junto a otras, se mueven todas.
+   */
   function attachDragDrop(node, t) {
     node.draggable = true;
     node.addEventListener('dragstart', function (e) {
       if (!e.dataTransfer) return;
-      e.dataTransfer.setData(W.Sidebar.DRAG_TYPE, t.id);
-      e.dataTransfer.setData('text/plain', t.text);
+      var many = W.Select && W.Select.has(t.id) && W.Select.count() > 1 ? W.Select.ids() : null;
+      e.dataTransfer.setData(W.Sidebar.DRAG_TYPE, many ? many.join(',') : t.id);
+      e.dataTransfer.setData('text/plain', many ? many.length + ' tareas' : t.text);
       e.dataTransfer.effectAllowed = 'move';
-      node.classList.add('drag-src');
+      if (many) {
+        // Imagen de arrastre con el número de tareas
+        var ghost = U.el('div.drag-ghost', { text: U.plural(many.length, 'tarea', 'tareas') });
+        document.body.appendChild(ghost);
+        try { e.dataTransfer.setDragImage(ghost, 16, 16); } catch (err) { /* sin imagen propia */ }
+        setTimeout(function () { if (ghost.parentNode) ghost.parentNode.removeChild(ghost); }, 0);
+        U.$$('.task.selected').forEach(function (li) { li.classList.add('drag-src'); });
+      } else node.classList.add('drag-src');
       requestAnimationFrame(function () { document.body.classList.add('dnd'); });
     });
-    node.addEventListener('dragend', function () { node.classList.remove('drag-src'); document.body.classList.remove('dnd'); });
+    node.addEventListener('dragend', function () {
+      U.$$('.task.drag-src').forEach(function (li) { li.classList.remove('drag-src'); });
+      document.body.classList.remove('dnd');
+    });
+  }
+
+  /** Menú del botón derecho con varias tareas seleccionadas */
+  function bulkMenu(at) {
+    var n = W.Select.count();
+    W.Menu.open(at, [
+      { value: 'complete', label: 'Completar las ' + n, icon: 'check' },
+      { value: 'today', label: 'Todas para hoy', icon: 'sun', gap: true },
+      { value: 'tomorrow', label: 'Todas para mañana', icon: 'calendar' },
+      { value: 'duplicate', label: 'Duplicar', icon: 'layers', gap: true },
+      { value: 'delete', label: 'Eliminar las ' + n, icon: 'trash', destructive: true, gap: true }
+    ], { title: U.plural(n, 'tarea seleccionada', 'tareas seleccionadas') }).then(function (v) {
+      var A = W.Select.actions, td = U.today();
+      if (v === 'complete') A.complete();
+      else if (v === 'today') A.apply({ date: td }, 'para hoy', 'sun');
+      else if (v === 'tomorrow') A.apply({ date: U.addDays(td, 1) }, 'para mañana', 'calendar');
+      else if (v === 'duplicate') A.duplicate();
+      else if (v === 'delete') A.remove();
+    });
   }
 
   /** Línea de detalles: "Mañana, 10:30 · Trabajo · 1/3 · ↻" (lo que no aporta, no se muestra) */
@@ -136,6 +169,7 @@ window.Whider = window.Whider || {};
     body.addEventListener('pointerdown', function (e) {
       // También se puede empezar a deslizar desde el círculo (un toque sin mover sigue completando)
       if (e.button > 0 || e.target.closest('button:not(.check)')) return;
+      if (W.Select && W.Select.active()) return;   // seleccionando no se desliza
       sx = e.clientX; sy = e.clientY; dx = 0; mode = 'pending'; id = e.pointerId;
     });
     body.addEventListener('pointermove', function (e) {
@@ -202,21 +236,37 @@ window.Whider = window.Whider || {};
       check, main,
       trail.length ? U.el('div.task-trail', trail) : null
     ]);
-    var node = U.el('li.task' + (t.done ? '.is-done' : '') + (S().isOverdue(t) ? '.overdue' : ''), { attrs: { 'data-id': t.id } }, [body]);
+    var node = U.el('li.task' + (t.done ? '.is-done' : '') + (S().isOverdue(t) ? '.overdue' : '') + (W.Select && W.Select.has(t.id) ? '.selected' : ''), { attrs: { 'data-id': t.id } }, [body]);
     body.setAttribute('tabindex', '-1');
-    node.addEventListener('contextmenu', function (e) { e.preventDefault(); Actions.menu(t.id, { x: e.clientX, y: e.clientY }); });
+    node.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+      // En el móvil, mantener pulsada una tarea empieza a seleccionar
+      if (!W.Layout.desktop) { W.Select.start(t.id); return; }
+      if (W.Select.has(t.id) && W.Select.count() > 1) { bulkMenu({ x: e.clientX, y: e.clientY }); return; }
+      Actions.menu(t.id, { x: e.clientX, y: e.clientY });
+    });
 
     var moved = function (e) { return node._down && Math.abs(e.clientX - node._down[0]) + Math.abs(e.clientY - node._down[1]) > 12; };
-    body.addEventListener('pointerdown', function (e) { node._down = [e.clientX, e.clientY]; }, true);
+    var lp = null;
+    body.addEventListener('pointerdown', function (e) {
+      node._down = [e.clientX, e.clientY];
+      // Pulsación larga con el dedo (en sistemas que no la avisan como menú contextual)
+      clearTimeout(lp);
+      if (e.pointerType === 'touch' && !W.Layout.desktop) lp = setTimeout(function () { if (!node.classList.contains('dragging')) W.Select.start(t.id); }, 560);
+    }, true);
+    body.addEventListener('pointermove', function (e) { if (lp && moved(e)) { clearTimeout(lp); lp = null; } });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) { body.addEventListener(ev, function () { clearTimeout(lp); lp = null; }); });
     check.addEventListener('click', function (e) {
       e.stopPropagation();
       if (moved(e)) return;
+      if (!W.Layout.desktop && W.Select.active()) { W.Select.toggle(t.id); return; }
       check.classList.toggle('on', !t.done);
       check.classList.remove('pop'); void check.offsetWidth; check.classList.add('pop');
       Actions.toggle(t.id, true);
     });
     body.addEventListener('click', function (e) {
       if (node._swiped || moved(e)) return;
+      if (W.Select && W.Select.click(e, t.id)) return;
       W.Editor.open(t.id);
     });
     // Con ratón se arrastra a otro sitio; con el dedo se desliza para completar o eliminar

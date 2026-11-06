@@ -40,7 +40,7 @@ window.Whider = window.Whider || {};
     /**
      * open(anchor, items, { title }) → Promise con el valor elegido (o undefined).
      * anchor: el botón que lo abre o un punto { x, y } de la pantalla.
-     * items: [{ value, label, desc, icon, prio, on, destructive, gap }]  (prio: barras de prioridad)
+     * items: [{ value, label, desc, icon, prio, on, destructive, gap, disabled }]  (prio: barras de prioridad)
      */
     open: function (anchor, items, opts) {
       opts = opts || {};
@@ -59,6 +59,7 @@ window.Whider = window.Whider || {};
             U.el('span.mi-label', [it.label, it.desc ? U.el('span.mi-desc', { text: it.desc }) : null]),
             trail
           ]);
+          if (it.disabled) b.disabled = true;
           b.addEventListener('click', function (e) { e.stopPropagation(); chosen = it.value; api.close(); });
           menu.appendChild(b);
         });
@@ -70,7 +71,7 @@ window.Whider = window.Whider || {};
         menu.addEventListener('keydown', function (e) {
           if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return;
           e.preventDefault();
-          var items = U.$$('.menu-item', menu), i = items.indexOf(document.activeElement);
+          var items = U.$$('.menu-item:not(:disabled)', menu), i = items.indexOf(document.activeElement);
           if (!items.length) return;
           i = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : e.key === 'ArrowDown' ? (i + 1) % items.length : (i <= 0 ? items.length - 1 : i - 1);
           items[i].focus();

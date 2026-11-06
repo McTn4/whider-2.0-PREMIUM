@@ -16,6 +16,9 @@ window.Whider = window.Whider || {};
     html.setAttribute('data-text', cfg.textSize);
     html.setAttribute('data-density', cfg.density);
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
+    html.setAttribute('data-contrast', cfg.contrast === 'high' ? 'high' : 'normal');
+    // Personalización avanzada (ordenador, Premium): contenido a todo el ancho
+    html.setAttribute('data-wide', cfg.desk && cfg.desk.wide && W.Plan && W.Plan.isPremium() ? 'true' : 'false');
     // El tamaño de texto se aplica antes de pintar en el siguiente arranque
     try { localStorage.setItem('whider.ui', JSON.stringify({ t: cfg.textSize })); } catch (e) { /* opcional */ }
     W.Profile.refreshAll();
@@ -52,7 +55,9 @@ window.Whider = window.Whider || {};
    * En el ordenador, Escape no cambia de sección: solo cierra y vuelve dentro de la sección.
    */
   function handleBack(opts) {
+    if (W.Character && W.Character.dismiss()) return true;
     if (W.Sheet.closeTop()) return true;
+    if (W.Select && W.Select.active()) { W.Select.clear(); return true; }
     if (W.AuthScreen.isOpen()) return W.AuthScreen.back();
     if (W.Onboarding.isOpen()) return W.Onboarding.back();
     var cur = W.Screens[S.activeScreen];
@@ -87,18 +92,33 @@ window.Whider = window.Whider || {};
     if (s.todayTotal > 0 && s.todayDone === s.todayTotal && S.meta.celebrated !== U.today()) {
       S.setMeta('celebrated', U.today());
       W.Audio.celebrate();
+      W.Character.party(6000);
       W.Toast.show({ text: 'Día completado. Todo lo de hoy está hecho.', type: 'success', icon: 'check', duration: 3500 });
+      W.Router.refresh();
     }
   }
 
+  /**
+   * Logros nuevos (aviso y fecha) y subidas de nivel (celebración con el personaje).
+   * En silencio al abrir la app: así no se avisa de lo que se consiguió en otro dispositivo.
+   */
   function checkAchievements(silent) {
     var seen = S.meta.seenAchievements.slice(), fresh = [];
     S.achievements().forEach(function (a) { if (a.ok && seen.indexOf(a.id) < 0) { seen.push(a.id); fresh.push(a); } });
-    if (!fresh.length) return;
-    S.setMeta('seenAchievements', seen);
+    fresh.forEach(function (a) { S.achieved(a.id); });
+    if (fresh.length) S.setMeta('seenAchievements', seen);
+    var g = W.Game.get(), lastLevel = S.meta.levelSeen || 0;
+    var levelUp = g.level > lastLevel;
+    if (levelUp) S.setMeta('levelSeen', g.level);
     if (silent) return;
+    if (levelUp && lastLevel) { setTimeout(function () { W.Character.levelUp(g.level); }, 500); return; }
+    var big = fresh.filter(function (a) { return a.tier >= 2; })[0];
+    if (big) {
+      setTimeout(function () { W.Character.celebrate({ kicker: 'Logro conseguido', title: big.title, text: U.cap(big.desc) + ' · +' + big.xp + ' XP' }); }, 500);
+      return;
+    }
     fresh.slice(0, 2).forEach(function (a, i) {
-      setTimeout(function () { W.Toast.show({ text: 'Logro conseguido: ' + a.title, type: 'success', icon: a.icon, duration: 3500 }); W.Audio.vibrate([12]); }, 600 + i * 900);
+      setTimeout(function () { W.Toast.show({ text: 'Logro conseguido: ' + a.title + ' · +' + a.xp + ' XP', type: 'success', icon: a.icon, duration: 3500 }); W.Audio.achievement(); W.Audio.vibrate([12]); }, 600 + i * 900);
     });
   }
 
@@ -201,6 +221,9 @@ window.Whider = window.Whider || {};
       else if (cmd === 'settings') { if (!W.Settings.isOpen()) W.Settings.open(); }
       else if (cmd === 'shortcuts') W.Keys.help();
       else if (cmd === 'focus-toggle') W.Screens.focus.toggle();
+      else if (cmd === 'new-note') W.Notes.open(null);
+      else if (cmd === 'report-pdf') { W.Router.go('reports'); setTimeout(function () { if (W.Screens.reports.pdf) W.Screens.reports.pdf(); }, 350); }
+      else if (cmd === 'data') { if (!W.Settings.isOpen()) W.Settings.open('data'); }
       else if (cmd.indexOf('go:') === 0) W.Router.go(cmd.slice(3));
     });
   }
@@ -210,16 +233,22 @@ window.Whider = window.Whider || {};
     applyAppearance();
 
     S.subscribe(function (reason) {
-      if (/^settings|^profile/.test(reason)) applyAppearance();
+      if (/^settings|^profile|^plan/.test(reason)) applyAppearance();
       W.Router.refresh();
       W.Notify.emitBadge();
       if (reason === 'done' || reason === 'focus') scheduleLateWork(reason);
+      else if (reason === 'habit' || reason === 'notes' || reason === 'habits' || reason === 'social' || reason === 'filters' || reason === 'rules') scheduleLateWork('focus');
+      if (reason === 'sync') W.Screens.focus.adoptRemote();
       if (reason === 'purge') setTimeout(function () { W.Sync.schedule(); }, 0);
       else if (reason !== 'sync') W.Sync.schedule();
     });
 
     W.Keys.init();
     W.Sidebar.init();
+    W.Auto.init();
+    W.Plan.check();
+    W.Friends.init();
+    W.Devices.init();
     // Al pasar de móvil a ordenador (o al revés) se vuelve a pintar con el otro diseño
     W.Layout.onChange(function () { W.Menu.close(); W.Router.refresh(); W.Sidebar.refresh(); });
     initDesktopApp();

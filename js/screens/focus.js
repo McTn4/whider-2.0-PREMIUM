@@ -26,6 +26,18 @@ window.Whider.Screens = window.Whider.Screens || {};
     return Object.assign({ mode: 'work', running: false, endAt: 0, remaining: null, round: 1, taskId: null }, d || {});
   }
   function persist() { try { localStorage.setItem(KEY, JSON.stringify(T)); } catch (e) { /* sin espacio */ } }
+  /** Guarda y lo comparte con tus otros dispositivos (Premium: gestionar el ordenador desde el móvil) */
+  function share() { T.at = Date.now(); persist(); if (W.Devices) W.Devices.shareFocus(T); }
+  /** Llega un enfoque más reciente desde otro dispositivo: se adopta */
+  function adoptRemote() {
+    var f = W.Devices ? W.Devices.remoteFocus(T.at || 0) : null;
+    if (!f) return;
+    T.mode = f.mode; T.running = f.running; T.endAt = f.endAt; T.remaining = f.remaining; T.round = f.round; T.taskId = f.taskId; T.at = f.at;
+    persist();
+    if (T.running) ensureTick();
+    update();
+    W.Toast.show({ text: 'Enfoque ' + (T.running ? 'en marcha' : 'en pausa') + ' desde otro dispositivo', icon: 'phone' });
+  }
   function duration(mode) { var f = S().settings.focus; return (mode === 'work' ? f.work : mode === 'short' ? f.short : f.long) * 60000; }
   function remaining() {
     if (T.running) return Math.max(0, T.endAt - Date.now());
@@ -35,20 +47,20 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   function setMode(mode, keepStopped) {
     T.mode = mode; T.running = false; T.remaining = null; T.endAt = 0;
-    persist();
+    share();
     if (!keepStopped) update();
   }
 
   function start() {
     T.endAt = Date.now() + remaining();
     T.running = true; T.remaining = null;
-    persist(); ensureTick(); W.Audio.vibrate([12]); update();
+    share(); ensureTick(); W.Audio.vibrate([12]); update();
   }
   function pause() {
     T.remaining = remaining(); T.running = false;
-    persist(); W.Audio.vibrate([12]); update();
+    share(); W.Audio.vibrate([12]); update();
   }
-  function reset() { T.running = false; T.remaining = null; persist(); update(); }
+  function reset() { T.running = false; T.remaining = null; share(); update(); }
 
   function complete() {
     var st = S(), f = st.settings.focus, was = T.mode;
@@ -66,7 +78,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       T.mode = 'work';
     }
     W.Audio.bell(); W.Audio.vibrate([80, 60, 80, 60, 160]);
-    persist();
+    share();
     if (f.autoBreaks && (was === 'work' || T.mode !== 'work')) start(); else update();
   }
 
@@ -74,7 +86,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (tickId) return;
     tickId = setInterval(function () {
       if (!T.running) { clearInterval(tickId); tickId = null; return; }
-      if (remaining() <= 0) complete(); else { paint(); if (W.Sidebar) W.Sidebar.tick(); }
+      if (remaining() <= 0) complete(); else { paint(); if (W.Sidebar) W.Sidebar.tick(); if (W.Screens.home && W.Screens.home.tick) W.Screens.home.tick(); }
     }, 250);
   }
 
@@ -89,6 +101,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   function update() {
     if (W.Sidebar) W.Sidebar.refresh();
+    if (W.State.activeScreen === 'home' && W.Layout.desktop) W.Router.refresh();
     var root = document.getElementById('screen-focus');
     if (root && W.State.activeScreen === 'focus') W.Screens.focus.render(root);
     else if (!T.running) document.title = 'WHIDER';
@@ -109,7 +122,9 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   W.Screens.focus = {
     title: 'Enfoque',
-    linkTask: function (id) { T.taskId = id; if (!T.running) setMode('work', true); persist(); update(); },
+    linkTask: function (id) { T.taskId = id; if (!T.running) setMode('work', true); share(); update(); },
+    /** Llamado al sincronizar: adopta el enfoque de otro dispositivo si es más reciente */
+    adoptRemote: adoptRemote,
     /** Estado para la barra lateral y la paleta de comandos */
     status: function () { return { running: T.running, mode: T.mode, label: MODES[T.mode].label, text: fmt(remaining()) }; },
     /** Empezar o pausar desde fuera de la pantalla (atajo, paleta, menú de la bandeja) */
@@ -154,7 +169,8 @@ window.Whider.Screens = window.Whider.Screens || {};
         footer: today.sessions ? 'Hoy: ' + today.min + ' min de enfoque en ' + U.plural(today.sessions, 'sesión', 'sesiones') + '.' : 'Aún no has hecho ninguna sesión hoy.'
       });
 
-      var inner = W.UI.mount(root, head, [seg, U.el('div.focus-stage', [ring]), dots, controls, opts]);
+      var buddy = W.Character.node({ size: 58, mood: T.running && T.mode === 'work' ? 'focus' : T.running ? 'happy' : 'happy', bubble: false, cls: 'focus-buddy' });
+      var inner = W.UI.mount(root, head, [seg, U.el('div.focus-stage', [ring, buddy]), dots, controls, opts]);
       inner.className = 'inner focus mode-' + T.mode + (T.running ? ' running' : '');
       ui = { time: time, ring: ring };
       if (T.running) ensureTick();

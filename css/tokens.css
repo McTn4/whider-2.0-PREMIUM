@@ -2,18 +2,17 @@
    WHIDER · Tokens de diseño
    Blanco y negro. La profundidad sale de la luz: superficies apenas más claras
    que el fondo, sombras negras debajo y un brillo blanco contenido en lo activo.
-   Tipografía IBM Plex Sans (texto) e IBM Plex Mono (cifras, horas y fechas).
+   Tipografía Hanken Grotesk: una grotesca neutra (de la familia de Arial y Helvetica),
+   con todas las cifras del mismo ancho, así horas y contadores no se mueven.
    ========================================================================== */
 @font-face {
-  font-family: 'Plex';
-  src: url('../fonts/ibm-plex-sans-latin-wght-normal.woff2') format('woff2-variations'),
-       url('../fonts/ibm-plex-sans-latin-wght-normal.woff2') format('woff2');
-  font-weight: 100 700;
+  font-family: 'Hanken Grotesk';
+  src: url('../fonts/hanken-grotesk-latin-wght-normal.woff2') format('woff2-variations'),
+       url('../fonts/hanken-grotesk-latin-wght-normal.woff2') format('woff2');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
-@font-face { font-family: 'Plex Mono'; src: url('../fonts/ibm-plex-mono-latin-400-normal.woff2') format('woff2'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Plex Mono'; src: url('../fonts/ibm-plex-mono-latin-500-normal.woff2') format('woff2'); font-weight: 500 700; font-display: swap; }
 
 :root {
   color-scheme: dark;
@@ -86,8 +85,8 @@
   --glow-soft: 0 0 16px -8px rgba(255, 255, 255, .35);
 
   /* Tipografía */
-  --font: 'Plex', 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
-  --mono: 'Plex Mono', 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font: 'Hanken Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono: var(--font);   /* las cifras ya tienen ancho fijo en esta fuente */
   --fs-large: 1.75rem;    /* 28 */
   --fs-title2: 1.375rem;  /* 22 */
   --fs-title3: 1.125rem;  /* 18 */

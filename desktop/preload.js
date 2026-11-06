@@ -20,6 +20,11 @@ contextBridge.exposeInMainWorld('WhiderDesktop', {
   showWindow: function () { ipcRenderer.send('whider:show-window'); },
   setBadge: function (n) { ipcRenderer.send('whider:set-badge', n | 0); },
   openExternal: function (url) { ipcRenderer.send('whider:open-external', String(url)); },
-  /** Órdenes del menú y de la bandeja: 'new-task', 'search', 'settings', 'shortcuts', 'focus-toggle', 'go:home'… */
+  /** Guarda un archivo donde elija el usuario → { ok, path } · kind: 'csv' | 'json' | 'txt' */
+  saveFile: function (name, content, kind) { return ipcRenderer.invoke('whider:save-file', String(name), String(content), String(kind)); },
+  /** Guarda la vista actual (el informe) como PDF → { ok, path } */
+  printToPDF: function (name) { return ipcRenderer.invoke('whider:print-pdf', String(name)); },
+  showFile: function (file) { ipcRenderer.send('whider:show-file', String(file)); },
+  /** Órdenes del menú y de la bandeja: 'new-task', 'search', 'settings', 'shortcuts', 'focus-toggle', 'report-pdf', 'data', 'go:home'… */
   onCommand: function (fn) { if (typeof fn === 'function') listeners.push(fn); }
 });

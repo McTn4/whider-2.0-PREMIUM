@@ -2,7 +2,7 @@
  * WHIDER · Service Worker: funciona sin conexión y se actualiza solo
  * (estrategia "red primero" con respaldo en caché).
  */
-var CACHE_NAME = 'whider-v5.0.0';
+var CACHE_NAME = 'whider-v6.0.0';
 var ASSETS = [
   './',
   './index.html',
@@ -11,9 +11,7 @@ var ASSETS = [
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
   './icons/icon.svg',
-  './fonts/ibm-plex-mono-latin-400-normal.woff2',
-  './fonts/ibm-plex-mono-latin-500-normal.woff2',
-  './fonts/ibm-plex-sans-latin-wght-normal.woff2',
+  './fonts/hanken-grotesk-latin-wght-normal.woff2',
   './css/components.css',
   './css/desktop.css',
   './css/layout.css',
@@ -22,8 +20,12 @@ var ASSETS = [
   './js/app.js',
   './js/config.js',
   './js/router.js',
+  './js/ui/character.js',
+  './js/ui/charts.js',
   './js/ui/controls.js',
+  './js/ui/devices.js',
   './js/ui/editor.js',
+  './js/ui/filters.js',
   './js/ui/fx.js',
   './js/ui/keys.js',
   './js/ui/layout.js',
@@ -31,6 +33,7 @@ var ASSETS = [
   './js/ui/palette.js',
   './js/ui/profile.js',
   './js/ui/quickadd.js',
+  './js/ui/select.js',
   './js/ui/sheet.js',
   './js/ui/sidebar.js',
   './js/ui/taskcard.js',
@@ -38,20 +41,32 @@ var ASSETS = [
   './js/vendor/firebase.js',
   './js/core/audio.js',
   './js/core/auth.js',
+  './js/core/automations.js',
+  './js/core/game.js',
+  './js/core/habits.js',
   './js/core/notify.js',
   './js/core/parse.js',
+  './js/core/plan.js',
   './js/core/records.js',
+  './js/core/stats.js',
   './js/core/store.js',
   './js/core/sync.js',
   './js/core/util.js',
   './js/screens/auth.js',
+  './js/screens/automations.js',
   './js/screens/calendar.js',
   './js/screens/focus.js',
+  './js/screens/friends.js',
+  './js/screens/habits.js',
   './js/screens/home.js',
+  './js/screens/notes.js',
   './js/screens/onboarding.js',
+  './js/screens/plans.js',
   './js/screens/progress.js',
   './js/screens/records.js',
+  './js/screens/reports.js',
   './js/screens/settings.js',
+  './js/screens/stats.js',
   './js/screens/tasks.js'
 ];
 

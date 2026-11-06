@@ -8,9 +8,10 @@
  *  - Bandeja del sistema: al cerrar la ventana, WHIDER sigue abierta para avisarte de tus
  *    tareas (se puede desactivar en Ajustes → Ordenador). También puede abrirse al iniciar.
  *  - Google: el acceso se completa en el navegador del ordenador (ver lib/google.js).
+ *  - Informes en PDF y exportaciones (CSV, JSON, texto) se guardan donde elijas.
  */
 'use strict';
-const { app, BrowserWindow, protocol, ipcMain, Menu, Tray, nativeImage, shell, nativeTheme, Notification, screen } = require('electron');
+const { app, BrowserWindow, protocol, ipcMain, Menu, Tray, nativeImage, shell, nativeTheme, Notification, screen, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -158,6 +159,8 @@ function createTray() {
     { label: 'Nueva tarea', click: function () { command('new-task'); } },
     { label: 'Buscar', click: function () { command('search'); } },
     { type: 'separator' },
+    { label: 'Hábitos de hoy', click: function () { command('go:habits'); } },
+    { label: 'Nuevo apunte', click: function () { command('new-note'); } },
     { label: 'Empezar o pausar el enfoque', click: function () { command('focus-toggle', false); } },
     { type: 'separator' },
     { label: 'Salir de WHIDER', click: quit }
@@ -178,6 +181,9 @@ function buildMenu() {
     { label: 'Nueva tarea', accelerator: 'CmdOrCtrl+N', click: function () { command('new-task'); } },
     { label: 'Buscar…', click: function () { command('search'); } },
     { type: 'separator' },
+    { label: 'Informe en PDF…', accelerator: 'CmdOrCtrl+P', click: function () { command('report-pdf'); } },
+    { label: 'Importar o exportar tareas…', click: function () { command('data'); } },
+    { type: 'separator' },
     IS_MAC ? { role: 'close', label: 'Cerrar ventana' } : { label: 'Salir de WHIDER', accelerator: 'Ctrl+Q', click: quit }
   ] });
   template.push({ label: 'Edición', submenu: [
@@ -185,7 +191,8 @@ function buildMenu() {
     { role: 'cut', label: 'Cortar' }, { role: 'copy', label: 'Copiar' }, { role: 'paste', label: 'Pegar' }, { role: 'selectAll', label: 'Seleccionar todo' }
   ] });
   template.push({ label: 'Ver', submenu: [
-    go('Hoy', 'home', '1'), go('Tareas', 'tasks', '2'), go('Calendario', 'calendar', '3'), go('Enfoque', 'focus', '4'), { type: 'separator' },
+    go('Hoy', 'home', '1'), go('Tareas', 'tasks', '2'), go('Calendario', 'calendar', '3'), go('Hábitos', 'habits', '4'), go('Apuntes', 'notes', '5'), go('Enfoque', 'focus', '6'), { type: 'separator' },
+    go('Estadísticas', 'stats', '7'), go('Informes', 'reports', '8'), go('Sistemas', 'automations', '9'), { label: 'Amigos', click: function () { command('go:friends'); } }, { type: 'separator' },
     { role: 'resetZoom', label: 'Tamaño real' }, { role: 'zoomIn', label: 'Ampliar' }, { role: 'zoomOut', label: 'Reducir' }, { type: 'separator' },
     { role: 'togglefullscreen', label: 'Pantalla completa' }
   ] });
@@ -232,6 +239,47 @@ ipcMain.handle('whider:set-setting', function (_e, key, value) {
   else if (key === 'closeToTray') prefs.set('closeToTray', !!value);
   return true;
 });
+/* ---------- Guardar archivos: exportaciones e informes en PDF ---------- */
+const SAVE_KINDS = {
+  csv: { name: 'CSV (hoja de cálculo)', extensions: ['csv'] },
+  json: { name: 'JSON', extensions: ['json'] },
+  txt: { name: 'Texto', extensions: ['txt'] },
+  md: { name: 'Markdown', extensions: ['md'] },
+  ics: { name: 'Calendario (iCalendar)', extensions: ['ics'] },
+  pdf: { name: 'PDF', extensions: ['pdf'] }
+};
+function safeName(name, ext) {
+  const base = String(name || 'whider').replace(/[\\/:*?"<>|]+/g, '-').slice(0, 80) || 'whider';
+  return base.toLowerCase().endsWith('.' + ext) ? base : base + '.' + ext;
+}
+/** Pregunta dónde guardar (en las pruebas, directamente en la carpeta de datos) */
+function askPath(name, kind) {
+  const file = safeName(name, kind);
+  if (E2E) {
+    const dir = path.join(app.getPath('userData'), 'exports');
+    fs.mkdirSync(dir, { recursive: true });
+    return Promise.resolve(path.join(dir, file));
+  }
+  return dialog.showSaveDialog(win, { defaultPath: path.join(app.getPath('documents'), file), filters: [SAVE_KINDS[kind]] })
+    .then(function (r) { return r.canceled || !r.filePath ? null : r.filePath; });
+}
+ipcMain.handle('whider:save-file', function (_e, name, content, kind) {
+  kind = SAVE_KINDS[kind] ? kind : 'txt';
+  return askPath(name, kind).then(function (file) {
+    if (!file) return { ok: false, canceled: true };
+    return fs.promises.writeFile(file, String(content), 'utf8').then(function () { return { ok: true, path: file }; });
+  }).catch(function (e) { return { ok: false, error: String(e && e.message || e) }; });
+});
+ipcMain.handle('whider:print-pdf', function (_e, name) {
+  if (!win) return { ok: false };
+  return askPath(name, 'pdf').then(function (file) {
+    if (!file) return { ok: false, canceled: true };
+    return win.webContents.printToPDF({ printBackground: false, pageSize: 'A4', margins: { marginType: 'default' } })
+      .then(function (buf) { return fs.promises.writeFile(file, buf); })
+      .then(function () { return { ok: true, path: file }; });
+  }).catch(function (e) { return { ok: false, error: String(e && e.message || e) }; });
+});
+ipcMain.on('whider:show-file', function (_e, file) { if (file && !E2E) shell.showItemInFolder(String(file)); });
 ipcMain.on('whider:show-window', showWindow);
 ipcMain.on('whider:open-external', function (_e, url) { openExternal(url); });
 ipcMain.on('whider:set-badge', function (_e, n) {

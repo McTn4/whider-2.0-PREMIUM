@@ -18,6 +18,11 @@ window.Whider = window.Whider || {};
     { value: 180, label: '3 horas antes' },
     { value: 1440, label: '1 día antes' }
   ];
+  var DUR_OPTS = [
+    { value: 15, label: '15 min' }, { value: 30, label: '30 min' }, { value: 45, label: '45 min' }, { value: 60, label: '1 h' },
+    { value: 90, label: '1 h 30 min' }, { value: 120, label: '2 h' }, { value: 180, label: '3 h' }, { value: 240, label: '4 h' }
+  ];
+  function durLabel(v) { for (var i = 0; i < DUR_OPTS.length; i++) if (DUR_OPTS[i].value === v) return DUR_OPTS[i].label; return v ? (v >= 60 ? Math.floor(v / 60) + ' h' + (v % 60 ? ' ' + v % 60 + ' min' : '') : v + ' min') : 'Sin indicar'; }
   var PRIO_OPTS = [
     { value: 'none', label: 'Ninguna' },
     { value: 'star', label: 'Destacada' },
@@ -45,6 +50,8 @@ window.Whider = window.Whider || {};
   var Editor = {
     REMIND_OPTS: REMIND_OPTS,
     PRIO_OPTS: PRIO_OPTS,
+    DUR_OPTS: DUR_OPTS,
+    durLabel: durLabel,
     remindLabel: remindLabel,
 
     /** open(id) para editar · open(null, { date, listId }) para crear */
@@ -107,6 +114,10 @@ window.Whider = window.Whider || {};
       var timeSub = U.el('span.cell-sub.accent');
       var timeMain = U.el('span.cell-main', [U.el('span.cell-title', { text: 'Hora' }), timeSub, timeInput]);
       var timeRow = U.el('div.cell.has-icon.time-row', [W.UI.cellIcon('clock'), timeMain, timeTog]);
+      var durRow = W.UI.cell({ icon: 'timer', title: 'Duración', value: '', onTap: function (e, node) {
+        W.Menu.choose(node.querySelector('.cell-value'), { value: d.duration || null, options: [{ value: null, label: 'Sin indicar' }].concat(DUR_OPTS) })
+          .then(function (v) { if (v !== undefined) { d.duration = v; renderWhen(); } });
+      } });
 
       /* ----- Avisos y repetición ----- */
       var warnSub = U.el('span.cell-sub');
@@ -123,9 +134,9 @@ window.Whider = window.Whider || {};
       } });
 
       /* ----- Lista y prioridad ----- */
-      var listRow = W.UI.cell({ icon: 'list', title: 'Lista', value: '', onTap: function (e, node) {
-        var opts = [{ value: '', label: 'Sin lista' }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name }; }));
-        W.Sheet.choose({ anchor: node.querySelector('.cell-value'), title: 'Lista', value: d.listId || '', options: opts }).then(function (v) { if (v !== undefined) { d.listId = v || null; renderWhen(); } });
+      var listRow = W.UI.cell({ icon: 'list', title: 'Categoría', value: '', onTap: function (e, node) {
+        var opts = [{ value: '', label: 'Sin categoría' }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, icon: W.Lists.icon(l) }; }));
+        W.Sheet.choose({ anchor: node.querySelector('.cell-value'), title: 'Categoría', value: d.listId || '', options: opts }).then(function (v) { if (v !== undefined) { d.listId = v || null; renderWhen(); } });
       } });
       var prioBtns = PRIO_OPTS.map(function (o) {
         return U.el('button.prio-opt', { attrs: { 'aria-pressed': 'false' }, on: { click: function () {
@@ -148,13 +159,15 @@ window.Whider = window.Whider || {};
         timeInput.value = d.time || '';
         timeInput.style.display = d.time ? '' : 'none';
         timeRow.classList.toggle('tap', !!d.time);
+        durRow.style.display = d.time ? '' : 'none';
+        setValue(durRow, d.duration ? durLabel(d.duration) + (d.time ? ' · hasta las ' + U.fmtTime(U.pad(Math.floor((U.hmToMin(d.time) + d.duration) / 60) % 24) + ':' + U.pad((U.hmToMin(d.time) + d.duration) % 60)) : '') : 'Sin indicar');
         warnSub.textContent = !d.date && d.warn ? 'Elige una fecha para recibir avisos' : '';
         warnSub.style.display = warnSub.textContent ? '' : 'none';
         remindRow.style.display = d.warn && d.time ? '' : 'none';
         setValue(remindRow, remindLabel(typeof d.remindBefore === 'number' ? d.remindBefore : st.settings.remindBefore));
         setValue(repeatRow, d.repeat === 'none' ? 'Nunca' : st.REPEATS[d.repeat]);
         var l = d.listId ? st.getList(d.listId) : null;
-        setValue(listRow, l ? l.name : 'Sin lista');
+        setValue(listRow, l ? l.name : 'Sin categoría');
         prioBtns.forEach(function (b, i) { var on = PRIO_OPTS[i].value === d.highlight; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
       };
       renderWhen();
@@ -206,7 +219,7 @@ window.Whider = window.Whider || {};
 
       var body = [
         U.el('div.group.editor-fields', [U.el('label.cell', [title]), U.el('label.cell', [notes])]),
-        U.el('div.group', [dateRow, calRow, timeRow]),
+        U.el('div.group', [dateRow, calRow, timeRow, durRow]),
         U.el('div.group', [warnRow, remindRow, repeatRow]),
         U.el('div.group', [listRow, prioRow]),
         W.UI.section({ header: 'Subtareas', items: subGroup })

@@ -59,6 +59,13 @@ window.Whider = window.Whider || {};
         var s = screenFromHash();
         if (s && s !== W.State.activeScreen) Router.go(s);
       });
+      // Accesos directos de la app instalada: #new-task y #new-note
+      var h0 = (location.hash || '').replace(/^#\/?/, '');
+      if (h0 === 'new-task' || h0 === 'new-note') {
+        Router.go(initial || 'home', { initial: true });
+        setTimeout(function () { if (h0 === 'new-task') W.App.newTask(); else W.Notes.open(null); }, 700);
+        return;
+      }
       var first = screenFromHash();
       Router.go(first && first !== 'settings' ? first : (initial || 'home'), { initial: true });
       if (first === 'settings') setTimeout(function () { W.Settings.open(); }, 300);
@@ -80,6 +87,7 @@ window.Whider = window.Whider || {};
         return;
       }
       if (TABS[prev]) lastTab = prev;
+      if (W.Select) W.Select.clear(true);
       W.State.activeScreen = id;
       U.$$('.screen').forEach(function (s) {
         var on = s === root;
@@ -110,6 +118,7 @@ window.Whider = window.Whider || {};
 
     /** Animación de una página dentro de la pestaña actual ('push' o 'pop') */
     animate: function (kind) {
+      if (W.Select) W.Select.clear(true);
       var root = document.getElementById('screen-' + W.State.activeScreen);
       if (!root) return;
       root.classList.remove('scrolled');
@@ -130,6 +139,7 @@ window.Whider = window.Whider || {};
         W.Screens[id].render(root, false);
         root.scrollTop = y;
         if (W.Sidebar) W.Sidebar.refresh();
+        if (W.Select && W.Select.active()) W.Select.repaint();
       });
     }
   };

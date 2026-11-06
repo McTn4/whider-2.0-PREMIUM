@@ -33,7 +33,7 @@ input:focus-visible, textarea:focus-visible { outline: none; }
 ::selection { background: rgba(255, 255, 255, .28); }
 
 /* Cifras, horas y fechas en monoespaciada */
-.mono { font-family: var(--mono); font-weight: 400; letter-spacing: -.02em; }
+.mono { font-family: var(--mono); font-weight: 400; }
 
 /* Iconos de trazo (sprite propio, rejilla de 24) */
 .ic {

@@ -178,8 +178,12 @@ window.Whider = window.Whider || {};
 
     /** Estado vacío: icono gris, título y texto (y una acción opcional) */
     empty: function (icon, title, text, action, small) {
+      // «buddy:objeto» dibuja al personaje con ese objeto (café, brote, nota, lupa…)
+      var art = null;
+      if (icon && icon.indexOf('buddy:') === 0 && W.Character) { var p = icon.slice(6).split(':'); art = W.Character.illustration(p[0] || null, p[1] || 'happy', small ? 76 : 96); }
+      else if (icon) art = U.el('span.es-art', [U.icon(icon)]);
       return U.el('div.empty-state' + (small ? '.small' : ''), [
-        icon ? U.el('span.es-art', [U.icon(icon)]) : null,
+        art,
         U.el('strong', { text: title }),
         text ? U.el('span', { text: text }) : null,
         action || null

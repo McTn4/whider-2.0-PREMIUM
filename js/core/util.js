@@ -150,6 +150,28 @@ window.Whider = window.Whider || {};
       return h < 6 ? 'Buenas noches' : h < 13 ? 'Buenos días' : h < 21 ? 'Buenas tardes' : 'Buenas noches';
     },
 
+    /**
+     * Guarda un archivo: en la app de escritorio pregunta dónde; en el navegador lo descarga.
+     * kind: 'csv' · 'json' · 'txt' · 'ics' · 'md'
+     */
+    saveFile: function (name, text, kind) {
+      var MIME = { csv: 'text/csv', json: 'application/json', txt: 'text/plain', ics: 'text/calendar', md: 'text/markdown' };
+      var D = window.WhiderDesktop;
+      if (D && D.saveFile) {
+        return D.saveFile(name, text, kind).then(function (r) {
+          if (r && r.ok && W.Toast) W.Toast.show({ text: 'Guardado en ' + r.path.split(/[\\/]/).pop(), icon: 'download', action: D.showFile ? { label: 'Mostrar', fn: function () { D.showFile(r.path); } } : null });
+          return r;
+        });
+      }
+      var blob = new Blob([kind === 'csv' ? '\ufeff' + text : text], { type: (MIME[kind] || 'text/plain') + ';charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name + '.' + kind;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+      return Promise.resolve({ ok: true });
+    },
+
     uid: function (p) { return (p || 't') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
     clamp: function (v, a, b) { return Math.max(a, Math.min(b, v)); },
     debounce: function (fn, ms) {

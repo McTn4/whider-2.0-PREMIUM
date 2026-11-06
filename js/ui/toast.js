@@ -5,7 +5,7 @@ window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
-  var U = W.U, MAX = 2;
+  var U = W.U, MAX = 2, muted = false;
   var ICONS = { success: 'check', danger: 'alert', info: 'info' };
 
   function dismiss(node) {
@@ -17,8 +17,11 @@ window.Whider = window.Whider || {};
   }
 
   W.Toast = {
+    /** Mientras se aplica un cambio a muchas tareas, los avisos de cada una se callan (luego va uno solo) */
+    mute: function (on) { muted = !!on; },
     /** show({ text, type: 'success'|'danger'|'info', icon, action: { label, fn }, duration }) */
     show: function (o) {
+      if (muted) return null;
       if (typeof o === 'string') o = { text: o };
       var root = document.getElementById('toastRoot');
       if (!root) return null;

@@ -21,11 +21,24 @@ window.Whider = window.Whider || {};
       { icon: 'sun', label: 'Ir a Hoy', hint: '1', run: function () { W.Router.go('home'); } },
       { icon: 'tasks', label: 'Ir a Tareas', hint: '2', run: function () { W.Router.go('tasks'); } },
       { icon: 'calendar', label: 'Ir al Calendario', hint: '3', run: function () { W.Router.go('calendar'); } },
-      { icon: 'timer', label: 'Ir a Enfoque', hint: '4', run: function () { W.Router.go('focus'); } },
+      { icon: 'target', label: 'Ir a Hábitos', hint: '4', run: function () { W.Router.go('habits'); } },
+      { icon: 'notebook', label: 'Ir a Apuntes', hint: '5', run: function () { W.Router.go('notes'); } },
+      { icon: 'timer', label: 'Ir a Enfoque', hint: '6', run: function () { W.Router.go('focus'); } },
+      { icon: 'chart', label: 'Estadísticas', hint: '7', run: function () { W.Router.go('stats'); } },
+      { icon: 'print', label: 'Informes', hint: '8', run: function () { W.Router.go('reports'); } },
+      { icon: 'system', label: 'Sistemas y automatizaciones', hint: '9', run: function () { W.Router.go('automations'); } },
+      { icon: 'users', label: 'Amigos', run: function () { W.Router.go('friends'); } },
+      { icon: 'plus', label: 'Nuevo apunte', run: function () { W.Notes.open(null); } },
+      { icon: 'plus', label: 'Nuevo hábito', run: function () { W.HabitView.edit(null); } },
+      { icon: 'smile', label: 'Personalizar tu personaje', run: function () { W.Character.edit(); } },
+      { icon: 'gem', label: 'Planes y precios', run: function () { W.Plan.open(); } },
       { icon: focus.running ? 'pause' : 'play', label: focus.running ? 'Pausar el enfoque' : 'Empezar una sesión de enfoque', run: function () { W.Screens.focus.toggle(); } },
       { icon: 'user', label: 'Perfil y resumen', hint: 'P', run: function () { W.Router.go('progress'); } },
       { icon: 'trophy', label: 'Marcas personales', run: function () { W.Router.go('records'); } },
-      { icon: 'list', label: 'Nueva lista', run: function () { W.Lists.edit(null, function (l) { W.Sidebar && openList(l.id); }); } },
+      { icon: 'list', label: 'Nueva categoría', run: function () { W.Lists.edit(null, function (l) { W.Sidebar && openList(l.id); }); } },
+      { icon: 'filter', label: 'Nuevo filtro', run: function () { W.Filters.edit(null, function (f) { W.Sidebar.openView({ type: 'filter', id: f.id }); }); } },
+      { icon: 'layers', label: 'Importar o exportar tareas', run: function () { W.Settings.open('data'); } },
+      { icon: 'sliders', label: 'Personalización', run: function () { W.Settings.open('custom'); } },
       { icon: 'gear', label: 'Ajustes', hint: K(','), run: function () { W.Settings.open(); } },
       { icon: 'type', label: 'Atajos de teclado', hint: '?', run: function () { W.Keys.help(); } }
     ];
@@ -51,8 +64,8 @@ window.Whider = window.Whider || {};
     var st = S(), words = fold(q).split(/\s+/).filter(Boolean), groups = [];
     if (!words.length) {
       groups.push({ title: 'Acciones', items: actions() });
-      groups.push({ title: 'Listas', items: st.lists.map(function (l) {
-        return { icon: 'list', label: l.name, sub: U.plural(st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length, 'pendiente', 'pendientes'), run: function () { openList(l.id); } };
+      groups.push({ title: 'Categorías', items: st.lists.map(function (l) {
+        return { icon: W.Lists.icon(l), label: l.name, sub: U.plural(st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length, 'pendiente', 'pendientes'), run: function () { openList(l.id); } };
       }) });
       return groups;
     }
@@ -65,15 +78,26 @@ window.Whider = window.Whider || {};
       return { icon: t.done ? 'check' : 'note', label: t.text, sub: taskSub(st, t), done: t.done, run: function () { W.Editor.open(t.id); } };
     });
     var lists = st.lists.filter(function (l) { return matches(l.name, words); }).map(function (l) {
-      return { icon: 'list', label: l.name, sub: 'Lista', run: function () { openList(l.id); } };
+      return { icon: W.Lists.icon(l), label: l.name, sub: 'Categoría', run: function () { openList(l.id); } };
+    }).concat(st.filters.filter(function (f) { return matches(f.name, words); }).map(function (f) {
+      return { icon: 'filter', label: f.name, sub: 'Filtro', run: function () { W.Sidebar.openView({ type: 'filter', id: f.id }); } };
+    }));
+    var notes = st.notes.filter(function (n) { return matches(n.title + ' ' + n.body, words); }).slice(0, 6).map(function (n) {
+      return { icon: 'notebook', label: W.Notes.title(n), sub: 'Apunte · ' + U.fmtDay(U.ymd(new Date(n.updatedAt))), run: function () { W.Notes.open(n.id); } };
+    });
+    var habits = st.habits.filter(function (h) { return matches(h.name, words); }).map(function (h) {
+      var done = W.Habits.isDone(h, U.today());
+      return { icon: h.icon || 'target', label: h.name, sub: (h.archived ? 'Archivado · ' : '') + W.Habits.freqLabel(h) + (done ? ' · hecho hoy' : ''), run: function () { W.HabitView.open(h.id); } };
     });
     var acts = actions().filter(function (a) { return matches(a.label, words); });
     var create = { icon: 'plus', label: 'Crear «' + q.trim() + '»', sub: 'Nueva tarea con este texto', run: function () { createTask(q); } };
     if (tasks.length) groups.push({ title: 'Tareas', items: tasks });
-    if (lists.length) groups.push({ title: 'Listas', items: lists });
+    if (lists.length) groups.push({ title: 'Categorías y filtros', items: lists });
+    if (notes.length) groups.push({ title: 'Apuntes', items: notes });
+    if (habits.length) groups.push({ title: 'Hábitos', items: habits });
     if (acts.length) groups.push({ title: 'Acciones', items: acts });
     // Sin coincidencias, crear la tarea es lo primero (Intro la crea)
-    if (!tasks.length && !lists.length && !acts.length) groups.unshift({ title: 'Nueva tarea', items: [create] });
+    if (!tasks.length && !lists.length && !acts.length && !habits.length && !notes.length) groups.unshift({ title: 'Nueva tarea', items: [create] });
     else groups.push({ title: 'Nueva tarea', items: [create] });
     return groups;
   }
@@ -91,7 +115,7 @@ window.Whider = window.Whider || {};
 
     open: function (initial) {
       if (current) return current;
-      var input = U.el('input.pal-input', { attrs: { type: 'text', placeholder: 'Busca tareas, listas o acciones…', 'aria-label': 'Buscar', autocomplete: 'off', spellcheck: 'false' } });
+      var input = U.el('input.pal-input', { attrs: { type: 'text', placeholder: 'Busca tareas, categorías, apuntes o acciones…', 'aria-label': 'Buscar', autocomplete: 'off', spellcheck: 'false' } });
       input.value = initial || '';
       var results = U.el('div.pal-results', { attrs: { role: 'listbox' } });
       var flat = [], active = 0;

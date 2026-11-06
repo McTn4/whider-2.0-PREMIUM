@@ -9,7 +9,8 @@ window.Whider.Screens = window.Whider.Screens || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var lastPct = 0, showDone = false, MAX_OVERDUE = 5;
+  var lastPct = 0, showDone = false, MAX_OVERDUE = 5, focusTimeEl = null;
+  var WIDGETS = ['buddy', 'summary', 'habits', 'upcoming', 'focus'];
 
   function summary(s) {
     var pct = s.todayPct, from = lastPct;
@@ -56,6 +57,28 @@ window.Whider.Screens = window.Whider.Screens || {};
     ]);
   }
 
+  /** Ordenador: el enfoque a mano (empezar o pausar sin salir de Hoy) */
+  function focusCard(st) {
+    var f = W.Screens.focus.status(), today = st.focusOn(U.today());
+    focusTimeEl = U.el('span.fc-time', { text: f.text });
+    return U.el('div.group.card.side-card.focus-card' + (f.running ? '.running' : ''), [
+      U.el('div.card-head', [U.el('strong', { text: 'Enfoque' }),
+        U.el('button.link-btn.muted', { text: 'Abrir', on: { click: function () { W.Router.go('focus'); } } })]),
+      U.el('div.fc-row', [
+        U.el('div.fc-main', [focusTimeEl, U.el('small', { text: f.label + (today.sessions ? ' · hoy ' + today.min + ' min' : '') })]),
+        U.el('button.btn.sm' + (f.running ? '.ghost' : '.primary'), { attrs: { title: f.running ? 'Pausar' : 'Empezar' }, on: { click: function () { W.Screens.focus.toggle(); W.Router.refresh(); } } },
+          [U.icon(f.running ? 'pause' : 'play', 'sm'), f.running ? 'Pausar' : 'Empezar'])
+      ])
+    ]);
+  }
+
+  /** Orden de los bloques del lateral (Ajustes → Personalización) */
+  function widgetOrder(st) {
+    var order = String(st.settings.desk.widgetOrder || '').split(',').filter(function (k) { return WIDGETS.indexOf(k) >= 0; });
+    WIDGETS.forEach(function (k) { if (order.indexOf(k) < 0) order.push(k); });
+    return order;
+  }
+
   function permissionText(perm) {
     if (perm !== 'denied') return 'Para recibir los avisos de tus tareas';
     if (W.Layout.app) return 'Actívalas en la configuración de notificaciones del sistema';
@@ -64,6 +87,10 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   W.Screens.home = {
     title: 'Hoy',
+    WIDGETS: WIDGETS,
+    widgetOrder: widgetOrder,
+    /** Cada segundo con el enfoque en marcha: solo cambia el reloj de la tarjeta */
+    tick: function () { if (focusTimeEl && focusTimeEl.isConnected) focusTimeEl.textContent = W.Screens.focus.status().text; },
     render: function (root) {
       var st = S(), s = st.stats(), td = U.today(), desk = W.Layout.desktop;
       var name = st.displayName();
@@ -95,7 +122,7 @@ window.Whider.Screens = window.Whider.Screens || {};
           items: U.el('div', [W.TaskCard.list(recent, { ctx: 'alerts', postpone: true }), more]) }));
       }
 
-      var empty = U.el('div.group', [W.UI.empty(doneToday.length ? 'check' : 'sun',
+      var empty = U.el('div.group', [W.UI.empty(doneToday.length ? 'buddy:trophy:proud' : 'buddy:coffee',
         doneToday.length ? 'Todo hecho por hoy' : 'Nada pendiente',
         doneToday.length ? 'Has completado ' + U.plural(doneToday.length, 'tarea', 'tareas') + '.' : desk ? 'Escribe arriba para añadir algo a hoy.' : 'Añade lo que quieras hacer hoy.',
         doneToday.length || desk ? null : U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), 'Nueva tarea']), true)]);
@@ -117,16 +144,29 @@ window.Whider.Screens = window.Whider.Screens || {};
         main.push(host);
       }
 
+      if (!desk && st.settings.homeHabits) {
+        var hb = W.HabitView.today();
+        if (hb) main.push(hb);
+      }
+
       if (!desk && W.Tips.show('swipe') && (overdue.length || today.length)) {
         main.push(U.el('p.hint', { text: 'Desliza una tarea hacia la derecha para completarla o hacia la izquierda para eliminarla.' }));
       }
 
+      focusTimeEl = null;
       if (desk) {
-        side.push(summary(s));
-        side.push(upcoming(st));
-        W.UI.mount(root, head, [U.el('div.desk-cols', [U.el('div.desk-main', main), U.el('aside.desk-side', side)])]);
+        var widgets = st.settings.desk.widgets;
+        widgetOrder(st).forEach(function (k) {
+          if (widgets[k] === false) return;
+          if (k === 'buddy') side.push(W.Character.companion(true));
+          else if (k === 'summary') side.push(summary(s));
+          else if (k === 'habits') { var b = W.HabitView.today(); if (b) side.push(b); }
+          else if (k === 'upcoming') side.push(upcoming(st));
+          else if (k === 'focus') side.push(focusCard(st));
+        });
+        W.UI.mount(root, head, side.length ? [U.el('div.desk-cols', [U.el('div.desk-main', main), U.el('aside.desk-side', side)])] : [U.el('div.desk-solo', main)]);
       } else {
-        W.UI.mount(root, head, [summary(s)].concat(main));
+        W.UI.mount(root, head, (st.settings.homeBuddy ? [W.Character.companion(false)] : []).concat([summary(s)]).concat(main));
       }
     }
   };

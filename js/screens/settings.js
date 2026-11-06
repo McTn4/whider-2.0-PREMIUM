@@ -1,16 +1,17 @@
 /**
  * WHIDER · Ajustes: hoja con páginas (como los ajustes del sistema), abierta desde
- * la foto de perfil. Perfil y cuenta arriba; cada apartado abre su propia página.
+ * la foto de perfil. Perfil, cuenta y plan arriba; cada apartado abre su propia página:
+ * apariencia, personalización, personaje, sonidos, avisos, tareas, hábitos, enfoque y datos.
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '5.0';
+  var VERSION = '6.0';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
-    { value: 'focus', label: 'Enfoque' }
+    { value: 'habits', label: 'Hábitos' }, { value: 'notes', label: 'Apuntes' }, { value: 'focus', label: 'Enfoque' }
   ];
   var REWARN = [{ value: 0, label: 'Solo una vez' }, { value: 10, label: 'Cada 10 minutos' }, { value: 20, label: 'Cada 20 minutos' }, { value: 60, label: 'Cada hora' }];
   var TEXT = [{ value: 's', label: 'Pequeño' }, { value: 'm', label: 'Normal' }, { value: 'l', label: 'Grande' }, { value: 'xl', label: 'Enorme' }];
@@ -51,14 +52,22 @@ window.Whider = window.Whider || {};
         else W.Profile.edit(function () { nav.refresh(); });
       }
     });
+    var P = W.Plan, desk = W.Layout.desktop;
+    var planCell = W.UI.cell({ icon: 'gem', title: 'Plan', sub: P.status(), value: P.label(), onTap: function () { nav.close(); setTimeout(function () { P.open(); }, 200); } });
     return {
       title: 'Ajustes',
       body: [
-        U.el('div.group', [profileCell]),
+        U.el('div.group', [profileCell, planCell]),
         W.UI.group([
           W.UI.cell({ icon: 'type', title: 'Apariencia', value: 'Texto ' + labelOf(TEXT, cfg.textSize).toLowerCase(), onTap: function () { nav.push(appearancePage); } }),
-          W.UI.cell({ icon: 'tasks', title: 'Tareas y listas', onTap: function () { nav.push(tasksPage); } }),
-          W.UI.cell({ icon: 'bell', title: 'Avisos y sonido', onTap: function () { nav.push(alertsPage); } }),
+          W.UI.cell({ icon: 'palette', title: 'Personalización', value: desk ? (P.isPremium() ? 'Avanzada' : 'Premium') : 'Básica', onTap: function () { nav.push(customPage); } }),
+          W.UI.cell({ icon: 'smile', title: 'Tu personaje', value: W.Character.config().name, onTap: function () { nav.close(); setTimeout(function () { W.Character.edit(); }, 200); } }),
+          W.UI.cell({ icon: 'sound', title: 'Sonidos y vibración', value: cfg.sound ? 'Activados' : 'Desactivados', onTap: function () { nav.push(soundsPage); } }),
+          W.UI.cell({ icon: 'bell', title: 'Avisos', onTap: function () { nav.push(alertsPage); } })
+        ]),
+        W.UI.group([
+          W.UI.cell({ icon: 'tasks', title: 'Tareas y categorías', onTap: function () { nav.push(tasksPage); } }),
+          W.UI.cell({ icon: 'target', title: 'Hábitos', onTap: function () { nav.push(habitsPage); } }),
           W.UI.cell({ icon: 'timer', title: 'Enfoque', value: cfg.focus.work + ' min', onTap: function () { nav.push(focusPage); } }),
           W.UI.cell({ icon: 'home', title: 'Pantalla al abrir', value: labelOf(SCREENS, cfg.startScreen), onTap: function () { nav.push(startPage); } })
         ]),
@@ -68,9 +77,9 @@ window.Whider = window.Whider || {};
         ].filter(Boolean)) : null,
         W.UI.group([
           W.UI.cell({ icon: 'hand', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
-          W.UI.cell({ icon: 'shield', title: 'Datos', onTap: function () { nav.push(dataPage); } })
+          W.UI.cell({ icon: 'shield', title: 'Datos', sub: 'Copia de seguridad, importar y exportar', onTap: function () { nav.push(dataPage); } })
         ]),
-        U.el('p.version', [U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]), 'WHIDER ' + VERSION])
+        U.el('p.version', [U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]), 'WHIDER ' + VERSION + ' · ' + P.label()])
       ]
     };
   }
@@ -115,7 +124,9 @@ window.Whider = window.Whider || {};
         W.UI.section({ header: 'Tamaño del texto', items: U.el('div', [W.UI.segmented(TEXT, cfg.textSize, function (v) { set('textSize', v); })]) }),
         W.UI.section({ header: 'Densidad', items: U.el('div', [W.UI.segmented([{ value: 'comfortable', label: 'Cómoda' }, { value: 'compact', label: 'Compacta' }], cfg.density, function (v) { set('density', v); })]) }),
         W.UI.section({ items: [toggleCell({ title: 'Reducir movimiento', value: cfg.reduceMotion, onChange: function (v) { set('reduceMotion', v); } })],
-          footer: 'Quita las transiciones y animaciones de la interfaz.' })
+          footer: 'Quita las transiciones y animaciones de la interfaz.' }),
+        W.UI.section({ items: [toggleCell({ title: 'Alto contraste', value: cfg.contrast === 'high', onChange: function (v) { set('contrast', v ? 'high' : 'normal'); } })],
+          footer: 'Textos secundarios y líneas más claros, para leer mejor.' })
       ]
     };
   }
@@ -124,12 +135,12 @@ window.Whider = window.Whider || {};
     var st = S(), cfg = st.settings, set = st.setSetting;
     var lists = st.lists.map(function (l) { return { value: l.id, label: l.name }; });
     return {
-      title: 'Tareas y listas',
+      title: 'Tareas y categorías',
       body: [
         W.UI.group([
-          W.UI.cell({ icon: 'list', title: 'Listas', value: String(st.lists.length), onTap: function () { nav.push(listsPage); } }),
-          menuCell({ icon: 'tray', title: 'Lista por defecto', value: cfg.defaultList, options: lists, onChange: function (v) { set('defaultList', v); } }, nav),
-          W.UI.cell({ icon: 'edit', title: 'Escribir tareas rápido', sub: 'Fecha, hora y lista en el propio texto', onTap: function () { nav.push(quickHelpPage); } })
+          W.UI.cell({ icon: 'list', title: 'Categorías', value: String(st.lists.length), onTap: function () { nav.push(listsPage); } }),
+          menuCell({ icon: 'tray', title: 'Categoría por defecto', value: cfg.defaultList, options: lists, onChange: function (v) { set('defaultList', v); } }, nav),
+          W.UI.cell({ icon: 'edit', title: 'Escribir tareas rápido', sub: 'Fecha, hora y categoría en el propio texto', onTap: function () { nav.push(quickHelpPage); } })
         ]),
         W.UI.section({ items: [toggleCell({ icon: 'trash', title: 'Confirmar antes de eliminar', value: cfg.confirmDelete, onChange: function (v) { set('confirmDelete', v); } })],
           footer: 'Al deslizar para eliminar siempre puedes deshacer.' }),
@@ -148,7 +159,7 @@ window.Whider = window.Whider || {};
     var ex = [
       ['Llamar a Ana mañana a las 10', 'Mañana · 10:00'],
       ['Dentista el 15 a las 5 de la tarde', 'Día 15 · 17:00'],
-      ['Reunión el lunes #trabajo', 'Próximo lunes · lista Trabajo'],
+      ['Reunión el lunes #trabajo', 'Próximo lunes · categoría Trabajo'],
       ['Pagar el alquiler cada mes', 'Se repite cada mes'],
       ['Entregar informe 20/11 !!!', '20 de noviembre · urgente'],
       ['Gimnasio entre semana a las 7', 'Días laborables · 07:00']
@@ -156,10 +167,10 @@ window.Whider = window.Whider || {};
     return {
       title: 'Escribir tareas rápido',
       body: [
-        U.el('p.sheet-lead-text', { text: 'Con el botón + se puede escribir la fecha, la hora, la lista y la prioridad en el propio texto: se detectan y se quitan del título. Si algo no era una fecha, toca la × de su etiqueta.' }),
+        U.el('p.sheet-lead-text', { text: 'Con el botón + se puede escribir la fecha, la hora, la categoría y la prioridad en el propio texto: se detectan y se quitan del título. Si algo no era una fecha, toca la × de su etiqueta.' }),
         W.UI.section({ header: 'Ejemplos', items: ex.map(function (e) { return helpRow(e[0], e[1]); }) }),
         W.UI.section({ header: 'Atajos', items: [
-          helpRow('#nombre', 'Lista (por ejemplo #trabajo)'),
+          helpRow('#nombre', 'Categoría (por ejemplo #trabajo)'),
           helpRow('!  ·  !!  ·  !!!', 'Destacada · importante · urgente'),
           helpRow('cada día · cada semana · cada lunes', 'Repeticiones')
         ] })
@@ -171,13 +182,13 @@ window.Whider = window.Whider || {};
     var st = S();
     var rows = st.lists.map(function (l) {
       var n = st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length;
-      return W.UI.cell({ icon: 'list', title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () {
+      return W.UI.cell({ icon: W.Lists.icon(l), title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () {
         W.Lists.edit(l, function () { nav.refresh(); }, function () { nav.refresh(); });
       } });
     });
-    rows.push(W.UI.cell({ icon: 'plus', title: 'Nueva lista', accent: true, chevron: false,
+    rows.push(W.UI.cell({ icon: 'plus', title: 'Nueva categoría', accent: true, chevron: false,
       onTap: function () { W.Lists.edit(null, function () { nav.refresh(); }); } }));
-    return { title: 'Listas', body: [W.UI.section({ items: rows, footer: 'Toca una lista para cambiarle el nombre o eliminarla.' })] };
+    return { title: 'Categorías', body: [W.UI.section({ items: rows, footer: 'Toca una categoría para cambiarle el nombre, el icono o eliminarla.' })] };
   }
 
   function alertsPage(nav) {
@@ -190,7 +201,7 @@ window.Whider = window.Whider || {};
       quiet.push(W.UI.cell({ title: 'Hasta', right: timePill(q.to, function (v) { q.to = v; st.saveSettings('settings:quiet'); }) }));
     }
     return {
-      title: 'Avisos y sonido',
+      title: 'Avisos',
       body: [
         W.UI.section({ items: [W.UI.cell({ icon: 'bell', title: 'Notificaciones', value: permText,
           onTap: perm === 'default' ? function () { W.Notify.request(); setTimeout(function () { nav.refresh(); }, 1500); } : null })],
@@ -200,12 +211,125 @@ window.Whider = window.Whider || {};
           menuCell({ icon: 'alarm', title: 'Recordatorio previo', value: cfg.remindBefore, options: W.Editor.REMIND_OPTS, onChange: function (v) { set('remindBefore', v); } }, nav),
           menuCell({ icon: 'repeat', title: 'Repetir alerta vencida', value: cfg.rewarn, options: REWARN, onChange: function (v) { set('rewarn', v); } }, nav)
         ]),
-        W.UI.group([
-          toggleCell({ icon: 'sound', title: 'Sonidos', value: cfg.sound, onChange: function (v) { set('sound', v); if (v) W.Audio.success(); } }),
-          toggleCell({ icon: 'vibrate', title: 'Vibración', value: cfg.vibrate, onChange: function (v) { set('vibrate', v); if (v) W.Audio.vibrate([20]); } })
-        ]),
+        W.UI.group([W.UI.cell({ icon: 'sound', title: 'Sonidos de los avisos', value: cfg.sound && cfg.sounds.notify ? 'Activados' : 'Desactivados', onTap: function () { nav.push(soundsPage); } })]),
         W.UI.section({ items: quiet, footer: 'Durante las horas de silencio no suenan avisos ni llegan notificaciones.' }),
         W.UI.group([W.UI.cell({ title: 'Probar el aviso', accent: true, center: true, onTap: function () { W.Audio.warning(); W.Audio.vibrate([70, 60, 70]); } })])
+      ]
+    };
+  }
+
+  /** Sonidos: botones, avisos y logros por separado, estilo y volumen */
+  function soundsPage(nav) {
+    var st = S(), cfg = st.settings, snd = cfg.sounds;
+    var setS = function (k, v) { snd[k] = v; st.saveSettings('settings:sounds'); };
+    var styles = Object.keys(W.Audio.STYLES).map(function (k) { return { value: k, label: W.Audio.STYLES[k] }; });
+    var vol = U.el('input.range', { attrs: { type: 'range', min: 0, max: 100, step: 5, 'aria-label': 'Volumen' } });
+    vol.value = snd.volume;
+    var volVal = U.el('span.range-val', { text: snd.volume + ' %' });
+    vol.addEventListener('input', function () { volVal.textContent = vol.value + ' %'; });
+    vol.addEventListener('change', function () { setS('volume', +vol.value); W.Audio.success(); });
+    var rows = cfg.sound ? [
+      W.UI.section({ header: 'Qué suena', items: [
+        toggleCell({ icon: 'hand', title: 'Botones', sub: 'Un toque breve al pulsar', value: snd.buttons, onChange: function (v) { setS('buttons', v); if (v) W.Audio.click(); } }),
+        toggleCell({ icon: 'bell', title: 'Avisos y notificaciones', sub: 'Recordatorios, vencidas, hábitos y enfoque', value: snd.notify, onChange: function (v) { setS('notify', v); if (v) W.Audio.chime(); } }),
+        toggleCell({ icon: 'trophy', title: 'Logros y celebraciones', sub: 'Completar tareas, logros y niveles', value: snd.events !== false, onChange: function (v) { setS('events', v); if (v) W.Audio.achievement(); } })
+      ] }),
+      W.UI.section({ header: 'Estilo de los botones', items: U.el('div', [W.UI.segmented(styles, snd.style, function (v) { setS('style', v); W.Audio.click(v); })]) }),
+      W.UI.section({ header: 'Volumen', items: U.el('div.group', [U.el('div.cell.range-row', [U.icon('sound', 'sm'), vol, volVal])]) }),
+      W.UI.group([
+        W.UI.cell({ title: 'Probar un aviso', accent: true, center: true, onTap: function () { W.Audio.chime(); } }),
+        W.UI.cell({ title: 'Probar un logro', accent: true, center: true, onTap: function () { W.Audio.levelUp(); } })
+      ])
+    ] : [];
+    return {
+      title: 'Sonidos y vibración',
+      body: [
+        W.UI.section({ items: [toggleCell({ icon: 'sound', title: 'Sonidos', value: cfg.sound, onChange: function (v) { st.setSetting('sound', v); nav.refresh(); if (v) W.Audio.success(); } })],
+          footer: cfg.sound ? null : 'Sin sonidos: ni botones, ni avisos, ni logros.' })
+      ].concat(rows).concat([
+        W.UI.section({ items: [toggleCell({ icon: 'vibrate', title: 'Vibración', value: cfg.vibrate, onChange: function (v) { st.setSetting('vibrate', v); if (v) W.Audio.vibrate([20]); } })],
+          footer: 'Las horas de silencio (en Avisos) también callan los sonidos de los avisos.' })
+      ])
+    };
+  }
+
+  function habitsPage(nav) {
+    var st = S(), cfg = st.settings;
+    return {
+      title: 'Hábitos',
+      body: [
+        W.UI.section({ items: [toggleCell({ icon: 'home', title: 'Mostrar los hábitos en Hoy', value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })],
+          footer: 'En el ordenador se eligen los bloques de Hoy en Personalización.' }),
+        W.UI.group([
+          W.UI.cell({ icon: 'target', title: 'Ver mis hábitos', value: String(W.Habits.list().length), onTap: function () { nav.close(); setTimeout(function () { W.Router.go('habits'); }, 150); } }),
+          W.UI.cell({ icon: 'plus', title: 'Nuevo hábito', accent: true, chevron: false, onTap: function () { nav.close(); setTimeout(function () { W.HabitView.edit(null); }, 200); } })
+        ])
+      ]
+    };
+  }
+
+  /** Personalización: básica en el móvil; avanzada (Premium) en el ordenador */
+  function customPage(nav) {
+    var st = S(), cfg = st.settings, dk = cfg.desk, P = W.Plan, desk = W.Layout.desktop;
+    var basic = W.UI.section({ header: 'Hoy', items: [
+      toggleCell({ icon: 'smile', title: 'Tu personaje en Hoy', value: cfg.homeBuddy, onChange: function (v) { st.setSetting('homeBuddy', v); } }),
+      toggleCell({ icon: 'target', title: 'Hábitos en Hoy', value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })
+    ], footer: desk ? null : 'Tamaño del texto, densidad y contraste están en Apariencia.' });
+    if (!desk) return { title: 'Personalización', body: [basic, W.UI.group([
+      W.UI.cell({ icon: 'type', title: 'Apariencia', onTap: function () { nav.push(appearancePage); } }),
+      W.UI.cell({ icon: 'smile', title: 'Tu personaje', onTap: function () { nav.close(); setTimeout(function () { W.Character.edit(); }, 200); } })
+    ]), U.el('p.hint', { text: 'La personalización avanzada (barra lateral, bloques de Hoy, calendario y ancho) está en el ordenador con Premium.' })] };
+    if (!P.isPremium()) {
+      return { title: 'Personalización', body: [
+        U.el('div.pw-hero', [U.el('span.pw-gem', [U.icon('palette')]), U.el('strong', { text: 'Personalización avanzada' }), U.el('p', { text: P.FEATURES.custom.text })]),
+        U.el('div.pw-actions', [U.el('button.btn.primary.block', { on: { click: function () { nav.close(); setTimeout(function () { P.paywall('custom'); }, 150); } } }, [U.icon('gem', 'sm'), 'Desbloquear con Premium'])]),
+        basic
+      ] };
+    }
+    var saveDesk = function () { st.saveSettings('settings:desk'); };
+    var sb = dk.sidebar;
+    var sbItem = function (key, label, icon) { return toggleCell({ icon: icon, title: label, value: sb[key] !== false, onChange: function (v) { sb[key] = v; saveDesk(); } }); };
+    // Bloques de Hoy con su orden
+    var order = W.Screens.home.widgetOrder(st), names = { buddy: 'Tu personaje', summary: 'Resumen del día', habits: 'Hábitos de hoy', upcoming: 'Próximos días', focus: 'Enfoque' };
+    var widgets = order.map(function (k, i) {
+      var move = function (d) { var o = order.slice(), j = i + d; if (j < 0 || j >= o.length) return; o[i] = o[j]; o[j] = k; dk.widgetOrder = o.join(','); saveDesk(); nav.refresh(); };
+      return U.el('div.cell.order-row', [U.el('span.cell-title', { text: names[k] }),
+        U.el('span.order-btns', [U.el('button.circle-btn', { attrs: { 'aria-label': 'Subir', disabled: i === 0 }, on: { click: function () { move(-1); } } }, [U.icon('up')]),
+          U.el('button.circle-btn', { attrs: { 'aria-label': 'Bajar', disabled: i === order.length - 1 }, on: { click: function () { move(1); } } }, [U.icon('down')])]),
+        W.UI.toggle(dk.widgets[k] !== false, function (v) { dk.widgets[k] = v; saveDesk(); }, names[k])]);
+    });
+    var lists = st.lists.map(function (l, i) {
+      return U.el('div.cell.order-row', [W.UI.cellIcon(W.Lists.icon(l)), U.el('span.cell-title', { text: l.name }),
+        U.el('span.order-btns', [U.el('button.circle-btn', { attrs: { 'aria-label': 'Subir', disabled: i === 0 }, on: { click: function () { st.moveList(l.id, -1); nav.refresh(); } } }, [U.icon('up')]),
+          U.el('button.circle-btn', { attrs: { 'aria-label': 'Bajar', disabled: i === st.lists.length - 1 }, on: { click: function () { st.moveList(l.id, 1); nav.refresh(); } } }, [U.icon('down')])])]);
+    });
+    var calViews = [{ value: 'month', label: 'Mes' }, { value: 'week', label: 'Semana' }, { value: 'day', label: 'Día' }, { value: 'agenda', label: 'Agenda' }];
+    var hour = function (v) { return U.pad(v) + ':00'; };
+    return {
+      title: 'Personalización',
+      body: [
+        W.UI.section({ header: 'Barra lateral', items: [
+          sbItem('habits', 'Hábitos', 'target'), sbItem('notes', 'Apuntes', 'notebook'), sbItem('focus', 'Enfoque', 'timer'),
+          sbItem('stats', 'Estadísticas', 'chart'), sbItem('reports', 'Informes', 'print'), sbItem('automations', 'Sistemas', 'system'),
+          sbItem('friends', 'Amigos', 'users'), sbItem('filters', 'Filtros', 'filter'),
+          toggleCell({ icon: 'hash', title: 'Mostrar los contadores', value: sb.counts !== false, onChange: function (v) { sb.counts = v; saveDesk(); } }),
+          toggleCell({ icon: 'list', title: 'Barra compacta', value: !!sb.compact, onChange: function (v) { sb.compact = v; saveDesk(); } })
+        ] }),
+        W.UI.section({ header: 'Lateral de Hoy', items: widgets, footer: 'Elige qué bloques ves junto a tus tareas de hoy y en qué orden.' }),
+        W.UI.section({ header: 'Calendario', items: [
+          menuCell({ icon: 'calendar', title: 'Vista al abrir', value: dk.calView, options: calViews, onChange: function (v) { dk.calView = v; st.ui.calView = v; saveDesk(); } }, nav),
+          W.UI.cell({ icon: 'clock', title: 'La semana empieza a las', right: W.UI.stepper(dk.calStartH, 0, 12, 1, function (v) { dk.calStartH = v; saveDesk(); }, hour) }),
+          W.UI.cell({ icon: 'moon', title: 'Y termina a las', right: W.UI.stepper(dk.calEndH, 13, 23, 1, function (v) { dk.calEndH = v; saveDesk(); }, hour) }),
+          toggleCell({ icon: 'week', title: 'Mostrar los fines de semana', value: dk.weekends !== false, onChange: function (v) { dk.weekends = v; saveDesk(); } })
+        ] }),
+        W.UI.section({ header: 'Pantalla', items: [
+          toggleCell({ icon: 'monitor', title: 'Contenido a todo el ancho', sub: 'Aprovecha las pantallas grandes', value: !!dk.wide, onChange: function (v) { dk.wide = v; saveDesk(); } })
+        ] }),
+        basic,
+        W.UI.section({ header: 'Orden de las categorías', items: lists }),
+        W.UI.section({ header: 'Filtros guardados', items: st.filters.map(function (f) {
+          return W.UI.cell({ icon: 'filter', title: f.name, sub: W.Filters.describe(f), onTap: function () { W.Filters.edit(f, function () { nav.refresh(); }); } });
+        }).concat([W.UI.cell({ icon: 'plus', title: 'Nuevo filtro', accent: true, chevron: false, onTap: function () { W.Filters.edit(null, function () { nav.refresh(); }); } })]) })
       ]
     };
   }
@@ -240,16 +364,106 @@ window.Whider = window.Whider || {};
     };
   }
 
-  function dataPage(nav) {
+  /* ---------- Importar y exportar ---------- */
+  function pickFile(accept) {
+    return new Promise(function (resolve) {
+      var input = U.el('input', { attrs: { type: 'file', accept: accept }, style: { display: 'none' } });
+      input.addEventListener('change', function () {
+        var f = input.files && input.files[0]; input.remove();
+        if (!f) { resolve(null); return; }
+        var r = new FileReader();
+        r.onload = function () { resolve({ name: f.name, text: String(r.result || '') }); };
+        r.onerror = function () { resolve(null); };
+        r.readAsText(f);
+      });
+      document.body.appendChild(input); input.click();
+    });
+  }
+  function csvParse(text) {
+    var rows = [], row = [], cell = '', q = false, sep = (text.split('\n')[0].match(/;/g) || []).length >= (text.split('\n')[0].match(/,/g) || []).length ? ';' : ',';
+    text = text.replace(/^\ufeff/, '');
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === sep) { row.push(cell); cell = ''; }
+      else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+      else cell += ch;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter(function (r) { return r.some(function (c) { return c.trim(); }); });
+  }
+  function importCsv() {
     var st = S();
+    pickFile('.csv,text/csv').then(function (f) {
+      if (!f) return;
+      var rows = csvParse(f.text);
+      if (rows.length < 2) { W.Toast.show({ text: 'El archivo no tiene tareas', type: 'danger' }); return; }
+      var head = rows[0].map(function (h) { return (W.Parse.fold ? W.Parse.fold(h) : h.toLowerCase()).trim(); });
+      var col = function (names) { for (var i = 0; i < head.length; i++) if (names.indexOf(head[i]) >= 0) return i; return -1; };
+      var cText = col(['tarea', 'titulo', 'title', 'text', 'texto', 'nombre']), cDate = col(['fecha', 'date', 'dia']), cTime = col(['hora', 'time']),
+        cList = col(['categoria', 'lista', 'list', 'category']), cPrio = col(['prioridad', 'priority']), cNotes = col(['notas', 'notes', 'nota']), cState = col(['estado', 'status']);
+      if (cText < 0) cText = 0;
+      var prio = function (v) { v = (W.Parse.fold ? W.Parse.fold(v) : String(v).toLowerCase()); return /urgent/.test(v) ? 'danger' : /importan/.test(v) ? 'purple' : /destac/.test(v) ? 'star' : 'none'; };
+      var date = function (v) { v = String(v || '').trim(); var m = v.match(/^(\d{4})-(\d{2})-(\d{2})/) || v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m) return null; return m[1].length === 4 ? m[1] + '-' + m[2] + '-' + m[3] : m[3] + '-' + U.pad(+m[2]) + '-' + U.pad(+m[1]); };
+      var made = {}, items = rows.slice(1).map(function (r) {
+        var name = cList >= 0 ? String(r[cList] || '').trim() : '', l = null;
+        if (name) { l = st.lists.filter(function (x) { return x.name.toLowerCase() === name.toLowerCase(); })[0] || made[name.toLowerCase()]; if (!l) { l = st.addList(name); made[name.toLowerCase()] = l; } }
+        var done = cState >= 0 && /complet|hecha|done/i.test(r[cState] || '');
+        var t = cTime >= 0 && /^\d{1,2}:\d{2}/.test(r[cTime] || '') ? U.pad(+r[cTime].split(':')[0]) + ':' + r[cTime].split(':')[1].slice(0, 2) : null;
+        return { text: String(r[cText] || '').trim(), date: cDate >= 0 ? date(r[cDate]) : null, time: t, listId: l ? l.id : st.settings.defaultList,
+          highlight: cPrio >= 0 ? prio(r[cPrio]) : 'none', notes: cNotes >= 0 ? String(r[cNotes] || '') : '', done: done, doneOn: done ? U.today() : null, doneAt: done ? Date.now() : null, warn: false, subtasks: [] };
+      }).filter(function (x) { return x.text; });
+      W.Sheet.confirm({ title: '¿Importar ' + U.plural(items.length, 'tarea', 'tareas') + '?', text: 'Desde «' + f.name + '». No se borra nada de lo que ya tienes.', ok: 'Importar' }).then(function (ok) {
+        if (!ok) return;
+        var n = st.importTasks(items);
+        W.Toast.show({ text: U.plural(n, 'tarea importada', 'tareas importadas'), type: 'success', icon: 'upload' });
+      });
+    });
+  }
+  function exportCsv() {
+    var st = S(), cell = function (v) { var s = v == null ? '' : String(v); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    var rows = [['Tarea', 'Categoría', 'Prioridad', 'Fecha', 'Hora', 'Duración (min)', 'Repetición', 'Estado', 'Completada el', 'Notas']];
+    st.tasks.forEach(function (t) {
+      var l = st.getList(t.listId);
+      rows.push([t.text, l ? l.name : '', st.PRIORITIES[t.highlight].label, t.date || '', t.time || '', t.duration || '', st.REPEATS[t.repeat], t.done ? 'Completada' : st.isOverdue(t) ? 'Vencida' : 'Pendiente', t.doneAt ? new Date(t.doneAt).toLocaleString('es-ES') : '', t.notes || '']);
+    });
+    U.saveFile('whider-tareas-' + U.today(), rows.map(function (r) { return r.map(cell).join(';'); }).join('\r\n'), 'csv');
+  }
+  function exportBackup() { U.saveFile('whider-copia-' + U.today(), JSON.stringify(S().snapshot(), null, 1), 'json'); }
+  function importBackup() {
+    pickFile('.json,application/json').then(function (f) {
+      if (!f) return;
+      var data = null;
+      try { data = JSON.parse(f.text); } catch (e) { data = null; }
+      if (!data || !Array.isArray(data.tasks)) { W.Toast.show({ text: 'No es una copia de WHIDER', type: 'danger' }); return; }
+      W.Sheet.confirm({ title: '¿Recuperar la copia?', text: 'Se juntará con lo que ya tienes (' + U.plural(data.tasks.length, 'tarea', 'tareas') + (data.notes ? ', ' + U.plural(data.notes.length, 'apunte', 'apuntes') : '') + '). Gana siempre lo más reciente.', ok: 'Recuperar' }).then(function (ok) {
+        if (!ok) return;
+        var merged = W.Sync.merge(S().snapshot(), data);
+        S().applySnapshot(merged, 'import');
+        W.Toast.show({ text: 'Copia recuperada', type: 'success', icon: 'upload' });
+      });
+    });
+  }
+
+  function dataPage(nav) {
+    var st = S(), desk = W.Layout.desktop;
     return {
       title: 'Datos',
       body: [
+        W.UI.section({ header: 'Copia de seguridad', items: [
+          W.UI.cell({ icon: 'download', title: 'Guardar una copia', sub: 'Todo: tareas, apuntes, hábitos, sistemas y ajustes (JSON)', onTap: exportBackup }),
+          W.UI.cell({ icon: 'upload', title: 'Recuperar una copia', sub: 'Se junta con lo que ya tienes', onTap: importBackup })
+        ], footer: W.Auth && W.Auth.user ? 'Con tu cuenta, todo se guarda además en la nube.' : 'Sin cuenta, tus datos solo están en este dispositivo: guarda copias de vez en cuando.' }),
+        desk ? W.UI.section({ header: 'Hoja de cálculo', items: [
+          W.UI.cell({ icon: 'download', title: 'Exportar las tareas (CSV)', sub: 'Para Excel, Numbers o Google Sheets', onTap: exportCsv }),
+          W.UI.cell({ icon: 'upload', title: 'Importar tareas (CSV)', sub: 'Columnas: Tarea, Fecha, Hora, Categoría, Prioridad, Notas', onTap: importCsv })
+        ] }) : null,
         W.UI.section({ items: [W.UI.cell({ title: 'Ver la presentación', onTap: function () { nav.close(); setTimeout(function () { W.Onboarding.start(); }, 300); } })] }),
         W.UI.section({ items: [W.UI.cell({ title: 'Restablecer todo', center: true, danger: true, onTap: function () {
-          W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán todas tus tareas, sesiones de enfoque, marcas y logros. No se puede deshacer.', ok: 'Restablecer', danger: true })
+          W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán tus tareas, apuntes, hábitos, sesiones de enfoque, marcas y logros. No se puede deshacer.', ok: 'Restablecer', danger: true })
             .then(function (ok) { if (ok) { st.resetAll(); nav.close(); W.Toast.show({ text: 'Se han borrado todos los datos', icon: 'trash' }); } });
-        } })], footer: 'Borra tareas, enfoque, marcas y logros' + (W.Auth && W.Auth.user ? ', también en tu cuenta.' : '.') + ' Tus listas y ajustes se conservan.' })
+        } })], footer: 'Borra tareas, apuntes, hábitos, enfoque, marcas y logros' + (W.Auth && W.Auth.user ? ', también en tu cuenta.' : '.') + ' Tus categorías, sistemas y ajustes se conservan.' })
       ]
     };
   }
@@ -282,13 +496,15 @@ window.Whider = window.Whider || {};
   }
 
   W.PRIVACY_HTML =
-    '<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas, listas, enfoque, marcas y ajustes.</p>' +
+    '<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas, categorías, apuntes, hábitos, enfoque, marcas, tu personaje y ajustes.</p>' +
     '<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>' +
+    '<p><b>Amigos.</b> Si usas la comunidad, tus amigos ven tu nombre, tu personaje, tu nivel, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tus apuntes.</p>' +
     '<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>' +
     '<p><b>Tus derechos.</b> Puedes cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
     '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>';
 
-  var PAGES = { desktop: desktopPage, account: accountPage, appearance: appearancePage, tasks: tasksPage, lists: listsPage, alerts: alertsPage, focus: focusPage, start: startPage, data: dataPage, privacy: privacyPage };
+  var PAGES = { desktop: desktopPage, account: accountPage, appearance: appearancePage, tasks: tasksPage, lists: listsPage, alerts: alertsPage, focus: focusPage, start: startPage,
+    data: dataPage, privacy: privacyPage, sounds: soundsPage, custom: customPage, habits: habitsPage };
   var current = null;
 
   W.Settings = {
