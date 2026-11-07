@@ -37,8 +37,13 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
   //    Si los dejas en null, la app ofrece la prueba gratuita y los códigos de activación.
   //  - codes: códigos de activación guardados como SHA-256 del código en MAYÚSCULAS. Para crear uno:
   //    node -e "console.log(require('crypto').createHash('sha256').update('MI-CODIGO').digest('hex'))"
+  //    Escribe aquí solo la huella (SHA-256), nunca el código en claro: este repositorio es público.
+  //    La primera es tu código de fundador.
   //  Ver docs/CONFIGURAR-CUENTAS.md, apartado «Planes y pagos».
-  premium: { currency: '€', monthly: 3.99, yearly: 29.99, trialDays: 14, checkoutUrl: null, checkoutUrlYearly: null, codes: [] },
+  premium: {
+    currency: '€', monthly: 3.99, yearly: 29.99, trialDays: 14, checkoutUrl: null, checkoutUrlYearly: null,
+    codes: ['6eb1ff5a9855a1bb70b2bb4e606bfe77beeaa32eb41d33307e4fb45879a0af44']
+  },
 
   // Solo para pruebas locales con Firebase Emulator Suite
   emulator: null

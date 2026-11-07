@@ -8,7 +8,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '6.0';
+  var VERSION = '6.0.1';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
     { value: 'habits', label: 'Hábitos' }, { value: 'notes', label: 'Apuntes' }, { value: 'focus', label: 'Enfoque' }

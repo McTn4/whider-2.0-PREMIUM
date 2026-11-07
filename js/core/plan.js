@@ -26,7 +26,7 @@ window.Whider = window.Whider || {};
     trialDays: typeof CFG.trialDays === 'number' ? CFG.trialDays : 14
   };
   // Códigos de activación: SHA-256 del código en mayúsculas (ver docs)
-  var CODES = (CFG.codes || []).concat(['3a8d656b238cf30ec7578e8df33820a5609eeab320fb370545fb9bb9d7284cbb']);
+  var CODES = (CFG.codes || []).map(function (h) { return String(h).toLowerCase(); });
 
   /** Qué incluye Premium (con su explicación para la ventana de «Hazte Premium») */
   var FEATURES = {
@@ -89,7 +89,13 @@ window.Whider = window.Whider || {};
     for (i = 0; i < 8; i++) for (j = 3; j + 1; j--) { var b = (hash[i] >> (j * 8)) & 255; result += (b < 16 ? '0' : '') + b.toString(16); }
     return result;
   }
-  function normCode(c) { return String(c || '').toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9-]/g, ''); }
+  // El código se compara en mayúsculas. Los espacios valen como guiones o se ignoran: se prueban las dos formas.
+  function codeForms(c) {
+    var up = String(c || '').toUpperCase().trim();
+    var dashed = up.replace(/\s+/g, '-').replace(/[^A-Z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    var joined = up.replace(/\s+/g, '').replace(/[^A-Z0-9-]/g, '');
+    return dashed === joined ? [dashed] : [dashed, joined];
+  }
 
   function fmtPrice(v) { return v.toFixed(2).replace('.', ',') + ' ' + PRICES.currency; }
 
@@ -147,8 +153,8 @@ window.Whider = window.Whider || {};
     },
     /** Activa Premium con un código (devuelve true si es válido) */
     redeem: function (code) {
-      var c = normCode(code);
-      if (!c || CODES.indexOf(sha256(c)) < 0) return false;
+      var c = codeForms(code).filter(function (f) { return f && CODES.indexOf(sha256(f)) >= 0; })[0];
+      if (!c) return false;
       var p = plan() || {};
       S().setPlan({ tier: 'premium', source: 'code', until: null, trialUsed: true, code: c.slice(0, 4) + '…' });
       W.Audio.celebrate();

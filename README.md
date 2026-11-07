@@ -272,7 +272,7 @@ npm start
 ## 💎 Planes, pagos y comunidad (para quien publica la app)
 
 - **Prueba gratuita**: 14 días, una vez por cuenta, desde *Planes* o desde cualquier función Premium.
-- **Códigos de activación**: se canjean en *Planes → Código de activación*. Se guardan cifrados (SHA-256) en [`js/config.js`](js/config.js); el código de fundador incluido es `WHIDER-FUNDADOR-2026`.
+- **Códigos de activación**: se canjean en *Planes → Código de activación*. En [`js/config.js`](js/config.js) solo se guarda su huella cifrada (SHA-256), así que el código en claro no aparece en ningún archivo: guárdalo solo para ti, porque el repositorio es público.
 - **Cobrar**: pon tu enlace de pago (por ejemplo un *Payment Link* de Stripe) en `premium.checkoutUrl` de [`js/config.js`](js/config.js). Tras el pago, envía al cliente un código de activación. Para activar Premium automáticamente al pagar hace falta un pequeño servidor (por ejemplo una Cloud Function con el *webhook* de Stripe); los pasos están en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md).
 - **Comunidad**: para que Amigos funcione en tu proyecto, publica las reglas nuevas de [`firestore.rules`](firestore.rules) en *Firebase → Firestore Database → Reglas*.
 
@@ -281,6 +281,11 @@ npm start
 Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). En la comunidad, tus amigos solo ven tu perfil público (nombre, personaje, nivel, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tus apuntes. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y sus datos desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 6.0.1
+
+- **Códigos de activación privados**: el código de fundador de la 6.0 deja de valer y en el repositorio solo queda la huella cifrada de los códigos.
+- **Imprimir** (Ctrl P) funciona en cualquier pantalla; en *Informes* y al guardar en PDF sale solo el informe, en negro sobre blanco.
 
 ## 📝 Novedades de la 6.0
 
