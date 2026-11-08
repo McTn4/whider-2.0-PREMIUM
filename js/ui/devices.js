@@ -66,7 +66,7 @@ window.Whider = window.Whider || {};
           var mins = Math.round((Date.now() - d.seen) / 60000);
           return W.UI.cell({ icon: d.kind === 'pc' ? 'monitor' : 'phone', title: d.name + (d.me ? ' (este)' : ''), sub: d.me ? 'Ahora' : mins < 3 ? 'Conectado ahora' : 'Visto ' + U.fmtRel(d.seen - Date.now()) });
         }) : [W.UI.cell({ title: 'Solo este dispositivo', sub: 'Abre WHIDER con tu cuenta en el ordenador o en el móvil' })],
-          footer: 'Tus tareas, apuntes y hábitos se sincronizan al instante entre todos ellos.' }));
+          footer: 'Tus tareas, tu Cuaderno y tus hábitos se sincronizan al instante entre todos ellos.' }));
       };
       var s = W.Sheet.open({ title: 'Mis dispositivos', className: 'devices-sheet', body: [host], onClose: function () { clearInterval(timer); } });
       draw();

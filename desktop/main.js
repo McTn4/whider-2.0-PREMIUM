@@ -103,6 +103,8 @@ function createWindow(show) {
   if (st.maximized) win.maximize();
   win.loadURL(START_URL);
   win.once('ready-to-show', function () { if (show) { win.show(); win.focus(); } });
+  // Una invitación que llegó al abrir la app: se entrega cuando la web está lista
+  win.webContents.on('did-finish-load', function () { if (pendingLink) setTimeout(function () { deliverLink(pendingLink); }, 1200); });
 
   win.on('close', function (e) {
     if (quitting || !tray || prefs.get('closeToTray') === false) return;
@@ -125,6 +127,30 @@ function createWindow(show) {
   });
   if (process.env.WHIDER_DEBUG === '1') win.webContents.openDevTools({ mode: 'detach' });
 }
+
+/* ---------- Invitaciones: enlaces whider://i?… ---------- */
+const LINK_SCHEME = 'whider';
+let pendingLink = null;
+function linkFrom(argv) { return (argv || []).filter(function (a) { return typeof a === 'string' && /^whider:/i.test(a); })[0] || null; }
+/** Entrega la invitación a la app web (en cuanto haya cargado) */
+function deliverLink(url) {
+  if (!url) return;
+  pendingLink = String(url).slice(0, 2000);
+  if (win && !win.webContents.isLoading()) {
+    const link = pendingLink; pendingLink = null;
+    showWindow();
+    setTimeout(function () { if (win) win.webContents.send('whider:command', 'invite:' + link); }, 300);
+  }
+}
+if (!E2E) {
+  try {
+    if (process.defaultApp && process.argv.length >= 2) app.setAsDefaultProtocolClient(LINK_SCHEME, process.execPath, [path.resolve(process.argv[1])]);
+    else app.setAsDefaultProtocolClient(LINK_SCHEME);
+  } catch (e) { /* sin registro del protocolo */ }
+}
+// macOS: el sistema avisa con «open-url» (también al abrir la app desde el enlace)
+app.on('open-url', function (e, url) { e.preventDefault(); deliverLink(url); });
+pendingLink = linkFrom(process.argv);
 
 function showWindow() {
   if (!win) createWindow(true);
@@ -191,8 +217,10 @@ function buildMenu() {
     { role: 'cut', label: 'Cortar' }, { role: 'copy', label: 'Copiar' }, { role: 'paste', label: 'Pegar' }, { role: 'selectAll', label: 'Seleccionar todo' }
   ] });
   template.push({ label: 'Ver', submenu: [
-    go('Hoy', 'home', '1'), go('Tareas', 'tasks', '2'), go('Calendario', 'calendar', '3'), go('Hábitos', 'habits', '4'), go('Apuntes', 'notes', '5'), go('Enfoque', 'focus', '6'), { type: 'separator' },
-    go('Estadísticas', 'stats', '7'), go('Informes', 'reports', '8'), go('Sistemas', 'automations', '9'), { label: 'Amigos', click: function () { command('go:friends'); } }, { type: 'separator' },
+    go('Hoy', 'home', '1'), go('Tareas', 'tasks', '2'), go('Calendario', 'calendar', '3'), go('Cuaderno', 'notes', '4'), { type: 'separator' },
+    go('Chats', 'chats', '5'), go('Personas', 'friends', '6'), { type: 'separator' },
+    go('Hábitos', 'habits', '7'), go('Enfoque', 'focus', '8'), go('Estadísticas', 'stats', '9'),
+    { label: 'Informes', click: function () { command('go:reports'); } }, { label: 'Sistemas', click: function () { command('go:automations'); } }, { type: 'separator' },
     { role: 'resetZoom', label: 'Tamaño real' }, { role: 'zoomIn', label: 'Ampliar' }, { role: 'zoomOut', label: 'Reducir' }, { type: 'separator' },
     { role: 'togglefullscreen', label: 'Pantalla completa' }
   ] });
@@ -296,7 +324,7 @@ ipcMain.on('whider:set-badge', function (_e, n) {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', showWindow);
+  app.on('second-instance', function (_e, argv) { showWindow(); deliverLink(linkFrom(argv)); });
   app.whenReady().then(function () {
     nativeTheme.themeSource = 'dark';
     if (IS_WIN) app.setAppUserModelId('com.whider.desktop');

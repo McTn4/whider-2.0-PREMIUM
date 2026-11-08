@@ -209,6 +209,12 @@ window.Whider = window.Whider || {};
         b.textContent = n > 9 ? '9+' : String(n);
         b.classList.toggle('show', n > 0);
       });
+      // Chats sin leer y solicitudes (pestaña «Más» del móvil)
+      var social = (W.Chat ? W.Chat.unreadCount() : 0) + (W.People ? W.People.pendingCount() : 0);
+      U.$$('[data-badge="social"]').forEach(function (b) {
+        b.textContent = social > 9 ? '9+' : String(social);
+        b.classList.toggle('show', social > 0);
+      });
     },
 
     /* ---------- Recordatorios nativos con la app cerrada (Android) ---------- */

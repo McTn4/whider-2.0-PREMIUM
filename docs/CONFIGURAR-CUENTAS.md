@@ -63,7 +63,17 @@ allowedEmailDomains: ['tuempresa.com'],
 2. Elige una ubicación en Europa (por ejemplo `eur3` o `europe-west1`) y el **modo de producción**.
 3. En la pestaña **Reglas**, sustituye el contenido por el del archivo [`firestore.rules`](../firestore.rules) de este repositorio y pulsa **Publicar**.
 
-Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios datos**, y solo con el correo verificado. Desde la 6.0 incluyen también la **comunidad de amigos** (perfil público, códigos, buzón y espacios compartidos): si actualizas desde una versión anterior, **vuelve a copiar y publicar** el archivo completo; si no, la pantalla *Amigos* no podrá conectar.
+Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios datos**, y solo con el correo verificado. Además cubren lo que se comparte con otras personas:
+
+| Colección | Quién puede |
+| --- | --- |
+| `users/{uid}/…` (tareas, ajustes, Cuaderno) | Solo su dueño |
+| `profiles/{uid}` (nombre, personaje, nivel, racha) | La leen las cuentas verificadas; la escribe su dueño |
+| `codes/{código}` e `inbox/{uid}` | Códigos de contacto y buzón de invitaciones; cada uno solo escribe lo suyo |
+| `spaces/{id}` y `spaces/{id}/pages` | Equipos y sus páginas: solo sus miembros (quien tenga el enlace del equipo puede entrar) |
+| `chats/{id}` y `chats/{id}/msgs` | Solo los miembros del chat; cada uno edita o borra sus mensajes |
+
+> **Al actualizar a la 7.0, vuelve a copiar y publicar el archivo completo.** Sin las reglas nuevas, *Personas*, *Chats* y las páginas de equipo del *Cuaderno* no pueden conectar (la app avisa de que faltan permisos).
 
 ## 5. Google en el APK de Android
 
@@ -92,7 +102,15 @@ La app muestra el motivo exacto. El más habitual es **"Google no reconoce esta 
 
 ## 6. Versión web (opcional)
 
-Si publicas la app en una web (Firebase Hosting, GitHub Pages…), añade su dominio en **Authentication → Configuración → Dominios autorizados**. `localhost` ya viene autorizado para probar con `python serve.py`.
+Si publicas la app en una web (Vercel, Firebase Hosting, GitHub Pages…), añade su dominio en **Authentication → Configuración → Dominios autorizados** (para WHIDER: `whider-red.vercel.app`). Sin él, *Continuar con Google* no funciona en esa web. `localhost` ya viene autorizado para probar con `python serve.py`.
+
+### Enlaces de invitación y códigos QR
+
+Desde la 7.0, a amigos y compañeros se les invita con un **enlace** o un **código QR**. El enlace tiene la forma `https://whider-red.vercel.app/i/?…` y lleva a la página [`i/index.html`](../i/index.html), que abre la invitación en la app (Android u ordenador) o en la web, o enseña dónde descargarla.
+
+- **Dominio**: es `links.base` en [`js/config.js`](../js/config.js). Si publicas la web en otro dominio, cámbialo ahí y también el `android:host` del filtro de enlaces en [`AndroidManifest.xml`](../android/app/src/main/AndroidManifest.xml).
+- **Android (App Links)**: para que el enlace abra la app directamente, sin preguntar, la web publica [`.well-known/assetlinks.json`](../.well-known/assetlinks.json) con la huella **SHA‑256** del certificado del APK. La que hay es la de los APK que compila GitHub (y la de las compilaciones de prueba del proyecto). Si firmas con otra clave, añade su SHA‑256 (`./gradlew signingReport`, valor **SHA-256**) a la lista. Sin esto, el enlace sigue funcionando: se abre la página de invitación y desde ella la app.
+- **Ordenador**: la app de escritorio registra los enlaces `whider://`, que la página de invitación usa para abrirla.
 
 Para publicarla con Firebase Hosting (el archivo `firebase.json` ya está preparado):
 
@@ -159,4 +177,4 @@ Los correos de verificación no se envían de verdad: el emulador muestra los en
 - **¿Qué pasa con los datos que ya tenía?** Se conservan. Si usabas la app sin cuenta, al crear la cuenta todo se sube a ella.
 - **¿Y si uso dos móviles?** Los cambios se fusionan: no se pierde lo hecho en ninguno. Si algo se borra en uno, también desaparece en el otro.
 - **¿Funciona sin internet?** Sí. Todo se guarda al momento en el dispositivo y se sincroniza al volver la conexión.
-- **¿Cómo se borra una cuenta?** Toca tu foto (arriba a la derecha) → **Ajustes → Cuenta → Eliminar la cuenta**. Se borran la cuenta y sus datos de la nube (requisito de Google Play).
+- **¿Cómo se borra una cuenta?** **Ajustes** (el engranaje) **→ Cuenta → Eliminar la cuenta**. Se borran la cuenta y todo lo suyo en la nube: tareas y ajustes, el Cuaderno, el perfil público, el código de contacto y su sitio en los equipos (si era el único miembro, el equipo también). Es un requisito de Google Play. Si hace rato que se inició sesión, Firebase pide entrar otra vez antes de borrar nada. Los mensajes ya enviados siguen en los chats de las otras personas, como en cualquier mensajería.

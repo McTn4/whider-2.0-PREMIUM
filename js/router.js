@@ -8,7 +8,9 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U;
-  var TABS = { home: 1, tasks: 1, calendar: 1, focus: 1 };
+  var TABS = { home: 1, tasks: 1, calendar: 1, more: 1 };
+  // Pantallas que se abren desde «Más» en el móvil (la pestaña Más queda marcada)
+  var UNDER_MORE = { notes: 1, chats: 1, friends: 1, habits: 1, focus: 1, stats: 1, reports: 1, automations: 1, plans: 1, progress: 1 };
   // Rutas antiguas o secundarias → pantalla (y apartado)
   var ALIASES = { records: ['progress', 'records'], achievements: ['progress', 'achievements'], alerts: ['home'], agenda: ['calendar'], profile: ['progress'] };
   var refreshQueued = false, lastTab = 'home';
@@ -87,6 +89,7 @@ window.Whider = window.Whider || {};
         return;
       }
       if (TABS[prev]) lastTab = prev;
+      document.body.setAttribute('data-screen', id);
       if (W.Select) W.Select.clear(true);
       W.State.activeScreen = id;
       U.$$('.screen').forEach(function (s) {
@@ -99,7 +102,7 @@ window.Whider = window.Whider || {};
       root.classList.remove('scrolled');
 
       U.$$('.tab').forEach(function (b) {
-        var on = b.getAttribute('data-go') === id;
+        var on = b.getAttribute('data-go') === id || (UNDER_MORE[id] && b.getAttribute('data-go') === 'more');
         b.classList.toggle('active', on);
         if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       });

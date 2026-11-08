@@ -45,6 +45,11 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
     codes: ['6eb1ff5a9855a1bb70b2bb4e606bfe77beeaa32eb41d33307e4fb45879a0af44']
   },
 
+  // Enlaces de invitación (contactos y equipos). Es la web donde está publicada la app: los enlaces
+  // https://…/i/?… abren la invitación en la app (Android, ordenador) o en la web.
+  // Si la publicas en otro dominio, cámbialo aquí y en .well-known/assetlinks.json (Android).
+  links: { base: 'https://whider-red.vercel.app' },
+
   // Solo para pruebas locales con Firebase Emulator Suite
   emulator: null
 };

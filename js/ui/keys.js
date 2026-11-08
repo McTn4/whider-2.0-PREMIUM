@@ -11,7 +11,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var SECTIONS = { 1: 'home', 2: 'tasks', 3: 'calendar', 4: 'habits', 5: 'notes', 6: 'focus', 7: 'stats', 8: 'reports', 9: 'automations' };
+  var SECTIONS = { 1: 'home', 2: 'tasks', 3: 'calendar', 4: 'notes', 5: 'chats', 6: 'friends', 7: 'habits', 8: 'focus', 9: 'stats' };
 
   function typing() {
     var a = document.activeElement;
@@ -104,6 +104,8 @@ window.Whider = window.Whider || {};
     // Ctrl/⌘ A: todas las tareas que se ven en la pantalla
     if (mod && !e.altKey && (k === 'a' || k === 'A') && W.Select && W.Select.all()) { e.preventDefault(); return; }
     if (e.altKey && SECTIONS[k]) { e.preventDefault(); W.Router.go(SECTIONS[k]); return; }
+    // Alt N: página nueva en el Cuaderno
+    if (e.altKey && !mod && e.code === 'KeyN') { e.preventDefault(); W.Notes.open(null); return; }
     if (mod || e.altKey) return;
 
     if (k === 'n' || k === 'N') { e.preventDefault(); W.App.newTask(); return; }
@@ -122,9 +124,15 @@ window.Whider = window.Whider || {};
     var K = W.Layout.keys;
     return [
       { title: 'General', rows: [
-        ['Nueva tarea', ['N']], ['Buscar tareas y acciones', [K('K'), '/']], ['Hoy · Tareas · Calendario', ['1', '2', '3']],
-        ['Hábitos · Apuntes · Enfoque', ['4', '5', '6']], ['Estadísticas · Informes · Sistemas', ['7', '8', '9']],
+        ['Nueva tarea', ['N']], ['Nueva página del Cuaderno', ['Alt', 'N']], ['Buscar en todo', [K('K'), '/']],
+        ['Hoy · Tareas · Calendario · Cuaderno', ['1', '2', '3', '4']], ['Chats · Personas', ['5', '6']], ['Hábitos · Enfoque · Estadísticas', ['7', '8', '9']],
         ['Perfil y resumen', ['P']], ['Ajustes', [K(',')]], ['Atajos de teclado', ['?']], ['Cerrar o volver', ['Esc']]
+      ] },
+      { title: 'En el Cuaderno', rows: [
+        ['Insertar un bloque', ['/']], ['Mencionar una página, persona o fecha', ['@']], ['Títulos, listas y casillas', null, '#, -, 1., [] y espacio'],
+        ['Sangrar o quitar sangría', ['Tab', 'Mayús Tab']], ['Negrita · cursiva · subrayado', [K('B'), K('I'), K('U')]], ['Código · enlace', [K('E'), K('K')]],
+        ['Deshacer · rehacer', [K('Z'), K('Mayús Z')]], ['Duplicar el bloque', [K('D')]], ['Subir o bajar el bloque', [K('Mayús ↑'), K('Mayús ↓')]],
+        ['Marcar la casilla', [K('Intro')]], ['Mover un bloque', null, 'Arrastra su asa ⋮⋮']
       ] },
       { title: 'En una página de tareas', rows: [
         ['Moverse entre tareas', ['↑', '↓']], ['Completar o desmarcar', ['Espacio']], ['Abrir el editor', ['Intro']],

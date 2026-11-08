@@ -230,10 +230,20 @@ window.Whider = window.Whider || {};
       }
       return auth ? F.signOut(auth) : Promise.resolve();
     },
+    /**
+     * Elimina la cuenta y todo lo suyo en la nube: tareas y ajustes, el Cuaderno, el perfil público,
+     * el código de contacto, el buzón y la pertenencia a equipos. Firebase exige un inicio de sesión
+     * reciente: si no lo es, se pide antes de borrar nada (así no queda la cuenta a medio borrar).
+     * Se mira con las horas del servidor (las del token), no con el reloj del dispositivo.
+     */
     deleteAccount: function () {
       var u = Auth.user;
       if (!u) return Promise.resolve();
-      return (W.Sync ? W.Sync.deleteRemote() : Promise.resolve()).then(function () { return F.deleteUser(u); });
+      return u.getIdTokenResult(true).then(function (t) {
+        var signedAt = Date.parse(t.authTime), now = Date.parse(t.issuedAtTime);
+        if (signedAt && now && now - signedAt > 4 * 60000) throw { code: 'auth/requires-recent-login' };
+        return Promise.all([W.PageSync && W.PageSync.deleteRemote ? W.PageSync.deleteRemote() : null, W.People && W.People.deleteRemote ? W.People.deleteRemote() : null]);
+      }).then(function () { return W.Sync ? W.Sync.deleteRemote() : null; }).then(function () { return F.deleteUser(u); });
     },
 
     isVerified: function () {

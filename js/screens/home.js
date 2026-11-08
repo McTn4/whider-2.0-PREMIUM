@@ -10,7 +10,75 @@ window.Whider.Screens = window.Whider.Screens || {};
   'use strict';
   var U = W.U, S = function () { return W.State; };
   var lastPct = 0, showDone = false, MAX_OVERDUE = 5, focusTimeEl = null;
-  var WIDGETS = ['buddy', 'summary', 'habits', 'upcoming', 'focus'];
+  var WIDGETS = ['buddy', 'summary', 'messages', 'habits', 'upcoming', 'pages', 'focus'];
+  var TOP = 3;
+
+  /*
+   * Lo más importante de hoy: las que elegiste tú y, después, por prioridad (urgentes,
+   * importantes, destacadas y el resto); a igual prioridad, primero las vencidas y luego por hora.
+   */
+  function topTasks(st) {
+    var td = U.today(), pinned = st.meta.top && st.meta.top.d === td ? st.meta.top.ids : [];
+    var pool = st.tasks.filter(function (t) { return !t.done && (t.date === td || st.isOverdue(t)); });
+    var rank = function (t) { return (st.PRIORITIES[t.highlight] || { rank: 3 }).rank; };
+    pool.sort(function (a, b) {
+      var pa = pinned.indexOf(a.id), pb = pinned.indexOf(b.id);
+      if (pa >= 0 || pb >= 0) return (pa < 0 ? 99 : pa) - (pb < 0 ? 99 : pb);
+      var oa = st.isOverdue(a) ? 0 : 1, ob = st.isOverdue(b) ? 0 : 1;
+      return (rank(a) - rank(b)) || (oa - ob) || String(a.time || '99').localeCompare(String(b.time || '99'));
+    });
+    return { list: pool.slice(0, TOP), total: pool.length, pinned: pinned };
+  }
+  function choosePriorities(st) {
+    var td = U.today(), pool = st.tasks.filter(function (t) { return !t.done && (t.date === td || st.isOverdue(t)); }).sort(st.compareDeadline);
+    var chosen = (st.meta.top && st.meta.top.d === td ? st.meta.top.ids : topTasks(st).list.map(function (t) { return t.id; })).slice(0, TOP);
+    var host = U.el('div');
+    var draw = function () {
+      U.clear(host);
+      host.appendChild(W.UI.section({ header: 'Elige hasta ' + TOP + ' (' + chosen.length + '/' + TOP + ')', items: pool.map(function (t) {
+        var on = chosen.indexOf(t.id) >= 0;
+        return W.UI.cell({ lead: W.UI.prio(t.highlight), title: t.text, sub: (st.isOverdue(t) ? 'Vencida · ' : '') + (t.time ? U.fmtTime(t.time) : 'Hoy'), right: U.icon(on ? 'star-fill' : 'star', 'sm'), cls: on ? 'accent' : null,
+          onTap: function () { if (on) chosen.splice(chosen.indexOf(t.id), 1); else if (chosen.length < TOP) chosen.push(t.id); else { W.Toast.show({ text: 'Máximo ' + TOP + '. Quita una antes.', icon: 'info' }); return; } draw(); } });
+      }), footer: 'Lo que elijas sale arriba en Hoy, en este orden. Mañana vuelve a ser automático.' }));
+    };
+    draw();
+    var s = W.Sheet.open({ title: 'Tus prioridades de hoy', body: [host], foot: [
+      U.el('button.btn.ghost', { text: 'Automático', on: { click: function () { st.setMeta('top', null); s.close(); } } }),
+      U.el('button.btn.primary', { text: 'Guardar', on: { click: function () { st.setMeta('top', { d: td, ids: chosen.slice(0, TOP) }); s.close(); } } })
+    ] });
+  }
+  function prioritySection(st, desk) {
+    var top = topTasks(st);
+    if (!top.list.length) return null;
+    return W.UI.section({ cls: 'top3', title: 'Lo más importante', side: U.el('span.cell-row', [U.el('small', { text: top.total > TOP ? TOP + ' de ' + top.total : '' }),
+      U.el('button.link-btn', { text: top.pinned.length ? 'Cambiar' : 'Elegir', on: { click: function () { choosePriorities(st); } } })]),
+      items: W.TaskCard.list(top.list, { ctx: 'today' }) });
+  }
+  /** Mensajes sin leer y solicitudes: lo de otras personas que espera respuesta */
+  function messagesCard(st, desk) {
+    if (!W.Chat || !W.People) return null;
+    var unread = W.Chat.list().filter(W.Chat.unread).slice(0, 3), reqs = W.People.pendingCount();
+    if (!unread.length && !reqs) return desk ? null : null;
+    var rows = unread.map(function (c) {
+      return U.el('button.hm-msg', { attrs: { type: 'button' }, on: { click: function () { W.Chat.openChat(c.id); } } }, [
+        c.type === 'team' ? U.el('span.av.av-team', { style: { '--s': '34px' } }, [U.el('span.av-in', [U.icon('team')])]) : W.Avatar.small(W.Chat.other(c), 34),
+        U.el('span.hm-main', [U.el('b', { text: W.Chat.title(c) }), U.el('small', { text: (c.last && c.last.text) || '' })]), U.el('i.ct-dot')]);
+    });
+    if (reqs) rows.push(U.el('button.hm-msg', { attrs: { type: 'button' }, on: { click: function () { W.Router.go('friends'); } } }, [U.el('span.hm-ic', [U.icon('users')]),
+      U.el('span.hm-main', [U.el('b', { text: U.plural(reqs, 'solicitud nueva', 'solicitudes nuevas') }), U.el('small', { text: 'Quieren conectar contigo' })]), U.el('i.ct-dot')]));
+    return U.el('div.group.card' + (desk ? '.side-card' : '') + '.hm-card', [U.el('div.card-head', [U.el('strong', { text: 'Te están esperando' }), U.el('button.link-btn.muted', { text: 'Chats', on: { click: function () { W.Router.go('chats'); } } })]), U.el('div.hm-list', rows)]);
+  }
+  /** Páginas recientes del Cuaderno */
+  function pagesCard(desk) {
+    if (!W.Pages) return null;
+    var list = W.Pages.recent(desk ? 4 : 6);
+    if (!list.length) return null;
+    var items = list.map(function (p) {
+      return U.el('button.hm-page', { attrs: { type: 'button' }, on: { click: function () { W.Notes.openPage(p.id); } } }, [U.el('span.hm-ic', [U.icon(p.icon || (p.kind === 'db' ? 'database' : 'page'))]), U.el('span.hm-main', [U.el('b', { text: W.Pages.title(p) }), U.el('small', { text: 'Editada ' + U.fmtRel(Math.max(p.at, p.cv) - Date.now()) })])]);
+    });
+    if (desk) return U.el('div.group.card.side-card', [U.el('div.card-head', [U.el('strong', { text: 'Cuaderno' }), U.el('button.link-btn.muted', { text: 'Abrir', on: { click: function () { W.Router.go('notes'); } } })]), U.el('div.hm-list', items)]);
+    return W.UI.section({ title: 'Tu Cuaderno', side: U.el('button.link-btn', { text: 'Ver todo', on: { click: function () { W.Router.go('notes'); } } }), items: U.el('div.hm-pages', items) });
+  }
 
   function summary(s) {
     var pct = s.todayPct, from = lastPct;
@@ -108,8 +176,12 @@ window.Whider.Screens = window.Whider.Screens || {};
         })] }));
       }
 
-      var overdue = st.overdueAll().sort(st.compareDeadline);
-      var today = st.tasks.filter(function (t) { return t.date === td && !t.done && !st.isOverdue(t); }).sort(st.compareDeadline);
+      var topIds = topTasks(st).list.map(function (t) { return t.id; });
+      var topSec = prioritySection(st, desk);
+      if (topSec) main.push(topSec);
+      if (!desk) { var mc = messagesCard(st, false); if (mc) main.push(mc); }
+      var overdue = st.overdueAll().sort(st.compareDeadline).filter(function (t) { return topIds.indexOf(t.id) < 0; });
+      var today = st.tasks.filter(function (t) { return t.date === td && !t.done && !st.isOverdue(t) && topIds.indexOf(t.id) < 0; }).sort(st.compareDeadline);
       var doneToday = st.tasks.filter(function (t) { return t.done && (t.doneOn === td || t.date === td); })
         .sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
 
@@ -126,8 +198,8 @@ window.Whider.Screens = window.Whider.Screens || {};
         doneToday.length ? 'Todo hecho por hoy' : 'Nada pendiente',
         doneToday.length ? 'Has completado ' + U.plural(doneToday.length, 'tarea', 'tareas') + '.' : desk ? 'Escribe arriba para añadir algo a hoy.' : 'Añade lo que quieras hacer hoy.',
         doneToday.length || desk ? null : U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), 'Nueva tarea']), true)]);
-      var todayItems = today.length ? W.TaskCard.list(today, { ctx: 'today' }) : empty;
-      main.push(W.UI.section({ title: 'Para hoy', side: today.length ? U.el('small', { text: today.length }) : null,
+      var todayItems = today.length ? W.TaskCard.list(today, { ctx: 'today' }) : (topIds.length ? U.el('p.hint', { text: 'Nada más para hoy aparte de lo importante.' }) : empty);
+      main.push(W.UI.section({ title: topIds.length ? 'El resto de hoy' : 'Para hoy', side: today.length ? U.el('small', { text: today.length }) : null,
         items: desk ? U.el('div', [W.QuickAdd.inline({ date: td }, 'Añadir una tarea para hoy…'), todayItems]) : todayItems }));
 
       if (doneToday.length) {
@@ -149,6 +221,8 @@ window.Whider.Screens = window.Whider.Screens || {};
         if (hb) main.push(hb);
       }
 
+      if (!desk) { var pc = pagesCard(false); if (pc) main.push(pc); }
+
       if (!desk && W.Tips.show('swipe') && (overdue.length || today.length)) {
         main.push(U.el('p.hint', { text: 'Desliza una tarea hacia la derecha para completarla o hacia la izquierda para eliminarla.' }));
       }
@@ -163,10 +237,14 @@ window.Whider.Screens = window.Whider.Screens || {};
           else if (k === 'habits') { var b = W.HabitView.today(); if (b) side.push(b); }
           else if (k === 'upcoming') side.push(upcoming(st));
           else if (k === 'focus') side.push(focusCard(st));
+          else if (k === 'messages') { var m2 = messagesCard(st, true); if (m2) side.push(m2); }
+          else if (k === 'pages') { var p2 = pagesCard(true); if (p2) side.push(p2); }
         });
         W.UI.mount(root, head, side.length ? [U.el('div.desk-cols', [U.el('div.desk-main', main), U.el('aside.desk-side', side)])] : [U.el('div.desk-solo', main)]);
       } else {
-        W.UI.mount(root, head, (st.settings.homeBuddy ? [W.Character.companion(false)] : []).concat([summary(s)]).concat(main));
+        // Móvil: lo más importante, arriba del todo; después el personaje, el resumen y el resto
+        var rest = main.filter(function (x) { return x !== topSec; });
+        W.UI.mount(root, head, (topSec ? [topSec] : []).concat(st.settings.homeBuddy ? [W.Character.companion(false)] : []).concat([summary(s)]).concat(rest));
       }
     }
   };

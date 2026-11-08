@@ -1,7 +1,7 @@
 {
   "name": "WHIDER",
   "short_name": "WHIDER",
-  "description": "WHIDER: tareas, calendario, hábitos, apuntes, enfoque y progreso, con tu personaje y tus amigos.",
+  "description": "WHIDER: tareas, calendario, Cuaderno, chats y equipos, hábitos y enfoque, con tu personaje.",
   "id": "com.whider.app",
   "start_url": "./index.html",
   "scope": "./",
@@ -56,9 +56,21 @@
       ]
     },
     {
-      "name": "Nuevo apunte",
-      "short_name": "Apunte",
+      "name": "Nueva página",
+      "short_name": "Página",
       "url": "./index.html#new-note",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "description": "Una página nueva en tu Cuaderno"
+    },
+    {
+      "name": "Hábitos de hoy",
+      "short_name": "Hábitos",
+      "url": "./index.html#habits",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -67,9 +79,10 @@
       ]
     },
     {
-      "name": "Hábitos de hoy",
-      "short_name": "Hábitos",
-      "url": "./index.html#habits",
+      "name": "Chats",
+      "short_name": "Chats",
+      "description": "Tus conversaciones",
+      "url": "./index.html#chats",
       "icons": [
         {
           "src": "icons/icon-192.png",

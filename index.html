@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/social.css">
   <link rel="stylesheet" href="css/desktop.css" media="(min-width: 1000px)">
   <script>
     /* Tamaño de texto y diseño (móvil u ordenador) antes de pintar: sin saltos al abrir */
@@ -161,6 +162,48 @@
   <symbol id="i-notebook" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2.6"/><path d="M9 3.5v17M12 8h4M12 11.5h4"/></symbol>
   <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.6a8.4 8.4 0 0 0 0 16.8c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.6 0-.9.7-1.5 1.7-1.5h2.1a3.9 3.9 0 0 0 3.8-3.9c0-3.9-3.8-7.1-8.4-7.1z"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="7.6" r="1" fill="currentColor" stroke="none"/><circle cx="14.6" cy="7.8" r="1" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-hash" viewBox="0 0 24 24"><path d="M9.5 4 7.5 20M16.5 4l-2 16M4.5 9h15M3.8 15h15"/></symbol>
+
+  <!-- 7.0: Cuaderno, chats, personas, QR y formato -->
+  <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6.5" r="1.25" fill="currentColor" stroke="none"/><circle cx="15" cy="6.5" r="1.25" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.25" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.25" fill="currentColor" stroke="none"/><circle cx="9" cy="17.5" r="1.25" fill="currentColor" stroke="none"/><circle cx="15" cy="17.5" r="1.25" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2.4"/><path d="M15.5 8.5V6.4a1.9 1.9 0 0 0-1.9-1.9H6.4a1.9 1.9 0 0 0-1.9 1.9v7.2a1.9 1.9 0 0 0 1.9 1.9h2.1"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M5 8h13.5l-3.2-3.2M19 16H5.5l3.2 3.2"/></symbol>
+  <symbol id="i-at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.6"/><path d="M15.6 12v1.4a2.6 2.6 0 0 0 5.2 0V12a8.8 8.8 0 1 0-3.5 7"/></symbol>
+  <symbol id="i-bold" viewBox="0 0 24 24"><path d="M7.5 5h5.4a3.4 3.4 0 0 1 0 6.8H7.5zM7.5 11.8h6.1a3.6 3.6 0 0 1 0 7.2H7.5z" stroke-width="2.2"/></symbol>
+  <symbol id="i-italic" viewBox="0 0 24 24"><path d="M10.5 5H17M7 19h6.5M14 5l-4 14"/></symbol>
+  <symbol id="i-underline" viewBox="0 0 24 24"><path d="M7 4.5v6a5 5 0 0 0 10 0v-6M5.5 19.5h13"/></symbol>
+  <symbol id="i-strike" viewBox="0 0 24 24"><path d="M16.4 7.4A4.6 4.6 0 0 0 12.3 5C9.7 5 8 6.4 8 8.4c0 1.4.9 2.4 2.6 3M4.5 12h15M8 16.5c.6 1.6 2.3 2.6 4.4 2.6 2.7 0 4.6-1.5 4.6-3.6 0-.7-.2-1.3-.6-1.8"/></symbol>
+  <symbol id="i-highlight" viewBox="0 0 24 24"><path d="m14.5 4.5 5 5-7.8 7.8H6.7v-5z"/><path d="M4.5 20.5h15"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a3.8 3.8 0 0 0 5.4 0l3-3a3.8 3.8 0 0 0-5.4-5.4l-1 1M14 10a3.8 3.8 0 0 0-5.4 0l-3 3a3.8 3.8 0 0 0 5.4 5.4l1-1"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.8"/><circle cx="9" cy="10" r="1.7"/><path d="m4 17.5 4.6-4.4a1.6 1.6 0 0 1 2.2 0L16 18m-2-2 1.7-1.6a1.6 1.6 0 0 1 2.2 0l2.6 2.4"/></symbol>
+  <symbol id="i-table" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.6"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10"/></symbol>
+  <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="6.5" rx="7" ry="2.8"/><path d="M5 6.5v11c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8v-11M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8"/></symbol>
+  <symbol id="i-page" viewBox="0 0 24 24"><path d="M7.4 3.5h6.4l4.7 4.6v10.5a1.9 1.9 0 0 1-1.9 1.9H7.4a1.9 1.9 0 0 1-1.9-1.9V5.4a1.9 1.9 0 0 1 1.9-1.9z"/><path d="M13.5 3.8v4.4h4.6M9 12.5h6M9 16h4"/></symbol>
+  <symbol id="i-h1" viewBox="0 0 24 24"><path d="M4 6v12M11 6v12M4 12h7M16 9.6l2.6-1.6v10"/></symbol>
+  <symbol id="i-h2" viewBox="0 0 24 24"><path d="M4 6v12M11 6v12M4 12h7M15.2 10.2a2.2 2.2 0 0 1 4.3.6c0 1.3-1 2.2-2.2 3.3L15.2 18h4.6"/></symbol>
+  <symbol id="i-h3" viewBox="0 0 24 24"><path d="M4 6v12M11 6v12M4 12h7M15.4 9.4a2 2 0 0 1 3.7 1.1c0 1.1-.9 1.8-2 1.8 1.2 0 2.3.8 2.3 2.1a2.2 2.2 0 0 1-4.1 1.1"/></symbol>
+  <symbol id="i-bullets" viewBox="0 0 24 24"><circle cx="5.5" cy="7" r="1.3" fill="currentColor" stroke="none"/><circle cx="5.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="5.5" cy="17" r="1.3" fill="currentColor" stroke="none"/><path d="M9.5 7h10M9.5 12h10M9.5 17h10"/></symbol>
+  <symbol id="i-numbers" viewBox="0 0 24 24"><path d="M4.5 5.6 6.1 4.8V10M4.6 14.4a1.3 1.3 0 0 1 2.5.4c0 .8-.6 1.3-1.3 2L4.5 19h2.8M10.5 7h9M10.5 12h9M10.5 17h9"/></symbol>
+  <symbol id="i-checklist" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="6" height="6" rx="1.6"/><path d="m4.9 7.5 1.4 1.4 2.2-2.4"/><rect x="3.5" y="13.5" width="6" height="6" rx="1.6"/><path d="M12.5 7.5h8M12.5 16.5h8"/></symbol>
+  <symbol id="i-toggle" viewBox="0 0 24 24"><path d="M5 7.5 8.5 11 5 14.5"/><path d="M12 11h8M12 16h5"/></symbol>
+  <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9.5 7C6.6 7.8 5 10.2 5 13.6V17h4.5v-4.5H6.4M18.5 7c-2.9.8-4.5 3.2-4.5 6.6V17h4.5v-4.5h-3.1"/></symbol>
+  <symbol id="i-callout" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="M7.5 9.5h1.4M11.2 9.5h5.3M7.5 14h9"/></symbol>
+  <symbol id="i-divider" viewBox="0 0 24 24"><path d="M3.5 12h17"/><path d="M8 7.5h8M8 16.5h8" opacity=".45"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10M10 19.5H4.5V14M19.5 4.5 13.5 10.5M4.5 19.5l6-6"/></symbol>
+  <symbol id="i-star-fill" viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.5l-5.1 2.8 1.1-5.7-4.3-4 5.8-.7z" fill="currentColor"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4.5 9.5 9 5"/><path d="M4.5 9.5h9.8a5.2 5.2 0 0 1 0 10.4H11"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 19V7.5a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H8.4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></symbol>
+  <symbol id="i-chat-fill" viewBox="0 0 24 24"><path d="M5 19V7.5a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H8.4z" fill="currentColor"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.2"/><rect x="14" y="4" width="6" height="6" rx="1.2"/><rect x="4" y="14" width="6" height="6" rx="1.2"/><path d="M14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5zM14 20h1M20 14v1"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8.5v-2A2.5 2.5 0 0 1 6.5 4h2M15.5 4h2A2.5 2.5 0 0 1 20 6.5v2M20 15.5v2a2.5 2.5 0 0 1-2.5 2.5h-2M8.5 20h-2A2.5 2.5 0 0 1 4 17.5v-2M4 12h16"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 4.5v10M8 8.5l4-4 4 4"/><path d="M7.5 11.5h-2v8h13v-8h-2"/></symbol>
+  <symbol id="i-reply" viewBox="0 0 24 24"><path d="M10 7.5 5 12l5 4.5"/><path d="M5.5 12h8a5.5 5.5 0 0 1 5.5 5.5v1"/></symbol>
+  <symbol id="i-apps" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></symbol>
+  <symbol id="i-apps-fill" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="2" fill="currentColor"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2" fill="currentColor"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2" fill="currentColor"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2" fill="currentColor"/></symbol>
+  <symbol id="i-notebook-fill" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2.6" fill="currentColor"/><path d="M9 3.5v17" stroke="var(--bg, #000)" stroke-width="1.6"/></symbol>
+  <symbol id="i-team" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M7 19.5a5 5 0 0 1 10 0M2.8 18a3.4 3.4 0 0 1 4.6-3M21.2 18a3.4 3.4 0 0 0-4.6-3"/></symbol>
+  <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7.5 10.5v9H5a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 5 10.5zM7.5 10.5l3.6-6.3a1.9 1.9 0 0 1 3.4 1.6l-.9 3.2h4.6a2 2 0 0 1 2 2.4l-1.3 6.4a2 2 0 0 1-2 1.7H7.5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.6 4.5v4h-4"/></symbol>
+  <symbol id="i-bolt-fill" viewBox="0 0 24 24"><path d="M13 3 5.5 13.5H12L11 21l7.5-10.5H12z" fill="currentColor"/></symbol>
 </svg>
 
 <!-- Franja superior de la app de escritorio: se arrastra para mover la ventana -->
@@ -179,8 +222,10 @@
     <section class="screen" id="screen-stats" data-screen="stats" aria-label="Estadísticas"></section>
     <section class="screen" id="screen-reports" data-screen="reports" aria-label="Informes"></section>
     <section class="screen" id="screen-automations" data-screen="automations" aria-label="Sistemas y automatizaciones"></section>
-    <section class="screen" id="screen-notes" data-screen="notes" aria-label="Apuntes"></section>
-    <section class="screen" id="screen-friends" data-screen="friends" aria-label="Amigos"></section>
+    <section class="screen" id="screen-notes" data-screen="notes" aria-label="Cuaderno"></section>
+    <section class="screen" id="screen-chats" data-screen="chats" aria-label="Chats"></section>
+    <section class="screen" id="screen-friends" data-screen="friends" aria-label="Personas"></section>
+    <section class="screen" id="screen-more" data-screen="more" aria-label="Todo WHIDER"></section>
     <section class="screen" id="screen-plans" data-screen="plans" aria-label="Planes"></section>
     <section class="screen" id="screen-progress" data-screen="progress" aria-label="Perfil y resumen"></section>
   </main>
@@ -190,7 +235,7 @@
     <button class="tab" data-go="tasks"><span class="tab-ic"><svg class="ic off"><use href="#i-tasks"/></svg><svg class="ic on"><use href="#i-tasks-fill"/></svg></span><span class="tab-label">Tareas</span></button>
     <button class="fab" id="fab" aria-label="Nueva tarea"><svg class="ic"><use href="#i-plus"/></svg></button>
     <button class="tab" data-go="calendar"><span class="tab-ic"><svg class="ic off"><use href="#i-calendar"/></svg><svg class="ic on"><use href="#i-calendar-fill"/></svg></span><span class="tab-label">Calendario</span></button>
-    <button class="tab" data-go="focus"><span class="tab-ic"><svg class="ic off"><use href="#i-timer"/></svg><svg class="ic on"><use href="#i-timer-fill"/></svg></span><span class="tab-label">Enfoque</span></button>
+    <button class="tab" data-go="more"><span class="tab-ic"><svg class="ic off"><use href="#i-apps"/></svg><svg class="ic on"><use href="#i-apps-fill"/></svg><span class="tab-badge" data-badge="social"></span></span><span class="tab-label">Más</span></button>
   </nav>
 </div>
 
@@ -219,6 +264,11 @@
 <script src="js/core/records.js"></script>
 <script src="js/core/auth.js"></script>
 <script src="js/core/sync.js"></script>
+<script src="js/core/pages.js"></script>
+<script src="js/core/pagesync.js"></script>
+<script src="js/core/community.js"></script>
+<script src="js/core/chat.js"></script>
+<script src="js/core/invite.js"></script>
 <script src="js/ui/profile.js"></script>
 <script src="js/ui/editor.js"></script>
 <script src="js/ui/quickadd.js"></script>
@@ -226,6 +276,7 @@
 <script src="js/ui/select.js"></script>
 <script src="js/ui/filters.js"></script>
 <script src="js/ui/character.js"></script>
+<script src="js/ui/avatar.js"></script>
 <script src="js/ui/charts.js"></script>
 <script src="js/ui/devices.js"></script>
 <script src="js/ui/sidebar.js"></script>
@@ -238,6 +289,8 @@
 <script src="js/screens/habits.js"></script>
 <script src="js/screens/plans.js"></script>
 <script src="js/screens/notes.js"></script>
+<script src="js/screens/chats.js"></script>
+<script src="js/screens/more.js"></script>
 <script src="js/screens/automations.js"></script>
 <script src="js/screens/stats.js"></script>
 <script src="js/screens/reports.js"></script>

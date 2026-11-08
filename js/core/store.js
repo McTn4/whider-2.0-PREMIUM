@@ -92,9 +92,9 @@ window.Whider = window.Whider || {};
     contrast: 'normal',
     // Personalización avanzada del ordenador
     desk: {
-      sidebar: { habits: true, notes: true, focus: true, stats: true, reports: true, automations: true, friends: true, filters: true, counts: true, compact: false },
+      sidebar: { habits: true, notes: true, focus: true, stats: true, reports: true, automations: true, friends: true, chats: true, filters: true, counts: true, compact: false },
       widgets: { buddy: true, summary: true, habits: true, upcoming: true, focus: false },
-      widgetOrder: 'buddy,summary,habits,upcoming,focus',
+      widgetOrder: 'buddy,summary,messages,habits,upcoming,pages,focus',
       calView: 'month', calStartH: 7, calEndH: 21, weekends: true,
       wide: false, contrast: 'normal'
     }
@@ -442,17 +442,17 @@ window.Whider = window.Whider || {};
     return out;
   }
   function cleanSocial(s) {
-    var out = { friends: {}, devices: {}, focus: null, cheers: [], spaces: {}, code: null, enabled: false, enabledAt: 0 };
+    var out = { friends: {}, devices: {}, focus: null, cheers: [], spaces: {}, code: null, enabled: false, enabledAt: 0, invites: {}, chats: {} };
     if (!s || typeof s !== 'object') return out;
     if (typeof s.code === 'string' && /^[A-Z0-9-]{4,16}$/.test(s.code)) out.code = s.code;
     out.enabled = !!s.enabled; out.enabledAt = typeof s.enabledAt === 'number' ? s.enabledAt : 0;
     if (s.spaces && typeof s.spaces === 'object') Object.keys(s.spaces).forEach(function (id) {
       var x = s.spaces[id];
-      if (x && typeof x.at === 'number' && /^[A-Za-z0-9_-]{4,40}$/.test(id)) out.spaces[id] = { name: typeof x.name === 'string' ? x.name.slice(0, 40) : 'Espacio', at: x.at, left: !!x.left };
+      if (x && typeof x.at === 'number' && /^[A-Za-z0-9_-]{4,40}$/.test(id)) out.spaces[id] = { name: typeof x.name === 'string' ? x.name.slice(0, 40) : 'Espacio', at: x.at, left: !!x.left, icon: typeof x.icon === 'string' ? x.icon.slice(0, 20) : '' };
     });
     if (s.friends && typeof s.friends === 'object') Object.keys(s.friends).forEach(function (uid) {
       var f = s.friends[uid];
-      if (f && typeof f.at === 'number') out.friends[uid] = { name: typeof f.name === 'string' ? f.name.slice(0, 40) : '', code: typeof f.code === 'string' ? f.code.slice(0, 12) : '', at: f.at, removed: !!f.removed };
+      if (f && typeof f.at === 'number') out.friends[uid] = { name: typeof f.name === 'string' ? f.name.slice(0, 40) : '', code: typeof f.code === 'string' ? f.code.slice(0, 12) : '', at: f.at, removed: !!f.removed, kind: f.kind === 'work' ? 'work' : 'friend', pending: !!f.pending };
     });
     if (s.devices && typeof s.devices === 'object') Object.keys(s.devices).forEach(function (id) {
       var d = s.devices[id];
@@ -465,6 +465,16 @@ window.Whider = window.Whider || {};
         taskId: typeof f0.taskId === 'string' ? f0.taskId : null, at: f0.at, device: typeof f0.device === 'string' ? f0.device : '' };
     }
     if (Array.isArray(s.cheers)) out.cheers = s.cheers.filter(function (c) { return c && typeof c.at === 'number'; }).slice(-30);
+    // Invitaciones por enlace o QR que has creado (la clave secreta va en el enlace)
+    if (s.invites && typeof s.invites === 'object') Object.keys(s.invites).forEach(function (k) {
+      var v = s.invites[k];
+      if (/^[A-Za-z0-9]{6,24}$/.test(k) && v && typeof v.at === 'number') out.invites[k] = { at: v.at, kind: v.kind === 'work' ? 'work' : 'friend', uses: typeof v.uses === 'number' ? v.uses : 0, off: !!v.off };
+    });
+    // Preferencias de cada chat: leído hasta, silenciado y fijado
+    if (s.chats && typeof s.chats === 'object') Object.keys(s.chats).forEach(function (k) {
+      var v = s.chats[k];
+      if (/^[A-Za-z0-9_-]{4,80}$/.test(k) && v && typeof v === 'object') out.chats[k] = { read: typeof v.read === 'number' ? v.read : 0, muted: !!v.muted, pinned: !!v.pinned, at: typeof v.at === 'number' ? v.at : 0, hidden: !!v.hidden };
+    });
     return out;
   }
   function cleanTemplates(arr) {
@@ -528,6 +538,8 @@ window.Whider = window.Whider || {};
 
   var State = {
     KEYS: KEYS,
+    /** Lectura y escritura con el espejo nativo de Android (lo usa también el Cuaderno) */
+    storage: { read: read, write: write, remove: remove, flush: function () { flushNative(); } },
     ACCENTS: ACCENTS,
     PRIORITIES: PRIORITIES,
     REPEATS: REPEATS,
@@ -603,7 +615,7 @@ window.Whider = window.Whider || {};
         focus: focusLog, doneLog: doneLog, records: State.records,
         habits: State.habits, habitLog: State.habitLog, rules: State.rules, filters: State.filters,
         notes: State.notes, plan: State.plan, character: State.character, social: State.social, templates: State.templates,
-        profile: { name: profile.name || '', email: profile.email || '', photo: profile.photo || '', photoURL: profile.photoURL || '' },
+        profile: { name: profile.name || '', email: profile.email || '', photo: profile.photo || '', photoURL: profile.photoURL || '', avatar: profile.avatar || '' },
         meta: { createdAt: State.meta.createdAt, seenAchievements: State.meta.seenAchievements, achievedAt: State.meta.achievedAt, onboarded: !!State.meta.onboarded },
         sync: State.syncMeta
       };
@@ -636,7 +648,8 @@ window.Whider = window.Whider || {};
         profile = Object.assign({}, profile, {
           name: sp.name || profile.name || '', email: sp.email || profile.email || '',
           photo: typeof sp.photo === 'string' ? sp.photo : (profile.photo || ''),
-          photoURL: typeof sp.photoURL === 'string' && sp.photoURL ? sp.photoURL : (profile.photoURL || '')
+          photoURL: typeof sp.photoURL === 'string' && sp.photoURL ? sp.photoURL : (profile.photoURL || ''),
+          avatar: typeof sp.avatar === 'string' ? sp.avatar : (profile.avatar || '')
         });
         write(KEYS.profile, profile);
       }
@@ -653,6 +666,7 @@ window.Whider = window.Whider || {};
     clearLocal: function () {
       ALL_KEYS.forEach(remove);
       remove('whider.focus.timer');
+      if (W.Pages) W.Pages.clearLocal();
       profile = {};
       State.tasks = []; State.lists = cleanLists(null); State.settings = clone(DEFAULT_SETTINGS);
       focusLog = {}; doneLog = {}; State.records = emptyRecords();
@@ -831,6 +845,7 @@ window.Whider = window.Whider || {};
       State.habits = []; State.habitLog = {};
       State.notes.forEach(function (n) { State.markDeleted('note:' + n.id); });
       State.notes = [];
+      if (W.Pages) W.Pages.resetAll();
       State.syncMeta.resetAt = Date.now();
       State.meta.celebrated = null;
       State.meta.seenAchievements = [];

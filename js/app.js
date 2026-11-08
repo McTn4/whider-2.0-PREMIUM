@@ -148,7 +148,14 @@ window.Whider = window.Whider || {};
   function onUser(user) {
     if (user) {
       var wasOpen = W.AuthScreen.isOpen();
-      W.Sync.start(user).then(function () { adoptGoogleProfile(user); });
+      W.Sync.start(user).then(function () {
+        adoptGoogleProfile(user);
+        if (W.Auth.isVerified()) {
+          if (W.Invite) W.Invite.retryPending();
+          if (W.People && W.People.ready()) { W.People.publish(); W.People.poll(true); }
+          if (W.Chat) W.Chat.refreshList();
+        }
+      });
       if (wasOpen) {
         if (W.Auth.isVerified()) { W.AuthScreen.close(); afterAuth(); }
         else W.AuthScreen.showVerify();
@@ -221,7 +228,8 @@ window.Whider = window.Whider || {};
       else if (cmd === 'settings') { if (!W.Settings.isOpen()) W.Settings.open(); }
       else if (cmd === 'shortcuts') W.Keys.help();
       else if (cmd === 'focus-toggle') W.Screens.focus.toggle();
-      else if (cmd === 'new-note') W.Notes.open(null);
+      else if (cmd === 'new-note' || cmd === 'new-page') W.Notes.open(null);
+      else if (cmd.indexOf('invite:') === 0) { if (W.Invite) W.Invite.open(cmd.slice(7)); }
       else if (cmd === 'report-pdf') { W.Router.go('reports'); setTimeout(function () { if (W.Screens.reports.pdf) W.Screens.reports.pdf(); }, 350); }
       else if (cmd === 'data') { if (!W.Settings.isOpen()) W.Settings.open('data'); }
       else if (cmd.indexOf('go:') === 0) W.Router.go(cmd.slice(3));
@@ -247,8 +255,14 @@ window.Whider = window.Whider || {};
     W.Sidebar.init();
     W.Auto.init();
     W.Plan.check();
-    W.Friends.init();
+    W.People.init();
+    W.Chat.init();
     W.Devices.init();
+    // Los chats y las solicitudes cambian el contador de la pestaña «Más» y de la barra lateral
+    W.Chat.subscribe(function (r) { if (r === 'list') { W.Notify.emitBadge(); W.Sidebar.refresh(); } });
+    W.People.subscribe(function (r) { if (r === 'requests' || r === 'poll') { W.Notify.emitBadge(); W.Sidebar.refresh(); } });
+    // Páginas nuevas, borradas o recuperadas: contador del Cuaderno en la barra lateral y logros
+    W.Pages.subscribe(function (r) { if (r.create || r.trash || r.restore || r.destroy || r.import || r.remote) { W.Sidebar.refresh(); scheduleLateWork('focus'); } });
     // Al pasar de móvil a ordenador (o al revés) se vuelve a pintar con el otro diseño
     W.Layout.onChange(function () { W.Menu.close(); W.Router.refresh(); W.Sidebar.refresh(); });
     initDesktopApp();
@@ -265,6 +279,8 @@ window.Whider = window.Whider || {};
     var sp = document.getElementById('splash');
     if (sp) sp.addEventListener('click', function () { hideSplash(true); });
 
+    // Una invitación en la dirección (#i=… o ?c=…): se guarda y se abre cuando la app esté lista
+    if (W.Invite) W.Invite.fromLocation();
     W.Router.init(S.settings.startScreen);
 
     // Decisión inmediata (sin esperar a Firebase): quien ya tiene sesión entra directo
@@ -281,6 +297,7 @@ window.Whider = window.Whider || {};
         idle(function () { checkAchievements(true); W.Records.check(true); });
         if (accounts) { W.Auth.onChange(onUser); W.Auth.init(); }
         initServiceWorker();
+        if (W.Invite) W.Invite.ready();
       }, 0);
     });
     document.documentElement.classList.add('ready');

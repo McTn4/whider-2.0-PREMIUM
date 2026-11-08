@@ -3,8 +3,9 @@
  *
  * Todo lo esencial es gratis en el móvil y en el ordenador. Premium añade lo profesional:
  * sistemas y automatizaciones, organización muy avanzada (filtros sin límite, tablero,
- * estadísticas e informes completos), personalización avanzada, comunidad con amigos,
- * gestionar el ordenador desde el móvil, acciones rápidas y objetos exclusivos del personaje.
+ * estadísticas e informes completos), personalización avanzada, invitar por enlace o QR y crear
+ * equipos, gestionar el ordenador desde el móvil, acciones rápidas y personajes Premium.
+ * Sin Premium se pueden aceptar invitaciones, tener contactos, chatear y unirse a equipos.
  *
  * El plan se guarda con su propia marca de tiempo y se sincroniza con la cuenta (el
  * dispositivo que lo activó gana aunque otro tenga ajustes más recientes).
@@ -37,10 +38,10 @@ window.Whider = window.Whider || {};
     stats: { icon: 'chart', title: 'Estadísticas avanzadas', text: 'Hasta un año de historia, comparativas, horas y días más productivos y conclusiones.' },
     reports: { icon: 'print', title: 'Informes completos', text: 'Cualquier periodo, en PDF, hoja de cálculo (CSV) o JSON, listos para compartir.' },
     custom: { icon: 'palette', title: 'Personalización avanzada', text: 'Elige qué ves en la barra lateral y en Hoy, el calendario a tu medida, ancho y contraste.' },
-    community: { icon: 'users', title: 'Comunidad con amigos', text: 'Añade amigos, comparad rachas y avances, enviaos ánimos y trabajad en espacios compartidos.' },
+    community: { icon: 'users', title: 'Invitar y crear equipos', text: 'Añade a amigos y compañeros con tu enlace o tu código QR y crea equipos con su chat y páginas compartidas.' },
     remote: { icon: 'phone', title: 'Gestionar el ordenador', text: 'Desde el móvil, mira y controla el enfoque del ordenador y tus dispositivos conectados.' },
     quick: { icon: 'bolt', title: 'Mayor rapidez', text: 'Plantillas de un toque, accesos directos y sincronización al instante entre dispositivos.' },
-    items: { icon: 'gem', title: 'Objetos exclusivos', text: 'Accesorios y estilos Premium para tu personaje.' }
+    items: { icon: 'gem', title: 'Personajes Premium', text: 'Astronauta, dragón, fénix, unicornio y gema, con acabados, efectos, fondos y marcos para tu foto de perfil.' }
   };
   /** Límites del plan gratuito (Premium: sin límite) */
   var FREE = { filters: 3, rules: 2, statsDays: 30, spaces: 0 };

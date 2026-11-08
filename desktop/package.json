@@ -1,7 +1,7 @@
 {
   "name": "whider-desktop",
   "productName": "WHIDER",
-  "version": "6.0.1",
+  "version": "7.0.0",
   "description": "WHIDER para ordenador: tareas, calendario, avisos y enfoque.",
   "main": "main.js",
   "author": "McTn4",
@@ -69,7 +69,10 @@
       "icon": "build/icon.png",
       "identity": "-",
       "hardenedRuntime": false,
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "NSCameraUsageDescription": "WHIDER usa la cámara para escanear códigos QR de invitación."
+      }
     },
     "dmg": {
       "artifactName": "WHIDER-mac.${ext}"
@@ -83,6 +86,14 @@
       "artifactName": "WHIDER-linux.${ext}",
       "executableName": "whider",
       "syncDesktopName": true
-    }
+    },
+    "protocols": [
+      {
+        "name": "WHIDER",
+        "schemes": [
+          "whider"
+        ]
+      }
+    ]
   }
 }

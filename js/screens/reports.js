@@ -17,7 +17,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   ];
   var SECTIONS = [
     { id: 'summary', label: 'Resumen' }, { id: 'done', label: 'Completadas' }, { id: 'pending', label: 'Pendientes' }, { id: 'lists', label: 'Categorías' },
-    { id: 'focus', label: 'Enfoque' }, { id: 'habits', label: 'Hábitos' }, { id: 'notes', label: 'Apuntes' }, { id: 'achievements', label: 'Logros' }
+    { id: 'focus', label: 'Enfoque' }, { id: 'habits', label: 'Hábitos' }, { id: 'notes', label: 'Cuaderno' }, { id: 'achievements', label: 'Logros' }
   ];
   var ui = { period: 'week', from: null, to: null, sections: { summary: true, done: true, pending: true, lists: true, focus: true, habits: true, notes: false, achievements: true } };
 
@@ -46,7 +46,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     var lists = st.lists.map(function (l) {
       return { name: l.name, done: cur.byList[l.id] || 0, pending: st.tasks.filter(function (t) { return !t.done && t.listId === l.id; }).length };
     }).filter(function (x) { return x.done || x.pending; });
-    var notes = st.notes.filter(function (n) { return n.updatedAt >= startTs && n.updatedAt < endTs; }).sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    var notes = (W.Pages ? W.Pages.all().filter(function (m) { return !W.Pages.isRow(m); }).map(function (m) { return { title: W.Pages.title(m), updatedAt: Math.max(m.at, m.cv) }; }) : st.notes)
+      .filter(function (n) { return n.updatedAt >= startTs && n.updatedAt < endTs; }).sort(function (a, b) { return b.updatedAt - a.updatedAt; });
     var at = st.meta.achievedAt || {};
     var ach = W.Game.achievements().filter(function (a) { return a.ok && at[a.id] && at[a.id] >= startTs && at[a.id] < endTs; });
     return { from: from, to: to, c: c, cur: cur, prev: c.prev, done: done, pending: pending, lists: lists, notes: notes, ach: ach, name: st.displayName() };
@@ -93,7 +94,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         fd.length ? Ch.table(['Día', 'Minutos', 'Sesiones'], fd.map(function (r) { return [U.fmtShort(r.date), r.focus, r.sessions]; })) : null]);
     }
     if (sections.habits && cur.habits.length) sec('Hábitos', [Ch.table(['Hábito', 'Cumplido', 'Racha actual'], cur.habits.map(function (x) { return [x.habit.name, x.rate + ' %', W.Habits.streak(x.habit)]; }))]);
-    if (sections.notes) sec('Apuntes editados (' + d.notes.length + ')', d.notes.length ? [U.el('ul.rp-list', d.notes.map(function (n) { return U.el('li', [U.el('span.rp-t', { text: U.fmtShort(U.ymd(new Date(n.updatedAt))) }), U.el('span', { text: W.Notes.title(n) })]); }))] : [U.el('p.rp-none', { text: 'Sin apuntes en este periodo.' })]);
+    if (sections.notes) sec('Páginas editadas (' + d.notes.length + ')', d.notes.length ? [U.el('ul.rp-list', d.notes.map(function (n) { return U.el('li', [U.el('span.rp-t', { text: U.fmtShort(U.ymd(new Date(n.updatedAt))) }), U.el('span', { text: W.Notes.title(n) })]); }))] : [U.el('p.rp-none', { text: 'Sin páginas editadas en este periodo.' })]);
     if (sections.achievements) sec('Logros', d.ach.length ? [U.el('ul.rp-list', d.ach.map(function (a) { return U.el('li', [U.el('span.rp-t', { text: '+' + a.xp + ' XP' }), U.el('span', { text: a.title + ' · ' + a.desc })]); }))] : [U.el('p.rp-none', { text: 'Nivel ' + W.Game.get().level + ' · ' + W.Game.title(W.Game.get().level) + '. Ningún logro nuevo en este periodo.' })]);
     return out;
   }

@@ -3,7 +3,7 @@
  *
  * Experiencia (XP) calculada a partir de lo que haces, así es igual en todos tus dispositivos:
  *  tareas completadas · minutos de enfoque · mejor racha · días de hábitos cumplidos ·
- *  apuntes · amigos · logros conseguidos.
+ *  páginas del Cuaderno · contactos · logros conseguidos.
  * Los logros van por familias con varios grados (I, II, III…), cada uno con su barra de
  * progreso hasta el siguiente. Subir de nivel desbloquea objetos para tu personaje.
  */
@@ -23,7 +23,7 @@ window.Whider = window.Whider || {};
     var st = S(), td = U.today();
     var m = {
       done: st.totalDone(), bestStreak: st.bestStreak(), focusMin: st.focusTotals().min, focusSessions: st.focusTotals().sessions,
-      habitDays: 0, habitBest: 0, notes: st.notes.length, friends: st.friends().length, records: 0,
+      habitDays: 0, habitBest: 0, notes: W.Pages ? W.Pages.count() : st.notes.length, friends: st.friends().length, records: 0,
       perfectDays: 0, early: 0, late: 0, weekend: 0, onTime: 0, listsUsed: 0, filters: st.filters.length,
       systems: st.rules.length, cheers: (st.meta.cheersSent || 0), level: 1
     };
@@ -77,12 +77,12 @@ window.Whider = window.Whider || {};
       tiers: [[3, 'Organizado', 'lists'], [6, 'Todo en su sitio']] },
     { id: 'systems', icon: 'system', title: 'Sistemas', unit: 'filtros y automatizaciones', cat: 'Organización', value: function (m) { return m.filters + m.systems; },
       tiers: [[1, 'Primer sistema'], [5, 'Arquitecto']] },
-    { id: 'notes', icon: 'notebook', title: 'Apuntes', unit: 'apuntes', cat: 'Organización', value: function (m) { return m.notes; },
-      tiers: [[1, 'Primera nota'], [10, 'Cuaderno'], [50, 'Biblioteca']] },
+    { id: 'notes', icon: 'notebook', title: 'Cuaderno', unit: 'páginas en tu Cuaderno', cat: 'Organización', value: function (m) { return m.notes; },
+      tiers: [[1, 'Primera página'], [10, 'Cuaderno lleno'], [50, 'Biblioteca']] },
     { id: 'records', icon: 'trophy', title: 'Marcas personales', unit: 'marcas registradas', cat: 'Marcas', value: function (m) { return m.records; },
       tiers: [[1, 'Primera marca'], [10, 'Superándote'], [50, 'Atleta']] },
-    { id: 'friends', icon: 'users', title: 'Comunidad', unit: 'amigos', cat: 'Comunidad', value: function (m) { return m.friends; },
-      tiers: [[1, 'Primer amigo'], [5, 'Equipo'], [15, 'Tribu']] },
+    { id: 'friends', icon: 'users', title: 'Personas', unit: 'contactos', cat: 'Comunidad', value: function (m) { return m.friends; },
+      tiers: [[1, 'Primer contacto'], [5, 'Equipo'], [15, 'Tribu']] },
     { id: 'cheers', icon: 'send', title: 'Ánimos', unit: 'ánimos enviados', cat: 'Comunidad', value: function (m) { return m.cheers; },
       tiers: [[1, 'Buen compañero'], [25, 'Motivador']] }
   ];
@@ -111,8 +111,8 @@ window.Whider = window.Whider || {};
       { k: 'focus', label: 'Minutos de enfoque', xp: m.focusMin * 2 },
       { k: 'streak', label: 'Mejor racha', xp: m.bestStreak * 15 },
       { k: 'habits', label: 'Hábitos cumplidos', xp: m.habitDays * 5 },
-      { k: 'notes', label: 'Apuntes', xp: Math.min(m.notes, 50) * 3 },
-      { k: 'friends', label: 'Amigos', xp: Math.min(m.friends, 10) * 20 },
+      { k: 'notes', label: 'Cuaderno', xp: Math.min(m.notes, 50) * 3 },
+      { k: 'friends', label: 'Personas', xp: Math.min(m.friends, 10) * 20 },
       { k: 'achievements', label: 'Logros', xp: list.filter(function (a) { return a.ok; }).reduce(function (s, a) { return s + a.xp; }, 0) }
     ];
     var xp = parts.reduce(function (s, p) { return s + p.xp; }, 0);

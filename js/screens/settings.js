@@ -8,10 +8,10 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '6.0.1';
+  var VERSION = '7.0';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
-    { value: 'habits', label: 'Hábitos' }, { value: 'notes', label: 'Apuntes' }, { value: 'focus', label: 'Enfoque' }
+    { value: 'notes', label: 'Cuaderno' }, { value: 'chats', label: 'Chats' }, { value: 'habits', label: 'Hábitos' }, { value: 'focus', label: 'Enfoque' }
   ];
   var REWARN = [{ value: 0, label: 'Solo una vez' }, { value: 10, label: 'Cada 10 minutos' }, { value: 20, label: 'Cada 20 minutos' }, { value: 60, label: 'Cada hora' }];
   var TEXT = [{ value: 's', label: 'Pequeño' }, { value: 'm', label: 'Normal' }, { value: 'l', label: 'Grande' }, { value: 'xl', label: 'Enorme' }];
@@ -290,7 +290,7 @@ window.Whider = window.Whider || {};
     var sb = dk.sidebar;
     var sbItem = function (key, label, icon) { return toggleCell({ icon: icon, title: label, value: sb[key] !== false, onChange: function (v) { sb[key] = v; saveDesk(); } }); };
     // Bloques de Hoy con su orden
-    var order = W.Screens.home.widgetOrder(st), names = { buddy: 'Tu personaje', summary: 'Resumen del día', habits: 'Hábitos de hoy', upcoming: 'Próximos días', focus: 'Enfoque' };
+    var order = W.Screens.home.widgetOrder(st), names = { buddy: 'Tu personaje', summary: 'Resumen del día', messages: 'Mensajes y solicitudes', habits: 'Hábitos de hoy', upcoming: 'Próximos días', pages: 'Cuaderno', focus: 'Enfoque' };
     var widgets = order.map(function (k, i) {
       var move = function (d) { var o = order.slice(), j = i + d; if (j < 0 || j >= o.length) return; o[i] = o[j]; o[j] = k; dk.widgetOrder = o.join(','); saveDesk(); nav.refresh(); };
       return U.el('div.cell.order-row', [U.el('span.cell-title', { text: names[k] }),
@@ -309,9 +309,10 @@ window.Whider = window.Whider || {};
       title: 'Personalización',
       body: [
         W.UI.section({ header: 'Barra lateral', items: [
-          sbItem('habits', 'Hábitos', 'target'), sbItem('notes', 'Apuntes', 'notebook'), sbItem('focus', 'Enfoque', 'timer'),
+          sbItem('notes', 'Cuaderno', 'notebook'), sbItem('chats', 'Chats', 'chat'), sbItem('friends', 'Personas', 'users'),
+          sbItem('habits', 'Hábitos', 'target'), sbItem('focus', 'Enfoque', 'timer'),
           sbItem('stats', 'Estadísticas', 'chart'), sbItem('reports', 'Informes', 'print'), sbItem('automations', 'Sistemas', 'system'),
-          sbItem('friends', 'Amigos', 'users'), sbItem('filters', 'Filtros', 'filter'),
+          sbItem('filters', 'Filtros', 'filter'),
           toggleCell({ icon: 'hash', title: 'Mostrar los contadores', value: sb.counts !== false, onChange: function (v) { sb.counts = v; saveDesk(); } }),
           toggleCell({ icon: 'list', title: 'Barra compacta', value: !!sb.compact, onChange: function (v) { sb.compact = v; saveDesk(); } })
         ] }),
@@ -430,18 +431,42 @@ window.Whider = window.Whider || {};
     });
     U.saveFile('whider-tareas-' + U.today(), rows.map(function (r) { return r.map(cell).join(';'); }).join('\r\n'), 'csv');
   }
-  function exportBackup() { U.saveFile('whider-copia-' + U.today(), JSON.stringify(S().snapshot(), null, 1), 'json'); }
+  /** Copia completa: también el Cuaderno (fichas y contenido de cada página, salvo las de equipo) */
+  function exportBackup() {
+    var snap = S().snapshot();
+    if (W.Pages) {
+      var mine = W.Pages.all().concat(W.Pages.all({ trash: true })).filter(function (m) { return !m.team; });
+      snap.pages = mine.map(function (m) { return { meta: m, content: W.Pages.content(m.id) }; });
+    }
+    U.saveFile('whider-copia-' + U.today(), JSON.stringify(snap, null, 1), 'json');
+  }
+  /** Páginas de una copia: se añaden las que faltan y se actualizan las más recientes */
+  function importPages(list) {
+    var n = 0;
+    (Array.isArray(list) ? list : []).forEach(function (x) {
+      if (!x || !x.meta || !x.meta.id) return;
+      var cur = W.Pages.get(x.meta.id);
+      if (cur && cur.at >= (x.meta.at || 0) && (cur.cv || 0) >= (x.meta.cv || 0)) return;
+      W.Pages.applyMeta(Object.assign({}, x.meta, { team: null }));
+      W.Pages.applyContent(x.meta.id, x.content || { blocks: [] }, x.meta.cv || Date.now());
+      var idx = W.Pages.index(); idx.dirty[x.meta.id] = 3;
+      n++;
+    });
+    if (n) { W.Pages.saveNow(); if (W.PageSync) W.PageSync.schedule(); }
+    return n;
+  }
   function importBackup() {
     pickFile('.json,application/json').then(function (f) {
       if (!f) return;
       var data = null;
       try { data = JSON.parse(f.text); } catch (e) { data = null; }
       if (!data || !Array.isArray(data.tasks)) { W.Toast.show({ text: 'No es una copia de WHIDER', type: 'danger' }); return; }
-      W.Sheet.confirm({ title: '¿Recuperar la copia?', text: 'Se juntará con lo que ya tienes (' + U.plural(data.tasks.length, 'tarea', 'tareas') + (data.notes ? ', ' + U.plural(data.notes.length, 'apunte', 'apuntes') : '') + '). Gana siempre lo más reciente.', ok: 'Recuperar' }).then(function (ok) {
+      W.Sheet.confirm({ title: '¿Recuperar la copia?', text: 'Se juntará con lo que ya tienes (' + U.plural(data.tasks.length, 'tarea', 'tareas') + (data.pages ? ', ' + U.plural(data.pages.length, 'página', 'páginas') : data.notes ? ', ' + U.plural(data.notes.length, 'apunte', 'apuntes') : '') + '). Gana siempre lo más reciente.', ok: 'Recuperar' }).then(function (ok) {
         if (!ok) return;
         var merged = W.Sync.merge(S().snapshot(), data);
         S().applySnapshot(merged, 'import');
-        W.Toast.show({ text: 'Copia recuperada', type: 'success', icon: 'upload' });
+        var np = W.Pages && data.pages ? importPages(data.pages) : 0;
+        W.Toast.show({ text: 'Copia recuperada' + (np ? ' (' + U.plural(np, 'página', 'páginas') + ' del Cuaderno)' : ''), type: 'success', icon: 'upload' });
       });
     });
   }
@@ -452,7 +477,7 @@ window.Whider = window.Whider || {};
       title: 'Datos',
       body: [
         W.UI.section({ header: 'Copia de seguridad', items: [
-          W.UI.cell({ icon: 'download', title: 'Guardar una copia', sub: 'Todo: tareas, apuntes, hábitos, sistemas y ajustes (JSON)', onTap: exportBackup }),
+          W.UI.cell({ icon: 'download', title: 'Guardar una copia', sub: 'Todo: tareas, Cuaderno, hábitos, sistemas y ajustes (JSON)', onTap: exportBackup }),
           W.UI.cell({ icon: 'upload', title: 'Recuperar una copia', sub: 'Se junta con lo que ya tienes', onTap: importBackup })
         ], footer: W.Auth && W.Auth.user ? 'Con tu cuenta, todo se guarda además en la nube.' : 'Sin cuenta, tus datos solo están en este dispositivo: guarda copias de vez en cuando.' }),
         desk ? W.UI.section({ header: 'Hoja de cálculo', items: [
@@ -461,9 +486,9 @@ window.Whider = window.Whider || {};
         ] }) : null,
         W.UI.section({ items: [W.UI.cell({ title: 'Ver la presentación', onTap: function () { nav.close(); setTimeout(function () { W.Onboarding.start(); }, 300); } })] }),
         W.UI.section({ items: [W.UI.cell({ title: 'Restablecer todo', center: true, danger: true, onTap: function () {
-          W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán tus tareas, apuntes, hábitos, sesiones de enfoque, marcas y logros. No se puede deshacer.', ok: 'Restablecer', danger: true })
+          W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán tus tareas, tu Cuaderno, tus hábitos, sesiones de enfoque, marcas y logros. No se puede deshacer.', ok: 'Restablecer', danger: true })
             .then(function (ok) { if (ok) { st.resetAll(); nav.close(); W.Toast.show({ text: 'Se han borrado todos los datos', icon: 'trash' }); } });
-        } })], footer: 'Borra tareas, apuntes, hábitos, enfoque, marcas y logros' + (W.Auth && W.Auth.user ? ', también en tu cuenta.' : '.') + ' Tus categorías, sistemas y ajustes se conservan.' })
+        } })], footer: 'Borra tareas, Cuaderno, hábitos, enfoque, marcas y logros' + (W.Auth && W.Auth.user ? ', también en tu cuenta.' : '.') + ' Tus categorías, sistemas y ajustes se conservan.' })
       ]
     };
   }
@@ -496,9 +521,9 @@ window.Whider = window.Whider || {};
   }
 
   W.PRIVACY_HTML =
-    '<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas, categorías, apuntes, hábitos, enfoque, marcas, tu personaje y ajustes.</p>' +
+    '<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas, categorías, tu Cuaderno, hábitos, enfoque, marcas, tu personaje, tus chats y ajustes.</p>' +
     '<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>' +
-    '<p><b>Amigos.</b> Si usas la comunidad, tus amigos ven tu nombre, tu personaje, tu nivel, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tus apuntes.</p>' +
+    '<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu nivel, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros.</p>' +
     '<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>' +
     '<p><b>Tus derechos.</b> Puedes cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
     '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>';

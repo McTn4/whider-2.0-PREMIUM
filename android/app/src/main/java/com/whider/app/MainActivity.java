@@ -15,6 +15,7 @@ import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -74,6 +75,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_MIGRATED = "migrated_file_origin";
     private static final String PREF_ASKED_NOTIF = "asked_notifications";
     private static final int REQ_NOTIFICATIONS = 4021;
+    private static final int REQ_CAMERA = 4022;
+    /** Petición de cámara de la web (escáner de QR) esperando el permiso de Android */
+    private PermissionRequest pendingCamera;
+    /** Enlace de invitación que llegó al abrir la app (se entrega cuando la web está lista) */
+    private String pendingLink;
 
     private WebView webView;
     private WebViewAssetLoader assetLoader;
@@ -141,6 +147,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
+            /** Cámara para el escáner de códigos QR (solo para la propia app) */
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(() -> {
+                    boolean video = false;
+                    for (String r : request.getResources()) if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) video = true;
+                    Uri origin = request.getOrigin();
+                    if (!video || origin == null || !ASSET_HOST.equals(origin.getHost())) { request.deny(); return; }
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                        request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+                    } else {
+                        if (pendingCamera != null) pendingCamera.deny();
+                        pendingCamera = request;
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
+                    }
+                });
+            }
+
             @Override
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (pendingFileCallback != null) pendingFileCallback.onReceiveValue(null);
@@ -204,14 +228,31 @@ public class MainActivity extends AppCompatActivity {
         handleLaunchIntent(intent);
     }
 
-    /** Abrir una pantalla concreta al pulsar una notificación */
+    /** Abrir una pantalla concreta al pulsar una notificación, o una invitación (whider:// o enlace web) */
     private void handleLaunchIntent(Intent intent) {
         if (intent == null || webView == null) return;
+        Uri data = intent.getData();
+        if (Intent.ACTION_VIEW.equals(intent.getAction()) && data != null) {
+            String scheme = data.getScheme(), host = data.getHost(), path = data.getPath();
+            boolean ours = "whider".equals(scheme) || ("https".equals(scheme) && "whider-red.vercel.app".equals(host) && path != null && path.startsWith("/i"));
+            if (ours) { pendingLink = data.toString(); intent.setData(null); deliverPendingLink(0); }
+        }
         String screen = intent.getStringExtra(EXTRA_OPEN_SCREEN);
         if (screen == null || !screen.matches("[a-z]+")) return;
         intent.removeExtra(EXTRA_OPEN_SCREEN);
         webView.postDelayed(() -> webView.evaluateJavascript(
                 "window.Whider&&Whider.Router&&Whider.Router.go('" + screen + "');", null), 450);
+    }
+
+    /** Entrega la invitación a la web; si aún está cargando, lo vuelve a intentar */
+    private void deliverPendingLink(int attempt) {
+        if (pendingLink == null || webView == null || attempt > 20) return;
+        final String link = pendingLink;
+        webView.postDelayed(() -> {
+            if (webView == null) return;
+            webView.evaluateJavascript("(function(){if(window.WhiderOpenLink&&window.Whider&&Whider.App){WhiderOpenLink(" + JSONObject.quote(link) + ");return true;}return false;})()",
+                    value -> { if ("true".equals(value)) { if (link.equals(pendingLink)) pendingLink = null; } else deliverPendingLink(attempt + 1); });
+        }, attempt == 0 ? 700 : 600);
     }
 
     @Override
@@ -254,6 +295,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_CAMERA) {
+            boolean ok = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            if (pendingCamera != null) {
+                if (ok) pendingCamera.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE}); else pendingCamera.deny();
+                pendingCamera = null;
+            }
+            return;
+        }
         if (requestCode != REQ_NOTIFICATIONS || webView == null) return;
         boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
         webView.evaluateJavascript(
@@ -423,6 +472,18 @@ public class MainActivity extends AppCompatActivity {
                     webView.evaluateJavascript(
                             "window.Whider&&Whider.Notify&&Whider.Notify.onNativePermissionResult(true);", null);
                 }
+            });
+        }
+
+        /** Compartir un texto (enlace de invitación) con el menú de Android */
+        @JavascriptInterface
+        public void shareText(String text) {
+            if (text == null) return;
+            runOnUiThread(() -> {
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("text/plain");
+                send.putExtra(Intent.EXTRA_TEXT, text);
+                try { startActivity(Intent.createChooser(send, "Compartir invitación")); } catch (ActivityNotFoundException ignored) { }
             });
         }
 

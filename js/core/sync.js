@@ -176,7 +176,14 @@ window.Whider = window.Whider || {};
           code: soa.code || sob.code || null,
           enabled: (soa.enabledAt || 0) >= (sob.enabledAt || 0) ? !!soa.enabled : !!sob.enabled,
           enabledAt: Math.max(soa.enabledAt || 0, sob.enabledAt || 0),
-          cheers: Object.keys(cheers).map(function (k) { return cheers[k]; }).sort(function (x, y) { return x.at - y.at; }).slice(-30)
+          cheers: Object.keys(cheers).map(function (k) { return cheers[k]; }).sort(function (x, y) { return x.at - y.at; }).slice(-30),
+          invites: perKey(soa.invites, sob.invites, 'at'),
+          chats: (function () {
+            // Lo leído es lo máximo de los dos lados; silenciar y fijar, lo último que se cambió
+            var out = perKey(soa.chats, sob.chats, 'at'), A = soa.chats || {}, B = sob.chats || {};
+            Object.keys(out).forEach(function (k) { out[k] = Object.assign({}, out[k], { read: Math.max((A[k] || {}).read || 0, (B[k] || {}).read || 0) }); });
+            return out;
+          })()
         },
         meta: {
           createdAt: Math.min(ma.createdAt || Date.now(), mb.createdAt || Date.now()),

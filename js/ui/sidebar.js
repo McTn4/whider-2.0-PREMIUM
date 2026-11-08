@@ -13,20 +13,29 @@ window.Whider = window.Whider || {};
   var el = null, queued = false, timerEl = null;
   var DRAG_TYPE = 'text/x-whider-task';
 
-  /* Secciones: «opt» es la clave para ocultarla (Ajustes → Personalización) */
+  /*
+   * Secciones por orden de importancia: lo principal (tu día, tus tareas, tu calendario y tu
+   * Cuaderno), el trabajo con otros, tus rutinas y, al final, el análisis.
+   * «opt» es la clave para ocultarla (Ajustes → Personalización).
+   */
   var NAV = [
     { id: 'home', label: 'Hoy', icon: 'sun', key: '1' },
     { id: 'tasks', label: 'Tareas', icon: 'tasks', key: '2' },
     { id: 'calendar', label: 'Calendario', icon: 'calendar', key: '3' },
-    { id: 'habits', label: 'Hábitos', icon: 'target', key: '4', opt: 'habits' },
-    { id: 'notes', label: 'Apuntes', icon: 'notebook', key: '5', opt: 'notes' },
-    { id: 'focus', label: 'Enfoque', icon: 'timer', key: '6', opt: 'focus' }
+    { id: 'notes', label: 'Cuaderno', icon: 'notebook', key: '4', opt: 'notes' }
+  ];
+  var TEAM = [
+    { id: 'chats', label: 'Chats', icon: 'chat', key: '5', opt: 'chats' },
+    { id: 'friends', label: 'Personas', icon: 'users', key: '6', opt: 'friends' }
+  ];
+  var DAY = [
+    { id: 'habits', label: 'Hábitos', icon: 'target', key: '7', opt: 'habits' },
+    { id: 'focus', label: 'Enfoque', icon: 'timer', key: '8', opt: 'focus' }
   ];
   var TOOLS = [
-    { id: 'stats', label: 'Estadísticas', icon: 'chart', key: '7', opt: 'stats' },
-    { id: 'reports', label: 'Informes', icon: 'print', key: '8', opt: 'reports' },
-    { id: 'automations', label: 'Sistemas', icon: 'system', key: '9', opt: 'automations', premium: 'systems' },
-    { id: 'friends', label: 'Amigos', icon: 'users', opt: 'friends', premium: 'community' }
+    { id: 'stats', label: 'Estadísticas', icon: 'chart', key: '9', opt: 'stats' },
+    { id: 'reports', label: 'Informes', icon: 'print', opt: 'reports' },
+    { id: 'automations', label: 'Sistemas', icon: 'system', opt: 'automations', premium: 'systems' }
   ];
 
   function openedList(st) {
@@ -101,9 +110,7 @@ window.Whider = window.Whider || {};
       var on = active === n.id && !(n.id === 'tasks' && (listOpen || filterOpen));
       var extra = n.id === 'home' ? count(overdue || todayLeft, overdue > 0)
         : n.id === 'tasks' ? count(pending)
-        : n.id === 'habits' ? count(habitsLeft)
-        : n.id === 'notes' ? count(st.notes.length)
-        : n.id === 'focus' && focus && focus.running ? (timerEl = U.el('span.sb-timer', { text: focus.text }))
+        : n.id === 'notes' ? count(W.Pages ? W.Pages.count() : 0)
         : null;
       var b = navItem(st, n, on, extra);
       if (n.id === 'home') dropTarget(b, function (id) {
@@ -115,11 +122,17 @@ window.Whider = window.Whider || {};
     }));
     if (!focus || !focus.running) timerEl = null;
 
-    var tools = TOOLS.filter(function (n) { return shown(st, n); });
-    var toolsSec = tools.length ? U.el('div.sb-sec.sb-tools', [
-      U.el('div.sb-head', [U.el('span', { text: 'Análisis y herramientas' })]),
-      U.el('div.sb-group', tools.map(function (n) { return navItem(st, n, active === n.id, n.id === 'friends' && W.Friends ? count(W.Friends.pendingCount(), true) : null); }))
-    ]) : null;
+    var group = function (title, items, extraFor) {
+      var list = items.filter(function (n) { return shown(st, n); });
+      return list.length ? U.el('div.sb-sec.sb-tools', [
+        U.el('div.sb-head', [U.el('span', { text: title })]),
+        U.el('div.sb-group', list.map(function (n) { return navItem(st, n, active === n.id, extraFor ? extraFor(n) : null); }))
+      ]) : null;
+    };
+    var unread = W.Chat ? W.Chat.unreadCount() : 0, reqs = W.People ? W.People.pendingCount() : 0;
+    var teamSec = group('Equipo', TEAM, function (n) { return n.id === 'chats' ? count(unread, true) : n.id === 'friends' ? count(reqs, true) : null; });
+    var daySec = group('Rutinas', DAY, function (n) { return n.id === 'habits' ? count(habitsLeft) : n.id === 'focus' && focus && focus.running ? (timerEl = U.el('span.sb-timer', { text: focus.text })) : null; });
+    var toolsSec = group('Análisis', TOOLS);
 
     var lists = U.el('div.sb-lists', st.lists.map(function (l) {
       var n = st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length;
@@ -191,6 +204,8 @@ window.Whider = window.Whider || {};
         [U.icon('search', 'sm'), U.el('span', { text: 'Buscar' }), U.el('kbd', { text: W.Layout.keys('K') })])
     ]));
     el.appendChild(nav);
+    if (teamSec) el.appendChild(teamSec);
+    if (daySec) el.appendChild(daySec);
     if (toolsSec) el.appendChild(toolsSec);
     el.appendChild(U.el('div.sb-sec', [
       U.el('div.sb-head', [U.el('span', { text: 'Categorías' }),
@@ -215,6 +230,8 @@ window.Whider = window.Whider || {};
   var Sidebar = {
     DRAG_TYPE: DRAG_TYPE,
     NAV: NAV,
+    TEAM: TEAM,
+    DAY: DAY,
     TOOLS: TOOLS,
     openView: openView,
     dropTarget: dropTarget,

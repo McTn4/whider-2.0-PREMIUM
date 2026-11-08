@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Invitación a WHIDER</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Te han invitado a WHIDER: tareas, calendario, Cuaderno, chats y equipos.">
+  <meta property="og:title" content="Te han invitado a WHIDER">
+  <meta property="og:description" content="Conecta para chatear, compartir tareas y trabajar en equipo.">
+  <meta property="og:image" content="https://whider-red.vercel.app/icons/icon-512.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+  <style>
+    @font-face { font-family: 'Hanken Grotesk'; src: url('../fonts/hanken-grotesk-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    :root { --bg: #050505; --s1: #111; --s2: #171717; --t1: #F2F2F2; --t2: #A3A3A3; --t3: #7A7A7A; --line: rgba(255,255,255,.08); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--t1); font-family: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { display: flex; align-items: center; justify-content: center; padding: 28px 18px calc(28px + env(safe-area-inset-bottom)); }
+    main { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+    .brand { display: flex; align-items: center; gap: 10px; letter-spacing: .32em; font-weight: 700; font-size: 13px; color: var(--t2); margin-bottom: 8px; }
+    .brand svg { width: 22px; height: 22px; }
+    .card { width: 100%; padding: 28px 22px 22px; border-radius: 26px; background: var(--s1); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 30px 60px -28px #000; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .av-host { width: 132px; height: 132px; margin-bottom: 6px; }
+    h1 { margin: 4px 0 0; font-size: 1.55rem; line-height: 1.2; letter-spacing: -.01em; }
+    p { margin: 0; color: var(--t2); line-height: 1.45; }
+    .kind { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 12px; border-radius: 99px; background: rgba(255,255,255,.08); color: var(--t2); font-size: 13px; font-weight: 600; }
+    .btns { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    a.btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 14px; text-decoration: none; font-weight: 650; font-size: 16px; }
+    a.primary { background: #F2F2F2; color: #000; }
+    a.soft { background: rgba(255,255,255,.08); color: var(--t1); }
+    .downloads { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 4px; }
+    .downloads a { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 14px; background: var(--s1); color: var(--t1); text-decoration: none; text-align: left; box-shadow: 0 0 0 1px var(--line) inset; }
+    .downloads small { color: var(--t3); font-size: 12px; }
+    .note { font-size: 13px; color: var(--t3); }
+    .team-ic { width: 112px; height: 112px; display: grid; place-items: center; border-radius: 32px; background: var(--s2); box-shadow: 0 0 0 1px rgba(255,255,255,.1); margin-bottom: 6px; }
+    .team-ic svg { width: 54px; height: 54px; fill: none; stroke: #F2F2F2; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    /* Avatar con personaje (mismo dibujo que en la app) */
+    .av { position: relative; display: inline-block; width: var(--s); height: var(--s); border-radius: 50%; }
+    .av-in { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #2C2C2C, #141414 72%); }
+    .av-in .ch-svg { width: 104%; height: 104%; margin-top: 4%; }
+    .av-bg-puntos .av-in { background: radial-gradient(circle, rgba(255,255,255,.16) 1px, transparent 1.4px) 0 0 / 7px 7px, radial-gradient(circle at 50% 35%, #2a2a2a, #121212 72%); }
+    .av-bg-degradado .av-in { background: linear-gradient(160deg, #5A5A5A, #121212 70%); }
+    .av-bg-rayas .av-in { background: repeating-linear-gradient(135deg, #1E1E1E 0 5px, #141414 5px 10px); }
+    .av-bg-estrellas .av-in, .av-bg-holo .av-in { background: radial-gradient(circle at 20% 25%, #FFF 0 .8px, transparent 1.2px), radial-gradient(circle at 78% 18%, #FFF 0 .7px, transparent 1.1px), linear-gradient(#1a1a1a, #050505); }
+    .av-fr-aro, .av-fr-animado { box-shadow: 0 0 0 3px var(--s1), 0 0 0 5px rgba(255,255,255,.85); }
+    .av-fr-doble { box-shadow: 0 0 0 3px var(--s1), 0 0 0 5px #FFF, 0 0 0 8px var(--s1), 0 0 0 9.5px rgba(255,255,255,.5); }
+    .av-ovw { position: absolute; inset: -9%; pointer-events: none; }
+    .av-ov { width: 100%; height: 100%; overflow: visible; }
+    .av-ov.crown { transform: translateY(-14%); }
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 14l12 36 12-26 12 26 12-36" fill="none" stroke="#F2F2F2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</div>
+  <div class="card" id="card">
+    <div class="av-host" id="who"></div>
+    <h1 id="title">Te han invitado a WHIDER</h1>
+    <p id="text">Tareas, calendario, Cuaderno, chats y equipos en una sola app.</p>
+    <span class="kind" id="kind" hidden></span>
+    <div class="btns">
+      <a class="btn primary" id="open" href="#">Abrir en la app</a>
+      <a class="btn soft" id="web" href="../">Seguir en el navegador</a>
+    </div>
+  </div>
+  <p class="note">¿Aún no tienes la app? Descárgala gratis:</p>
+  <div class="downloads">
+    <a href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/apk-latest/app-debug.apk"><b>Android</b><small>APK</small></a>
+    <a href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-Setup.exe"><b>Windows</b><small>Instalador</small></a>
+    <a href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-mac.dmg"><b>macOS</b><small>DMG</small></a>
+    <a href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-linux.AppImage"><b>Linux</b><small>AppImage</small></a>
+  </div>
+  <p class="note">Si ya tienes WHIDER instalada, «Abrir en la app» te conecta al momento.</p>
+</main>
+<script src="../js/core/util.js"></script>
+<script src="../js/ui/character.js"></script>
+<script src="../js/ui/avatar.js"></script>
+<script>
+  (function () {
+    'use strict';
+    var q = location.search.replace(/^\?/, '');
+    var p = {};
+    q.split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) { try { p[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); } catch (e) { /* mal escrito */ } } });
+    var $ = function (id) { return document.getElementById(id); };
+    var name = (p.n || '').slice(0, 40), isTeam = !!p.s;
+    if (isTeam) {
+      $('who').outerHTML = '<div class="team-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M7 19.5a5 5 0 0 1 10 0M2.8 18a3.4 3.4 0 0 1 4.6-3M21.2 18a3.4 3.4 0 0 0-4.6-3"/></svg></div>';
+      $('title').textContent = (p.by ? p.by + ' te invita al equipo' : 'Te invitan al equipo') + ' «' + (name || 'Equipo') + '»';
+      $('text').textContent = 'Chat del equipo, tareas en común y páginas del Cuaderno que se editan a la vez.';
+    } else if (p.c) {
+      $('title').textContent = (name || 'Alguien') + ' te invita a conectar';
+      $('text').textContent = p.t === 'w' ? 'Para trabajar juntos: chats, equipos y páginas compartidas.' : 'Para chatear, animaros y comparar vuestras rachas.';
+      $('kind').hidden = false; $('kind').textContent = p.t === 'w' ? 'Trabajo' : 'Amigos';
+      // El personaje de quien invita
+      try {
+        var keys = ['body', 'tone', 'eyes', 'mouth', 'head', 'acc', 'fx', 'bg', 'frame'], parts = String(p.b || '').split('.'), cfg = {};
+        keys.forEach(function (k, i) { if (parts[i] && /^[a-z0-9]{2,20}$/.test(parts[i])) cfg[k] = parts[i]; });
+        cfg.cheeks = parts[keys.length] !== '0';
+        $('who').appendChild(window.Whider.Avatar.buddy(cfg, 132, { live: true }));
+      } catch (e) { /* sin dibujo */ }
+    }
+    // Abrir en la app: en Android con un «intent» (y, si no está instalada, la descarga); en el resto, whider://
+    var appLink = 'whider://i?' + q;
+    var android = /Android/i.test(navigator.userAgent);
+    var fallback = 'https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/apk-latest/app-debug.apk';
+    $('open').href = android ? 'intent://i?' + q + '#Intent;scheme=whider;package=com.whider.app;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end' : appLink;
+    $('web').href = '../#i=' + encodeURIComponent(q);
+    if (!q) { $('open').hidden = true; $('title').textContent = 'WHIDER'; }
+  })();
+</script>
+</body>
+</html>

@@ -21,14 +21,19 @@ window.Whider = window.Whider || {};
       { icon: 'sun', label: 'Ir a Hoy', hint: '1', run: function () { W.Router.go('home'); } },
       { icon: 'tasks', label: 'Ir a Tareas', hint: '2', run: function () { W.Router.go('tasks'); } },
       { icon: 'calendar', label: 'Ir al Calendario', hint: '3', run: function () { W.Router.go('calendar'); } },
-      { icon: 'target', label: 'Ir a Hábitos', hint: '4', run: function () { W.Router.go('habits'); } },
-      { icon: 'notebook', label: 'Ir a Apuntes', hint: '5', run: function () { W.Router.go('notes'); } },
-      { icon: 'timer', label: 'Ir a Enfoque', hint: '6', run: function () { W.Router.go('focus'); } },
-      { icon: 'chart', label: 'Estadísticas', hint: '7', run: function () { W.Router.go('stats'); } },
-      { icon: 'print', label: 'Informes', hint: '8', run: function () { W.Router.go('reports'); } },
-      { icon: 'system', label: 'Sistemas y automatizaciones', hint: '9', run: function () { W.Router.go('automations'); } },
-      { icon: 'users', label: 'Amigos', run: function () { W.Router.go('friends'); } },
-      { icon: 'plus', label: 'Nuevo apunte', run: function () { W.Notes.open(null); } },
+      { icon: 'notebook', label: 'Ir al Cuaderno', hint: '4', run: function () { W.Router.go('notes'); } },
+      { icon: 'chat', label: 'Ir a Chats', hint: '5', run: function () { W.Router.go('chats'); } },
+      { icon: 'users', label: 'Ir a Personas', hint: '6', run: function () { W.Router.go('friends'); } },
+      { icon: 'target', label: 'Ir a Hábitos', hint: '7', run: function () { W.Router.go('habits'); } },
+      { icon: 'timer', label: 'Ir a Enfoque', hint: '8', run: function () { W.Router.go('focus'); } },
+      { icon: 'chart', label: 'Estadísticas', hint: '9', run: function () { W.Router.go('stats'); } },
+      { icon: 'print', label: 'Informes', run: function () { W.Router.go('reports'); } },
+      { icon: 'system', label: 'Sistemas y automatizaciones', run: function () { W.Router.go('automations'); } },
+      { icon: 'plus', label: 'Nueva página del Cuaderno', hint: 'Alt N', run: function () { W.Notes.open(null); } },
+      { icon: 'database', label: 'Nueva base de datos', run: function () { W.Notes.newPage({ kind: 'db' }); } },
+      { icon: 'qr', label: 'Mi código QR para invitar', run: function () { if (W.Plan.gate('community')) W.Invite.qrSheet({}); } },
+      { icon: 'scan', label: 'Escanear una invitación', run: function () { W.Invite.scan(); } },
+      { icon: 'team', label: 'Nuevo equipo', run: function () { W.State.ui.peopleTab = 'teams'; W.Router.go('friends'); } },
       { icon: 'plus', label: 'Nuevo hábito', run: function () { W.HabitView.edit(null); } },
       { icon: 'smile', label: 'Personalizar tu personaje', run: function () { W.Character.edit(); } },
       { icon: 'gem', label: 'Planes y precios', run: function () { W.Plan.open(); } },
@@ -82,9 +87,13 @@ window.Whider = window.Whider || {};
     }).concat(st.filters.filter(function (f) { return matches(f.name, words); }).map(function (f) {
       return { icon: 'filter', label: f.name, sub: 'Filtro', run: function () { W.Sidebar.openView({ type: 'filter', id: f.id }); } };
     }));
-    var notes = st.notes.filter(function (n) { return matches(n.title + ' ' + n.body, words); }).slice(0, 6).map(function (n) {
-      return { icon: 'notebook', label: W.Notes.title(n), sub: 'Apunte · ' + U.fmtDay(U.ymd(new Date(n.updatedAt))), run: function () { W.Notes.open(n.id); } };
-    });
+    var notes = W.Pages ? W.Pages.search(q, 8).map(function (r) {
+      var p = r.page;
+      return { icon: p.icon || (p.kind === 'db' ? 'database' : 'page'), label: W.Pages.title(p), sub: (r.hit ? r.hit.slice(0, 70) : 'Cuaderno · ' + U.fmtDay(U.ymd(new Date(Math.max(p.at, p.cv))))), run: function () { W.Notes.openPage(p.id); } };
+    }) : [];
+    var people = W.People ? W.People.contacts().filter(function (f) { return matches(((W.People.profile(f.uid) || {}).name || f.name || ''), words); }).slice(0, 5).map(function (f) {
+      return { icon: f.kind === 'work' ? 'briefcase' : 'user', label: (W.People.profile(f.uid) || {}).name || f.name || 'Contacto', sub: 'Abrir el chat', run: function () { W.Chat.openChat({ uid: f.uid }); } };
+    }) : [];
     var habits = st.habits.filter(function (h) { return matches(h.name, words); }).map(function (h) {
       var done = W.Habits.isDone(h, U.today());
       return { icon: h.icon || 'target', label: h.name, sub: (h.archived ? 'Archivado · ' : '') + W.Habits.freqLabel(h) + (done ? ' · hecho hoy' : ''), run: function () { W.HabitView.open(h.id); } };
@@ -93,7 +102,8 @@ window.Whider = window.Whider || {};
     var create = { icon: 'plus', label: 'Crear «' + q.trim() + '»', sub: 'Nueva tarea con este texto', run: function () { createTask(q); } };
     if (tasks.length) groups.push({ title: 'Tareas', items: tasks });
     if (lists.length) groups.push({ title: 'Categorías y filtros', items: lists });
-    if (notes.length) groups.push({ title: 'Apuntes', items: notes });
+    if (notes.length) groups.push({ title: 'Cuaderno', items: notes });
+    if (people.length) groups.push({ title: 'Personas', items: people });
     if (habits.length) groups.push({ title: 'Hábitos', items: habits });
     if (acts.length) groups.push({ title: 'Acciones', items: acts });
     // Sin coincidencias, crear la tarea es lo primero (Intro la crea)
@@ -115,7 +125,7 @@ window.Whider = window.Whider || {};
 
     open: function (initial) {
       if (current) return current;
-      var input = U.el('input.pal-input', { attrs: { type: 'text', placeholder: 'Busca tareas, categorías, apuntes o acciones…', 'aria-label': 'Buscar', autocomplete: 'off', spellcheck: 'false' } });
+      var input = U.el('input.pal-input', { attrs: { type: 'text', placeholder: 'Busca tareas, páginas, personas o acciones…', 'aria-label': 'Buscar', autocomplete: 'off', spellcheck: 'false' } });
       input.value = initial || '';
       var results = U.el('div.pal-results', { attrs: { role: 'listbox' } });
       var flat = [], active = 0;

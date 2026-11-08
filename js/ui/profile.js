@@ -19,6 +19,8 @@ window.Whider = window.Whider || {};
   function paint(wrap) {
     var src = S().photo();
     U.clear(wrap);
+    // 7.0: tu personaje como foto de perfil (o tu foto, o la inicial: lo eliges en Editar perfil)
+    if (W.Avatar && W.Character) { wrap.classList.add('has-av'); wrap.classList.remove('has-photo'); wrap.appendChild(W.Avatar.me(null)); return; }
     wrap.classList.toggle('has-photo', !!src);
     if (src) {
       var img = U.el('img', { attrs: { alt: '', src: src, referrerpolicy: 'no-referrer', decoding: 'async', draggable: 'false' } });
@@ -81,14 +83,22 @@ window.Whider = window.Whider || {};
   /** Hoja "Editar perfil": foto + nombre, guardados juntos */
   function edit(after) {
     var st = S(), p = st.getProfile() || {};
-    var draft = { photo: p.photo || '', removed: false };
+    var draft = { photo: p.photo || '', removed: false, avatar: p.avatar || 'buddy' };
     var preview = U.el('span.avatar.xl');
     var name = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'name', enterkeyhint: 'done', 'aria-label': 'Nombre' } });
     name.value = st.displayName();
     var removeBtn = U.el('button.link-btn.muted', { text: 'Quitar foto', on: { click: function () { draft.photo = ''; draft.removed = true; renderPreview(); } } });
+    var modeSeg = null;
     var renderPreview = function () {
       U.clear(preview);
       var src = draft.photo || (!draft.removed && p.photoURL) || '';
+      if (W.Avatar) {
+        removeBtn.style.display = src ? '' : 'none';
+        preview.classList.add('has-av'); preview.classList.remove('has-photo');
+        var m = draft.avatar === 'photo' && !src ? 'buddy' : draft.avatar;
+        preview.appendChild(m === 'photo' ? W.Avatar.photo(src, null, name.value) : m === 'initial' ? W.Avatar.initial(name.value.trim() || 'W', null) : W.Avatar.buddy(W.Character.config(), null, { live: true }));
+        return;
+      }
       preview.classList.toggle('has-photo', !!src);
       if (src) preview.appendChild(U.el('img', { attrs: { alt: '', src: src, referrerpolicy: 'no-referrer' } }));
       else preview.appendChild(document.createTextNode((name.value.trim() || 'W').charAt(0).toUpperCase()));
@@ -96,12 +106,12 @@ window.Whider = window.Whider || {};
     };
     name.addEventListener('input', function () { if (!preview.classList.contains('has-photo')) renderPreview(); });
     var change = function () {
-      choosePhoto().then(function (data) { if (data) { draft.photo = data; draft.removed = false; renderPreview(); } });
+      choosePhoto().then(function (data) { if (data) { draft.photo = data; draft.removed = false; draft.avatar = 'photo'; renderPreview(); if (modeSeg) modeSeg.set('photo'); } });
     };
     var save = function () {
       var n = name.value.trim();
       if (!n) { name.focus(); name.closest('.group').classList.add('shake'); setTimeout(function () { name.closest('.group').classList.remove('shake'); }, 450); return; }
-      var patch = { name: n, photo: draft.photo };
+      var patch = { name: n, photo: draft.photo, avatar: draft.avatar };
       if (draft.removed) patch.photoURL = '';
       st.setProfile(patch);
       if (W.Auth) W.Auth.updateName(n);
@@ -118,12 +128,31 @@ window.Whider = window.Whider || {};
           U.el('button.photo-pick', { attrs: { 'aria-label': 'Cambiar foto' }, on: { click: change } }, [preview, U.el('span.cam', [U.icon('camera')])]),
           U.el('div.cell-row', [U.el('button.link-btn', { text: 'Cambiar foto', on: { click: change } }), removeBtn])
         ]),
+        W.Avatar ? W.UI.section({ header: 'Foto de perfil', items: [U.el('div.cell', [(modeSeg = segmentedMode())])], footer: 'Tu personaje se ve en tu perfil, en tus chats y en tus equipos. Su fondo y su marco se eligen en «Personalizar».' }) : null,
+        W.Avatar ? U.el('div.cell-row.center', [U.el('button.btn.sm.soft', { on: { click: function () { W.Character.edit('avatar'); } } }, [U.icon('palette', 'sm'), 'Personalizar personaje'])]) : null,
         W.UI.section({ header: 'Nombre', items: [U.el('label.cell', [name])] }),
         u && u.email ? W.UI.section({ header: 'Correo', items: [W.UI.cell({ title: u.email })] }) : null
       ]
     });
+    function segmentedMode() {
+      var labels = { buddy: 'Personaje', photo: 'Foto', initial: 'Inicial' };
+      var seg = W.UI.segmented([{ value: 'buddy', label: 'Personaje' }, { value: 'photo', label: 'Foto' }, { value: 'initial', label: 'Inicial' }], draft.avatar, function (v) {
+        if (v === 'photo' && !(draft.photo || (!draft.removed && p.photoURL))) {
+          var prev = draft.avatar;
+          choosePhoto().then(function (data) {
+            if (data) { draft.photo = data; draft.removed = false; draft.avatar = 'photo'; renderPreview(); }
+            else seg.set(prev);
+          });
+          return;
+        }
+        draft.avatar = v; renderPreview();
+      });
+      // Marca una opción como si se hubiera tocado (sin repetir la acción si ya está)
+      seg.set = function (v) { U.$$('button', seg).forEach(function (b) { if (b.textContent === labels[v] && !b.classList.contains('active')) b.click(); }); };
+      return seg;
+    }
     renderPreview();
   }
 
-  W.Profile = { avatar: avatar, refreshAll: refreshAll, edit: edit, choosePhoto: choosePhoto, processImage: processImage };
+  W.Profile = { avatar: avatar, refreshAll: refreshAll, edit: edit, choosePhoto: choosePhoto, processImage: processImage, pickFile: pickFile };
 })(window.Whider);

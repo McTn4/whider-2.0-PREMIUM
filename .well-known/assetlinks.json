@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.whider.app",
+      "sha256_cert_fingerprints": ["7A:4D:B1:23:74:23:8E:6B:8F:B1:7C:20:1A:C3:1E:B9:E2:84:7D:EC:B6:1E:9B:FC:CB:86:BD:31:27:73:F9:A2"]
+    }
+  }
+]

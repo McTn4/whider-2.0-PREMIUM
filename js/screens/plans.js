@@ -16,11 +16,11 @@ window.Whider.Screens = window.Whider.Screens || {};
       ['Calendario profesional', 'Mes, semana y día; duración de las tareas, arrastrar y exportar', true, true],
       ['Tareas por categorías', 'Con icono, colores de prioridad y vistas automáticas', true, true],
       ['Más orden y organización', 'Hábitos, selección múltiple y filtros guardados', '3 filtros', 'Sin límite'],
-      ['Apuntes de notas', 'Con listas de casillas que se convierten en tareas', true, true],
+      ['Cuaderno', 'Páginas por bloques, bases de datos con vistas y plantillas', true, true],
       ['Creación de sistemas profesionales', 'GTD, Eisenhower, bloqueo de tiempo y automatizaciones', false, true],
       ['Organización muy avanzada', 'Tablero, estadísticas de un año e informes completos', 'Básica', true],
       ['Personalización avanzada', 'Barra lateral, Hoy, calendario, ancho y contraste', false, true],
-      ['Comunidad de trabajo con amigos', 'Amigos, ranking semanal, ánimos y espacios compartidos', false, true]
+      ['Equipos de trabajo', 'Crea equipos con su chat y páginas del Cuaderno compartidas', 'Unirte', true]
     ] },
     { title: 'Móvil', icon: 'phone', sub: 'Experiencia rápida, accesible y conectada con el ordenador', rows: [
       ['Calendario', 'Mes, semana y agenda', true, true],
@@ -28,11 +28,12 @@ window.Whider.Screens = window.Whider.Screens || {};
       ['Mejor ecosistema', 'Una sola app, sincronizada con el ordenador', true, true],
       ['Mayor rapidez', 'Plantillas de un toque y sincronización al instante', false, true],
       ['Gestionar el ordenador', 'Mira y controla el enfoque y los dispositivos', false, true],
-      ['Conectar con amigos', 'Rachas, ánimos y ranking', false, true]
+      ['Chats con tus contactos', 'Con quien te invite: mensajes, tareas y páginas', true, true],
+      ['Invitar con enlace o QR', 'Añade a amigos y compañeros de trabajo', false, true]
     ] },
-    { title: 'General', icon: 'sparkle', sub: 'Personalización, juego, sonidos, notificaciones y planes', rows: [
+    { title: 'General', icon: 'sparkle', sub: 'Personalización, juego, personas, sonidos, notificaciones y planes', rows: [
       ['Sonidos de botones y avisos', 'Elige cuáles suenan y a qué volumen', true, true],
-      ['Personaje personalizable', 'Tu compañero en la app, con ilustraciones', true, 'Y objetos exclusivos'],
+      ['Personaje personalizable', 'Tu compañero y tu foto de perfil', true, 'Y personajes Premium'],
       ['Logros y niveles', 'Más de 30 logros, recompensas y niveles', true, true],
       ['Notificaciones y recordatorios', 'De tareas y de hábitos', true, true],
       ['Copia en la nube', 'En todos tus dispositivos con tu cuenta', true, 'Al instante']
@@ -94,7 +95,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       var hero = U.el('div.pl-hero', [
         U.el('span.pl-hero-gem', [U.icon('gem')]),
         U.el('h2', { text: 'WHIDER Premium' }),
-        U.el('p', { text: 'Todo lo esencial es gratis en el móvil y en el ordenador. Premium añade lo profesional: sistemas, organización muy avanzada, personalización y comunidad.' }),
+        U.el('p', { text: 'Todo lo esencial es gratis en el móvil y en el ordenador. Premium añade lo profesional: sistemas, organización muy avanzada, personalización, invitar y crear equipos.' }),
         seg
       ]);
       var cards = U.el('div.pl-cards', [priceCard('free'), priceCard('premium')]);
@@ -108,7 +109,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         })));
       }));
       var faq = W.UI.section({ header: 'Preguntas frecuentes', items: [
-        W.UI.cell({ title: '¿Pierdo algo si vuelvo a Gratis?', sub: 'No. Tus tareas, apuntes, hábitos y sistemas se quedan; solo se pausan las funciones Premium.' }),
+        W.UI.cell({ title: '¿Pierdo algo si vuelvo a Gratis?', sub: 'No. Tus tareas, tu Cuaderno, tus hábitos, tus contactos y tus chats se quedan; solo se pausan las funciones Premium.' }),
         W.UI.cell({ title: '¿Vale para el móvil y el ordenador?', sub: 'Sí. Con tu cuenta, Premium se activa en todos tus dispositivos.' }),
         W.UI.cell({ title: '¿Cómo se activa?', sub: P.hasCheckout() ? 'Paga de forma segura en la página de pago y canjea el código que recibirás.' : 'Empieza la prueba gratuita o canjea tu código de activación aquí abajo.' })
       ] });

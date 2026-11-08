@@ -1,7 +1,7 @@
 /**
  * WHIDER · Perfil y resumen: tu foto, nombre y plan; tu personaje con su nivel; actividad
  * (estadísticas, gráfico, constancia y categorías), marcas personales y logros por familias
- * con sus grados y recompensas. Accesos a Hábitos, Apuntes, Amigos, Sistemas, Planes y Ajustes.
+ * con sus grados y recompensas. Accesos a Hábitos, Cuaderno, Chats, Personas, Sistemas, Planes y Ajustes.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -172,8 +172,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (!desk) {
       var hs = W.Habits.todaySummary();
       items.push(W.UI.cell({ icon: 'target', title: 'Hábitos', value: hs.total ? hs.done + ' de ' + hs.total + ' hoy' : '', onTap: function () { W.Router.go('habits'); } }));
-      items.push(W.UI.cell({ icon: 'notebook', title: 'Apuntes', value: st.notes.length ? String(st.notes.length) : '', onTap: function () { W.Router.go('notes'); } }));
-      items.push(W.UI.cell({ icon: 'users', title: 'Amigos', value: P.isPremium() ? String(st.friends().length || '') : 'Premium', onTap: function () { W.Router.go('friends'); } }));
+      items.push(W.UI.cell({ icon: 'notebook', title: 'Cuaderno', value: W.Pages && W.Pages.count() ? String(W.Pages.count()) : '', onTap: function () { W.Router.go('notes'); } }));
+      items.push(W.UI.cell({ icon: 'chat', title: 'Chats', value: W.Chat && W.Chat.unreadCount() ? String(W.Chat.unreadCount()) : '', onTap: function () { W.Router.go('chats'); } }));
+      items.push(W.UI.cell({ icon: 'users', title: 'Personas', value: String(st.friends().length || ''), onTap: function () { W.Router.go('friends'); } }));
       items.push(W.UI.cell({ icon: 'system', title: 'Sistemas y automatizaciones', onTap: function () { W.Router.go('automations'); } }));
       items.push(W.UI.cell({ icon: 'chart', title: 'Estadísticas e informe semanal', onTap: function () { W.Router.go('stats'); } }));
     }
