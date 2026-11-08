@@ -750,7 +750,7 @@ window.Whider = window.Whider || {};
       toolbar.classList.add('show');
       var w = toolbar.offsetWidth, x = Math.max(8, Math.min(window.innerWidth - w - 8, rect.left + rect.width / 2 - w / 2));
       var y = rect.top - toolbar.offsetHeight - 10;
-      if (y < 8) y = rect.bottom + 10;
+      if (y < 8 + W.Layout.topInset()) y = rect.bottom + 10;
       toolbar.style.left = x + 'px'; toolbar.style.top = y + 'px';
     }
     function t2() { return toolbar && toolbar._t ? toolbar._t : document.createElement('div'); }
@@ -870,7 +870,7 @@ window.Whider = window.Whider || {};
       var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       m.el.style.left = Math.max(8, Math.min(window.innerWidth - 300, r.left)) + 'px';
       var below = r.bottom + 6, h = Math.min(340, m.el.scrollHeight);
-      m.el.style.top = (below + h > vh - 8 ? Math.max(8, r.top - h - 6) : below) + 'px';
+      m.el.style.top = (below + h > vh - 8 ? Math.max(8 + W.Layout.topInset(), r.top - h - 6) : below) + 'px';
       var on = m.el.querySelector('.bk-menu-i.on'); if (on) on.scrollIntoView({ block: 'nearest' });
     }
     function handleMenuKey(ev, m) {

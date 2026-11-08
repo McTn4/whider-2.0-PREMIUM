@@ -21,6 +21,8 @@ window.Whider = window.Whider || {};
   function place(menu, anchor) {
     var r = rectOf(anchor);
     var vw = window.innerWidth, vh = window.innerHeight, m = 8;
+    // Arriba, además, la franja de título de la app de escritorio
+    var mt = m + (W.Layout && W.Layout.topInset ? W.Layout.topInset() : 0);
     var mw = menu.offsetWidth, mh = menu.offsetHeight;
     // Un menú en un punto se abre hacia la derecha salvo que no quepa
     var rightSide = r.point ? r.left + mw > vw - m : r.left + r.width / 2 > vw / 2;
@@ -28,8 +30,8 @@ window.Whider = window.Whider || {};
     left = U.clamp(left, m, vw - mw - m);
     var gap = r.point ? 2 : 6;
     var below = r.bottom + gap, above = r.top - gap - mh;
-    var top = below + mh <= vh - m || above < m ? below : above;
-    top = U.clamp(top, m, Math.max(m, vh - mh - m));
+    var top = below + mh <= vh - m || above < mt ? below : above;
+    top = U.clamp(top, mt, Math.max(mt, vh - mh - m));
     menu.style.left = left + 'px';
     menu.style.top = top + 'px';
     menu.style.setProperty('--ox', (rightSide ? mw - 12 : 12) + 'px');

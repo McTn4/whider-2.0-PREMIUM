@@ -89,6 +89,8 @@ window.Whider = window.Whider || {};
         return;
       }
       if (TABS[prev]) lastTab = prev;
+      // Un menú abierto pertenece a la pantalla anterior (p. ej. al cambiar desde la bandeja o un aviso)
+      if (W.Menu && W.Menu.close) W.Menu.close();
       document.body.setAttribute('data-screen', id);
       if (W.Select) W.Select.clear(true);
       W.State.activeScreen = id;

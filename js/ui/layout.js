@@ -35,7 +35,16 @@ window.Whider = window.Whider || {};
     onChange: function (fn) { subs.push(fn); },
 
     /** Texto de un atajo: "Ctrl K" o "⌘ K" */
-    keys: function (k) { return Layout.mod + ' ' + k; }
+    keys: function (k) { return Layout.mod + ' ' + k; },
+
+    /**
+     * Alto de la franja de título de la app de escritorio (Windows y macOS: título y botones de la
+     * ventana); 0 en el navegador y en Linux. Menús y ventanas flotantes no deben quedar debajo.
+     */
+    topInset: function () {
+      var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--titlebar-h'));
+      return isNaN(v) ? 0 : v;
+    }
   };
 
   Layout.apply();

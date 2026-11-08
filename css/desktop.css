@@ -341,6 +341,9 @@ html[data-layout="desktop"] .focus-buddy { right: -40px; }
 
 /* ---------- Apuntes en el ordenador: lista y editor lado a lado ---------- */
 html[data-layout="desktop"] #screen-notes { --content-max: 1240px; }
+/* Cuaderno y Chats ocupan toda la altura con sus propias barras: en la app de escritorio (Windows y macOS)
+   empiezan debajo de la franja de título, como el resto, y no quedan bajo los botones de la ventana */
+html[data-layout="desktop"] #screen-notes, html[data-layout="desktop"] #screen-chats { padding-top: var(--safe-t); }
 .notes-split { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 22px; align-items: start; }
 .notes-side { position: sticky; top: calc(var(--nav-h) + var(--safe-t) + 4px); display: flex; flex-direction: column; max-height: calc(100vh - var(--nav-h) - 90px); }
 .notes-side .search { margin-top: 0; }

@@ -1,4 +1,4 @@
-# WHIDER 7.0.1
+# WHIDER 7.0.2
 
 **Tu día, bajo control.** WHIDER es una app de productividad **para ordenador (Windows, macOS y Linux) y Android** que reúne tareas por categorías, calendario profesional, un **Cuaderno** al estilo de Notion (páginas por bloques, bases de datos y plantillas), hábitos, avisos, enfoque, estadísticas e informes. **Tu personaje** es tu foto de perfil y te acompaña, con **logros y niveles**, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Su diseño es **en blanco y negro** (fondo negro, niveles de gris y un brillo blanco contenido en lo activo) con la tipografía **Hanken Grotesk**, una grotesca limpia de la familia de Arial y Helvetica. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión.
 
@@ -296,6 +296,13 @@ npm start
 Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, nivel, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno, el perfil público y el código de contacto) desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 7.0.2
+
+App de escritorio (Windows y macOS):
+- El **Cuaderno** y los **Chats** empiezan debajo de la franja de título de la ventana. Antes, el buscador del Cuaderno, el botón *+*, la ruta de la página y los botones de favorita y *⋯* (y la cabecera de los chats) quedaban tapados por la franja y por los botones de minimizar, maximizar y cerrar.
+- Los menús y las ventanitas del editor nunca se colocan sobre esa franja.
+- Al cambiar de pantalla (también desde la bandeja o un aviso) se cierra el menú que estuviera abierto.
 
 ## 📝 Novedades de la 7.0.1
 
