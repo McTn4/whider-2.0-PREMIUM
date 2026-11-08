@@ -53,9 +53,18 @@ jobs:
         working-directory: desktop
         run: npm run sync
 
+      # A veces GitHub responde 504 al descargar Electron o su lista de sumas de comprobación
+      # (SHASUMS256.txt): se reintenta hasta 4 veces, con pausas, antes de dar la compilación por fallida.
       - name: Compilar
         working-directory: desktop
-        run: npx electron-builder ${{ matrix.target }} --publish never
+        shell: bash
+        run: |
+          for i in 1 2 3 4; do
+            npx electron-builder ${{ matrix.target }} --publish never && exit 0
+            echo "::warning::Intento $i fallido; se reintenta en $((i * 30)) s"
+            sleep $((i * 30))
+          done
+          exit 1
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
