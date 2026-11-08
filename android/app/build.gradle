@@ -10,8 +10,8 @@ android {
         applicationId "com.whider.app"
         minSdk 24
         targetSdk 34
-        versionCode 700
-        versionName "7.0.0"
+        versionCode 701
+        versionName "7.0.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

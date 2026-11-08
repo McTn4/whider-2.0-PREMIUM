@@ -80,9 +80,11 @@ html[data-layout="mobile"] .pg-edited { display: none; }
 .pg-sheet { max-width: 760px; margin: 0 auto; padding: 0 56px; }
 .pg-pane.full .pg-sheet { max-width: none; padding: 0 72px; }
 html[data-layout="mobile"] .pg-sheet { padding: 0 var(--pad); }
-.pg-cover { position: relative; height: 180px; margin: 0 -56px 0; border-radius: 0 0 var(--r-card) var(--r-card); }
-.pg-pane.full .pg-cover { margin: 0 -72px; }
-html[data-layout="mobile"] .pg-cover { margin: 0 calc(-1 * var(--pad)); height: 132px; border-radius: 0; }
+/* La portada es una tarjeta entera, separada de la barra de arriba (antes quedaba pegada y parecía cortada) */
+.pg-cover { position: relative; height: 180px; margin: 18px -56px 0; border-radius: var(--r-card); box-shadow: inset 0 0 0 1px var(--line); }
+.pg-pane.full .pg-cover { margin: 18px -72px 0; }
+html[data-layout="mobile"] .pg-cover { margin: 10px 0 0; height: 128px; }
+html[data-layout="mobile"] .pg-head.has-cover .pg-bigicon { margin-left: 14px; }
 .pg-cover-btn { position: absolute; right: 14px; bottom: 12px; opacity: 0; transition: opacity .15s; }
 .pg-cover:hover .pg-cover-btn { opacity: 1; }
 html[data-layout="mobile"] .pg-cover-btn { opacity: .85; }
@@ -113,10 +115,10 @@ html[data-layout="mobile"] .pg-title { font-size: 2rem; }
 .cv-lines { background: repeating-linear-gradient(135deg, #161616 0 14px, #0d0d0d 14px 28px); }
 .cv-dots { background: radial-gradient(circle, rgba(255, 255, 255, .22) 1.4px, transparent 1.6px) 0 0 / 18px 18px, #0d0d0d; }
 .cv-grid { background: linear-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, rgba(255, 255, 255, .07) 1px, transparent 1px) 0 0 / 24px 24px, #0b0b0b; }
-.cv-waves { background: radial-gradient(120% 60% at 50% 120%, #2a2a2a, transparent 60%), radial-gradient(90% 50% at 20% -10%, #262626, transparent 60%), #0b0b0b; }
+.cv-waves { background: repeating-radial-gradient(circle at 50% 150%, #0c0c0c 0 16px, #1c1c1c 16px 19px); }
 .cv-fade { background: linear-gradient(120deg, #3a3a3a, #0a0a0a 70%); }
 .cv-night { background: radial-gradient(circle at 75% 30%, rgba(255, 255, 255, .5) 0 1px, transparent 2px) 0 0 / 46px 38px, radial-gradient(circle at 20% 70%, rgba(255, 255, 255, .35) 0 1px, transparent 2px) 0 0 / 34px 52px, linear-gradient(#141414, #050505); }
-.cv-paper { background: linear-gradient(160deg, #1d1d1d, #121212); }
+.cv-paper { background: repeating-linear-gradient(180deg, transparent 0 23px, rgba(255, 255, 255, .07) 23px 24px), linear-gradient(160deg, #1f1f1f, #121212); }
 .cv-rays { background: repeating-conic-gradient(from 0deg at 50% 120%, #1a1a1a 0 6deg, #0d0d0d 6deg 12deg); }
 
 /* Portada del Cuaderno (sin página abierta) */
@@ -314,15 +316,19 @@ body.kb-editing .dock { display: none; }
 .dbv-title { flex: 1; min-width: 0; font-size: 1.25em; font-weight: 700; outline: none; }
 .dbv-title:empty::before { content: attr(data-ph); color: var(--t4); }
 .dbv-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-bottom: 8px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
-.dbv-tabs { display: flex; gap: 2px; flex: 1; min-width: 0; overflow-x: auto; }
+/* Las vistas nunca se aprietan hasta desaparecer: si no caben con las herramientas, estas bajan a otra línea */
+.dbv-tabs { display: flex; gap: 2px; flex: 1 1 auto; min-width: min(100%, 210px); overflow-x: auto; }
+html[data-layout="mobile"] .dbv-tabs { flex-basis: 100%; }
 .dbv-tab { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 8px; color: var(--t3); font-size: var(--fs-sub); white-space: nowrap; }
 .dbv-tab:hover { background: var(--fill-3); color: var(--t1); }
 .dbv-tab.on { color: var(--t1); background: var(--fill-2); font-weight: 600; }
 .dbv-tab .ic { width: 14px; height: 14px; }
 .dbv-tab.add { padding: 0 8px; }
-.dbv-tools { display: flex; align-items: center; gap: 4px; }
+.dbv-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+html[data-layout="mobile"] .dbv-tools { flex: 1 1 100%; min-width: 0; }
+html[data-layout="mobile"] .dbv-search { flex: 1 1 0; width: 0; min-width: 0; }
 .dbv-tools .btn.on { color: var(--t1); background: var(--fill-2); }
-.dbv-search { width: 150px; height: 30px; padding: 0 10px; border-radius: 8px; background: var(--fill-3); border: 0; color: var(--t1); font: inherit; font-size: var(--fs-sub); outline: none; }
+.dbv-search { width: 130px; height: 30px; padding: 0 10px; border-radius: 8px; background: var(--fill-3); border: 0; color: var(--t1); font: inherit; font-size: var(--fs-sub); outline: none; }
 .dbv-search:focus { background: var(--fill-2); }
 .dbv-scroll { overflow-x: auto; }
 .dbv-table { display: grid; min-width: 100%; width: max-content; font-size: var(--fs-sub); }
@@ -370,7 +376,8 @@ body.kb-editing .dock { display: none; }
 .dbv-quick { margin-top: 12px; }
 .dbv-board-wrap { overflow-x: auto; padding-bottom: 6px; }
 .dbv-board { display: flex; gap: 12px; align-items: flex-start; min-height: 120px; }
-.dbv-col { flex: 0 0 260px; padding: 8px; border-radius: 14px; background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--line); transition: background .15s; }
+/* Columnas flexibles: tres caben enteras en el ancho de la página; si hay más, el tablero se desplaza */
+.dbv-col { flex: 1 0 200px; max-width: 300px; min-width: 0; padding: 8px; border-radius: 14px; background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--line); transition: background .15s; }
 .dbv-col.drop { background: var(--fill-2); }
 .dbv-col-h { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 8px; }
 .dbv-col-h small { color: var(--t3); font-size: var(--fs-cap); }

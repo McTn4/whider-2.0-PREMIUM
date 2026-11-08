@@ -1,4 +1,4 @@
-# WHIDER 7.0
+# WHIDER 7.0.1
 
 **Tu día, bajo control.** WHIDER es una app de productividad **para ordenador (Windows, macOS y Linux) y Android** que reúne tareas por categorías, calendario profesional, un **Cuaderno** al estilo de Notion (páginas por bloques, bases de datos y plantillas), hábitos, avisos, enfoque, estadísticas e informes. **Tu personaje** es tu foto de perfil y te acompaña, con **logros y niveles**, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Su diseño es **en blanco y negro** (fondo negro, niveles de gris y un brillo blanco contenido en lo activo) con la tipografía **Hanken Grotesk**, una grotesca limpia de la familia de Arial y Helvetica. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión.
 
@@ -296,6 +296,13 @@ npm start
 Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, nivel, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno, el perfil público y el código de contacto) desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 7.0.1
+
+Retoques de diseño en el Cuaderno:
+- La **portada** de una página es ahora una tarjeta entera, separada de la barra de arriba (antes quedaba pegada a ella y parecía cortada). Las portadas *Ondas* y *Papel* tienen dibujo propio.
+- Los **tableros** muestran enteras tres columnas en el ancho de la página; si hay más, se desplazan.
+- En el móvil, las **vistas** de una base de datos (Tabla, Tablero…) ya no se aprietan hasta desaparecer, y el botón *Nueva* no se sale de la pantalla.
 
 ## 📝 Novedades de la 7.0
 
