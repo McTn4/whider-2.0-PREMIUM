@@ -359,12 +359,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var sheet = U.el('article.pg-sheet');
     if (m.cover) sheet.appendChild(U.el('div.pg-cover.cv-' + m.cover, [ro ? null : U.el('button.btn.xs.soft.pg-cover-btn', { text: 'Cambiar portada', on: { click: function () { coverSheet(id); } } })]));
     var head = U.el('header.pg-head' + (m.cover ? '.has-cover' : ''));
-    if (m.icon) head.appendChild(U.el('button.pg-bigicon', { attrs: { type: 'button', 'aria-label': 'Cambiar el icono', disabled: ro }, on: { click: function () { iconSheet(id); } } }, [U.icon(m.icon)]));
-    if (!ro) head.appendChild(U.el('div.pg-addons', [
-      m.icon ? null : U.el('button.btn.xs.ghost', { on: { click: function () { iconSheet(id); } } }, [U.icon('smile', 'sm'), 'Icono']),
-      m.cover ? null : U.el('button.btn.xs.ghost', { on: { click: function () { coverSheet(id); } } }, [U.icon('image', 'sm'), 'Portada']),
-      m.kind === 'db' ? null : U.el('button.btn.xs.ghost', { attrs: { title: 'Adjuntar fotos o archivos a esta página' }, on: { click: function () { if (cur && cur.editor) cur.editor.attach(); } } }, [U.icon('paperclip', 'sm'), 'Adjuntar'])
-    ]));
+    var tool = function (icon, label, fn, hint) { return U.el('button.pg-tool', { attrs: { type: 'button', title: hint || label }, on: { click: fn } }, [U.icon(icon, 'sm'), U.el('span', { text: label })]); };
     var title = U.el('h1.pg-title', { attrs: { contenteditable: ro ? 'false' : 'true', 'data-ph': m.kind === 'db' ? 'Base de datos sin título' : 'Sin título', spellcheck: 'true', role: 'textbox', 'aria-label': 'Título de la página' } });
     title.textContent = m.title || '';
     var syncTitle = function () {
@@ -386,7 +381,24 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
     title.addEventListener('paste', function (e) { e.preventDefault(); var t = (e.clipboardData && e.clipboardData.getData('text/plain') || '').replace(/\s+/g, ' '); document.execCommand('insertText', false, t); });
     title.classList.toggle('is-empty', !m.title);
-    head.appendChild(title);
+    // El icono va junto al título (no encima de la portada) y debajo, cerrada por una regla, una línea
+    // con los datos de la página y sus herramientas: icono, portada y adjuntar
+    head.appendChild(U.el('div.pg-titlerow', [
+      m.icon ? U.el('button.pg-bigicon', { attrs: { type: 'button', 'aria-label': 'Cambiar el icono', title: 'Cambiar el icono', disabled: ro }, on: { click: function () { iconSheet(id); } } }, [U.icon(m.icon)]) : null,
+      title
+    ]));
+    var words = wordCount(id), nFiles = m.kind === 'db' ? 0 : P().content(id).blocks.filter(function (b) { return b.f; }).length;
+    var info = [desk() ? 'Creada ' + U.fmtShort(U.ymd(new Date(m.cat))) : 'Editada ' + U.fmtRel(edited - Date.now())];
+    if (words) info.push(U.plural(words, 'palabra', 'palabras'));
+    if (nFiles) info.push(U.plural(nFiles, 'adjunto', 'adjuntos'));
+    head.appendChild(U.el('div.pg-meta', [
+      U.el('span.pg-meta-t', { text: info.join(' · ') }),
+      ro ? U.el('span.pg-meta-lock', [U.icon('lock', 'xs'), 'Solo lectura']) : U.el('div.pg-addons', [
+        m.icon ? null : tool('smile', 'Icono', function () { iconSheet(id); }, 'Añadir un icono'),
+        m.cover ? null : tool('image', 'Portada', function () { coverSheet(id); }, 'Añadir una portada'),
+        m.kind === 'db' ? null : tool('paperclip', 'Adjuntar', function () { if (cur && cur.editor) cur.editor.attach(); }, 'Adjuntar fotos o archivos a esta página')
+      ])
+    ]));
     sheet.appendChild(head);
     // Propiedades si es una fila de una base de datos
     if (P().isRow(m) && W.DbView) {
@@ -411,7 +423,6 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (back.length) sheet.appendChild(U.el('div.pg-backlinks', [U.el('div.sec-h', { text: 'Enlazado desde' }), U.el('div.pg-bl-list', back.map(function (b) {
       return U.el('button.pg-bl', { attrs: { type: 'button' }, on: { click: function () { open(b.id); } } }, [U.icon(b.icon || 'page', 'sm'), U.el('span', { text: P().title(b) })]);
     }))]));
-    sheet.appendChild(U.el('div.pg-foot', { text: wordCount(id) ? U.plural(wordCount(id), 'palabra', 'palabras') + ' · creada ' + U.fmtShort(U.ymd(new Date(m.cat))) : 'Creada ' + U.fmtShort(U.ymd(new Date(m.cat))) }));
     paneEl.appendChild(sheet);
     if (opts.focusTitle || wantFocus) { wantFocus = false; setTimeout(focusTitle, 30); }
   }
@@ -447,8 +458,11 @@ window.Whider.Screens = window.Whider.Screens || {};
   function homeDesk() {
     var recent = P().recent(8), favs = P().favorites();
     var host = U.el('div.pg-home');
-    host.appendChild(U.el('div.pg-home-hero', [W.Character.illustration('note', 'happy', 92), U.el('div', [U.el('h2', { text: 'Tu cuaderno' }), U.el('p', { text: 'Páginas dentro de páginas, bases de datos, plantillas y páginas de equipo. Escribe «/» en cualquier página para insertar bloques.' })]),
-      U.el('button.btn.primary', { on: { click: function (e) { newMenu(e.currentTarget, {}); } } }, [U.icon('plus', 'sm'), 'Nueva página'])]));
+    // Cabecera como la del resto de pantallas: título, resumen y la acción principal
+    host.appendChild(U.el('div.lt.pg-home-lt', [
+      U.el('div.lt-text', [U.el('h1', { text: 'Cuaderno' }), U.el('span.lt-sub', { text: U.plural(P().count(), 'página', 'páginas') + ' · Escribe «/» en una página para insertar bloques, archivos o bases de datos' })]),
+      U.el('button.btn.sm.primary', { on: { click: function (e) { newMenu(e.currentTarget, {}); } } }, [U.icon('plus', 'sm'), 'Nueva página'])
+    ]));
     if (favs.length) host.appendChild(U.el('div.pg-home-sec', [U.el('div.sec-t', [U.el('span', { text: 'Favoritas' })]), U.el('div.pg-cards', favs.slice(0, 8).map(card))]));
     host.appendChild(U.el('div.pg-home-sec', [U.el('div.sec-t', [U.el('span', { text: 'Recientes' })]), recent.length ? U.el('div.pg-cards', recent.map(card)) : U.el('p.hint', { text: 'Aún no hay páginas. Crea la primera o empieza con una plantilla.' })]));
     host.appendChild(U.el('div.pg-home-sec', [U.el('div.sec-t', [U.el('span', { text: 'Plantillas' })]), U.el('div.pg-tpls', P().TEMPLATES.map(function (t) {

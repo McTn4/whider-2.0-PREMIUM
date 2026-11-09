@@ -17,21 +17,24 @@
 :root {
   color-scheme: dark;
 
-  /* Fondos y superficies (escala de grises) */
-  --bg: #050505;
-  --bg-2: #0A0A0A;
-  --s1: #111111;            /* tarjetas */
-  --s2: #171717;            /* hojas, menús y elementos elevados */
-  --s3: #222222;            /* campos, pulsado */
+  /* Fondos y superficies (escala de grises, un punto más fría que el negro puro) */
+  --bg: #070708;
+  --bg-2: #0B0B0D;
+  --s1: #111113;            /* tarjetas */
+  --s2: #18181B;            /* hojas, menús y elementos elevados */
+  --s3: #222226;            /* campos, pulsado */
   --cell: var(--s1);
-  --cell-hl: #1A1A1A;
-  --bar: #111111;
+  --cell-hl: #19191C;
+  --bar: #111113;
   --fill: rgba(255, 255, 255, .12);
-  --fill-2: rgba(255, 255, 255, .08);
-  --fill-3: rgba(255, 255, 255, .05);
-  --line: rgba(255, 255, 255, .07);
-  --line-2: rgba(255, 255, 255, .12);
-  --sep: rgba(255, 255, 255, .07);
+  --fill-2: rgba(255, 255, 255, .075);
+  --fill-3: rgba(255, 255, 255, .045);
+  --line: rgba(255, 255, 255, .075);
+  --line-2: rgba(255, 255, 255, .13);
+  --sep: rgba(255, 255, 255, .065);
+  /* «Índice»: reglas finas que ordenan (cabeceras, secciones y el margen del Cuaderno) */
+  --rule: rgba(255, 255, 255, .11);
+  --rule-strong: rgba(255, 255, 255, .85);
 
   /* Texto */
   --t1: #F2F2F2;
@@ -66,28 +69,29 @@
   --p-purple: #B5B5B5;
   --p-star: #7A7A7A;
 
-  /* Forma */
-  --r-card: 16px;
-  --r-cell: 14px;
-  --r-btn: 12px;
-  --r-sheet: 22px;
+  /* Forma: esquinas más precisas (menos «burbuja») */
+  --r-card: 14px;
+  --r-cell: 12px;
+  --r-btn: 11px;
+  --r-sheet: 20px;
   --r-pill: 999px;
   --pad: 18px;
-  --gap: 26px;
+  --gap: 28px;
   --cell-py: 12px;
   --row-h: 3rem;
 
-  /* Luz y sombra */
-  --sh-card: 0 1px 0 rgba(255, 255, 255, .045) inset, 0 14px 30px -18px rgba(0, 0, 0, 1);
-  --sh-float: 0 1px 0 rgba(255, 255, 255, .07) inset, 0 20px 44px -12px rgba(0, 0, 0, 1);
-  --sh-pop: 0 28px 64px -18px rgba(0, 0, 0, 1), 0 0 0 1px rgba(255, 255, 255, .08);
-  --glow: 0 0 22px -6px rgba(255, 255, 255, .45);
-  --glow-soft: 0 0 16px -8px rgba(255, 255, 255, .35);
+  /* Luz y sombra: profundidad discreta; el brillo blanco queda para lo que de verdad importa */
+  --sh-card: 0 1px 0 rgba(255, 255, 255, .035) inset, 0 10px 26px -20px rgba(0, 0, 0, .95);
+  --sh-float: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 20px 44px -14px rgba(0, 0, 0, 1);
+  --sh-pop: 0 28px 64px -18px rgba(0, 0, 0, 1), 0 0 0 1px rgba(255, 255, 255, .09);
+  --glow: 0 0 18px -8px rgba(255, 255, 255, .4);
+  --glow-soft: 0 0 14px -8px rgba(255, 255, 255, .3);
 
   /* Tipografía */
   --font: 'Hanken Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --mono: var(--font);   /* las cifras ya tienen ancho fijo en esta fuente */
-  --fs-large: 1.75rem;    /* 28 */
+  --eyebrow: .6875rem;    /* 11 · etiquetas en versalitas de secciones y cabeceras */
+  --fs-large: 1.875rem;   /* 30 */
   --fs-title2: 1.375rem;  /* 22 */
   --fs-title3: 1.125rem;  /* 18 */
   --fs-body: 1rem;        /* 16 */
