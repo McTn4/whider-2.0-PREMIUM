@@ -45,7 +45,7 @@ window.Whider = window.Whider || {};
     var profileCell = W.UI.cell({
       lead: W.Profile.avatar('lg'), cls: 'profile-cell',
       title: name || (u ? u.displayName || 'Tu cuenta' : 'Tu perfil'),
-      sub: u ? 'Cuenta, copia en la nube y perfil' : accounts ? 'Inicia sesión para guardar tus datos en la nube' : 'Nombre y foto',
+      sub: u ? 'Cuenta: sesión, contraseña y copia en la nube' : accounts ? 'Inicia sesión para guardar tus datos en la nube' : 'Nombre y foto',
       onTap: function () {
         if (u) nav.push(accountPage);
         else if (accounts) { nav.close(); W.AuthScreen.open({ mode: 'register' }); }
@@ -54,31 +54,35 @@ window.Whider = window.Whider || {};
     });
     var P = W.Plan, desk = W.Layout.desktop;
     var planCell = W.UI.cell({ icon: 'gem', title: 'Plan', sub: P.status(), value: P.label(), onTap: function () { nav.close(); setTimeout(function () { P.open(); }, 200); } });
+    /*
+     * Por orden de uso y con nombre: tu cuenta arriba; cómo se ve y cómo suena; cómo te avisa y
+     * cómo organiza tu trabajo; lo de este ordenador; y al final privacidad y datos.
+     */
     return {
       title: 'Ajustes',
       body: [
         U.el('div.group', [profileCell, planCell]),
-        W.UI.group([
+        W.UI.section({ header: 'Cómo se ve y suena', items: [
           W.UI.cell({ icon: 'type', title: 'Apariencia', value: 'Texto ' + labelOf(TEXT, cfg.textSize).toLowerCase(), onTap: function () { nav.push(appearancePage); } }),
-          W.UI.cell({ icon: 'palette', title: 'Personalización', value: desk ? (P.isPremium() ? 'Avanzada' : 'Premium') : 'Básica', onTap: function () { nav.push(customPage); } }),
+          W.UI.cell({ icon: 'palette', title: 'Personalización', value: desk ? (P.isPremium() ? 'Barra, Hoy y calendario' : 'Premium') : 'Qué ves en Hoy', onTap: function () { nav.push(customPage); } }),
           W.UI.cell({ icon: 'smile', title: 'Tu personaje', value: W.Character.config().name, onTap: function () { nav.close(); setTimeout(function () { W.Character.edit(); }, 200); } }),
-          W.UI.cell({ icon: 'sound', title: 'Sonidos y vibración', value: cfg.sound ? 'Activados' : 'Desactivados', onTap: function () { nav.push(soundsPage); } }),
-          W.UI.cell({ icon: 'bell', title: 'Avisos', onTap: function () { nav.push(alertsPage); } })
-        ]),
-        W.UI.group([
+          W.UI.cell({ icon: 'sound', title: 'Sonidos y vibración', value: cfg.sound ? 'Activados' : 'Desactivados', onTap: function () { nav.push(soundsPage); } })
+        ] }),
+        W.UI.section({ header: 'Avisos y organización', items: [
+          W.UI.cell({ icon: 'bell', title: 'Avisos', sub: 'Recordatorios, vencidas y horas de silencio', onTap: function () { nav.push(alertsPage); } }),
           W.UI.cell({ icon: 'tasks', title: 'Tareas y categorías', onTap: function () { nav.push(tasksPage); } }),
           W.UI.cell({ icon: 'target', title: 'Hábitos', onTap: function () { nav.push(habitsPage); } }),
           W.UI.cell({ icon: 'timer', title: 'Enfoque', value: cfg.focus.work + ' min', onTap: function () { nav.push(focusPage); } }),
           W.UI.cell({ icon: 'home', title: 'Pantalla al abrir', value: labelOf(SCREENS, cfg.startScreen), onTap: function () { nav.push(startPage); } })
-        ]),
-        W.Layout.desktop || W.Layout.app ? W.UI.group([
-          W.Layout.app ? W.UI.cell({ icon: 'monitor', title: 'Ordenador', sub: 'Inicio, bandeja y versión de la app', onTap: function () { nav.push(desktopPage); } }) : null,
+        ] }),
+        W.Layout.desktop || W.Layout.app ? W.UI.section({ header: 'Este ordenador', items: [
+          W.Layout.app ? W.UI.cell({ icon: 'monitor', title: 'App de escritorio', sub: 'Abrir al iniciar, bandeja y versión', onTap: function () { nav.push(desktopPage); } }) : null,
           W.Layout.desktop ? W.UI.cell({ icon: 'keyboard', title: 'Atajos de teclado', value: '?', onTap: function () { nav.close(); setTimeout(function () { W.Keys.help(); }, 120); } }) : null
-        ].filter(Boolean)) : null,
-        W.UI.group([
+        ].filter(Boolean) }) : null,
+        W.UI.section({ header: 'Privacidad y datos', items: [
           W.UI.cell({ icon: 'hand', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
           W.UI.cell({ icon: 'shield', title: 'Datos', sub: 'Copia de seguridad, importar y exportar', onTap: function () { nav.push(dataPage); } })
-        ]),
+        ] }),
         U.el('p.version', [U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]), 'WHIDER ' + VERSION + ' · ' + P.label()])
       ]
     };
@@ -271,14 +275,12 @@ window.Whider = window.Whider || {};
   /** Personalización: básica en el móvil; avanzada (Premium) en el ordenador */
   function customPage(nav) {
     var st = S(), cfg = st.settings, dk = cfg.desk, P = W.Plan, desk = W.Layout.desktop;
-    var basic = W.UI.section({ header: 'Hoy', items: [
-      toggleCell({ icon: 'smile', title: 'Tu personaje en Hoy', value: cfg.homeBuddy, onChange: function (v) { st.setSetting('homeBuddy', v); } }),
-      toggleCell({ icon: 'target', title: 'Hábitos en Hoy', value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })
-    ], footer: desk ? null : 'Tamaño del texto, densidad y contraste están en Apariencia.' });
-    if (!desk) return { title: 'Personalización', body: [basic, W.UI.group([
-      W.UI.cell({ icon: 'type', title: 'Apariencia', onTap: function () { nav.push(appearancePage); } }),
-      W.UI.cell({ icon: 'smile', title: 'Tu personaje', onTap: function () { nav.close(); setTimeout(function () { W.Character.edit(); }, 200); } })
-    ]), U.el('p.hint', { text: 'La personalización avanzada (barra lateral, bloques de Hoy, calendario y ancho) está en el ordenador con Premium.' })] };
+    var basic = W.UI.section({ header: 'Qué ves en Hoy', items: [
+      toggleCell({ icon: 'smile', title: 'Tu personaje', value: cfg.homeBuddy, onChange: function (v) { st.setSetting('homeBuddy', v); } }),
+      toggleCell({ icon: 'target', title: 'Hábitos de hoy', value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })
+    ] });
+    // Móvil: solo lo que se decide aquí (Apariencia y Tu personaje ya están en la portada de Ajustes)
+    if (!desk) return { title: 'Personalización', body: [basic, U.el('p.hint', { text: 'En el ordenador, con Premium, también eliges la barra lateral, los bloques junto a Hoy y el calendario.' })] };
     if (!P.isPremium()) {
       return { title: 'Personalización', body: [
         U.el('div.pw-hero', [U.el('span.pw-gem', [U.icon('palette')]), U.el('strong', { text: 'Personalización avanzada' }), U.el('p', { text: P.FEATURES.custom.text })]),
@@ -310,8 +312,8 @@ window.Whider = window.Whider || {};
       body: [
         W.UI.section({ header: 'Barra lateral', items: [
           sbItem('notes', 'Cuaderno', 'notebook'), sbItem('chats', 'Chats', 'chat'), sbItem('friends', 'Personas', 'users'),
-          sbItem('habits', 'Hábitos', 'target'), sbItem('focus', 'Enfoque', 'timer'),
-          sbItem('stats', 'Estadísticas', 'chart'), sbItem('reports', 'Informes', 'print'), sbItem('automations', 'Sistemas', 'system'),
+          sbItem('habits', 'Hábitos', 'target'), sbItem('focus', 'Enfoque', 'timer'), sbItem('automations', 'Sistemas', 'system'),
+          sbItem('stats', 'Estadísticas', 'chart'), sbItem('reports', 'Informes', 'print'),
           sbItem('filters', 'Filtros', 'filter'),
           toggleCell({ icon: 'hash', title: 'Mostrar los contadores', value: sb.counts !== false, onChange: function (v) { sb.counts = v; saveDesk(); } }),
           toggleCell({ icon: 'list', title: 'Barra compacta', value: !!sb.compact, onChange: function (v) { sb.compact = v; saveDesk(); } })
@@ -499,7 +501,7 @@ window.Whider = window.Whider || {};
     var set = function (k, v) { prefs[k] = v; W.DesktopPrefs = prefs; if (D) D.setSetting(k, v); nav.refresh(); };
     var tray = D && D.platform === 'darwin' ? 'el Dock' : 'la bandeja del sistema';
     return {
-      title: 'Ordenador',
+      title: 'App de escritorio',
       body: [
         W.UI.section({ items: [toggleCell({ icon: 'power', title: 'Abrir WHIDER al iniciar el ordenador', value: !!prefs.openAtLogin, onChange: function (v) { set('openAtLogin', v); } })],
           footer: 'Se abre en segundo plano, sin ventana, para que los avisos lleguen desde el primer momento.' }),

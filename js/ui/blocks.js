@@ -901,23 +901,24 @@ window.Whider = window.Whider || {};
       W.Menu.open(anchor, ['bolt', 'info', 'alert', 'star', 'flag', 'target', 'heart', 'book', 'calendar', 'clock', 'pin', 'sparkle'].map(function (k) { return { value: k, label: { bolt: 'Rayo', info: 'Información', alert: 'Atención', star: 'Estrella', flag: 'Bandera', target: 'Diana', heart: 'Corazón', book: 'Libro', calendar: 'Calendario', clock: 'Reloj', pin: 'Chincheta', sparkle: 'Brillo' }[k], icon: k, on: current === k }; }), { title: 'Icono' }).then(function (v) { if (v) done(v); });
     }
     function blockMenu(b, anchor) {
-      var items = [
-        { value: 'turn', label: 'Convertir en…', icon: 'swap' },
-        { value: 'dup', label: 'Duplicar', icon: 'copy', desc: 'Ctrl D' },
-        { value: 'up', label: 'Subir', icon: 'up', desc: 'Ctrl Mayús ↑' },
-        { value: 'down', label: 'Bajar', icon: 'down', desc: 'Ctrl Mayús ↓' },
-        { value: 'in', label: 'Sangrar', icon: 'right', desc: 'Tab' },
-        { value: 'out', label: 'Quitar sangría', icon: 'left', desc: 'Mayús Tab' }
-      ];
-      if (isText(b) && b.t !== 'code') items.push({ value: 'task', label: 'Crear tarea con este texto', icon: 'tasks' });
-      if (isText(b)) items.push({ value: 'subpage', label: 'Convertir en subpágina', icon: 'page' });
+      // Por grupos: lo propio del bloque (un archivo: abrirlo o descargarlo), editar, mover, convertir y borrar
+      var items = [];
       if (b.f) {
-        items.push({ value: 'open', label: b.t === 'img' ? 'Ver en grande' : 'Abrir', icon: b.t === 'img' ? 'expand' : 'external', gap: true });
+        items.push({ value: 'open', label: b.t === 'img' ? 'Ver en grande' : 'Abrir', icon: b.t === 'img' ? 'expand' : 'external' });
         items.push({ value: 'dl', label: 'Descargar', icon: 'download' });
         if (b.t === 'file') items.push({ value: 'rename', label: 'Cambiar el nombre', icon: 'edit' });
       }
       if (b.t === 'img' && (b.src || b.f)) items.push({ value: 'size', label: 'Tamaño de la imagen', icon: 'grid' });
-      items.push({ value: 'copy', label: 'Copiar el texto', icon: 'layers' });
+      // «Convertir en» solo para texto: en un archivo o una imagen se perdería el adjunto
+      if (isText(b)) items.push({ value: 'turn', label: 'Convertir en…', icon: 'swap', gap: items.length > 0 });
+      items.push({ value: 'dup', label: 'Duplicar', icon: 'copy', desc: 'Ctrl D', gap: items.length > 0 && !isText(b) });
+      items.push({ value: 'up', label: 'Subir', icon: 'up', desc: 'Ctrl Mayús ↑', gap: true });
+      items.push({ value: 'down', label: 'Bajar', icon: 'down', desc: 'Ctrl Mayús ↓' });
+      items.push({ value: 'in', label: 'Sangrar', icon: 'right', desc: 'Tab' });
+      items.push({ value: 'out', label: 'Quitar sangría', icon: 'left', desc: 'Mayús Tab' });
+      if (isText(b) && b.t !== 'code') items.push({ value: 'task', label: 'Crear tarea con este texto', icon: 'tasks', gap: true });
+      if (isText(b)) items.push({ value: 'subpage', label: 'Convertir en subpágina', icon: 'page', gap: b.t === 'code' });
+      items.push({ value: 'copy', label: b.f && b.t === 'file' ? 'Copiar el nombre' : 'Copiar el texto', icon: 'layers', gap: !isText(b) });
       items.push({ value: 'del', label: 'Eliminar', icon: 'trash', destructive: true, gap: true });
       W.Menu.open(anchor, items).then(function (v) {
         if (!v) return;

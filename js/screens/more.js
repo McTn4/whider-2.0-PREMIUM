@@ -1,9 +1,10 @@
 /**
  * WHIDER · «Más» (móvil): todo WHIDER ordenado por importancia
  *
- * Arriba tu perfil con tu personaje. Después, por prioridad: el trabajo con otros (Cuaderno,
- * Chats y Personas, con lo que tienes sin leer), tu día (Hábitos y Enfoque), el análisis
- * (Estadísticas, Informes y Sistemas) y tu cuenta (Planes y Ajustes).
+ * Arriba tu perfil con tu personaje. Después, con los mismos grupos que la barra lateral del
+ * ordenador: Cuaderno y equipo (Cuaderno, Chats y Personas, con lo que tienes sin leer),
+ * Rutinas (Hábitos, Enfoque y Sistemas), Análisis (Estadísticas e Informes) y tu cuenta
+ * (Planes y Ajustes).
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -40,19 +41,20 @@ window.Whider.Screens = window.Whider.Screens || {};
       var pages = W.Pages ? W.Pages.count() : 0;
       W.UI.mount(root, head, [
         me,
-        sec('Trabajo y equipo', [
-          tile({ go: 'notes', icon: 'notebook', label: 'Cuaderno', sub: pages ? U.plural(pages, 'página', 'páginas') : 'Páginas, listas y bases de datos' }),
+        // Mismos grupos y mismo orden que la barra lateral del ordenador
+        sec('Cuaderno y equipo', [
+          tile({ go: 'notes', icon: 'notebook', label: 'Cuaderno', sub: pages ? U.plural(pages, 'página', 'páginas') : 'Páginas, archivos y bases de datos' }),
           tile({ go: 'chats', icon: 'chat', label: 'Chats', sub: unread ? U.plural(unread, 'sin leer', 'sin leer') : 'Con tus contactos y equipos', badge: unread }),
           tile({ go: 'friends', icon: 'users', label: 'Personas', sub: reqs ? U.plural(reqs, 'solicitud', 'solicitudes') : 'Amigos, trabajo y equipos', badge: reqs })
         ]),
-        sec('Tu día', [
+        sec('Rutinas', [
           tile({ go: 'habits', icon: 'target', label: 'Hábitos', sub: habitsLeft ? 'Te quedan ' + habitsLeft + ' hoy' : 'Rutinas y rachas' }),
-          tile({ go: 'focus', icon: 'timer', label: 'Enfoque', sub: f.running ? f.text + ' · en marcha' : 'Temporizador para concentrarte' })
+          tile({ go: 'focus', icon: 'timer', label: 'Enfoque', sub: f.running ? f.text + ' · en marcha' : 'Temporizador para concentrarte' }),
+          tile({ go: 'automations', icon: 'system', label: 'Sistemas', sub: 'Métodos y automatizaciones', premium: true })
         ]),
         sec('Análisis', [
           tile({ go: 'stats', icon: 'chart', label: 'Estadísticas', sub: 'Tu progreso' }),
-          tile({ go: 'reports', icon: 'print', label: 'Informes', sub: 'Resúmenes para compartir' }),
-          tile({ go: 'automations', icon: 'system', label: 'Sistemas', sub: 'Métodos y automatizaciones', premium: true })
+          tile({ go: 'reports', icon: 'print', label: 'Informes', sub: 'Resúmenes para compartir' })
         ]),
         sec('Cuenta', [
           tile({ go: 'plans', icon: 'gem', label: 'Planes', sub: W.Plan.label() }),

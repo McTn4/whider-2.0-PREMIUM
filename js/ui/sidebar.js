@@ -15,8 +15,9 @@ window.Whider = window.Whider || {};
 
   /*
    * Secciones por orden de importancia: lo principal (tu día, tus tareas, tu calendario y tu
-   * Cuaderno), el trabajo con otros, tus rutinas y, al final, el análisis.
-   * «opt» es la clave para ocultarla (Ajustes → Personalización).
+   * Cuaderno), el trabajo con otros, tus rutinas (con los Sistemas: métodos y automatizaciones,
+   * que son forma de trabajar y no análisis) y, al final, el análisis. Los mismos grupos que «Más»
+   * en el móvil. «opt» es la clave para ocultarla (Ajustes → Personalización).
    */
   var NAV = [
     { id: 'home', label: 'Hoy', icon: 'sun', key: '1' },
@@ -30,12 +31,12 @@ window.Whider = window.Whider || {};
   ];
   var DAY = [
     { id: 'habits', label: 'Hábitos', icon: 'target', key: '7', opt: 'habits' },
-    { id: 'focus', label: 'Enfoque', icon: 'timer', key: '8', opt: 'focus' }
+    { id: 'focus', label: 'Enfoque', icon: 'timer', key: '8', opt: 'focus' },
+    { id: 'automations', label: 'Sistemas', icon: 'system', opt: 'automations', premium: 'systems' }
   ];
   var TOOLS = [
     { id: 'stats', label: 'Estadísticas', icon: 'chart', key: '9', opt: 'stats' },
-    { id: 'reports', label: 'Informes', icon: 'print', opt: 'reports' },
-    { id: 'automations', label: 'Sistemas', icon: 'system', opt: 'automations', premium: 'systems' }
+    { id: 'reports', label: 'Informes', icon: 'print', opt: 'reports' }
   ];
 
   function openedList(st) {
