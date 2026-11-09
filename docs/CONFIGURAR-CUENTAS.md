@@ -67,13 +67,15 @@ Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios dat
 
 | Colección | Quién puede |
 | --- | --- |
-| `users/{uid}/…` (tareas, ajustes, Cuaderno) | Solo su dueño |
-| `profiles/{uid}` (nombre, personaje, nivel, racha) | La leen las cuentas verificadas; la escribe su dueño |
+| `users/{uid}/…` (tareas, ajustes, Cuaderno y sus archivos) | Solo su dueño |
+| `profiles/{uid}` (nombre, personaje, racha) | La leen las cuentas verificadas; la escribe su dueño |
 | `codes/{código}` e `inbox/{uid}` | Códigos de contacto y buzón de invitaciones; cada uno solo escribe lo suyo |
-| `spaces/{id}` y `spaces/{id}/pages` | Equipos y sus páginas: solo sus miembros (quien tenga el enlace del equipo puede entrar) |
+| `spaces/{id}`, `spaces/{id}/pages` y `spaces/{id}/files` | Equipos, sus páginas y los archivos de esas páginas: solo sus miembros (quien tenga el enlace del equipo puede entrar) |
 | `chats/{id}` y `chats/{id}/msgs` | Solo los miembros del chat; cada uno edita o borra sus mensajes |
 
-> **Al actualizar a la 7.0, vuelve a copiar y publicar el archivo completo.** Sin las reglas nuevas, *Personas*, *Chats* y las páginas de equipo del *Cuaderno* no pueden conectar (la app avisa de que faltan permisos).
+> **Al actualizar a la 8.0, vuelve a copiar y publicar el archivo completo.** La 8.0 añade la regla de `spaces/{id}/files` (fotos y archivos adjuntos de las páginas de equipo); sin ella, los archivos de un equipo no se suben ni se descargan. Tus propios archivos (`users/{uid}/files`) ya los cubre la regla de tus datos. (Si vienes de una versión anterior a la 7.0, sin las reglas nuevas tampoco conectan *Personas*, *Chats* ni las páginas de equipo.)
+>
+> **Espacio**: los archivos se guardan en Firestore en trozos de menos de 1 MB (no hace falta Cloud Storage, que exige el plan de pago). Cada archivo puede pesar hasta 15 MB y en el plan gratuito de Firebase caben 1 GB de datos en total; lo que ya no usa ninguna página se borra solo a los 3 días.
 
 ## 5. Google en el APK de Android
 

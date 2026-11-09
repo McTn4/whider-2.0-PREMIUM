@@ -1,6 +1,6 @@
-# WHIDER 7.0.2
+# WHIDER 8.0
 
-**Tu día, bajo control.** WHIDER es una app de productividad **para ordenador (Windows, macOS y Linux) y Android** que reúne tareas por categorías, calendario profesional, un **Cuaderno** al estilo de Notion (páginas por bloques, bases de datos y plantillas), hábitos, avisos, enfoque, estadísticas e informes. **Tu personaje** es tu foto de perfil y te acompaña, con **logros y niveles**, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Su diseño es **en blanco y negro** (fondo negro, niveles de gris y un brillo blanco contenido en lo activo) con la tipografía **Hanken Grotesk**, una grotesca limpia de la familia de Arial y Helvetica. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión.
+**Tu día, bajo control.** WHIDER es una app de productividad **para ordenador (Windows, macOS y Linux) y Android** que reúne tareas por categorías, calendario profesional, un **Cuaderno** (páginas por bloques con **fotos y archivos adjuntos**, bases de datos y plantillas), hábitos, avisos, enfoque, estadísticas e informes. **Tu personaje** es tu foto de perfil, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Su diseño, *Índice*, es **en blanco y negro** con un lenguaje editorial propio (cabeceras cerradas por una regla fina, secciones en versalitas y el margen de cuaderno del editor) y la tipografía **Hanken Grotesk**, una grotesca limpia de la familia de Arial y Helvetica. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión.
 
 <p align="center">
   <img src="docs/capturas/pc-70-hoy.jpg" width="900" alt="WHIDER 7.0 en el ordenador: Hoy con lo más importante arriba, tu personaje y tus páginas del Cuaderno">
@@ -16,7 +16,7 @@ La app se divide en tres grandes apartados:
 | --- | --- |
 | **PC** | Experiencia avanzada, organización y productividad profesional. |
 | **Móvil** | Experiencia rápida, accesible y conectada con el ordenador. |
-| **General** | Personalización, tu personaje como foto de perfil, juego (logros y niveles), personas y chats, sonidos, notificaciones y planes. |
+| **General** | Personalización, tu personaje como foto de perfil, personas y chats, sonidos, notificaciones y planes. |
 
 ### Gratis y Premium
 
@@ -24,7 +24,7 @@ La app se divide en tres grandes apartados:
 | --- | --- | --- |
 | **PC** | Calendario profesional (mes, semana y **día**; duración de las tareas, arrastrar y estirar, exportar a `.ics`) · Tareas por **categorías** con icono · Más orden y organización (**hábitos**, **selección múltiple**, hasta 3 **filtros**, estadísticas de 30 días, informe semanal) · **Cuaderno** completo (páginas, bases de datos y plantillas) | **Sistemas profesionales** (GTD, Eisenhower, bloques de tiempo, 1-3-5, revisión semanal, bandeja a cero, Pomodoro) y **automatizaciones** a medida · Organización muy avanzada (**tablero**, filtros sin límite, **estadísticas de hasta un año**, **informes completos** en PDF, CSV y JSON) · **Personalización avanzada** · **Crear equipos** con su chat y páginas compartidas |
 | **Móvil** | Calendario · Tareas por categorías · Cuaderno · **Mejor ecosistema**: una sola app sincronizada con el ordenador | **Mayor rapidez** (plantillas de un toque y sincronización al instante) · **Gestionar el ordenador** (dispositivos y enfoque a distancia) · **Invitar con tu código QR** |
-| **General** | Sonidos de botones y avisos · Personaje personalizable y **como foto de perfil** · Logros y niveles · Notificaciones · **Contactos y chats**: aceptar invitaciones, chatear y unirse a equipos | **Invitar** por enlace, QR o código · **Personajes Premium** (astronauta, dragón, fénix, unicornio y gema) con acabados, efectos, fondos y marcos · Copia en la nube al instante |
+| **General** | Sonidos de botones y avisos · Personaje personalizable y **como foto de perfil** · Notificaciones · **Contactos y chats**: aceptar invitaciones, chatear y unirse a equipos | **Invitar** por enlace, QR o código · **Personajes Premium** (astronauta, dragón, fénix, unicornio y gema) con acabados, efectos, fondos y marcos · Copia en la nube al instante |
 
 **Precios:** Gratis para siempre · **Premium 3,99 € al mes o 29,99 € al año** (2,50 € al mes, un 37 % menos), con **14 días de prueba gratis**. Se cambian en [`js/config.js`](js/config.js).
 
@@ -113,17 +113,18 @@ En el ordenador, las secciones están en la barra lateral, de lo más importante
 | **Tareas** | Buscador, **listas inteligentes** (Hoy · Programadas · Todas · Prioritarias) y **Mis listas** (Personal, Trabajo…). Cada lista abre su propia página. |
 | **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la lista y la prioridad. |
 | **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**, con filtro por lista y tus tareas que se repiten. |
-| **Más** | Todo lo demás, por orden de importancia: **Trabajo y equipo** (Cuaderno, Chats y Personas), **Tu día** (Hábitos y Enfoque), **Análisis** (Estadísticas, Informes y Sistemas) y tu cuenta. La pestaña avisa de los mensajes sin leer. |
+| **Más** | Todo lo demás, con los mismos grupos que la barra lateral del ordenador: **Cuaderno y equipo** (Cuaderno, Chats y Personas), **Rutinas** (Hábitos, Enfoque y Sistemas), **Análisis** (Estadísticas e Informes) y tu cuenta. La pestaña avisa de los mensajes sin leer. |
 
-Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abre tu **Perfil y resumen** (actividad, marcas y logros) y el **engranaje** (derecha) abre los **Ajustes**, con una página por apartado.
+Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abre tu **Perfil y resumen** (actividad y marcas) y el **engranaje** (derecha) abre los **Ajustes**, con una página por apartado.
 
 ---
 
 ## ✨ Funciones
 
 **Cuaderno (antes «Apuntes»)**
-- **Páginas por bloques**, como en Notion: texto, tres tamaños de título, listas, casillas, desplegables, citas, avisos destacados, código, separadores, tablas, imágenes, enlaces web, subpáginas, índice, **bases de datos**, **tareas de WHIDER** con su aviso y la **agenda de hoy**. Escribe `/` para el menú de bloques (o `#`, `-`, `[]`… al empezar la línea), arrastra cualquier bloque para moverlo y selecciona texto para darle formato.
-- **Páginas dentro de páginas**, con icono, portada, favoritas, papelera y búsqueda en todo el Cuaderno.
+- **Páginas por bloques**: texto, tres tamaños de título, listas, casillas, desplegables, citas, avisos destacados, código, separadores, tablas, imágenes, enlaces web, subpáginas, índice, **bases de datos**, **tareas de WHIDER** con su aviso y la **agenda de hoy**. Escribe `/` para el menú de bloques (o `#`, `-`, `[]`… al empezar la línea), arrastra cualquier bloque para moverlo y selecciona texto para darle formato.
+- **Fotos y archivos adjuntos** (PDF, documentos, hojas de cálculo… hasta 15 MB cada uno): con *Adjuntar*, el menú `/`, pegando o arrastrándolos. Las fotos se ven en la página y en un visor a pantalla completa; los archivos, con su nombre, tipo y tamaño, se abren, se descargan o se quitan (con *Deshacer*). Se guardan en el dispositivo y en tu cuenta, así que siguen ahí al recargar y en tus otros dispositivos.
+- **Páginas dentro de páginas**, con icono, portada, favoritas, papelera y búsqueda en todo el Cuaderno (también por el nombre de los archivos).
 - **Bases de datos** con propiedades (texto, número, selección, varias opciones, estado, fecha, casilla, enlace, persona, creada y editada) y vistas de **tabla**, **tablero**, **lista**, **calendario** y **galería**, con filtros, orden y búsqueda. Cada fila es también una página.
 - **Plantillas**: reunión, proyecto, diario, apuntes de clase, plan semanal, lista de lectura, hoja de ruta, wiki del equipo y contactos y clientes.
 - **Páginas de equipo**: compártelas con un equipo y editadlas a la vez (los cambios se juntan bloque a bloque).
@@ -136,7 +137,7 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 
 **Tu personaje y tu foto de perfil**
 - Tu personaje es **tu foto de perfil** en toda la app: la barra lateral, tu perfil, tus contactos, los chats y los equipos. Si lo prefieres, usa tu foto o solo la inicial.
-- 15 cuerpos, 10 tonos y ojos, bocas, cabezas, accesorios, efectos, fondos y marcos; muchos se desbloquean subiendo de nivel o con logros. **Premium**: astronauta, dragón, fénix, unicornio y gema; acabados platino, obsidiana, holográfico, cristal, mármol y cromo; halo, capa, gafas de sol y collar de perlas; efectos de aura, órbita, polvo de estrellas y rayos de luz; fondos de estrellas y holográfico, y marcos de diamante, aro de luz y corona.
+- 15 cuerpos, 10 tonos y ojos, bocas, cabezas, accesorios, efectos, fondos y marcos; todo lo que no es Premium está disponible desde el principio. **Premium**: astronauta, dragón, fénix, unicornio y gema; acabados platino, obsidiana, holográfico, cristal, mármol y cromo; halo, capa, gafas de sol y collar de perlas; efectos de aura, órbita, polvo de estrellas y rayos de luz; fondos de estrellas y holográfico, y marcos de diamante, aro de luz y corona.
 
 **Cuentas y copia en la nube**
 - Registro con **correo y contraseña** (con verificación del correo, medidor de seguridad de la contraseña y recuperación por correo) o con **Google** (en Android, con el selector nativo de cuentas del teléfono).
@@ -170,11 +171,10 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 - Sesiones y pausas cortas o largas, con pausas automáticas opcionales y una tarea vinculada.
 - Exacto aunque la app pase a segundo plano. Notificación y sonido suave al terminar.
 
-**Perfil, marcas y logros**
-- Tu foto, nombre y **nivel**; completadas, racha y minutos de enfoque; gráfica de 7 o 30 días, **mapa de constancia** de 15 semanas y reparto por listas.
+**Perfil y marcas**
+- Tu foto y tu nombre; completadas, racha y minutos de enfoque; gráfica de 7 o 30 días, **mapa de constancia** de 15 semanas y reparto por listas.
 - **Récords automáticos** (mejor racha, más tareas en un día, mejor semana, más enfoque en un día) e **hitos**.
 - **Marcas personales**: tiempos, pesos, distancias, páginas… con su evolución. El historial es permanente: **no se borra aunque elimines tareas**.
-- **11 logros** desbloqueables.
 
 **Tus datos no se pierden**
 - Todo se guarda al instante en el dispositivo; en el APK además en un almacén nativo de Android, que los recupera aunque el sistema limpie el almacenamiento de la app.
@@ -264,7 +264,7 @@ npm start
 │   ├── config.js           # ← Configuración de cuentas (Firebase), planes y enlaces: ver docs/CONFIGURAR-CUENTAS.md
 │   ├── vendor/             # SDK de Firebase empaquetado (funciona sin CDN), generador y lector de códigos QR
 │   ├── core/               # util, store, parse (lenguaje natural), audio (sonidos), notify, records, auth (cuentas),
-│   │                       #   sync (nube), habits, plan (Gratis/Premium), game (logros y niveles),
+│   │                       #   sync (nube), habits, plan (Gratis/Premium), files (archivos adjuntos del Cuaderno),
 │   │                       #   automations (motor de reglas), stats (estadísticas), pages y pagesync (Cuaderno),
 │   │                       #   community (personas y equipos), chat (chats) e invite (enlaces y QR)
 │   ├── ui/                 # anillos, avisos, menús, hojas, controles, perfil, editor, creación rápida, fila de tarea,
@@ -289,13 +289,36 @@ npm start
 - **Prueba gratuita**: 14 días, una vez por cuenta, desde *Planes* o desde cualquier función Premium.
 - **Códigos de activación**: se canjean en *Planes → Código de activación*. En [`js/config.js`](js/config.js) solo se guarda su huella cifrada (SHA-256), así que el código en claro no aparece en ningún archivo: guárdalo solo para ti, porque el repositorio es público.
 - **Cobrar**: pon tu enlace de pago (por ejemplo un *Payment Link* de Stripe) en `premium.checkoutUrl` de [`js/config.js`](js/config.js). Tras el pago, envía al cliente un código de activación. Para activar Premium automáticamente al pagar hace falta un pequeño servidor (por ejemplo una Cloud Function con el *webhook* de Stripe); los pasos están en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md).
+- **Archivos del Cuaderno (8.0)**: vuelve a publicar [`firestore.rules`](firestore.rules) (hay una regla nueva para los archivos de los equipos). Los archivos se guardan en Firestore en trozos de menos de 1 MB, sin Cloud Storage (que exige el plan de pago de Firebase); en el plan gratuito caben 1 GB de datos en total.
 - **Personas, chats y equipos (7.0)**: publica las reglas nuevas de [`firestore.rules`](firestore.rules) en *Firebase → Firestore Database → Reglas* y añade `whider-red.vercel.app` en *Authentication → Configuración → Dominios autorizados*. Los enlaces de invitación usan `links.base` de [`js/config.js`](js/config.js). Detalles en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md).
 
 ## 🔒 Privacidad
 
-Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, nivel, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno, el perfil público y el código de contacto) desde Ajustes.
+Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 8.0
+
+**Arreglado**
+- **Barra inferior del móvil**: ya no se iluminan pestañas que no están elegidas. La causa era el cálculo de la pestaña activa (`classList.toggle(…, undefined)` alterna en vez de apagar). Activa, pulsada, con el ratón encima y con el foco del teclado son ahora estados distintos y cada uno se queda en su pestaña.
+- **Desplegables del Cuaderno**: el menú `/` se reconstruía con cada desplazamiento de su propia lista y las últimas opciones no se podían elegir. Ahora se desplaza bien, cabe en la pantalla, en el móvil se coloca encima de la barra del teclado sin tapar la línea que escribes, y los menús generales se abren por el lado con más sitio.
+- **Páginas compartidas con un equipo**: si la página ya estaba guardada en la nube, los demás la recibían vacía (solo se subía su ficha). Ahora se sube también su contenido.
+- La barra sobre el teclado del móvil ya no tapa hojas, menús ni el visor, y se oculta al dejar de escribir.
+
+**Nuevo: fotos y archivos en el Cuaderno**
+- Fotos con vista previa y archivos con su nombre, tipo y tamaño, en el ordenador y en el móvil (galería del sistema o explorador de archivos). Abrir (visor propio para imágenes, vídeo, audio y texto; en Android y en la app de escritorio, con otra aplicación), descargar (Android: *Descargas › WHIDER*) y quitar con *Deshacer*.
+- Persistentes: se guardan en el dispositivo (IndexedDB) y en tu cuenta, en trozos de menos de 1 MB; tus otros dispositivos los descargan al abrir la página. Sin conexión se guardan igual y se suben al volver. Los archivos de las páginas de equipo son del equipo. Lo que ya no usa ninguna página se borra solo pasados 3 días, y eliminar la cuenta los borra de la nube.
+
+**Nuevo diseño, *Índice***
+- Identidad propia en blanco y negro: cabeceras editoriales cerradas por una regla fina, secciones con su nombre en versalitas y su contador en una pestaña, menos brillo y esquinas más precisas.
+- Cuaderno con aire propio (lejos de Notion): icono junto al título, portada como banda, una línea con fecha, palabras, adjuntos y herramientas, y el **margen de cuaderno**, una regla a la izquierda del texto que marca el bloque en el que escribes. En el ordenador, la barra lateral se queda en iconos dentro del Cuaderno.
+
+**Sin gamificación**
+- Fuera la experiencia (XP), los niveles, los logros, el ranking semanal y las celebraciones. Se quedan las rachas, las estadísticas, los informes, las marcas personales y el personaje como foto de perfil.
+
+**Mejor organizado**
+- Los mismos grupos en el ordenador y en el móvil: Cuaderno y equipo, Rutinas (Hábitos, Enfoque y Sistemas), Análisis y Cuenta. Ajustes con bloques con nombre y sin opciones repetidas, y el menú de cada bloque del Cuaderno por grupos.
 
 ## 📝 Novedades de la 7.0.2
 
