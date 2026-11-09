@@ -16,6 +16,8 @@ window.Whider = window.Whider || {};
   var F = function () { return W.Auth.sdk(); }, DB = function () { return W.Auth.db(); };
   var KEY = 'whider.pagesync.v1';
   var uid = null, active = false, timer = null, poll = null, livePoll = null, inFlight = null, queued = false, lastRun = 0, warnedBig = {};
+  // Ámbitos ya al día en esta sesión (sin fallos al traer páginas): los adjuntos solo se limpian en ellos
+  var settled = {};
   // Pendiente de subir: borrados por ámbito; y versión del contenido que ya está en la nube
   var pend = (function () { try { var x = JSON.parse(localStorage.getItem(KEY) || 'null'); if (x && x.del) { x.cvs = x.cvs || {}; return x; } } catch (e) { /* vacío */ } return { del: {}, cvs: {} }; })();
   var TOMB_DAYS = 45 * 86400000;
@@ -150,11 +152,12 @@ window.Whider = window.Whider || {};
         var loc = P().get(k), r = merged.items[k];
         return loc && !result.contents[k] && (r.cv || 0) > (pend.cvs[k] || 0) && !(((P().index().dirty[k] || 0) & 2));
       });
-      return fetchContents(team, need);
+      return fetchContents(team, need).then(function (failed) { if (failed) delete settled[sk]; else settled[sk] = Date.now(); });
     });
   }
+  /** Trae el contenido de esas páginas → número de las que no se pudieron traer */
   function fetchContents(team, ids) {
-    var chunks = [];
+    var chunks = [], failed = 0;
     for (var i = 0; i < ids.length; i += 8) chunks.push(ids.slice(i, i + 8));
     return chunks.reduce(function (pr, chunk) {
       return pr.then(function () {
@@ -167,10 +170,10 @@ window.Whider = window.Whider || {};
             P().applyContent(id, mc, mc.cv);
             pend.cvs[id] = Math.max(mc.cv, r.cv || 0);
             if (((P().index().dirty[id] || 0) & 2) === 0 && fp(mc.blocks) !== fp(r.blocks || [])) P().index().dirty[id] = (P().index().dirty[id] || 0) | 2;
-          }).catch(function () { /* sin permiso o sin conexión */ });
+          }).catch(function () { failed++; /* sin permiso o sin conexión */ });
         }));
       });
-    }, Promise.resolve()).then(function () { P().saveNow(); savePend(); });
+    }, Promise.resolve()).then(function () { P().saveNow(); savePend(); return failed; });
   }
 
   /* ---------- Ciclo ---------- */
@@ -183,6 +186,7 @@ window.Whider = window.Whider || {};
     inFlight = scopes.reduce(function (pr, team) {
       return pr.then(function () {
         return syncScope(team).catch(function (e) {
+          delete settled[scopeKey(team)];
           if (e && e.code === 'not-found-team') return;
           if (e && e.code === 'permission-denied' && team) { console.warn('Cuaderno: sin acceso al equipo', team); return; }
           console.warn('Cuaderno:', e && (e.code || e.message) || e);
@@ -191,6 +195,7 @@ window.Whider = window.Whider || {};
     }, Promise.resolve()).then(function () {
       inFlight = null;
       if (queued) { queued = false; return run(); }
+      if (W.Files) W.Files.maintain(1500);
     });
     return inFlight;
   }
@@ -224,7 +229,9 @@ window.Whider = window.Whider || {};
       }, 5000);
       livePoll = setInterval(livePage, 4000);
     },
-    stop: function () { active = false; uid = null; clearTimeout(timer); clearInterval(poll); clearInterval(livePoll); },
+    stop: function () { active = false; uid = null; settled = {}; clearTimeout(timer); clearInterval(poll); clearInterval(livePoll); },
+    /** ¿Las páginas de este ámbito ('me' o 't:<equipo>') están al día en esta sesión? */
+    settled: function (sk) { return !!settled[sk]; },
     schedule: function () {
       if (!active) return;
       clearTimeout(timer);

@@ -46,6 +46,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Abrir los adjuntos del Cuaderno con otras aplicaciones (solo la carpeta temporal adjuntos/) -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/whider_files" />
+        </provider>
+
         <!-- Recordatorios con la app cerrada y restauración tras reiniciar el teléfono -->
         <receiver
             android:name=".ReminderReceiver"

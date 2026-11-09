@@ -27,6 +27,7 @@ var ASSETS = [
   './js/core/automations.js',
   './js/core/chat.js',
   './js/core/community.js',
+  './js/core/files.js',
   './js/core/habits.js',
   './js/core/invite.js',
   './js/core/notify.js',

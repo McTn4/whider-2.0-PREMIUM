@@ -1,14 +1,16 @@
 rules_version = '2';
 
-// WHIDER · Reglas de seguridad de Cloud Firestore (7.0)
-//  - users/{uid}/...      Tus datos (tareas, Cuaderno, hábitos…): solo tú.
-//  - profiles/{uid}       Perfil público (nombre, personaje, nivel, racha…): lo leen las cuentas verificadas; solo lo escribe su dueño.
+// WHIDER · Reglas de seguridad de Cloud Firestore (8.0)
+//  - users/{uid}/...      Tus datos (tareas, Cuaderno y sus archivos adjuntos, hábitos…): solo tú.
+//  - profiles/{uid}       Perfil público (nombre, personaje, racha…): lo leen las cuentas verificadas; solo lo escribe su dueño.
+//                         (level, title y xp siguen permitidos solo para que las versiones anteriores no fallen al guardar.)
 //  - codes/{código}       Código de amigo → cuenta. Cada uno solo crea o borra el suyo.
 //  - inbox/{uid}          Buzón: solicitudes, aceptaciones, ánimos, equipos, avisos de chat e invitaciones por enlace.
 //                         El dueño lo lee y lo vacía; los demás solo pueden escribir SU propia entrada (la clave es su uid).
 //  - spaces/{id}          Equipos: solo sus miembros. Los miembros solo los cambia el creador (cada uno puede salir),
 //                         y quien tenga el enlace del equipo puede añadirse a sí mismo con la clave correcta.
 //  - spaces/{id}/pages    Páginas del Cuaderno del equipo: solo sus miembros.
+//  - spaces/{id}/files    Archivos adjuntos de esas páginas (ficha y trozos de menos de 1 MB): solo sus miembros.
 //  - chats/{id}           Chats de dos y de equipo: solo sus miembros.
 //  - chats/{id}/msgs      Mensajes: los escriben los miembros; cada uno edita o borra los suyos y solo su reacción.
 // Todo exige un correo verificado (las cuentas de Google ya vienen verificadas).
@@ -73,6 +75,10 @@ service cloud.firestore {
       allow delete: if signedIn() && resource.data.owner == request.auth.uid;
 
       match /pages/{pid} {
+        allow read, write: if isMember(sid);
+      }
+      // Archivos adjuntos de las páginas del equipo: la ficha y sus trozos
+      match /files/{rest=**} {
         allow read, write: if isMember(sid);
       }
     }

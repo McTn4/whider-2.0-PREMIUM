@@ -55,6 +55,7 @@ window.Whider = window.Whider || {};
    * En el ordenador, Escape no cambia de sección: solo cierra y vuelve dentro de la sección.
    */
   function handleBack(opts) {
+    if (W.Files && W.Files.closePreview()) return true;
     if (W.Sheet.closeTop()) return true;
     if (W.Select && W.Select.active()) { W.Select.clear(); return true; }
     if (W.AuthScreen.isOpen()) return W.AuthScreen.back();
@@ -145,7 +146,8 @@ window.Whider = window.Whider || {};
   }
 
   function logout() {
-    W.Sync.flush().then(function () { return W.Auth.logout(); }).catch(function () { /* se cierra igualmente */ }).then(function () {
+    // Antes de salir se sube lo pendiente (también los archivos del Cuaderno, como mucho 20 s)
+    W.Sync.flush().then(function () { return W.Files ? W.Files.flush(20000) : null; }).then(function () { return W.Auth.logout(); }).catch(function () { /* se cierra igualmente */ }).then(function () {
       W.Sync.stop();
       S.clearLocal();
       onboardingChecked = false;

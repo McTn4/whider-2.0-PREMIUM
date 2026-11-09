@@ -315,12 +315,12 @@ window.Whider = window.Whider || {};
         if (!d || !d.members || !d.members[me]) return null;
         if (d.owner !== me) return editTeam(id, function (x) { delete x.members[me]; if (x.joins) delete x.joins[me]; });
         if (Object.keys(d.members).some(function (k) { return k !== me; })) return editTeam(id, function (x) { delete x.members[me]; if (x.joins) delete x.joins[me]; });
-        // Eras el único: primero sus páginas (las reglas exigen ser miembro) y después el equipo
+        // Eras el único: primero sus páginas y sus archivos (las reglas exigen ser miembro) y después el equipo
         return F().getDocs(F().collection(DB(), 'spaces', id, 'pages')).then(function (snap) {
           var b = F().writeBatch(DB()), n = 0;
           snap.forEach(function (x) { if (n < 450) { b.delete(x.ref); n++; } });
           return n ? b.commit() : null;
-        }).then(function () { return F().deleteDoc(teamRef(id)); });
+        }).then(function () { return W.Files ? W.Files.deleteTeam(id) : null; }).then(function () { return F().deleteDoc(teamRef(id)); });
       }).catch(function () { /* sin permiso o sin conexión */ });
     };
     var teams = Object.keys(sp).filter(function (k) { return !sp[k].left; });

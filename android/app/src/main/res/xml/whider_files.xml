@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lo único que WHIDER comparte con otras apps: copias temporales de los adjuntos que abres -->
+<paths>
+    <cache-path name="adjuntos" path="adjuntos/" />
+</paths>

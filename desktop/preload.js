@@ -25,6 +25,10 @@ contextBridge.exposeInMainWorld('WhiderDesktop', {
   /** Guarda la vista actual (el informe) como PDF → { ok, path } */
   printToPDF: function (name) { return ipcRenderer.invoke('whider:print-pdf', String(name)); },
   showFile: function (file) { ipcRenderer.send('whider:show-file', String(file)); },
+  /** Adjuntos del Cuaderno: abrir con la aplicación del sistema → { ok, path } ({ ok: false, blocked } si es un programa) */
+  openFile: function (name, bytes) { return ipcRenderer.invoke('whider:open-file', String(name), bytes instanceof Uint8Array ? bytes : new Uint8Array(0)); },
+  /** …y guardarlos donde elija el usuario → { ok, path } */
+  saveBinary: function (name, bytes) { return ipcRenderer.invoke('whider:save-binary', String(name), bytes instanceof Uint8Array ? bytes : new Uint8Array(0)); },
   /** Órdenes del menú y de la bandeja: 'new-task', 'search', 'settings', 'shortcuts', 'focus-toggle', 'report-pdf', 'data', 'go:home'… */
   onCommand: function (fn) { if (typeof fn === 'function') listeners.push(fn); }
 });

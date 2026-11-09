@@ -3,6 +3,9 @@ package com.whider.app;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,10 +13,14 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.View;
+import android.widget.Toast;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
@@ -33,6 +40,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.credentials.ClearCredentialStateRequest;
 import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
@@ -52,10 +60,15 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Locale;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -86,7 +99,14 @@ public class MainActivity extends AppCompatActivity {
     private CredentialManager credentialManager;
     private ValueCallback<Uri[]> pendingFileCallback;
     private ActivityResultLauncher<PickVisualMediaRequest> photoPicker;
+    private ActivityResultLauncher<PickVisualMediaRequest> photosPicker;
     private ActivityResultLauncher<Intent> filePicker;
+    /** Guardar un adjunto donde elija el usuario (Android 9 o anterior, sin Descargas compartidas) */
+    private ActivityResultLauncher<String> saveDocument;
+    private byte[] pendingSave;
+    private String pendingSaveMime = "application/octet-stream";
+    /** Escribir archivos fuera del hilo de la interfaz y del de JavaScript */
+    private final ExecutorService io = Executors.newSingleThreadExecutor();
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -100,10 +120,50 @@ public class MainActivity extends AppCompatActivity {
             pendingFileCallback.onReceiveValue(uri != null ? new Uri[]{uri} : null);
             pendingFileCallback = null;
         });
+        // Varias fotos a la vez para adjuntarlas en el Cuaderno
+        photosPicker = registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(20), uris -> {
+            if (pendingFileCallback == null) return;
+            pendingFileCallback.onReceiveValue(uris != null && !uris.isEmpty() ? uris.toArray(new Uri[0]) : null);
+            pendingFileCallback = null;
+        });
         filePicker = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (pendingFileCallback == null) return;
-            pendingFileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result.getResultCode(), result.getData()));
+            // Con varios archivos elegidos llegan en ClipData (parseResult solo lee el primero)
+            Uri[] picked = null;
+            Intent data = result.getData();
+            if (result.getResultCode() == RESULT_OK && data != null) {
+                ClipData clip = data.getClipData();
+                if (clip != null && clip.getItemCount() > 0) {
+                    picked = new Uri[clip.getItemCount()];
+                    for (int i = 0; i < clip.getItemCount(); i++) picked[i] = clip.getItemAt(i).getUri();
+                } else if (data.getData() != null) {
+                    picked = new Uri[]{data.getData()};
+                }
+            }
+            pendingFileCallback.onReceiveValue(picked);
             pendingFileCallback = null;
+        });
+        saveDocument = registerForActivityResult(new ActivityResultContracts.CreateDocument("application/octet-stream") {
+            @NonNull
+            @Override
+            public Intent createIntent(@NonNull Context context, @NonNull String input) {
+                Intent i = super.createIntent(context, input);
+                i.setType(pendingSaveMime);
+                return i;
+            }
+        }, uri -> {
+            final byte[] data = pendingSave;
+            pendingSave = null;
+            if (uri == null || data == null) return;
+            io.execute(() -> {
+                try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                    if (out == null) throw new IllegalStateException("sin destino");
+                    out.write(data);
+                    runOnUiThread(() -> toast("Archivo guardado"));
+                } catch (Exception e) {
+                    runOnUiThread(() -> toast("No se pudo guardar el archivo"));
+                }
+            });
         });
 
         webView = new WebView(this);
@@ -173,11 +233,13 @@ public class MainActivity extends AppCompatActivity {
                 for (String type : params.getAcceptTypes()) {
                     if (type != null && type.startsWith("image")) images = true;
                 }
+                boolean multiple = params.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE;
                 try {
                     if (images) {
-                        photoPicker.launch(new PickVisualMediaRequest.Builder()
+                        PickVisualMediaRequest req = new PickVisualMediaRequest.Builder()
                                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
-                                .build());
+                                .build();
+                        if (multiple) photosPicker.launch(req); else photoPicker.launch(req);
                     } else {
                         filePicker.launch(params.createIntent());
                     }
@@ -269,6 +331,37 @@ public class MainActivity extends AppCompatActivity {
             webView = null;
         }
         super.onDestroy();
+    }
+
+    /* ----- Adjuntos del Cuaderno ----- */
+    /** Nombre válido en cualquier sistema de archivos (sin rutas) */
+    static String safeFileName(String name) {
+        String n = name == null ? "" : name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]+", " ").replaceAll("\\s+", " ").trim();
+        if (n.isEmpty() || n.matches("\\.+")) n = "archivo";
+        if (n.length() > 120) {
+            int dot = n.lastIndexOf('.');
+            String ext = dot > 0 && n.length() - dot <= 9 ? n.substring(dot) : "";
+            n = n.substring(0, 120 - ext.length()).trim() + ext;
+        }
+        return n;
+    }
+
+    static String safeMime(String mime) {
+        String m = mime == null ? "" : mime.toLowerCase(Locale.ROOT).trim();
+        return m.matches("[a-z0-9.+-]+/[a-z0-9.+-]+") ? m : "application/octet-stream";
+    }
+
+    /** Las copias para abrir con otra app se borran pasado un día */
+    private static void pruneAttachmentCache(File dir) {
+        File[] old = dir.listFiles();
+        if (old == null) return;
+        long limit = System.currentTimeMillis() - 24L * 3600 * 1000;
+        for (File f : old) if (f.isFile() && f.lastModified() < limit) //noinspection ResultOfMethodCallIgnored
+            f.delete();
+    }
+
+    private void toast(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
     private boolean openExternally(Uri uri) {
@@ -484,6 +577,75 @@ public class MainActivity extends AppCompatActivity {
                 send.setType("text/plain");
                 send.putExtra(Intent.EXTRA_TEXT, text);
                 try { startActivity(Intent.createChooser(send, "Compartir invitación")); } catch (ActivityNotFoundException ignored) { }
+            });
+        }
+
+        /** Abrir un adjunto del Cuaderno con otra aplicación (visor de PDF, Word, Excel…) */
+        @JavascriptInterface
+        public void openFile(String name, String mime, String base64) {
+            if (base64 == null) return;
+            final String fileName = safeFileName(name), type = safeMime(mime);
+            io.execute(() -> {
+                try {
+                    File dir = new File(getCacheDir(), "adjuntos");
+                    if (!dir.exists() && !dir.mkdirs()) throw new IllegalStateException("sin carpeta");
+                    pruneAttachmentCache(dir);
+                    File file = new File(dir, fileName);
+                    try (FileOutputStream out = new FileOutputStream(file)) { out.write(Base64.decode(base64, Base64.DEFAULT)); }
+                    Uri uri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".files", file);
+                    runOnUiThread(() -> {
+                        Intent view = new Intent(Intent.ACTION_VIEW);
+                        view.setDataAndType(uri, type);
+                        view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        try { startActivity(Intent.createChooser(view, "Abrir «" + fileName + "» con")); }
+                        catch (ActivityNotFoundException e) { toast("No hay ninguna aplicación para abrir este archivo"); }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> toast("No se pudo abrir el archivo"));
+                }
+            });
+        }
+
+        /** Guardar un adjunto: en Descargas/WHIDER (Android 10 o posterior) o donde elijas (versiones anteriores) */
+        @JavascriptInterface
+        public void saveFile(String name, String mime, String base64) {
+            if (base64 == null) return;
+            final String fileName = safeFileName(name), type = safeMime(mime);
+            if (Build.VERSION.SDK_INT < 29) {
+                io.execute(() -> {
+                    byte[] data;
+                    try { data = Base64.decode(base64, Base64.DEFAULT); } catch (Exception e) { runOnUiThread(() -> toast("No se pudo guardar el archivo")); return; }
+                    runOnUiThread(() -> {
+                        pendingSave = data;
+                        pendingSaveMime = type;
+                        try { saveDocument.launch(fileName); } catch (Exception e) { pendingSave = null; toast("No se pudo guardar el archivo"); }
+                    });
+                });
+                return;
+            }
+            io.execute(() -> {
+                ContentResolver cr = getContentResolver();
+                Uri item = null;
+                try {
+                    ContentValues v = new ContentValues();
+                    v.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                    v.put(MediaStore.MediaColumns.MIME_TYPE, type);
+                    v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/WHIDER");
+                    v.put(MediaStore.MediaColumns.IS_PENDING, 1);
+                    item = cr.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                    if (item == null) throw new IllegalStateException("sin destino");
+                    try (OutputStream out = cr.openOutputStream(item)) {
+                        if (out == null) throw new IllegalStateException("sin destino");
+                        out.write(Base64.decode(base64, Base64.DEFAULT));
+                    }
+                    v.clear();
+                    v.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                    cr.update(item, v, null, null);
+                    runOnUiThread(() -> toast("Guardado en Descargas › WHIDER"));
+                } catch (Exception e) {
+                    if (item != null) { try { cr.delete(item, null, null); } catch (Exception ignored) { } }
+                    runOnUiThread(() -> toast("No se pudo guardar el archivo"));
+                }
             });
         }
 

@@ -40,7 +40,8 @@ window.Whider = window.Whider || {};
     code: { label: 'Código', icon: 'code', desc: 'Texto con formato de código', text: true, md: '```', keys: ['codigo', 'code'] },
     hr: { label: 'Separador', icon: 'divider', desc: 'Una línea para separar', md: '---', keys: ['separador', 'linea', 'divider'] },
     table: { label: 'Tabla', icon: 'table', desc: 'Una tabla sencilla', keys: ['tabla', 'table'] },
-    img: { label: 'Imagen', icon: 'image', desc: 'Sube una foto o pega un enlace', keys: ['imagen', 'foto', 'image'] },
+    img: { label: 'Imagen', icon: 'image', desc: 'Una foto de tu dispositivo o de un enlace', keys: ['imagen', 'foto', 'image', 'galeria'] },
+    file: { label: 'Archivo', icon: 'paperclip', desc: 'PDF, documento, hoja de cálculo o cualquier archivo', keys: ['archivo', 'adjunto', 'adjuntar', 'documento', 'pdf', 'subir', 'file'] },
     bookmark: { label: 'Enlace web', icon: 'link', desc: 'Una tarjeta con un enlace', keys: ['enlace', 'web', 'url', 'link'] },
     page: { label: 'Página', icon: 'page', desc: 'Una subpágina dentro de esta', keys: ['pagina', 'subpagina', 'page'] },
     db: { label: 'Base de datos', icon: 'database', desc: 'Tabla, tablero, calendario…', keys: ['base', 'datos', 'database', 'tablero'] },
@@ -150,6 +151,13 @@ window.Whider = window.Whider || {};
     if (t === 'page' || t === 'db' || t === 'task') out.ref = typeof b.ref === 'string' ? b.ref.slice(0, 80) : null;
     if (t === 'db') out.view = typeof b.view === 'string' ? b.view.slice(0, 60) : null;
     if (t === 'img') { out.src = typeof b.src === 'string' && (/^data:image\/(png|jpe?g|webp|gif);base64,/.test(b.src) || /^https:\/\//.test(b.src)) ? b.src.slice(0, 400000) : ''; out.w = Math.max(20, Math.min(100, num(b.w, 100))); }
+    // Adjuntos (W.Files): solo la referencia; el archivo se guarda aparte
+    if ((t === 'img' || t === 'file') && typeof b.f === 'string' && /^[A-Za-z0-9_-]{6,60}$/.test(b.f)) {
+      out.f = b.f; out.n = str(b.n, 120); out.m = typeof b.m === 'string' && /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/.test(b.m) ? b.m.slice(0, 100) : 'application/octet-stream';
+      out.s = Math.max(0, num(b.s, 0));
+      var ar = num(b.ar, 0);
+      if (t === 'img' && ar > 0) out.ar = Math.round(Math.max(0.05, Math.min(20, ar)) * 1000) / 1000;
+    }
     if (t === 'bookmark') out.url = typeof b.url === 'string' && /^https?:\/\//.test(b.url) ? b.url.slice(0, 600) : '';
     if (t === 'table') {
       var rows = Array.isArray(b.rows) ? b.rows.slice(0, 60) : [['', ''], ['', '']];
@@ -354,7 +362,8 @@ window.Whider = window.Whider || {};
         case 'code': lines.push('```' + (b.l || ''), plain(b.x), '```'); break;
         case 'hr': lines.push('---'); break;
         case 'table': (b.rows || []).forEach(function (r, ri) { lines.push('| ' + r.map(function (cell) { return toInlineMd(cell).replace(/\|/g, '\\|'); }).join(' | ') + ' |'); if (ri === 0) lines.push('|' + r.map(function () { return ' --- '; }).join('|') + '|'); }); break;
-        case 'img': lines.push('![' + plain(b.x) + '](' + (/^https/.test(b.src) ? b.src : 'imagen') + ')'); break;
+        case 'img': lines.push('![' + (plain(b.x) || b.n || '') + '](' + (/^https/.test(b.src || '') ? b.src : 'imagen') + ')'); break;
+        case 'file': if (b.n) lines.push(pad + '[Archivo: ' + b.n + ']'); break;
         case 'bookmark': lines.push('[' + (plain(b.x) || b.url) + '](' + b.url + ')'); break;
         case 'page': var sm = meta(b.ref); lines.push(pad + '- ' + (sm ? (sm.title || 'Sin título') : 'Página')); break;
         case 'db': var dm = meta(b.ref); if (dm) lines.push('', '**' + (dm.title || 'Base de datos') + '**', dbMarkdown(dm.id)); break;
@@ -646,7 +655,7 @@ window.Whider = window.Whider || {};
         if (!score) {
           var c = content(m.id);
           for (var i = 0; i < c.blocks.length; i++) {
-            var p = plain(c.blocks[i].x || ''), k = p.toLowerCase().indexOf(q);
+            var bl = c.blocks[i], p = (plain(bl.x || '') + (bl.n ? ' ' + bl.n : '')).trim(), k = p.toLowerCase().indexOf(q);
             if (k >= 0) { score = 30; hit = (k > 30 ? '…' : '') + p.slice(Math.max(0, k - 30), k + 70); break; }
           }
           if (!score && m.props) Object.keys(m.props).forEach(function (pk) { if (!score && String(m.props[pk]).toLowerCase().indexOf(q) >= 0) score = 20; });
@@ -690,8 +699,12 @@ window.Whider = window.Whider || {};
       var next = cleanMeta(Object.assign({}, m, patch, { id: id, at: Date.now() }));
       if (!next) return m;
       if (patch && patch.props) next.props = Object.assign({}, m.props, patch.props);
+      var moved = (next.team || null) !== (m.team || null);
       Object.keys(next).forEach(function (k) { m[k] = next[k]; });
       markDirty(id, 'meta');
+      // Al pasar a un equipo (o volver a tus páginas) el contenido se guarda también en su nuevo sitio:
+      // si no, los demás recibían la página vacía (en la nube solo estaba en el sitio de antes)
+      if (moved) markDirty(id, 'content');
       if (!opts || opts.save !== false) scheduleSave();
       emit((opts && opts.reason) || 'meta', id);
       return m;

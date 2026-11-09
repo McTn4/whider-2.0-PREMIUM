@@ -307,6 +307,47 @@ ipcMain.handle('whider:print-pdf', function (_e, name) {
       .then(function () { return { ok: true, path: file }; });
   }).catch(function (e) { return { ok: false, error: String(e && e.message || e) }; });
 });
+/* ---------- Adjuntos del Cuaderno ---------- */
+// Lo que el sistema ejecutaría en vez de abrir: solo se puede descargar (podría llegar de un equipo)
+const RUNNABLE = /\.(exe|msi|msix|appx|bat|cmd|com|scr|pif|cpl|ps1|psm1|vbs|vbe|js|jse|wsf|wsh|hta|jar|lnk|reg|inf|app|command|tool|sh|bash|zsh|csh|run|bin|deb|rpm|appimage|pkg|dmg|workflow|scpt|desktop)$/i;
+function attachmentName(name) {
+  let n = String(name || '').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!n || /^\.+$/.test(n)) n = 'archivo';
+  return n.slice(0, 150);
+}
+function bytesOf(data) {
+  if (data instanceof Uint8Array) return Buffer.from(data.buffer, data.byteOffset, data.byteLength);
+  if (data instanceof ArrayBuffer) return Buffer.from(data);
+  throw new Error('Archivo no válido');
+}
+/** Abre una copia temporal con la aplicación del sistema → { ok, path } · { ok: false, blocked } si es un programa */
+ipcMain.handle('whider:open-file', function (_e, name, data) {
+  const fileName = attachmentName(name);
+  if (RUNNABLE.test(fileName)) return { ok: false, blocked: true };
+  const dir = path.join(app.getPath('temp'), 'WHIDER', 'adjuntos');
+  const file = path.join(dir, fileName);
+  return fs.promises.mkdir(dir, { recursive: true })
+    .then(function () { return fs.promises.writeFile(file, bytesOf(data)); })
+    .then(function () {
+      if (E2E) { global.__whider.openedFiles = (global.__whider.openedFiles || []).concat(file); return ''; }
+      return shell.openPath(file);
+    })
+    .then(function (err) { return err ? { ok: false, error: err } : { ok: true, path: file }; })
+    .catch(function (e) { return { ok: false, error: String(e && e.message || e) }; });
+});
+/** Guarda un adjunto donde elija el usuario (por defecto, en Descargas) → { ok, path } */
+ipcMain.handle('whider:save-binary', function (_e, name, data) {
+  const fileName = attachmentName(name);
+  const ask = E2E
+    ? Promise.resolve(path.join(app.getPath('userData'), 'exports', fileName))
+    : dialog.showSaveDialog(win, { defaultPath: path.join(app.getPath('downloads'), fileName) }).then(function (r) { return r.canceled || !r.filePath ? null : r.filePath; });
+  return ask.then(function (file) {
+    if (!file) return { ok: false, canceled: true };
+    return fs.promises.mkdir(path.dirname(file), { recursive: true })
+      .then(function () { return fs.promises.writeFile(file, bytesOf(data)); })
+      .then(function () { return { ok: true, path: file }; });
+  }).catch(function (e) { return { ok: false, error: String(e && e.message || e) }; });
+});
 ipcMain.on('whider:show-file', function (_e, file) { if (file && !E2E) shell.showItemInFolder(String(file)); });
 ipcMain.on('whider:show-window', showWindow);
 ipcMain.on('whider:open-external', function (_e, url) { openExternal(url); });

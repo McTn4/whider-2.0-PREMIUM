@@ -362,7 +362,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (m.icon) head.appendChild(U.el('button.pg-bigicon', { attrs: { type: 'button', 'aria-label': 'Cambiar el icono', disabled: ro }, on: { click: function () { iconSheet(id); } } }, [U.icon(m.icon)]));
     if (!ro) head.appendChild(U.el('div.pg-addons', [
       m.icon ? null : U.el('button.btn.xs.ghost', { on: { click: function () { iconSheet(id); } } }, [U.icon('smile', 'sm'), 'Icono']),
-      m.cover ? null : U.el('button.btn.xs.ghost', { on: { click: function () { coverSheet(id); } } }, [U.icon('image', 'sm'), 'Portada'])
+      m.cover ? null : U.el('button.btn.xs.ghost', { on: { click: function () { coverSheet(id); } } }, [U.icon('image', 'sm'), 'Portada']),
+      m.kind === 'db' ? null : U.el('button.btn.xs.ghost', { attrs: { title: 'Adjuntar fotos o archivos a esta página' }, on: { click: function () { if (cur && cur.editor) cur.editor.attach(); } } }, [U.icon('paperclip', 'sm'), 'Adjuntar'])
     ]));
     var title = U.el('h1.pg-title', { attrs: { contenteditable: ro ? 'false' : 'true', 'data-ph': m.kind === 'db' ? 'Base de datos sin título' : 'Sin título', spellcheck: 'true', role: 'textbox', 'aria-label': 'Título de la página' } });
     title.textContent = m.title || '';
@@ -395,7 +396,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (m.kind === 'db') {
       sheet.appendChild(W.DbView.render(id, { inline: false, readOnly: ro, onOpenPage: function (pid, op) { open(pid, op); } }));
     } else {
-      var ed = W.Blocks.editor({ pageId: id, readOnly: ro, onOpenPage: function (pid, op) { open(pid, op); }, onFocusBlock: function (b) { if (!desk()) showKb(b); } });
+      var ed = W.Blocks.editor({ pageId: id, readOnly: ro, onOpenPage: function (pid, op) { open(pid, op); }, onFocusBlock: function (b) { if (!desk()) showKb(b); }, onBlur: hideKb });
       cur = { id: id, editor: ed };
       sheet.appendChild(ed.el);
       // Página vacía: plantillas a mano
@@ -494,8 +495,11 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (!b || !cur || !cur.editor) { hideKb(); return; }
     if (!kbBar) {
       var btn = function (icon, label, fn) { return U.el('button.kb-btn', { attrs: { type: 'button', 'aria-label': label, title: label }, on: { mousedown: function (e) { e.preventDefault(); }, touchstart: function (e) { e.preventDefault(); fn(); }, click: function (e) { e.preventDefault(); fn(); } } }, [U.icon(icon)]); };
+      // Abrir el selector de archivos exige un toque completo (touchstart no cuenta como gesto): va con click
+      var tapBtn = function (icon, label, fn) { return U.el('button.kb-btn', { attrs: { type: 'button', 'aria-label': label, title: label }, on: { mousedown: function (e) { e.preventDefault(); }, click: function (e) { e.preventDefault(); fn(); } } }, [U.icon(icon)]); };
       kbBar = U.el('div.kb-bar', { attrs: { role: 'toolbar', 'aria-label': 'Herramientas del editor' } }, [
         btn('plus', 'Insertar bloque', function () { cur && cur.editor && cur.editor.insertBlock('/'); }),
+        tapBtn('paperclip', 'Adjuntar una foto o un archivo', function () { cur && cur.editor && cur.editor.attach(); }),
         btn('checklist', 'Casilla', function () { cur && cur.editor && cur.editor.insertBlock('todo'); }),
         btn('h1', 'Título', function () { cur && cur.editor && cur.editor.insertBlock('h2'); }),
         btn('bullets', 'Lista', function () { cur && cur.editor && cur.editor.insertBlock('ul'); }),

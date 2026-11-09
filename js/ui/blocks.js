@@ -95,7 +95,7 @@ window.Whider = window.Whider || {};
     var blocks = JSON.parse(JSON.stringify(P().content(pageId).blocks));
     var els = {};
     var saveT = null, histT = null, history = [], future = [], lastSnap = '';
-    var slash = null, mention = null, toolbar = null, dropLine = null, dragId = null, selBlock = null;
+    var slash = null, mention = null, toolbar = null, dropLine = null, dragId = null, selBlock = null, lastFocus = null;
     var destroyed = false;
 
     /* -- Guardado e historial -- */
@@ -249,6 +249,7 @@ window.Whider = window.Whider || {};
         case 'agenda': body.appendChild(agendaBlock(b)); break;
         case 'toc': body.appendChild(U.el('div.bk-toc')); break;
         case 'img': body.appendChild(imageBlock(b)); break;
+        case 'file': body.appendChild(fileBlock(b)); break;
         case 'bookmark': body.appendChild(bookmarkBlock(b)); break;
         case 'table': body.appendChild(tableBlock(b)); break;
         default: body.appendChild(editable(b));
@@ -324,26 +325,160 @@ window.Whider = window.Whider || {};
         host.appendChild(U.el('button.bk-toc-i.l' + h.t.slice(1), { attrs: { type: 'button' }, text: P().plain(h.x) || 'Sin título', on: { click: function () { var t = els[h.id]; if (t) { t.scrollIntoView({ behavior: U.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); t.classList.add('flash'); setTimeout(function () { t.classList.remove('flash'); }, 1200); } } } }));
       });
     }
+    /* -- Adjuntos: imágenes y archivos (W.Files los guarda aparte; el bloque lleva la referencia) -- */
+    function scope() { return W.Files ? W.Files.scopeOf(pageId) : 'me'; }
+    function fref(b) { return { f: b.f, n: b.n, m: b.m, s: b.s }; }
+    function openAttachment(b) { if (W.Files && b.f) W.Files.open(fref(b), scope(), { onDelete: ro ? null : function () { removeAttachment(b); } }); }
     function imageBlock(b) {
-      if (!b.src) {
+      if (!b.src && !b.f) {
         if (ro) return U.el('div.bk-missing', { text: 'Imagen' });
-        return U.el('div.bk-img-empty', [U.icon('image'), U.el('span', { text: 'Añade una imagen' }),
-          U.el('button.btn.xs.soft', { on: { click: function () { pickImage(b); } } }, [U.icon('upload', 'sm'), 'Subir']),
-          U.el('button.btn.xs.ghost', { text: 'Pegar enlace', on: { click: function () {
-            W.Sheet.prompt({ title: 'Enlace de la imagen', placeholder: 'https://…', maxLength: 600, ok: 'Añadir' }).then(function (u) { if (!u) return; if (!/^https:\/\//.test(u)) { W.Toast.show({ text: 'El enlace debe empezar por https://', type: 'danger' }); return; } structural(); b.src = u; refreshBlock(b); save(); });
-          } } })]);
+        return U.el('div.bk-att-empty', [U.el('span.bk-att-empty-ic', [U.icon('image')]), U.el('span.bk-att-empty-t', [U.el('b', { text: 'Añade una imagen' }), U.el('small', { text: 'Desde tu dispositivo, arrastrándola aquí o con un enlace' })]),
+          U.el('span.bk-att-empty-acts', [
+            U.el('button.btn.xs.soft', { on: { click: function () { pickImage(b); } } }, [U.icon('upload', 'sm'), 'Elegir']),
+            U.el('button.btn.xs.ghost', { text: 'Pegar enlace', on: { click: function () {
+              W.Sheet.prompt({ title: 'Enlace de la imagen', placeholder: 'https://…', maxLength: 600, ok: 'Añadir' }).then(function (u) { if (!u) return; if (!/^https:\/\//.test(u)) { W.Toast.show({ text: 'El enlace debe empezar por https://', type: 'danger' }); return; } structural(); b.src = u; refreshBlock(b); save(); });
+            } } })
+          ])]);
       }
       var cap = U.el('figcaption.bk-text', { attrs: { contenteditable: ro ? 'false' : 'true', 'data-ph': 'Añade un pie de foto' } });
       cap.innerHTML = b.x || '';
-      return U.el('figure.bk-img', { style: { width: (b.w || 100) + '%' } }, [U.el('img', { attrs: { src: b.src, alt: P().plain(b.x || '') || 'Imagen', loading: 'lazy', draggable: 'false' } }), cap]);
+      var alt = P().plain(b.x || '') || b.n || 'Imagen';
+      if (!b.f) return U.el('figure.bk-img', { style: { width: (b.w || 100) + '%' } }, [U.el('img', { attrs: { src: b.src, alt: alt, loading: 'lazy', draggable: 'false' } }), cap]);
+      // Imagen guardada como adjunto: hueco con su proporción mientras se carga (sin saltos)
+      var box = U.el('div.bk-img-box', { attrs: { 'data-file': b.f } });
+      if (b.ar) box.style.aspectRatio = String(b.ar);
+      var tools = U.el('span.bk-img-tools', [
+        U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': 'Ver en grande', title: 'Ver en grande' }, on: { click: function (e) { e.stopPropagation(); openAttachment(b); } } }, [U.icon('expand')]),
+        U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': 'Descargar', title: 'Descargar' }, on: { click: function (e) { e.stopPropagation(); W.Files.download(fref(b), scope()); } } }, [U.icon('download')]),
+        ro ? null : U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': 'Quitar la imagen', title: 'Quitar de la página' }, on: { click: function (e) { e.stopPropagation(); removeAttachment(b); } } }, [U.icon('trash')])
+      ]);
+      var show = function (u) {
+        U.clear(box); box.classList.remove('error', 'wait'); box.classList.add('ready');
+        var img = U.el('img', { attrs: { src: u, alt: alt, draggable: 'false' } });
+        img.addEventListener('click', function () { openAttachment(b); });
+        box.appendChild(img); box.appendChild(tools);
+      };
+      var load = function () {
+        var ready = W.Files.peekUrl(b.f);
+        if (ready) { show(ready); return; }
+        U.clear(box); box.classList.add('wait'); box.classList.remove('error');
+        box.appendChild(U.el('span.bk-img-wait', { text: 'Cargando la imagen…' }));
+        W.Files.url(b.f, scope()).then(show, function (e) {
+          U.clear(box); box.classList.remove('wait'); box.classList.add('error');
+          box.appendChild(U.el('div.bk-img-err', [U.icon('image'), U.el('span', { text: W.Files.explain(e, b.n) }), U.el('button.btn.xs.ghost', { text: 'Reintentar', on: { click: function (ev) { ev.stopPropagation(); load(); } } })]));
+          if (!ro) box.appendChild(tools);
+        });
+      };
+      box._reload = load;
+      load();
+      return U.el('figure.bk-img.att', { style: { width: (b.w || 100) + '%' } }, [box, cap]);
+    }
+    function fileBlock(b) {
+      if (!b.f) {
+        if (ro) return U.el('div.bk-missing', { text: 'Archivo' });
+        return U.el('div.bk-att-empty', [U.el('span.bk-att-empty-ic', [U.icon('paperclip')]), U.el('span.bk-att-empty-t', [U.el('b', { text: 'Adjunta un archivo' }), U.el('small', { text: 'PDF, documentos, hojas de cálculo… hasta ' + W.Files.fmtSize(W.Files.MAX) })]),
+          U.el('span.bk-att-empty-acts', [U.el('button.btn.xs.soft', { on: { click: function () { pickInto(b); } } }, [U.icon('upload', 'sm'), 'Elegir archivo'])])]);
+      }
+      var k = W.Files.kind(b.m, b.n);
+      var meta = U.el('small.bkf-meta');
+      var card = U.el('div.bkf.k-' + k.k, { attrs: { 'data-file': b.f } }, [
+        U.el('button.bkf-main', { attrs: { type: 'button', title: 'Abrir', 'aria-label': 'Abrir ' + (b.n || 'el archivo') }, on: { click: function () { openAttachment(b); } } }, [
+          U.el('span.bkf-ic', { attrs: { 'aria-hidden': 'true' } }, [U.icon('file'), U.el('b', { text: k.short })]),
+          U.el('span.bkf-t', [U.el('strong', { text: b.n || 'Archivo' }), meta])
+        ]),
+        U.el('span.bkf-acts', [
+          U.el('button.bkf-btn', { attrs: { type: 'button', 'aria-label': 'Descargar ' + (b.n || 'el archivo'), title: 'Descargar' }, on: { click: function () { W.Files.download(fref(b), scope()); } } }, [U.icon('download')]),
+          ro ? null : U.el('button.bkf-btn', { attrs: { type: 'button', 'aria-label': 'Quitar ' + (b.n || 'el archivo') + ' de la página', title: 'Quitar de la página' }, on: { click: function () { removeAttachment(b); } } }, [U.icon('trash')])
+        ])
+      ]);
+      paintStatus(card, b);
+      return card;
+    }
+    /**
+     * Línea de estado de un archivo. El tipo ya lo dice la etiqueta del icono: aquí, el tipo en
+     * palabras solo si no hay nada más que contar; si no, el tamaño y si se sube, se baja o está aquí.
+     */
+    function paintStatus(card, b) {
+      var meta = card.querySelector('.bkf-meta'); if (!meta) return;
+      var st = W.Files.status(b.f, scope()), size = b.s ? W.Files.fmtSize(b.s) : '', note = '';
+      card.classList.remove('busy', 'warn');
+      if (st.s === 'up') { note = 'Subiendo ' + Math.round((st.p || 0) * 100) + ' %'; card.classList.add('busy'); }
+      else if (st.s === 'down') { note = 'Descargando ' + Math.round((st.p || 0) * 100) + ' %'; card.classList.add('busy'); }
+      else if (st.s === 'local') note = W.Files.canSync() ? 'Pendiente de subir' : 'En este dispositivo';
+      else if (st.s === 'none') { note = W.Files.short(st.code); card.classList.add('warn'); }
+      meta.textContent = (note ? [size, note] : [W.Files.kind(b.m, b.n).label, size]).filter(Boolean).join(' · ');
+    }
+    /** Quitar un adjunto: sin preguntar y con «Deshacer» (el archivo se borra días después si nadie lo usa) */
+    function removeAttachment(b) {
+      if (ro || indexOf(b) < 0) return;
+      var i = indexOf(b), copy = JSON.parse(JSON.stringify(b)), name = b.n || (b.t === 'img' ? 'La imagen' : 'El archivo');
+      structural();
+      removeBlock(b);
+      if (!blocks.length) insertAt(0, newBlock('p'));
+      // Acciones sueltas: se guardan al momento (no hay más escritura que esperar)
+      save(true);
+      W.Toast.show({ text: (b.n ? '«' + name + '»' : name) + ' se ha quitado de la página', icon: 'trash', action: { label: 'Deshacer', fn: function () {
+        if (destroyed || byId(copy.id)) return;
+        structural(); insertAt(Math.min(i, blocks.length), copy); save(true);
+      } } });
     }
     function pickImage(b) {
-      W.Profile.pickFile().then(function (file) {
-        if (!file) return;
-        shrinkImage(file, 1400, 0.82).then(function (url) {
-          if (url.length > 380000) { W.Toast.show({ text: 'La imagen es demasiado grande. Prueba con una más pequeña.', type: 'danger' }); return; }
-          structural(); b.src = url; refreshBlock(b); save();
-        }).catch(function () { W.Toast.show({ text: 'No se pudo leer esa imagen.', type: 'danger' }); });
+      if (!W.Files) return;
+      W.Files.pick({ accept: 'image/*' }).then(function (files) { if (files.length) attachFiles(files.slice(0, 1), b, { image: true }); });
+    }
+    function pickInto(b) {
+      if (!W.Files) return;
+      W.Files.pick({ multiple: true }).then(function (files) { if (files.length) attachFiles(files, b); });
+    }
+    function emptyText(b) { var t = textEl(b); return b.t === 'p' && (t ? isEmpty(t) : !P().plain(b.x || '').trim()); }
+    /**
+     * Añade archivos a la página, en orden: las fotos como imagen (con vista previa) y lo demás como
+     * archivo (con nombre y tipo). target: un bloque de imagen o archivo vacío que se rellena, o el
+     * bloque junto al que van (detrás; delante si opts.before o si es una línea vacía).
+     */
+    function attachFiles(list, target, opts) {
+      opts = opts || {};
+      if (ro || !W.Files || !list || !list.length) return Promise.resolve();
+      var fill = target && (target.t === 'img' || target.t === 'file') && !target.f && !target.src ? target : null;
+      var last = null;
+      var position = function () {
+        if (last && indexOf(last) >= 0) return indexOf(last) + 1;
+        if (target && indexOf(target) >= 0) {
+          if (opts.before || emptyText(target)) return indexOf(target);
+          return indexOf(target) + 1 + childrenOf(target).length;
+        }
+        var end = blocks[blocks.length - 1];
+        return end && emptyText(end) ? indexOf(end) : blocks.length;
+      };
+      var big = list.length > 1 || list[0].size > 1500000;
+      if (big) W.Toast.show({ text: list.length > 1 ? 'Añadiendo ' + list.length + ' archivos…' : 'Añadiendo «' + list[0].name + '»…', icon: 'paperclip', duration: 2200 });
+      return list.reduce(function (pr, file) {
+        return pr.then(function () {
+          return W.Files.add(file, { scope: scope(), image: opts.image !== false }).then(function (r) {
+            if (destroyed) return;
+            if (opts.image && !r.image) W.Toast.show({ text: '«' + r.n + '» no se puede mostrar como imagen: se añade como archivo.', icon: 'paperclip' });
+            var data = { f: r.f, n: r.n, m: r.m, s: r.s };
+            if (r.image && r.ar) data.ar = r.ar;
+            var type = r.image ? 'img' : 'file';
+            structural();
+            if (fill && indexOf(fill) >= 0) {
+              var keepX = fill.x, keepW = fill.w;
+              Object.keys(fill).forEach(function (k) { if (k !== 'id' && k !== 'i') delete fill[k]; });
+              Object.assign(fill, { t: type, x: type === 'img' ? keepX || '' : '' }, data);
+              if (type === 'img' && keepW) fill.w = keepW;
+              refreshBlock(fill); last = fill; fill = null;
+            } else {
+              var ind = target && indexOf(target) >= 0 ? target.i || 0 : 0;
+              var nb = newBlock(type, '', Object.assign(ind ? { i: ind } : {}, data));
+              insertAt(position(), nb); last = nb;
+            }
+            save();
+          }, function (e) {
+            W.Toast.show({ text: W.Files.explain(e, file.name), type: 'danger', icon: 'alert', duration: 5000 });
+          });
+        });
+      }, Promise.resolve()).then(function () {
+        if (last && els[last.id] && !W.Layout.desktop) els[last.id].scrollIntoView({ block: 'nearest', behavior: U.reducedMotion() ? 'auto' : 'smooth' });
       });
     }
     function bookmarkBlock(b) {
@@ -652,14 +787,15 @@ window.Whider = window.Whider || {};
       if (!t || t.closest('.bk-db')) return;
       var bel = t.closest('.bk'); if (!bel) return;
       var b = bel._b, cd = ev.clipboardData; if (!cd) return;
-      // Imagen pegada
-      if (cd.files && cd.files.length && /^image\//.test(cd.files[0].type) && !ro) {
+      var text = cd.getData('text/plain') || '';
+      // Archivos pegados (una captura, una foto, un PDF copiado…). Si además hay texto y solo son
+      // imágenes (al copiar celdas de una hoja de cálculo llega también su imagen), gana el texto.
+      var pasted = cd.files ? Array.prototype.slice.call(cd.files) : [];
+      if (pasted.length && !ro && W.Files && !(text.trim() && pasted.every(function (f) { return /^image\//.test(f.type); }))) {
         ev.preventDefault();
-        var file = cd.files[0];
-        shrinkImage(file, 1400, 0.82).then(function (url) { structural(); var nb = newBlock('img', '', { src: url }); insertAt(indexOf(b) + 1, nb); save(); }).catch(function () {});
+        attachFiles(pasted, b);
         return;
       }
-      var text = cd.getData('text/plain') || '';
       if (b.t === 'code' || t.classList.contains('bk-codetext')) { ev.preventDefault(); document.execCommand('insertText', false, text); return; }
       var lines = text.replace(/\r/g, '').split('\n').filter(function (x) { return x.trim(); });
       if (lines.length > 1) {
@@ -775,7 +911,12 @@ window.Whider = window.Whider || {};
       ];
       if (isText(b) && b.t !== 'code') items.push({ value: 'task', label: 'Crear tarea con este texto', icon: 'tasks' });
       if (isText(b)) items.push({ value: 'subpage', label: 'Convertir en subpágina', icon: 'page' });
-      if (b.t === 'img' && b.src) items.push({ value: 'size', label: 'Tamaño de la imagen', icon: 'grid' });
+      if (b.f) {
+        items.push({ value: 'open', label: b.t === 'img' ? 'Ver en grande' : 'Abrir', icon: b.t === 'img' ? 'expand' : 'external', gap: true });
+        items.push({ value: 'dl', label: 'Descargar', icon: 'download' });
+        if (b.t === 'file') items.push({ value: 'rename', label: 'Cambiar el nombre', icon: 'edit' });
+      }
+      if (b.t === 'img' && (b.src || b.f)) items.push({ value: 'size', label: 'Tamaño de la imagen', icon: 'grid' });
       items.push({ value: 'copy', label: 'Copiar el texto', icon: 'layers' });
       items.push({ value: 'del', label: 'Eliminar', icon: 'trash', destructive: true, gap: true });
       W.Menu.open(anchor, items).then(function (v) {
@@ -789,8 +930,11 @@ window.Whider = window.Whider || {};
         else if (v === 'out') indent(b, -1);
         else if (v === 'task') { var text = P().plain(b.x).trim(); if (text) { var pr = W.Parse.task(text); var task = W.State.addTask({ text: pr.text || text, date: pr.date !== undefined ? pr.date : U.today(), time: pr.time || null, listId: pr.listId || null, highlight: pr.highlight || 'none', warn: W.State.settings.defaultWarn }); structural(); b.t = 'task'; b.ref = task.id; delete b.x; refreshBlock(b); save(); W.Toast.show({ text: 'Tarea creada', icon: 'check', type: 'success' }); } }
         else if (v === 'subpage') { var titleTxt = P().plain(b.x).trim(); structural(); var sp = P().create({ title: titleTxt, parent: pageId }); b.t = 'page'; b.ref = sp.id; b.x = ''; refreshBlock(b); save(true); }
+        else if (v === 'open') openAttachment(b);
+        else if (v === 'dl') W.Files.download(fref(b), scope());
+        else if (v === 'rename') W.Sheet.prompt({ title: 'Nombre del archivo', value: b.n || '', maxLength: 120, ok: 'Guardar' }).then(function (n) { n = String(n || '').trim(); if (!n || n === b.n) return; structural(); b.n = n; refreshBlock(b); save(); });
         else if (v === 'size') W.Menu.open(anchor, [25, 50, 75, 100].map(function (w) { return { value: w, label: w + ' %', on: (b.w || 100) === w }; })).then(function (w) { if (w) { b.w = w; refreshBlock(b); save(); } });
-        else if (v === 'copy') copyText(b.t === 'table' ? (b.rows || []).map(function (r) { return r.map(P().plain).join('\t'); }).join('\n') : P().plain(b.x || ''));
+        else if (v === 'copy') copyText(b.t === 'table' ? (b.rows || []).map(function (r) { return r.map(P().plain).join('\t'); }).join('\n') : P().plain(b.x || '') || b.n || '');
         else if (v === 'del') deleteBlock(b);
       });
     }
@@ -800,8 +944,8 @@ window.Whider = window.Whider || {};
 
     /* -- Menú «/» y menciones -- */
     function commands() {
-      var B = P().BLOCKS, list = ['p', 'h1', 'h2', 'h3', 'todo', 'ul', 'ol', 'toggle', 'quote', 'callout', 'code', 'hr', 'table', 'img', 'bookmark', 'page', 'db', 'task', 'agenda', 'toc'];
-      var out = list.map(function (k) { return { id: k, label: B[k].label, icon: B[k].icon, desc: B[k].desc, keys: B[k].keys, group: k === 'page' || k === 'db' ? 'Páginas' : k === 'task' || k === 'agenda' ? 'WHIDER' : k === 'hr' || k === 'table' || k === 'img' || k === 'bookmark' || k === 'toc' ? 'Insertar' : 'Bloques básicos' }; });
+      var B = P().BLOCKS, list = ['p', 'h1', 'h2', 'h3', 'todo', 'ul', 'ol', 'toggle', 'quote', 'callout', 'code', 'img', 'file', 'bookmark', 'hr', 'table', 'page', 'db', 'task', 'agenda', 'toc'];
+      var out = list.map(function (k) { return { id: k, label: B[k].label, icon: B[k].icon, desc: B[k].desc, keys: B[k].keys, group: k === 'page' || k === 'db' ? 'Páginas' : k === 'task' || k === 'agenda' ? 'WHIDER' : k === 'img' || k === 'file' || k === 'bookmark' ? 'Archivos y enlaces' : k === 'hr' || k === 'table' || k === 'toc' ? 'Insertar' : 'Bloques básicos' }; });
       out.push({ id: 'cmd:mention', label: 'Mencionar una página', icon: 'at', desc: 'Enlaza otra página', keys: ['mencion', 'enlazar', 'pagina'], group: 'Páginas' });
       out.push({ id: 'cmd:date', label: 'Fecha de hoy', icon: 'calendar', desc: U.cap(U.fmtDay(U.today())), keys: ['fecha', 'hoy', 'date'], group: 'Insertar' });
       out.push({ id: 'cmd:dbfull', label: 'Base de datos en página aparte', icon: 'database', desc: 'Como subpágina, a pantalla completa', keys: ['base', 'datos', 'pagina'], group: 'Páginas' });
@@ -986,6 +1130,7 @@ window.Whider = window.Whider || {};
       var nb4 = place(newBlock(id, '', extra));
       if (id === 'hr' || id === 'toc' || id === 'agenda') { var after = newBlock('p', '', { i: b.i || 0 }); insertAt(indexOf(nb4) + 1, after); focusBlock(after, 'start'); }
       else if (id === 'img') setTimeout(function () { pickImage(nb4); }, 50);
+      else if (id === 'file') setTimeout(function () { pickInto(nb4); }, 50);
       else setTimeout(function () { var inp = els[nb4.id] && els[nb4.id].querySelector('input, .bk-cell'); if (inp) inp.focus(); }, 30);
       save();
       void target;
@@ -1032,6 +1177,42 @@ window.Whider = window.Whider || {};
       dragId = null;
     });
 
+    /* -- Soltar archivos desde el ordenador (o desde otra app) -- */
+    function hasFiles(ev) { var ty = ev.dataTransfer && ev.dataTransfer.types; return !!ty && Array.prototype.indexOf.call(ty, 'Files') >= 0; }
+    root.addEventListener('dragover', function (ev) {
+      if (dragId || ro || !hasFiles(ev)) return;
+      ev.preventDefault();
+      try { ev.dataTransfer.dropEffect = 'copy'; } catch (x) { /* solo lectura */ }
+      var target = ev.target.closest && ev.target.closest('.bk');
+      if (target && root.contains(target)) {
+        var r = target.getBoundingClientRect(), after = ev.clientY > r.top + r.height / 2;
+        target._dropAfter = after; root._fileDrop = target;
+        showDrop(target, after);
+      } else { root._fileDrop = null; hideDrop(); }
+      root.classList.add('file-over');
+    });
+    root.addEventListener('dragleave', function (ev) { if (!ev.relatedTarget || !root.contains(ev.relatedTarget)) { hideDrop(); root.classList.remove('file-over'); } });
+    root.addEventListener('drop', function (ev) {
+      if (dragId || ro || !hasFiles(ev)) return;
+      ev.preventDefault();
+      hideDrop(); root.classList.remove('file-over');
+      var files = Array.prototype.slice.call(ev.dataTransfer.files || []);
+      if (!files.length) return;
+      var target = root._fileDrop, tb = target && target._b && indexOf(target._b) >= 0 ? target._b : null;
+      root._fileDrop = null;
+      attachFiles(files, tb, { before: !!(tb && !target._dropAfter) });
+    });
+    // El estado de los archivos (subiendo, en la nube…) se actualiza sin repintar la página
+    var onFiles = function (e) {
+      var id = e && e.detail ? e.detail.id : null;
+      U.$$(id ? '[data-file="' + id + '"]' : '[data-file]', root).forEach(function (el) {
+        var bel = el.closest('.bk'); if (!bel || !bel._b) return;
+        if (el.classList.contains('bkf')) paintStatus(el, bel._b);
+        else if (el.classList.contains('error') && el._reload && W.Files.has(bel._b.f)) el._reload();
+      });
+    };
+    document.addEventListener('whider:files', onFiles);
+
     /* -- Eventos -- */
     root.addEventListener('keydown', onKey);
     root.addEventListener('input', onInput);
@@ -1040,13 +1221,17 @@ window.Whider = window.Whider || {};
       if (selBlock && els[selBlock.id] && !els[selBlock.id].contains(ev.target)) { els[selBlock.id].classList.remove('bk-selected'); selBlock = null; }
       var bel = ev.target.closest && ev.target.closest('.bk');
       U.$$('.bk.focus', root).forEach(function (x) { if (x !== bel) x.classList.remove('focus'); });
-      if (bel) bel.classList.add('focus');
+      if (bel) { bel.classList.add('focus'); lastFocus = bel._b; }
       if (o.onFocusBlock) o.onFocusBlock(bel ? bel._b : null);
     });
     root.addEventListener('focusout', function (ev) {
       var bel = ev.target.closest && ev.target.closest('.bk');
       if (bel) setTimeout(function () { if (!bel.contains(document.activeElement)) bel.classList.remove('focus'); }, 0);
-      setTimeout(function () { if (!root.contains(document.activeElement)) { closeMenus(); save(true); } }, 150);
+      setTimeout(function () {
+        if (destroyed || root.contains(document.activeElement)) return;
+        closeMenus(); save(true);
+        if (o.onBlur) o.onBlur();
+      }, 150);
     });
     root.addEventListener('click', function (ev) {
       var m = ev.target.closest && ev.target.closest('.mention');
@@ -1107,6 +1292,21 @@ window.Whider = window.Whider || {};
         if (mine && !fresh.some(function (x) { return x.id === focusId0; })) blocks.push(mine);
         renderAll(); focusId(focusId0, off); lastSnap = snapshot();
       },
+      /** Elige archivos o fotos del dispositivo y los pone donde está el cursor (o al final) */
+      attach: function (o) {
+        if (ro || !W.Files) return;
+        var a = document.activeElement, bel = a && a.closest ? a.closest('.bk') : null;
+        // Donde está el cursor; si no, donde estaba (el botón de la cabecera se lleva el foco); si no, al final
+        var b = (bel && root.contains(bel) ? bel._b : null) || (lastFocus && indexOf(lastFocus) >= 0 ? lastFocus : null);
+        var go = function (images) { W.Files.pick({ multiple: true, accept: images ? 'image/*' : null }).then(function (files) { if (files.length) attachFiles(files, b); }); };
+        if (o && o.images != null) { go(!!o.images); return; }
+        if (W.Layout.desktop) { go(false); return; }
+        // Móvil: la galería de fotos del sistema o el explorador de archivos, como en cualquier app
+        W.Sheet.choose({ title: 'Adjuntar a la página', options: [
+          { value: 'img', label: 'Fotos', icon: 'image', desc: 'De la galería; se ven dentro de la página' },
+          { value: 'file', label: 'Archivos', icon: 'file', desc: 'PDF, documentos, hojas de cálculo… hasta ' + W.Files.fmtSize(W.Files.MAX) }
+        ] }).then(function (v) { if (v) go(v === 'img'); });
+      },
       refreshLive: function () { blocks.forEach(function (b) { if (b.t === 'task' || b.t === 'agenda' || b.t === 'page' || b.t === 'db') refreshBlock(b); }); },
       destroy: function () {
         if (destroyed) return;
@@ -1115,6 +1315,7 @@ window.Whider = window.Whider || {};
         closeMenus(); hideToolbar();
         if (toolbar && toolbar.parentNode) toolbar.parentNode.removeChild(toolbar);
         document.removeEventListener('selectionchange', onSel);
+        document.removeEventListener('whider:files', onFiles);
         window.removeEventListener('scroll', onScroll, true);
       }
     };

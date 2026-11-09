@@ -609,3 +609,33 @@ html[data-contrast="high"] { --t2: #D4D4D4; --t3: #ABABAB; --t4: #707070; --line
 .dev-focus { display: flex; flex-direction: column; gap: 6px; }
 .dev-time { font-family: var(--mono); font-size: 2.6rem; font-weight: 500; letter-spacing: -.02em; }
 .dev-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+/* ---------- Visor de adjuntos del Cuaderno (imagen, vídeo, audio y texto) ---------- */
+.fv-layer { position: fixed; inset: 0; z-index: 75; display: flex; flex-direction: column; padding: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l); background: rgba(0, 0, 0, .94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); opacity: 0; transition: opacity .2s var(--ease); }
+.fv-layer.open { opacity: 1; }
+.fv-bar { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 8px 10px 8px 18px; }
+.fv-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.fv-title strong { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fv-title small { color: var(--t3); font-size: var(--fs-cap); }
+.fv-acts { display: flex; gap: 4px; flex: none; }
+.fv-btn { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; color: var(--t1); background: var(--fill-3); transition: background .15s; }
+.fv-btn:hover { background: var(--fill); }
+.fv-btn:focus-visible { box-shadow: 0 0 0 2px #FFFFFF; }
+.fv-btn .ic { width: 20px; height: 20px; }
+.fv-btn.close { margin-left: 6px; }
+.fv-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 6px 16px 20px; overflow: auto; overscroll-behavior: contain; }
+.fv-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; cursor: zoom-in; transform: scale(.97); transition: transform .28s var(--ease-out); }
+.fv-layer.open .fv-img { transform: none; }
+.fv-stage.zoom { align-items: flex-start; justify-content: flex-start; }
+.fv-stage.zoom .fv-img { max-width: none; max-height: none; cursor: zoom-out; margin: auto; }
+.fv-media { max-width: 100%; max-height: 100%; border-radius: 10px; background: #000; }
+.fv-audio { width: min(520px, 100%); display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.fv-audio-ic { width: 96px; height: 96px; display: grid; place-items: center; border-radius: 28px; background: var(--fill-2); }
+.fv-audio-ic .ic { width: 40px; height: 40px; }
+.fv-audio .fv-media { width: 100%; background: transparent; }
+.fv-text { align-self: stretch; width: min(820px, 100%); margin: 0 auto; padding: 18px 20px; border-radius: 14px; background: var(--s1); color: var(--t1); font: 400 var(--fs-sub)/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word; overflow: auto; }
+.fv-wait { max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--t2); text-align: center; }
+.fv-wait > .ic { width: 26px; height: 26px; }
+.fv-spin { width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid var(--fill); border-top-color: var(--t1); animation: fv-spin .8s linear infinite; }
+@keyframes fv-spin { to { transform: rotate(360deg); } }
+@media (max-width: 520px) { .fv-bar { padding-left: 14px; gap: 8px; } .fv-btn { width: 40px; height: 40px; } .fv-btn.close { margin-left: 2px; } .fv-stage { padding: 4px 8px 14px; } }
