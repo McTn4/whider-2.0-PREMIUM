@@ -335,8 +335,6 @@ html[data-layout="desktop"] .pl-table { display: grid; grid-template-columns: 1f
 
 /* Perfil en el ordenador: tarjeta y personaje lado a lado; logros en dos columnas */
 .profile-top { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
-.profile-top .profile-buddy { margin-top: 0; }
-html[data-layout="desktop"] .fam-grid { grid-template-columns: repeat(2, 1fr); }
 html[data-layout="desktop"] .focus-buddy { right: -40px; }
 
 /* ---------- Apuntes en el ordenador: lista y editor lado a lado ---------- */

@@ -6,7 +6,7 @@
  *  - Solicitudes (se elige si es de amigos o de trabajo), contactos de cada tipo con su
  *    personaje, su racha y su estado, y chat directo con cada uno.
  *  - Equipos: miembros, enlace y QR para unirse, tareas en común, chat y páginas del equipo.
- *  - Ranking de la semana y ánimos entre amigos.
+ *  - Ánimos entre amigos.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -28,7 +28,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       U.el('div.pp-av', [W.Avatar.forProfile(p.uid ? p : { name: name, buddy: null }, 64, { live: true }), focus ? U.el('span.pp-status', { attrs: { title: 'Concentrado ahora' } }, [U.icon('timer')]) : null]),
       U.el('div.pp-main', [
         U.el('strong', { text: name }),
-        U.el('span', { text: f.pending ? 'Esperando su confirmación…' : p.level ? 'Nivel ' + p.level + ' · ' + (p.title || '') : 'Aún sin perfil publicado' }),
+        U.el('span', { text: f.pending ? 'Esperando su confirmación…' : !p.uid ? 'Aún sin perfil publicado' : focus ? 'Concentrado ahora' : p.updatedAt ? 'Activo ' + U.fmtRel(p.updatedAt - Date.now()) : (work ? 'Trabajo' : 'Amigos') }),
         !f.pending && p.uid ? U.el('div.pp-stats', [U.el('span', [U.icon('flame', 'xs'), U.el('b', { text: String(p.streak || 0) }), (p.streak === 1 ? ' día' : ' días')]),
           U.el('span', [U.icon('check', 'xs'), U.el('b', { text: String(current ? p.weekDone || 0 : 0) }), ' esta semana']),
           work ? null : U.el('span', [U.icon('timer', 'xs'), U.el('b', { text: W.Charts.fmtMin(current ? p.weekFocus || 0 : 0) })])]) : null
@@ -69,17 +69,6 @@ window.Whider.Screens = window.Whider.Screens || {};
           W.Menu.open(e.currentTarget, [{ value: 'friend', label: 'Aceptar como amigo', icon: 'heart', on: kind === 'friend' }, { value: 'work', label: 'Aceptar como trabajo', icon: 'briefcase', on: kind === 'work' }]).then(function (v) { if (v) PE().answer(k, true, v); });
         } } })])]);
   }
-  function ranking() {
-    var st = S(), w = PE().weekStats(), me = { uid: PE().uid(), name: 'Tú', weekDone: w.done, streak: st.streak(), me: true };
-    var rows = [me].concat(PE().contacts('friend').filter(function (f) { return !f.pending; }).map(function (f) { var p = PE().profile(f.uid) || {}; return { uid: f.uid, name: p.name || f.name || 'Amigo', weekDone: p.week === w.week ? p.weekDone || 0 : 0, streak: p.streak || 0, p: p }; }))
-      .sort(function (a, b) { return b.weekDone - a.weekDone || b.streak - a.streak; });
-    return U.el('div.group.rank', rows.map(function (r, i) {
-      return U.el('div.rank-row' + (r.me ? '.me' : ''), [U.el('span.rank-pos' + (i < 3 ? '.top' : ''), { text: String(i + 1) }),
-        U.el('span.rank-buddy', [r.me ? W.Avatar.me(34) : W.Avatar.forProfile(r.p, 34)]),
-        U.el('span.rank-name', { text: r.name }), U.el('span.rank-val', [U.el('b', { text: String(r.weekDone) }), ' tareas'])]);
-    }));
-  }
-
   /* ---------- Equipos ---------- */
   function teamCard(t) {
     var d = PE().team(t.id), n = d ? Object.keys(d.members || {}).length : null;
@@ -180,7 +169,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       }
       if (!st.social.enabled) {
         content.push(U.el('div.group.card.fr-hero', [W.Character.illustration('friends', 'happy', 110), U.el('strong', { text: 'Activa la comunidad' }),
-          U.el('p', { text: 'Tus contactos verán tu nombre, tu personaje, tu nivel y tu racha. Nunca tus tareas ni tu Cuaderno (salvo lo que compartas).' }),
+          U.el('p', { text: 'Tus contactos verán tu nombre, tu personaje y tu racha. Nunca tus tareas ni tu Cuaderno (salvo lo que compartas).' }),
           U.el('button.btn.primary', { on: { click: function (e) { e.currentTarget.disabled = true; PE().enable().then(function () { W.Router.refresh(); PE().poll(true); }).catch(function () { W.Router.refresh(); }); } } }, [U.icon('users', 'sm'), 'Activar'])]));
         W.UI.mount(root, head, content); return;
       }
@@ -218,7 +207,6 @@ window.Whider.Screens = window.Whider.Screens || {};
         var list = tab() === 'work' ? work : friends;
         content.push(list.length ? U.el('div.pp-grid', list.map(contactCard)) : U.el('div.group', [W.UI.empty('buddy:friends', tab() === 'work' ? 'Aún no tienes contactos de trabajo' : 'Aún no tienes amigos aquí',
           'Invítalos con tu enlace o tu código QR: se conectan con un toque.', U.el('button.btn.sm.primary', { on: { click: function () { invite(tab() === 'work' ? 'work' : 'friend'); } } }, [U.icon('share', 'sm'), 'Invitar']), true)]));
-        if (tab() === 'friend' && friends.length) content.push(W.UI.section({ title: 'Ranking de la semana', items: ranking(), footer: 'Tareas completadas desde el inicio de la semana.' }));
         var cheers = st.social.cheers.slice(-5).reverse();
         if (tab() === 'friend' && cheers.length) content.push(W.UI.section({ header: 'Ánimos recibidos', items: cheers.map(function (c) { return W.UI.cell({ icon: 'send', title: '«' + c.text + '»', sub: (c.name || 'Un amigo') + ' · ' + U.fmtRel(c.at - Date.now()) }); }) }));
       }

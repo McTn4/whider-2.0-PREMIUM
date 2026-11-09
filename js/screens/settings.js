@@ -218,7 +218,7 @@ window.Whider = window.Whider || {};
     };
   }
 
-  /** Sonidos: botones, avisos y logros por separado, estilo y volumen */
+  /** Sonidos: botones, avisos y confirmaciones por separado, estilo y volumen */
   function soundsPage(nav) {
     var st = S(), cfg = st.settings, snd = cfg.sounds;
     var setS = function (k, v) { snd[k] = v; st.saveSettings('settings:sounds'); };
@@ -232,20 +232,20 @@ window.Whider = window.Whider || {};
       W.UI.section({ header: 'Qué suena', items: [
         toggleCell({ icon: 'hand', title: 'Botones', sub: 'Un toque breve al pulsar', value: snd.buttons, onChange: function (v) { setS('buttons', v); if (v) W.Audio.click(); } }),
         toggleCell({ icon: 'bell', title: 'Avisos y notificaciones', sub: 'Recordatorios, vencidas, hábitos y enfoque', value: snd.notify, onChange: function (v) { setS('notify', v); if (v) W.Audio.chime(); } }),
-        toggleCell({ icon: 'trophy', title: 'Logros y celebraciones', sub: 'Completar tareas, logros y niveles', value: snd.events !== false, onChange: function (v) { setS('events', v); if (v) W.Audio.achievement(); } })
+        toggleCell({ icon: 'check', title: 'Confirmaciones', sub: 'Completar tareas, terminar el día y nuevas marcas', value: snd.events !== false, onChange: function (v) { setS('events', v); if (v) W.Audio.complete(); } })
       ] }),
       W.UI.section({ header: 'Estilo de los botones', items: U.el('div', [W.UI.segmented(styles, snd.style, function (v) { setS('style', v); W.Audio.click(v); })]) }),
       W.UI.section({ header: 'Volumen', items: U.el('div.group', [U.el('div.cell.range-row', [U.icon('sound', 'sm'), vol, volVal])]) }),
       W.UI.group([
         W.UI.cell({ title: 'Probar un aviso', accent: true, center: true, onTap: function () { W.Audio.chime(); } }),
-        W.UI.cell({ title: 'Probar un logro', accent: true, center: true, onTap: function () { W.Audio.levelUp(); } })
+        W.UI.cell({ title: 'Probar una confirmación', accent: true, center: true, onTap: function () { W.Audio.complete(); } })
       ])
     ] : [];
     return {
       title: 'Sonidos y vibración',
       body: [
         W.UI.section({ items: [toggleCell({ icon: 'sound', title: 'Sonidos', value: cfg.sound, onChange: function (v) { st.setSetting('sound', v); nav.refresh(); if (v) W.Audio.success(); } })],
-          footer: cfg.sound ? null : 'Sin sonidos: ni botones, ni avisos, ni logros.' })
+          footer: cfg.sound ? null : 'Sin sonidos: ni botones, ni avisos, ni confirmaciones.' })
       ].concat(rows).concat([
         W.UI.section({ items: [toggleCell({ icon: 'vibrate', title: 'Vibración', value: cfg.vibrate, onChange: function (v) { st.setSetting('vibrate', v); if (v) W.Audio.vibrate([20]); } })],
           footer: 'Las horas de silencio (en Avisos) también callan los sonidos de los avisos.' })
@@ -486,9 +486,9 @@ window.Whider = window.Whider || {};
         ] }) : null,
         W.UI.section({ items: [W.UI.cell({ title: 'Ver la presentación', onTap: function () { nav.close(); setTimeout(function () { W.Onboarding.start(); }, 300); } })] }),
         W.UI.section({ items: [W.UI.cell({ title: 'Restablecer todo', center: true, danger: true, onTap: function () {
-          W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán tus tareas, tu Cuaderno, tus hábitos, sesiones de enfoque, marcas y logros. No se puede deshacer.', ok: 'Restablecer', danger: true })
+          W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán tus tareas, tu Cuaderno, tus hábitos, sesiones de enfoque y marcas. No se puede deshacer.', ok: 'Restablecer', danger: true })
             .then(function (ok) { if (ok) { st.resetAll(); nav.close(); W.Toast.show({ text: 'Se han borrado todos los datos', icon: 'trash' }); } });
-        } })], footer: 'Borra tareas, Cuaderno, hábitos, enfoque, marcas y logros' + (W.Auth && W.Auth.user ? ', también en tu cuenta.' : '.') + ' Tus categorías, sistemas y ajustes se conservan.' })
+        } })], footer: 'Borra tareas, Cuaderno, hábitos, enfoque y marcas' + (W.Auth && W.Auth.user ? ', también en tu cuenta.' : '.') + ' Tus categorías, sistemas y ajustes se conservan.' })
       ]
     };
   }
@@ -523,7 +523,7 @@ window.Whider = window.Whider || {};
   W.PRIVACY_HTML =
     '<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas, categorías, tu Cuaderno, hábitos, enfoque, marcas, tu personaje, tus chats y ajustes.</p>' +
     '<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>' +
-    '<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu nivel, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros.</p>' +
+    '<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros.</p>' +
     '<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>' +
     '<p><b>Tus derechos.</b> Puedes cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
     '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>';

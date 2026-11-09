@@ -34,7 +34,6 @@ window.Whider.Screens = window.Whider.Screens || {};
     { title: 'General', icon: 'sparkle', sub: 'Personalización, juego, personas, sonidos, notificaciones y planes', rows: [
       ['Sonidos de botones y avisos', 'Elige cuáles suenan y a qué volumen', true, true],
       ['Personaje personalizable', 'Tu compañero y tu foto de perfil', true, 'Y personajes Premium'],
-      ['Logros y niveles', 'Más de 30 logros, recompensas y niveles', true, true],
       ['Notificaciones y recordatorios', 'De tareas y de hábitos', true, true],
       ['Copia en la nube', 'En todos tus dispositivos con tu cuenta', true, 'Al instante']
     ] }

@@ -70,11 +70,11 @@ window.Whider = window.Whider || {};
     return out;
   }
   function profileData() {
-    var st = S(), g = W.Game.get(), w = weekStats(), mode = W.Avatar ? W.Avatar.mode() : 'buddy';
+    var st = S(), w = weekStats(), mode = W.Avatar ? W.Avatar.mode() : 'buddy';
     var photo = mode === 'photo' ? S().photo() : '';
     var f = W.Screens.focus && W.Screens.focus.status ? W.Screens.focus.status() : null;
     var d = {
-      uid: uid(), name: myName(), code: st.social.code, level: g.level, title: W.Game.title(g.level), xp: g.xp,
+      uid: uid(), name: myName(), code: st.social.code,
       streak: st.streak(), bestStreak: st.bestStreak(), weekDone: w.done, weekFocus: w.focus, week: w.week,
       buddy: buddyData(), avatar: mode === 'photo' && photo && /^data:image\//.test(photo) && photo.length < 90000 ? 'photo' : mode === 'initial' ? 'initial' : 'buddy',
       status: f && f.running && f.mode === 'work' ? 'focus' : 'online', updatedAt: Date.now()

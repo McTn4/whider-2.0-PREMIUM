@@ -3,18 +3,18 @@
  *
  * Un compañero propio, dibujado en SVG en blanco y negro como el resto de la app:
  *  - Se personaliza: cuerpo, tono, ojos, boca, mejillas, cabeza (pelo, gorros…) y accesorios.
- *    Muchos objetos se desbloquean subiendo de nivel o con logros; algunos son de Premium.
+ *    Todo está disponible; los personajes, acabados, efectos, fondos y marcos Premium van con el plan.
  *  - Tiene estados de ánimo según tu día: contento, orgulloso (todo hecho), concentrado
  *    (enfoque en marcha), preocupado (muchas vencidas), dormido (de noche) y de fiesta.
  *  - Al tocarlo reacciona y te dice algo útil (con una acción a mano cuando tiene sentido).
- *  - Aparece en Hoy, en tu perfil, en el enfoque, en las pantallas vacías y en las celebraciones.
+ *  - Es tu foto de perfil y aparece en Hoy, en el enfoque y en las pantallas vacías.
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var uidN = 0, lineIndex = 0, partyUntil = 0;
+  var uidN = 0, lineIndex = 0;
 
   /* ---------- Catálogo ---------- */
   var DEFAULT = { name: 'Whi', body: 'gota', tone: 'blanco', eyes: 'puntos', mouth: 'sonrisa', cheeks: true, head: 'antena', acc: 'nada', fx: 'nada', bg: 'liso', frame: 'nada' };
@@ -22,46 +22,46 @@ window.Whider = window.Whider || {};
   var CATALOG = {
     body: [
       { id: 'gota', name: 'Gota' }, { id: 'cubo', name: 'Cubo' }, { id: 'capsula', name: 'Cápsula' }, { id: 'gato', name: 'Gato' },
-      { id: 'oso', name: 'Oso', level: 2 }, { id: 'nube', name: 'Nube', level: 4 }, { id: 'buho', name: 'Búho', level: 5 }, { id: 'zorro', name: 'Zorro', level: 7 },
-      { id: 'fantasma', name: 'Fantasma', ach: 'streak7' }, { id: 'robot', name: 'Robot', level: 9 },
+      { id: 'oso', name: 'Oso' }, { id: 'nube', name: 'Nube' }, { id: 'buho', name: 'Búho' }, { id: 'zorro', name: 'Zorro' },
+      { id: 'fantasma', name: 'Fantasma' }, { id: 'robot', name: 'Robot' },
       { id: 'gema', name: 'Gema', premium: true }, { id: 'dragon', name: 'Dragón', premium: true, star: true }, { id: 'astronauta', name: 'Astronauta', premium: true, star: true },
       { id: 'fenix', name: 'Fénix', premium: true, star: true }, { id: 'unicornio', name: 'Unicornio', premium: true, star: true }
     ],
     tone: [
-      { id: 'blanco', name: 'Blanco' }, { id: 'perla', name: 'Perla' }, { id: 'grafito', name: 'Grafito', level: 2 },
-      { id: 'negro', name: 'Noche', level: 3 }, { id: 'cromo', name: 'Cromo', premium: true }, { id: 'platino', name: 'Platino', premium: true, star: true },
+      { id: 'blanco', name: 'Blanco' }, { id: 'perla', name: 'Perla' }, { id: 'grafito', name: 'Grafito' },
+      { id: 'negro', name: 'Noche' }, { id: 'cromo', name: 'Cromo', premium: true }, { id: 'platino', name: 'Platino', premium: true, star: true },
       { id: 'obsidiana', name: 'Obsidiana', premium: true, star: true }, { id: 'holo', name: 'Holográfico', premium: true, star: true },
       { id: 'cristal', name: 'Cristal', premium: true }, { id: 'marmol', name: 'Mármol', premium: true }
     ],
     eyes: [
-      { id: 'puntos', name: 'Puntos' }, { id: 'grandes', name: 'Grandes' }, { id: 'felices', name: 'Felices', level: 2 },
-      { id: 'estrellas', name: 'Estrellas', ach: 'streak7' }, { id: 'corazones', name: 'Corazones', level: 8 }
+      { id: 'puntos', name: 'Puntos' }, { id: 'grandes', name: 'Grandes' }, { id: 'felices', name: 'Felices' },
+      { id: 'estrellas', name: 'Estrellas' }, { id: 'corazones', name: 'Corazones' }
     ],
     mouth: [
       { id: 'sonrisa', name: 'Sonrisa' }, { id: 'abierta', name: 'Alegre' }, { id: 'neutra', name: 'Seria' },
-      { id: 'gato', name: 'Gatuna', level: 3 }, { id: 'o', name: 'Sorpresa', level: 5 }
+      { id: 'gato', name: 'Gatuna' }, { id: 'o', name: 'Sorpresa' }
     ],
     head: [
       { id: 'nada', name: 'Nada' }, { id: 'antena', name: 'Antena' }, { id: 'flequillo', name: 'Flequillo' },
-      { id: 'gorro', name: 'Gorro', level: 2 }, { id: 'lazo', name: 'Lazo', level: 3 }, { id: 'brote', name: 'Brote', ach: 'habits-1' },
-      { id: 'auriculares', name: 'Auriculares', ach: 'focus1' }, { id: 'cresta', name: 'Cresta', level: 6 },
-      { id: 'birrete', name: 'Birrete', ach: 'hundred' }, { id: 'corona', name: 'Corona', level: 10 }, { id: 'halo', name: 'Halo', premium: true }
+      { id: 'gorro', name: 'Gorro' }, { id: 'lazo', name: 'Lazo' }, { id: 'brote', name: 'Brote' },
+      { id: 'auriculares', name: 'Auriculares' }, { id: 'cresta', name: 'Cresta' },
+      { id: 'birrete', name: 'Birrete' }, { id: 'corona', name: 'Corona' }, { id: 'halo', name: 'Halo', premium: true }
     ],
     acc: [
-      { id: 'nada', name: 'Nada' }, { id: 'gafas', name: 'Gafas', level: 3 }, { id: 'bufanda', name: 'Bufanda', level: 5 },
-      { id: 'pajarita', name: 'Pajarita', level: 7 }, { id: 'medalla', name: 'Medalla', ach: 'streak30' }, { id: 'capa', name: 'Capa', premium: true },
+      { id: 'nada', name: 'Nada' }, { id: 'gafas', name: 'Gafas' }, { id: 'bufanda', name: 'Bufanda' },
+      { id: 'pajarita', name: 'Pajarita' }, { id: 'medalla', name: 'Medalla' }, { id: 'capa', name: 'Capa', premium: true },
       { id: 'solares', name: 'Gafas de sol', premium: true }, { id: 'collar', name: 'Collar de perlas', premium: true }
     ],
     fx: [
-      { id: 'nada', name: 'Ninguno' }, { id: 'brillo', name: 'Destellos', level: 6 }, { id: 'aura', name: 'Aura', premium: true, star: true },
+      { id: 'nada', name: 'Ninguno' }, { id: 'brillo', name: 'Destellos' }, { id: 'aura', name: 'Aura', premium: true, star: true },
       { id: 'orbita', name: 'Órbita', premium: true, star: true }, { id: 'estela', name: 'Polvo de estrellas', premium: true }, { id: 'rayos', name: 'Rayos de luz', premium: true }
     ],
     bg: [
-      { id: 'liso', name: 'Liso' }, { id: 'puntos', name: 'Puntos' }, { id: 'degradado', name: 'Degradado', level: 3 }, { id: 'rayas', name: 'Rayas', level: 5 },
+      { id: 'liso', name: 'Liso' }, { id: 'puntos', name: 'Puntos' }, { id: 'degradado', name: 'Degradado' }, { id: 'rayas', name: 'Rayas' },
       { id: 'estrellas', name: 'Estrellas', premium: true }, { id: 'holo', name: 'Holográfico', premium: true, star: true }
     ],
     frame: [
-      { id: 'nada', name: 'Sin marco' }, { id: 'aro', name: 'Aro' }, { id: 'doble', name: 'Doble aro', level: 4 }, { id: 'laurel', name: 'Laurel', ach: 'streak30' },
+      { id: 'nada', name: 'Sin marco' }, { id: 'aro', name: 'Aro' }, { id: 'doble', name: 'Doble aro' }, { id: 'laurel', name: 'Laurel' },
       { id: 'diamante', name: 'Diamante', premium: true, star: true }, { id: 'animado', name: 'Aro de luz', premium: true, star: true }, { id: 'corona', name: 'Con corona', premium: true }
     ]
   };
@@ -119,16 +119,10 @@ window.Whider = window.Whider || {};
 
   /* ---------- Requisitos y desbloqueos ---------- */
   function find(cat, id) { var list = CATALOG[cat] || []; for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
-  function achName(id) {
-    var a = W.Game ? W.Game.achievements().filter(function (x) { return x.id === id; })[0] : null;
-    return a ? a.title : 'un logro';
-  }
   /** { ok, why } para un objeto del catálogo */
   function access(item) {
     if (!item) return { ok: false, why: '' };
     if (item.premium && !(W.Plan && W.Plan.isPremium())) return { ok: false, why: 'Premium', premium: true };
-    if (item.level && W.Game && W.Game.get().level < item.level) return { ok: false, why: 'Nivel ' + item.level };
-    if (item.ach && W.Game && !W.Game.achievements().some(function (a) { return a.id === item.ach && a.ok; })) return { ok: false, why: 'Logro «' + achName(item.ach) + '»' };
     return { ok: true, why: '' };
   }
   /** Configuración actual (lo bloqueado se sustituye por lo básico) */
@@ -311,7 +305,6 @@ window.Whider = window.Whider || {};
   /* ---------- Estado de ánimo y frases ---------- */
   function mood() {
     var st = S(), h = new Date().getHours();
-    if (Date.now() < partyUntil) return 'party';
     var f = W.Screens.focus && W.Screens.focus.status ? W.Screens.focus.status() : null;
     if (f && f.running && f.mode === 'work') return 'focus';
     var s = st.stats();
@@ -323,7 +316,7 @@ window.Whider = window.Whider || {};
 
   /** Frases útiles según el momento: [{ text, action: { label, run } }] */
   function lines() {
-    var st = S(), s = st.stats(), out = [], td = U.today(), g = W.Game ? W.Game.get() : null, name = st.displayName().split(' ')[0];
+    var st = S(), s = st.stats(), out = [], td = U.today(), name = st.displayName().split(' ')[0];
     var overdue = st.overdueAll(), left = s.todayTotal - s.todayDone, h = new Date().getHours();
     var f = W.Screens.focus.status();
     if (f.running) out.push({ text: f.mode === 'work' ? 'Estoy concentrado contigo. Quedan ' + f.text + '.' : 'Pausa: respira y estírate. Quedan ' + f.text + '.' });
@@ -341,7 +334,6 @@ window.Whider = window.Whider || {};
       if (hp.length) out.push({ text: 'Aún te falta un hábito: «' + hp[0].name + '».', action: { label: hp[0].target > 1 ? 'Sumar uno' : 'Hecho', run: function () { W.Habits.tap(hp[0], td); } } });
     }
     if (s.streak >= 2) out.push({ text: 'Llevas ' + s.streak + ' días de racha. No la rompas.' });
-    if (g) out.push({ text: 'Te faltan ' + Math.max(1, g.to - g.xp) + ' XP para el nivel ' + (g.level + 1) + '.', action: { label: 'Ver logros', run: function () { S().ui.profileTab = 'achievements'; W.Router.go('progress'); } } });
     if (!s.todayTotal && !overdue.length) out.push({ text: h < 13 ? '¿Qué quieres conseguir hoy?' : '¿Algo más para hoy?', action: { label: 'Nueva tarea', run: function () { W.QuickAdd.open({ date: td }); } } });
     if (h >= 22 || h < 6) out.push({ text: 'Es tarde. Mañana seguimos con energía.' });
     out.push({ text: 'Tócame cuando quieras: te cuento cómo vas.' });
@@ -376,7 +368,7 @@ window.Whider = window.Whider || {};
 
   /** Bloque de Hoy: el personaje con una frase (móvil: tira; ordenador: tarjeta del lateral) */
   function companion(desk) {
-    var c = config(), m = mood(), g = W.Game.get();
+    var c = config(), m = mood(), s = S().stats();
     var bubble = U.el('div.buddy-bubble.static');
     var b = node({ size: desk ? 104 : 64, mood: m, bubble: false });
     var all = lines(), first = all[0];
@@ -390,8 +382,8 @@ window.Whider = window.Whider || {};
     lineIndex = 1;
     b.addEventListener('click', function () { var l = lines(); fill(l[lineIndex++ % l.length]); });
     var meta = U.el('div.buddy-meta', [U.el('strong', { text: c.name || 'Tu personaje' }),
-      U.el('span', { text: 'Nivel ' + g.level + ' · ' + W.Game.title(g.level) }),
-      U.el('div.bar', [U.el('i', { style: { width: Math.round(g.progress * 100) + '%' } })])]);
+      U.el('span', { text: s.todayTotal ? s.todayDone + ' de ' + U.plural(s.todayTotal, 'tarea hecha', 'tareas hechas') + ' hoy' : 'Nada programado para hoy' }),
+      U.el('div.bar', [U.el('i', { style: { width: s.todayPct + '%' } })])]);
     var edit = U.el('button.circle-btn.buddy-edit', { attrs: { 'aria-label': 'Personalizar tu personaje', title: 'Personalizar' }, on: { click: function (e) { e.stopPropagation(); Character.edit(); } } }, [U.icon('palette')]);
     if (desk) return U.el('div.group.card.side-card.buddy-card', [U.el('div.buddy-row', [b, meta, edit]), bubble]);
     return U.el('div.buddy-strip', [b, U.el('div.buddy-say', [bubble]), edit]);
@@ -402,54 +394,6 @@ window.Whider = window.Whider || {};
     return U.el('span.buddy-illus', [svg({ size: size || 96, mood: mood0 || 'happy', prop: prop })]);
   }
 
-  /* ---------- Celebraciones ---------- */
-  var currentCel = null;
-  function celebrate(o) {
-    o = o || {};
-    if (currentCel) currentCel.close();
-    partyUntil = Date.now() + 6000;
-    var layer = U.el('div.celebrate', { attrs: { role: 'dialog', 'aria-label': o.title || 'Celebración' } });
-    var pieces = U.el('div.cel-confetti');
-    for (var i = 0; i < 36; i++) pieces.appendChild(U.el('i', { style: { left: Math.round(Math.random() * 100) + '%', '--d': (Math.random() * 1.2).toFixed(2) + 's', '--x': Math.round(Math.random() * 120 - 60) + 'px', '--r': Math.round(Math.random() * 720) + 'deg' } }));
-    var card = U.el('div.cel-card', [
-      U.el('div.cel-buddy', [svg({ size: 150, mood: 'party' })]),
-      o.kicker ? U.el('div.cel-kicker', { text: o.kicker }) : null,
-      U.el('h2', { text: o.title || '¡Bien hecho!' }),
-      o.text ? U.el('p', { text: o.text }) : null,
-      o.items && o.items.length ? U.el('div.cel-items', o.items.map(function (it) {
-        return U.el('div.cel-item', [U.el('span.cel-mini', [svg({ size: 46, cfg: it.cfg, mood: 'happy' })]), U.el('span', [U.el('b', { text: it.name }), U.el('small', { text: it.kind })])]);
-      })) : null,
-      U.el('div.cel-actions', [
-        o.items && o.items.length ? U.el('button.btn.ghost', { text: 'Probármelo', on: { click: function () { close(); setTimeout(function () { Character.edit(o.items[0].cat); }, 250); } } }) : null,
-        U.el('button.btn.primary', { text: 'Seguir', on: { click: function () { close(); } } })
-      ])
-    ]);
-    layer.appendChild(pieces);
-    layer.appendChild(card);
-    var close = function () {
-      if (currentCel && currentCel.layer === layer) currentCel = null;
-      layer.classList.remove('open'); setTimeout(function () { if (layer.parentNode) layer.parentNode.removeChild(layer); }, 300); W.Router.refresh();
-    };
-    currentCel = { layer: layer, close: close };
-    layer.addEventListener('click', function (e) { if (e.target === layer) close(); });
-    document.body.appendChild(layer);
-    requestAnimationFrame(function () { layer.classList.add('open'); });
-    if (o.sound !== false) (o.level ? W.Audio.levelUp : W.Audio.achievement)();
-    W.Audio.vibrate([20, 40, 20]);
-    if (o.auto) setTimeout(close, o.auto);
-    return { close: close };
-  }
-
-  /** Objetos que se desbloquean justo en un nivel */
-  function unlocksAt(level) {
-    var out = [];
-    Object.keys(CATALOG).forEach(function (cat) {
-      CATALOG[cat].forEach(function (it) {
-        if (it.level === level) { var cfg = {}; cfg[cat] = it.id; out.push({ cat: cat, id: it.id, name: it.name, kind: KIND[cat], cfg: Object.assign({}, config(), cfg) }); }
-      });
-    });
-    return out;
-  }
   var KIND = { body: 'Especie', tone: 'Acabado', eyes: 'Ojos', mouth: 'Boca', head: 'Cabeza', acc: 'Accesorio', fx: 'Efecto', bg: 'Fondo', frame: 'Marco' };
   var TABS = [{ value: 'body', label: 'Especie' }, { value: 'face', label: 'Cara' }, { value: 'head', label: 'Cabeza' }, { value: 'acc', label: 'Accesorios' }, { value: 'avatar', label: 'Perfil' }];
 
@@ -486,7 +430,6 @@ window.Whider = window.Whider || {};
       b.addEventListener('click', function () {
         if (!acc.ok) {
           if (acc.premium) W.Plan.paywall('items');
-          else W.Toast.show({ text: it.name + ': se desbloquea con ' + acc.why.toLowerCase().replace('logro', 'el logro'), icon: 'lock' });
           return;
         }
         draft[cat] = it.id; W.Audio.select(); drawStage(); drawGrid();
@@ -511,15 +454,11 @@ window.Whider = window.Whider || {};
       draft.cheeks = Math.random() > .4;
       W.Audio.boop(); drawStage(); drawGrid();
     };
-    var g = W.Game.get();
-    var nextUnlock = null;
-    for (var L = g.level + 1; L <= g.level + 12 && !nextUnlock; L++) { var u = unlocksAt(L); if (u.length) nextUnlock = { level: L, items: u }; }
     var s = W.Sheet.open({
       title: 'Tu personaje', className: 'editor buddy-editor', full: true,
       body: [
         U.el('div.be-top', [stage, moods]),
         U.el('div.group', [U.el('label.cell', [name])]),
-        nextUnlock ? U.el('p.be-next', { text: 'En el nivel ' + nextUnlock.level + ' desbloqueas: ' + nextUnlock.items.map(function (x) { return x.name.toLowerCase(); }).join(', ') + '.' }) : null,
         tabs, grid
       ],
       foot: [
@@ -548,16 +487,7 @@ window.Whider = window.Whider || {};
     lines: lines,
     companion: companion,
     illustration: illustration,
-    celebrate: celebrate,
-    unlocksAt: unlocksAt,
-    edit: edit,
-    /** Subida de nivel: celebración con lo que se desbloquea */
-    levelUp: function (level) {
-      celebrate({ kicker: 'Subes de nivel', title: 'Nivel ' + level, text: 'Ahora eres ' + W.Game.title(level) + '.', items: unlocksAt(level), level: true });
-    },
-    party: function (ms) { partyUntil = Date.now() + (ms || 5000); },
-    /** Cierra la celebración abierta (Esc o Atrás) */
-    dismiss: function () { if (!currentCel) return false; currentCel.close(); return true; }
+    edit: edit
   };
 
   W.Character = Character;

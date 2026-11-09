@@ -4,7 +4,7 @@
  * Tres familias de sonidos que se activan por separado (Ajustes → Sonidos y vibración):
  *  - Botones: un toque breve al pulsar (cuatro estilos: suave, mecánico, cristal y burbuja).
  *  - Avisos: recordatorios, alertas de tareas vencidas, hábitos y fin del enfoque.
- *  - Logros: completar tareas, días redondos, logros y subidas de nivel.
+ *  - Confirmaciones: completar una tarea, terminar todo lo del día, una nueva marca personal.
  * Un volumen general y el interruptor «Sonidos» mandan sobre todo lo demás.
  */
 window.Whider = window.Whider || {};
@@ -53,7 +53,7 @@ window.Whider = window.Whider || {};
     o.start(start); o.stop(start + dur + 0.02);
   }
 
-  /** kind: 'ui' (botones) · 'notify' (avisos) · 'event' (logros) */
+  /** kind: 'ui' (botones) · 'notify' (avisos) · 'event' (confirmaciones) */
   function play(name, fn, kind) {
     var s = settings(), c0 = cfg();
     if (!s.sound) return;
@@ -87,7 +87,7 @@ window.Whider = window.Whider || {};
       play('click', function (c, t) { clickSound(c, t, style || cfg().style); }, 'ui');
     },
 
-    /* ---------- Logros ---------- */
+    /* ---------- Confirmaciones ---------- */
     /** Tarea completada: un toque breve y suave */
     success: function () {
       play('success', function (c, t) {
@@ -95,24 +95,10 @@ window.Whider = window.Whider || {};
         tone(c, 1568, t + 0.045, 0.2, 'sine', 0.045);
       }, 'event');
     },
-    /** Todas las tareas del día completadas: tres notas tranquilas */
-    celebrate: function () {
-      play('celebrate', function (c, t) {
+    /** Algo importante quedó hecho (Premium activado, contacto añadido, nueva marca): tres notas tranquilas */
+    complete: function () {
+      play('complete', function (c, t) {
         [783.99, 987.77, 1318.5].forEach(function (f, i) { tone(c, f, t + i * 0.09, 0.45, 'sine', 0.06); });
-      }, 'event');
-    },
-    /** Logro conseguido: arpegio brillante */
-    achievement: function () {
-      play('achievement', function (c, t) {
-        [1046.5, 1318.5, 1568, 2093].forEach(function (f, i) { tone(c, f, t + i * 0.07, 0.35, 'sine', 0.05); });
-        tone(c, 2637, t + 0.32, 0.5, 'sine', 0.025);
-      }, 'event');
-    },
-    /** Subida de nivel: fanfarria corta */
-    levelUp: function () {
-      play('levelUp', function (c, t) {
-        [523.25, 659.25, 783.99].forEach(function (f, i) { tone(c, f, t + i * 0.1, 0.25, 'triangle', 0.07); });
-        [1046.5, 1318.5].forEach(function (f) { tone(c, f, t + 0.32, 0.7, 'sine', 0.06); });
       }, 'event');
     },
     /** El personaje reacciona al tocarlo */
@@ -167,7 +153,7 @@ window.Whider = window.Whider || {};
 
   /*
    * Sonido de los botones: un único oyente para toda la app. Las casillas de completar ya tienen
-   * su propio sonido (el de logro), así que no suenan dos veces.
+   * su propio sonido (el de confirmación), así que no suenan dos veces.
    */
   document.addEventListener('click', function (e) {
     if (!e.isTrusted) return;

@@ -118,7 +118,7 @@ window.Whider = window.Whider || {};
         S().setFriend(to, { name: inv.name || '', code: inv.code, removed: false, pending: true, kind: kind });
         W.People.loadProfiles([to]);
         W.Toast.show({ text: 'Conectado con ' + (inv.name || 'tu contacto') + '. Ya podéis chatear.', type: 'success', icon: 'users', duration: 4500 });
-        W.Audio.celebrate();
+        W.Audio.complete();
         return true;
       });
     }).catch(function (e) {
@@ -138,7 +138,7 @@ window.Whider = window.Whider || {};
       W.People.joinTeam(inv.sid, inv.key, inv.name).then(function () {
         s.close();
         W.Toast.show({ text: 'Ya formas parte de «' + inv.name + '»', type: 'success', icon: 'team' });
-        W.Audio.celebrate();
+        W.Audio.complete();
         W.State.ui.peopleTab = 'teams';
         W.Router.go('friends');
       }).catch(function (err) {

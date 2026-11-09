@@ -106,7 +106,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (!isFinite(v)) { value.focus(); value.closest('.group').classList.add('shake'); setTimeout(function () { value.closest('.group').classList.remove('shake'); }, 450); return; }
       var isRecord = R().addEntry(m.id, v, date.value || U.today(), note.value.trim());
       s.close();
-      if (isRecord) { W.Audio.celebrate(); W.Toast.show({ text: 'Nueva mejor marca en ' + m.name + ': ' + R().fmtValue(m, v), type: 'success', icon: 'trophy', duration: 4200 }); }
+      if (isRecord) { W.Audio.complete(); W.Toast.show({ text: 'Nueva mejor marca en ' + m.name + ': ' + R().fmtValue(m, v), type: 'success', icon: 'trophy', duration: 4200 }); }
       else { W.Audio.success(); W.Toast.show({ text: 'Registro guardado', type: 'success', icon: 'check' }); }
     };
     var s = W.Sheet.open({

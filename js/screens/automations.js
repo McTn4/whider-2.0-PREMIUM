@@ -90,7 +90,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var st = S();
     st.batch(function () { sys.install(); });
     var m = Object.assign({}, st.meta.systems || {}); m[sys.id] = Date.now(); st.setMeta('systems', m);
-    W.Audio.achievement();
+    W.Audio.success();
     W.Toast.show({ text: 'Sistema «' + sys.name + '» listo', type: 'success', icon: sys.icon, duration: 4000 });
     W.Router.refresh();
   }

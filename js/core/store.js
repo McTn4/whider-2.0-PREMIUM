@@ -969,9 +969,6 @@ window.Whider = window.Whider || {};
       var today = State.todayTasks();
       var todayDone = today.filter(function (t) { return t.done; }).length;
       var ft = State.focusTotals();
-      var xp = done * 10 + ft.min * 2 + State.bestStreak() * 15;
-      var level = Math.floor(Math.sqrt(xp / 60)) + 1;
-      var levelXp = Math.pow(level - 1, 2) * 60, nextXp = Math.pow(level, 2) * 60;
       return {
         total: total, done: done, pending: total - doneNow,
         rate: total ? Math.round(doneNow / total * 100) : 0,
@@ -980,37 +977,8 @@ window.Whider = window.Whider || {};
         streak: State.streak(), bestStreak: State.bestStreak(),
         focusMin: ft.min, focusSessions: ft.sessions,
         focusToday: State.focusOn(U.today()).min,
-        overdue: State.overdueAll().length,
-        xp: xp, level: level, levelProgress: (xp - levelXp) / (nextXp - levelXp), nextXp: nextXp
+        overdue: State.overdueAll().length
       };
-    },
-    levelTitle: function (level) {
-      var titles = ['Iniciado', 'Aprendiz', 'Constante', 'Enfocado', 'Imparable', 'Estratega', 'Maestro', 'Leyenda'];
-      return titles[Math.min(level - 1, titles.length - 1)];
-    },
-    achievements: function () {
-      var s = State.stats(), byDate = {};
-      State.tasks.forEach(function (t) {
-        if (!t.date) return;
-        var e = byDate[t.date] || (byDate[t.date] = { n: 0, done: 0 });
-        e.n++; if (t.done) e.done++;
-      });
-      var perfectDay = Object.keys(byDate).some(function (d) { return byDate[d].n >= 3 && byDate[d].done === byDate[d].n; });
-      var listsUsed = {};
-      State.tasks.forEach(function (t) { if (t.done && t.listId) listsUsed[t.listId] = true; });
-      return [
-        { id: 'first', icon: 'check', title: 'Primer paso', desc: 'Completa tu primera tarea', ok: s.done >= 1 },
-        { id: 'ten', icon: 'bolt', title: 'En marcha', desc: 'Completa 10 tareas', ok: s.done >= 10 },
-        { id: 'fifty', icon: 'medal', title: 'Imparable', desc: 'Completa 50 tareas', ok: s.done >= 50 },
-        { id: 'hundred', icon: 'trophy', title: 'Centenario', desc: 'Completa 100 tareas', ok: s.done >= 100 },
-        { id: 'streak3', icon: 'flame', title: 'Calentando', desc: 'Racha de 3 días', ok: s.bestStreak >= 3 },
-        { id: 'streak7', icon: 'flame', title: 'Semana perfecta', desc: 'Racha de 7 días', ok: s.bestStreak >= 7 },
-        { id: 'streak30', icon: 'crown', title: 'Hábito de hierro', desc: 'Racha de 30 días', ok: s.bestStreak >= 30 },
-        { id: 'focus1', icon: 'timer', title: 'Concentración', desc: 'Termina una sesión de enfoque', ok: s.focusSessions >= 1 },
-        { id: 'focus10h', icon: 'target', title: 'Mente de acero', desc: '10 horas de enfoque', ok: s.focusMin >= 600 },
-        { id: 'perfect', icon: 'star', title: 'Día redondo', desc: 'Completa todo un día con 3+ tareas', ok: perfectDay },
-        { id: 'lists', icon: 'layers', title: 'Organizado', desc: 'Completa tareas en 3 listas', ok: Object.keys(listsUsed).length >= 3 }
-      ];
     },
 
     focusLog: function () { return focusLog; },
@@ -1242,13 +1210,6 @@ window.Whider = window.Whider || {};
       State.notify('templates');
     },
 
-    /* ---------- Logros: fecha en que se consiguió cada uno ---------- */
-    achieved: function (id) {
-      if (State.meta.achievedAt[id]) return false;
-      State.meta.achievedAt[id] = Date.now();
-      write(KEYS.meta, State.meta);
-      return true;
-    },
 
     /* ---------- Listas: orden ---------- */
     moveList: function (id, delta) {

@@ -25,14 +25,14 @@ window.Whider.Screens = window.Whider.Screens || {};
   W.Screens.more = {
     title: 'Más',
     render: function (root) {
-      var st = S(), g = W.Game.get();
+      var st = S(), u = W.Auth && W.Auth.user;
       var head = W.UI.header({ title: 'Más', profile: false, sub: 'Todo WHIDER, por orden de importancia' });
       var unread = W.Chat ? W.Chat.unreadCount() : 0, reqs = W.People ? W.People.pendingCount() : 0;
       var habitsLeft = W.Habits ? W.Habits.list().filter(W.Habits.pendingToday).length : 0;
       var f = W.Screens.focus.status();
       var me = U.el('button.mo-me', { attrs: { type: 'button' }, on: { click: function () { W.Router.go('progress'); } } }, [
         W.Avatar.me(64, { live: true }),
-        U.el('span.mo-me-main', [U.el('strong', { text: st.displayName() || 'Tu perfil' }), U.el('small', { text: 'Nivel ' + g.level + ' · ' + W.Game.title(g.level) }), U.el('div.bar', [U.el('i', { style: { width: Math.round(g.progress * 100) + '%' } })])]),
+        U.el('span.mo-me-main', [U.el('strong', { text: st.displayName() || 'Tu perfil' }), U.el('small', { text: u && u.email ? u.email : 'Perfil, actividad y marcas' })]),
         U.el('span.mo-plan' + (W.Plan.isPremium() ? '.on' : ''), [U.icon('gem', 'xs'), W.Plan.isPremium() ? 'Premium' : 'Gratis']),
         U.icon('chev', 'chev')
       ]);

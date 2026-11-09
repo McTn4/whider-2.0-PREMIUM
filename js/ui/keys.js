@@ -20,7 +20,7 @@ window.Whider = window.Whider || {};
     return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || a.isContentEditable;
   }
   function overlayOpen() {
-    return W.Sheet.isOpen() || (W.AuthScreen && W.AuthScreen.isOpen()) || (W.Onboarding && W.Onboarding.isOpen()) || !!document.querySelector('.celebrate.open');
+    return W.Sheet.isOpen() || (W.AuthScreen && W.AuthScreen.isOpen()) || (W.Onboarding && W.Onboarding.isOpen());
   }
   /** El botón principal del diálogo de arriba (para Ctrl/⌘ Intro) */
   function topPrimary() {

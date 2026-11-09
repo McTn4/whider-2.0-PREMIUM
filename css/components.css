@@ -564,25 +564,6 @@ body.select-mode .screen { padding-bottom: calc(var(--safe-b) + 150px); }
 .buddy-illus .ch-svg { margin: 0 auto; }
 
 /* Celebración: el personaje salta entre confeti */
-.celebrate { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 24px; background: rgba(0, 0, 0, .72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transition: opacity .25s; }
-.celebrate.open { opacity: 1; }
-.cel-card { position: relative; width: min(380px, 100%); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px 22px 18px; border-radius: 24px; text-align: center; background: var(--s2); border: 1px solid var(--line-2); box-shadow: var(--sh-pop), 0 0 60px -20px rgba(255, 255, 255, .35); transform: scale(.9) translateY(10px); transition: transform .4s var(--spring); }
-.celebrate.open .cel-card { transform: none; }
-.cel-buddy { margin-top: -78px; filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .7)); }
-.cel-kicker { font-size: var(--fs-cap); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--t3); }
-.cel-card h2 { margin: 0; font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; }
-.cel-card p { margin: 0; font-size: var(--fs-sub); color: var(--t2); }
-.cel-items { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 8px; }
-.cel-item { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 14px; background: var(--fill-3); border: 1px solid var(--line); text-align: left; }
-.cel-item b { display: block; font-size: var(--fs-sub); }
-.cel-item small { font-size: var(--fs-cap); color: var(--t3); }
-.cel-mini { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; background: var(--s1); }
-.cel-actions { display: flex; gap: 8px; margin-top: 10px; }
-.cel-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.cel-confetti i { position: absolute; top: -12px; width: 7px; height: 11px; border-radius: 2px; background: #FFFFFF; opacity: 0; animation: cel-fall 2.4s cubic-bezier(.2, .6, .4, 1) var(--d) forwards; }
-.cel-confetti i:nth-child(3n) { background: #9A9A9A; width: 6px; height: 6px; border-radius: 50%; }
-.cel-confetti i:nth-child(4n) { background: #D9D9D9; height: 5px; }
-@keyframes cel-fall { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(var(--x), 100vh) rotate(var(--r)); } }
 
 /* Editor del personaje */
 .sheet.buddy-editor .sheet-body { gap: 14px; }
@@ -590,7 +571,6 @@ body.select-mode .screen { padding-bottom: calc(var(--safe-b) + 150px); }
 .be-stage { display: grid; place-items: center; width: 200px; height: 190px; border-radius: 28px; background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .07), transparent 65%); }
 .be-moods { justify-content: center; flex-wrap: wrap; }
 .be-moods .chip { height: 30px; font-size: var(--fs-cap); }
-.be-next { margin: -4px 4px 0; font-size: var(--fs-foot); color: var(--t3); text-align: center; }
 .be-grid { display: flex; flex-direction: column; gap: 8px; }
 .be-h { padding: 6px 4px 0; font-size: var(--fs-foot); font-weight: 500; color: var(--t2); }
 .be-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }

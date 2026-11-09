@@ -147,7 +147,7 @@ window.Whider = window.Whider || {};
     startTrial: function () {
       if (!Plan.canTrial()) return false;
       S().setPlan({ tier: 'premium', source: 'trial', until: now() + PRICES.trialDays * DAY, trialUsed: true });
-      W.Audio.celebrate();
+      W.Audio.complete();
       W.Toast.show({ text: 'Premium activado: ' + PRICES.trialDays + ' días gratis', type: 'success', icon: 'gem', duration: 4000 });
       Plan.changed();
       return true;
@@ -158,7 +158,7 @@ window.Whider = window.Whider || {};
       if (!c) return false;
       var p = plan() || {};
       S().setPlan({ tier: 'premium', source: 'code', until: null, trialUsed: true, code: c.slice(0, 4) + '…' });
-      W.Audio.celebrate();
+      W.Audio.complete();
       W.Toast.show({ text: 'Premium activado. ¡Gracias por apoyar WHIDER!', type: 'success', icon: 'gem', duration: 4500 });
       Plan.changed();
       return true;

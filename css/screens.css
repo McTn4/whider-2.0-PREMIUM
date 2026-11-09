@@ -488,39 +488,6 @@
 
 /* ---------- Perfil 6.0: plan, personaje y logros por familias ---------- */
 .plan-pill { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; font-size: var(--fs-cap); color: var(--t2); text-align: left; }
-.profile-buddy { margin-top: 12px; }
-.lv-card { display: flex; flex-direction: column; gap: 14px; }
-.lv-top { display: flex; align-items: center; gap: 16px; }
-.lv-num { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 4.6rem; height: 4.6rem; border-radius: 20px; background: #FFFFFF; color: #000000; box-shadow: var(--glow); }
-.lv-num small { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-.lv-num b { font-family: var(--mono); font-size: 1.8rem; font-weight: 600; line-height: 1; }
-.lv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.lv-main strong { font-size: var(--fs-title2); font-weight: 600; letter-spacing: -.015em; }
-.lv-main span { font-size: var(--fs-foot); color: var(--t2); }
-.lv-main .bar { margin-top: 6px; height: 7px; }
-.lv-next { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
-.lv-next > span { font-size: var(--fs-cap); font-weight: 500; color: var(--t3); }
-.lv-rewards { display: flex; flex-wrap: wrap; gap: 8px; }
-.lv-reward { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 12px; background: var(--fill-3); border: 1px solid var(--line); font-size: var(--fs-sub); }
-.lv-reward .cel-mini { width: 42px; height: 42px; }
-.xp-rows { display: flex; flex-direction: column; margin-top: 8px; }
-.xp-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: var(--fs-sub); color: var(--t2); }
-.xp-row + .xp-row { border-top: 1px solid var(--line); }
-.xp-row b { font-family: var(--mono); font-weight: 500; color: var(--t1); }
-.fam-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-.fam { display: flex; flex-direction: column; gap: 9px; padding: 14px; border-radius: var(--r-cell); background: var(--s1); border: 1px solid var(--line); box-shadow: var(--sh-card); }
-.fam-top { display: flex; align-items: center; gap: 12px; }
-.fam-ic { flex: none; display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 12px; background: transparent; border: 1px dashed var(--line-2); color: var(--t4); }
-.fam.got .fam-ic { border: 0; background: #FFFFFF; color: #000000; box-shadow: var(--glow-soft); }
-.fam-ic .ic { width: 1.15rem; height: 1.15rem; }
-.fam-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.fam-t strong { font-size: var(--fs-sub); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fam:not(.got) .fam-t strong { color: var(--t2); }
-.fam-t small { font-size: var(--fs-cap); color: var(--t3); }
-.fam-pips { flex: none; display: flex; gap: 3px; }
-.fam-pips i { width: 7px; height: 7px; border-radius: 2px; background: var(--fill-2); }
-.fam-pips i.on { background: #FFFFFF; box-shadow: 0 0 6px rgba(255, 255, 255, .6); }
-.fam-sub { font-size: var(--fs-cap); color: var(--t3); line-height: 1.35; }
 
 /* Enfoque: el personaje junto al reloj */
 .focus-stage { position: relative; }
@@ -750,16 +717,6 @@
 .fr-stats b { color: var(--t1); font-weight: 600; }
 .fr-stats .ic { width: 11px; height: 11px; }
 .fr-acts { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.rank { padding: 4px 0; }
-.rank-row { display: flex; align-items: center; gap: 12px; padding: 8px 14px; }
-.rank-row + .rank-row { border-top: 1px solid var(--line); }
-.rank-row.me { background: rgba(255, 255, 255, .04); }
-.rank-pos { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--fill-2); font-size: var(--fs-cap); font-weight: 700; }
-.rank-pos.top { background: #FFFFFF; color: #000000; box-shadow: var(--glow-soft); }
-.rank-buddy { flex: none; }
-.rank-name { flex: 1; min-width: 0; font-size: var(--fs-sub); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rank-val { font-size: var(--fs-cap); color: var(--t2); }
-.rank-val b { font-size: var(--fs-sub); color: var(--t1); font-variant-numeric: tabular-nums; }
 .space-add { display: flex; gap: 8px; }
 .space-add .input { flex: 1; min-width: 0; }
 .space-members { display: flex; flex-wrap: wrap; gap: 6px; }

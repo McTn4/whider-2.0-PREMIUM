@@ -83,7 +83,7 @@ window.Whider = window.Whider || {};
     draw();
     return [
       U.el('h1', { text: 'Tu compañero' }),
-      U.el('p', { text: 'Te acompaña en el día, celebra tus avances y gana objetos nuevos cuando subes de nivel.' }),
+      U.el('p', { text: 'Es tu imagen de perfil y te acompaña en Hoy con lo que importa: lo vencido, lo que queda y tu racha.' }),
       stage,
       row('body', ['gota', 'cubo', 'capsula']),
       row('tone', ['blanco', 'perla']),

@@ -55,7 +55,6 @@ window.Whider = window.Whider || {};
    * En el ordenador, Escape no cambia de sección: solo cierra y vuelve dentro de la sección.
    */
   function handleBack(opts) {
-    if (W.Character && W.Character.dismiss()) return true;
     if (W.Sheet.closeTop()) return true;
     if (W.Select && W.Select.active()) { W.Select.clear(); return true; }
     if (W.AuthScreen.isOpen()) return W.AuthScreen.back();
@@ -81,45 +80,21 @@ window.Whider = window.Whider || {};
       var wasDone = lateWork.done, wasFocus = lateWork.focus;
       lateWork.done = lateWork.focus = false;
       idle(function () {
-        if (wasDone) celebrateIfDone();
-        if (wasDone || wasFocus) { checkAchievements(false); W.Records.check(false); }
+        if (wasDone) dayDoneNotice();
+        if (wasDone || wasFocus) W.Records.check(false);
       });
     }, 350);
   }
 
-  function celebrateIfDone() {
+  /** Todo lo de hoy hecho: un aviso sobrio, una vez al día (sin celebraciones de juego) */
+  function dayDoneNotice() {
     var s = S.stats();
     if (s.todayTotal > 0 && s.todayDone === s.todayTotal && S.meta.celebrated !== U.today()) {
       S.setMeta('celebrated', U.today());
-      W.Audio.celebrate();
-      W.Character.party(6000);
-      W.Toast.show({ text: 'Día completado. Todo lo de hoy está hecho.', type: 'success', icon: 'check', duration: 3500 });
+      W.Audio.success();
+      W.Toast.show({ text: 'Todo lo de hoy está hecho.', type: 'success', icon: 'check', duration: 3500 });
       W.Router.refresh();
     }
-  }
-
-  /**
-   * Logros nuevos (aviso y fecha) y subidas de nivel (celebración con el personaje).
-   * En silencio al abrir la app: así no se avisa de lo que se consiguió en otro dispositivo.
-   */
-  function checkAchievements(silent) {
-    var seen = S.meta.seenAchievements.slice(), fresh = [];
-    S.achievements().forEach(function (a) { if (a.ok && seen.indexOf(a.id) < 0) { seen.push(a.id); fresh.push(a); } });
-    fresh.forEach(function (a) { S.achieved(a.id); });
-    if (fresh.length) S.setMeta('seenAchievements', seen);
-    var g = W.Game.get(), lastLevel = S.meta.levelSeen || 0;
-    var levelUp = g.level > lastLevel;
-    if (levelUp) S.setMeta('levelSeen', g.level);
-    if (silent) return;
-    if (levelUp && lastLevel) { setTimeout(function () { W.Character.levelUp(g.level); }, 500); return; }
-    var big = fresh.filter(function (a) { return a.tier >= 2; })[0];
-    if (big) {
-      setTimeout(function () { W.Character.celebrate({ kicker: 'Logro conseguido', title: big.title, text: U.cap(big.desc) + ' · +' + big.xp + ' XP' }); }, 500);
-      return;
-    }
-    fresh.slice(0, 2).forEach(function (a, i) {
-      setTimeout(function () { W.Toast.show({ text: 'Logro conseguido: ' + a.title + ' · +' + a.xp + ' XP', type: 'success', icon: a.icon, duration: 3500 }); W.Audio.achievement(); W.Audio.vibrate([12]); }, 600 + i * 900);
-    });
   }
 
   /* ---------- Cuentas ---------- */
@@ -294,7 +269,7 @@ window.Whider = window.Whider || {};
         W.Notify.init();
         W.Screens.focus.resume();
         W.Records.init();
-        idle(function () { checkAchievements(true); W.Records.check(true); });
+        idle(function () { W.Records.check(true); });
         if (accounts) { W.Auth.onChange(onUser); W.Auth.init(); }
         initServiceWorker();
         if (W.Invite) W.Invite.ready();
