@@ -456,7 +456,8 @@ kbd {
   .sb-add:hover { background: var(--fill-2); color: var(--t1); }
   .pal-item:hover:not(.active) { background: rgba(255, 255, 255, .045); }
   .upc-row:hover { background: var(--fill-3); color: var(--t1); }
-  .tab:hover { color: var(--t2); }
+  .tab:not(.active):hover { color: var(--t2); }
+  .tab:not(.active):hover .tab-ic { background: rgba(255, 255, 255, .06); }
 }
 
 /* ---------- Teclado: foco visible ---------- */

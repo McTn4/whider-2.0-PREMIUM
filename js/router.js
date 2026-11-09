@@ -104,7 +104,8 @@ window.Whider = window.Whider || {};
       root.classList.remove('scrolled');
 
       U.$$('.tab').forEach(function (b) {
-        var on = b.getAttribute('data-go') === id || (UNDER_MORE[id] && b.getAttribute('data-go') === 'more');
+        // Siempre un booleano: toggle(x, undefined) no fuerza, alterna (y encendía las demás pestañas)
+        var on = b.getAttribute('data-go') === id || (!!UNDER_MORE[id] && b.getAttribute('data-go') === 'more');
         b.classList.toggle('active', on);
         if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       });
