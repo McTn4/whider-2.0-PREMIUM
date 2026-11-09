@@ -13,6 +13,7 @@ window.Whider = window.Whider || {};
   var mq = window.matchMedia ? window.matchMedia(QUERY) : null;
   var subs = [];
   var bridge = window.WhiderDesktop || null;
+  var probe = null;
 
   var Layout = {
     /** true con diseño de ordenador */
@@ -44,6 +45,39 @@ window.Whider = window.Whider || {};
     topInset: function () {
       var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--titlebar-h'));
       return isNaN(v) ? 0 : v;
+    },
+
+    /**
+     * Márgenes que no se pueden tapar, en píxeles: arriba la franja de título (escritorio) o la
+     * muesca y la barra de estado (móvil); abajo la barra de gestos. Se miden con un elemento
+     * invisible porque env(safe-area-inset-*) solo se resuelve dentro de CSS.
+     */
+    insets: function () {
+      if (!probe) {
+        probe = document.createElement('div');
+        probe.setAttribute('aria-hidden', 'true');
+        probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;' +
+          'padding:var(--safe-t) env(safe-area-inset-right, 0px) var(--safe-b) env(safe-area-inset-left, 0px)';
+        document.body.appendChild(probe);
+      }
+      var cs = getComputedStyle(probe);
+      return { top: parseFloat(cs.paddingTop) || 0, bottom: parseFloat(cs.paddingBottom) || 0, left: parseFloat(cs.paddingLeft) || 0, right: parseFloat(cs.paddingRight) || 0 };
+    },
+
+    /**
+     * Zona que se ve de verdad, en coordenadas de position: fixed. Con el teclado del móvil abierto
+     * es más baja (y en iOS puede estar desplazada); `keyboard` dice si lo está.
+     */
+    viewport: function () {
+      var vv = window.visualViewport;
+      var top = vv ? vv.offsetTop : 0, height = vv ? vv.height : window.innerHeight;
+      return { top: top, height: height, bottom: top + height, width: vv ? vv.width : window.innerWidth, keyboard: !!vv && window.innerHeight - vv.height > 120 };
+    },
+
+    /** Límites verticales para colocar menús y ventanas flotantes sin que nada los tape */
+    safeArea: function (margin) {
+      var m = margin == null ? 8 : margin, v = Layout.viewport(), ins = Layout.insets();
+      return { top: v.top + ins.top + m, bottom: v.bottom - m - (v.keyboard ? 0 : ins.bottom), left: ins.left + m, right: v.width - ins.right - m };
     }
   };
 

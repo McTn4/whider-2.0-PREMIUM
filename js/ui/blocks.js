@@ -814,6 +814,7 @@ window.Whider = window.Whider || {};
       slash = { kind: 'slash', b: b, t: t, start: start == null ? caretOffset(t) : start, fromPlus: !!fromPlus, i: 0, list: [], el: U.el('div.bk-menu', { attrs: { role: 'listbox', 'aria-label': 'Insertar bloque' } }) };
       document.body.appendChild(slash.el);
       updateMenu(slash);
+      watchViewport();
     }
     function openMention(b, start) {
       closeMenus();
@@ -821,6 +822,7 @@ window.Whider = window.Whider || {};
       mention = { kind: 'mention', b: b, t: t, start: start, i: 0, list: [], el: U.el('div.bk-menu', { attrs: { role: 'listbox', 'aria-label': 'Mencionar' } }) };
       document.body.appendChild(mention.el);
       updateMenu(mention);
+      watchViewport();
     }
     function fold(s) { return W.Parse.fold(String(s || '')); }
     function menuQuery(m) {
@@ -866,12 +868,70 @@ window.Whider = window.Whider || {};
         ]);
         m.el.appendChild(it);
       });
-      var r = caretRect() || m.t.getBoundingClientRect();
-      var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      m.el.style.left = Math.max(8, Math.min(window.innerWidth - 300, r.left)) + 'px';
-      var below = r.bottom + 6, h = Math.min(340, m.el.scrollHeight);
-      m.el.style.top = (below + h > vh - 8 ? Math.max(8 + W.Layout.topInset(), r.top - h - 6) : below) + 'px';
+      placeMenu(m);
       var on = m.el.querySelector('.bk-menu-i.on'); if (on) on.scrollIntoView({ block: 'nearest' });
+    }
+    /**
+     * Ordenador: junto al cursor, por el lado con más sitio y con su altura ajustada a ese sitio.
+     * Móvil: anclado a lo ancho justo encima de la barra del teclado; nunca queda debajo del
+     * teclado ni se corta, y la línea que se escribe se mantiene a la vista.
+     */
+    function placeMenu(m) {
+      if (!m || !m.el.parentNode) return;
+      var el = m.el, lim = W.Layout.safeArea(8);
+      el.style.maxHeight = '';
+      var natural = Math.min(340, el.scrollHeight);
+      if (!W.Layout.desktop) {
+        var bar = document.querySelector('.kb-bar.show'), cr = caretRect() || m.t.getBoundingClientRect();
+        var bottom = bar ? Math.min(lim.bottom, bar.getBoundingClientRect().top - 6) : lim.bottom;
+        // Deja sitio para la línea que se escribe encima del menú
+        var h = Math.max(120, Math.min(natural, bottom - lim.top - Math.max(24, cr.height || 0) - 16));
+        el.classList.add('docked');
+        el.style.left = lim.left + 'px'; el.style.width = Math.max(200, lim.right - lim.left) + 'px';
+        el.style.maxHeight = h + 'px'; el.style.top = (bottom - h) + 'px';
+        keepCaretAbove(m, bottom - h);
+        return;
+      }
+      el.classList.remove('docked'); el.style.width = '';
+      var r = caretRect() || m.t.getBoundingClientRect();
+      var spaceBelow = lim.bottom - (r.bottom + 6), spaceAbove = (r.top - 6) - lim.top;
+      var below = natural <= spaceBelow || spaceBelow >= spaceAbove;
+      var room = Math.max(120, Math.min(340, below ? spaceBelow : spaceAbove));
+      el.style.maxHeight = room + 'px';
+      el.style.left = U.clamp(r.left, lim.left, Math.max(lim.left, lim.right - el.offsetWidth)) + 'px';
+      el.style.top = (below ? r.bottom + 6 : r.top - 6 - Math.min(natural, room)) + 'px';
+    }
+    /**
+     * Móvil: si el menú tapa la línea que se escribe, la sube lo justo. Mientras el menú está
+     * abierto, la página gana sitio por abajo para poder subir aunque sea corta.
+     */
+    var roomFor = null;
+    function keepCaretAbove(m, menuTop) {
+      var r = caretRect() || m.t.getBoundingClientRect(), over = r.bottom + 10 - menuTop;
+      if (over <= 0) return;
+      var sc = null;
+      for (var p = m.t.parentElement; p && p !== document.body; p = p.parentElement) {
+        var oy = getComputedStyle(p).overflowY;
+        if (oy === 'auto' || oy === 'scroll') { sc = p; break; }
+      }
+      if (!sc) { window.scrollBy(0, over); return; }
+      if (!roomFor || roomFor.el !== sc) { releaseRoom(); roomFor = { el: sc, orig: sc.style.paddingBottom, base: parseFloat(getComputedStyle(sc).paddingBottom) || 0 }; }
+      sc.style.paddingBottom = Math.max(roomFor.base, window.innerHeight - menuTop + 24) + 'px';
+      sc.scrollTop += over;
+    }
+    function releaseRoom() { if (roomFor) { roomFor.el.style.paddingBottom = roomFor.orig; roomFor = null; } }
+    /** Mientras hay un menú abierto, se recoloca si el teclado aparece o desaparece */
+    var vvHandler = null;
+    function watchViewport() {
+      if (vvHandler) return;
+      vvHandler = function () { if (slash) placeMenu(slash); if (mention) placeMenu(mention); };
+      if (window.visualViewport) { window.visualViewport.addEventListener('resize', vvHandler); window.visualViewport.addEventListener('scroll', vvHandler); }
+      window.addEventListener('resize', vvHandler);
+    }
+    function unwatchViewport() {
+      if (!vvHandler) return;
+      if (window.visualViewport) { window.visualViewport.removeEventListener('resize', vvHandler); window.visualViewport.removeEventListener('scroll', vvHandler); }
+      window.removeEventListener('resize', vvHandler); vvHandler = null;
     }
     function handleMenuKey(ev, m) {
       if (ev.key === 'ArrowDown') { ev.preventDefault(); m.i = (m.i + 1) % Math.max(1, m.list.length); drawMenu(m); return true; }
@@ -883,6 +943,8 @@ window.Whider = window.Whider || {};
     function closeMenus() {
       [slash, mention].forEach(function (m) { if (m && m.el.parentNode) m.el.parentNode.removeChild(m.el); });
       slash = mention = null;
+      unwatchViewport();
+      releaseRoom();
     }
     function choose(m) {
       var c = m.list[m.i]; if (!c) return;
@@ -1008,7 +1070,11 @@ window.Whider = window.Whider || {};
     });
     var onSel = function () { if (!destroyed) requestAnimationFrame(showToolbar); };
     document.addEventListener('selectionchange', onSel);
-    var onScroll = function () { hideToolbar(); if (slash) drawMenu(slash); if (mention) drawMenu(mention); };
+    var onScroll = function (e) {
+      var tg = e && e.target;
+      if (tg && tg.nodeType === 1 && tg.closest('.bk-menu')) return;
+      hideToolbar(); if (slash) placeMenu(slash); if (mention) placeMenu(mention);
+    };
     window.addEventListener('scroll', onScroll, true);
 
     if (!blocks.length && !ro) blocks.push(newBlock('p'));

@@ -18,24 +18,31 @@ window.Whider = window.Whider || {};
     return { left: x, right: x, top: y, bottom: y, width: 0, height: 0, point: true };
   }
 
+  /**
+   * Coloca el menú junto a su ancla sin que se corte: dentro de lo que se ve (con el teclado del
+   * móvil abierto, también), sin tapar la franja de título ni la muesca o la barra de gestos.
+   * Se abre por el lado con más sitio y, si no cabe entero, se desplaza por dentro.
+   */
   function place(menu, anchor) {
-    var r = rectOf(anchor);
-    var vw = window.innerWidth, vh = window.innerHeight, m = 8;
-    // Arriba, además, la franja de título de la app de escritorio
-    var mt = m + (W.Layout && W.Layout.topInset ? W.Layout.topInset() : 0);
-    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    var r = rectOf(anchor), lim = W.Layout.safeArea(8);
+    menu.style.maxHeight = '';
+    var mw = menu.offsetWidth, mh = menu.scrollHeight;
     // Un menú en un punto se abre hacia la derecha salvo que no quepa
-    var rightSide = r.point ? r.left + mw > vw - m : r.left + r.width / 2 > vw / 2;
+    var rightSide = r.point ? r.left + mw > lim.right : r.left + r.width / 2 > (lim.left + lim.right) / 2;
     var left = rightSide ? r.right - mw : r.left;
-    left = U.clamp(left, m, vw - mw - m);
+    left = U.clamp(left, lim.left, Math.max(lim.left, lim.right - mw));
     var gap = r.point ? 2 : 6;
-    var below = r.bottom + gap, above = r.top - gap - mh;
-    var top = below + mh <= vh - m || above < mt ? below : above;
-    top = U.clamp(top, mt, Math.max(mt, vh - mh - m));
+    var spaceBelow = lim.bottom - (r.bottom + gap), spaceAbove = (r.top - gap) - lim.top;
+    var below = mh <= spaceBelow || spaceBelow >= spaceAbove;
+    var room = Math.max(120, below ? spaceBelow : spaceAbove);
+    var h = Math.min(mh, room);
+    menu.style.maxHeight = room + 'px';
+    var top = below ? r.bottom + gap : r.top - gap - h;
+    top = U.clamp(top, lim.top, Math.max(lim.top, lim.bottom - h));
     menu.style.left = left + 'px';
     menu.style.top = top + 'px';
     menu.style.setProperty('--ox', (rightSide ? mw - 12 : 12) + 'px');
-    menu.style.setProperty('--oy', (top >= r.bottom ? 0 : mh) + 'px');
+    menu.style.setProperty('--oy', (top >= r.bottom ? 0 : h) + 'px');
   }
 
   var Menu = {
