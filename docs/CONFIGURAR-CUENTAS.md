@@ -145,7 +145,7 @@ WHIDER funciona con **Gratis** y **Premium**. En [`js/config.js`](../js/config.j
 | Opción | Para qué |
 | --- | --- |
 | `monthly`, `yearly`, `currency` | Precios que se muestran (por defecto 3,99 € al mes y 29,99 € al año). |
-| `trialDays` | Días de la prueba gratuita (14). Cada cuenta puede probarlo una vez. |
+| `trialDays` | Días de la prueba gratuita. Ahora `0`: sin prueba (no se ofrece y una prueba en marcha termina). Con `14`, cada cuenta puede probar Premium 14 días una vez. |
 | `checkoutUrl`, `checkoutUrlYearly` | Tu página de pago, por ejemplo un *Payment Link* de Stripe. La app añade `client_reference_id` con el identificador de la cuenta y, si la cuenta tiene correo, `prefilled_email` para que Stripe lo rellene. |
 | `testCheckoutUrl`, `testCheckoutUrlYearly` | Enlaces del **modo de prueba** de Stripe (`https://buy.stripe.com/test_…`). Solo se usan con el modo de pruebas de pago encendido (ver abajo). Si no hay enlace anual, el anual usa el mismo. |
 | `codes` | Códigos de activación (SHA-256 del código en mayúsculas). |

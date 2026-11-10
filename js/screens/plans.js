@@ -1,6 +1,7 @@
 /**
  * WHIDER · Planes y precios: Gratis y Premium, con la comparativa por PC, Móvil y General.
- * Desde aquí se empieza la prueba gratuita, se paga (si está configurado) o se canjea un código.
+ * Desde aquí se paga (si está configurado), se canjea un código o se empieza la prueba gratuita
+ * (si premium.trialDays es mayor que 0).
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -62,6 +63,13 @@ window.Whider.Screens = window.Whider.Screens || {};
     } else {
       if (P.hasCheckout()) actions.push(U.el('button.btn.primary.block', { on: { click: function () { P.checkout(period); } } }, [U.icon('gem', 'sm'), P.isTestCheckout() ? 'Hazte Premium (prueba)' : 'Hazte Premium']));
       if (P.canTrial()) actions.push(U.el('button.btn.' + (P.hasCheckout() ? 'ghost' : 'primary') + '.block', { on: { click: function () { if (P.startTrial()) W.Router.refresh(); } } }, [P.hasCheckout() ? null : U.icon('gem', 'sm'), 'Probar ' + PR.trialDays + ' días gratis']));
+      // Sin pago ni prueba, la única forma es un código: lleva a la casilla de abajo
+      if (!actions.length) actions.push(U.el('button.btn.soft.block', { on: { click: function () {
+        var input = document.querySelector('#screen-plans .pl-code input');
+        if (!input) return;
+        input.scrollIntoView({ block: 'center', behavior: U.reducedMotion() ? 'auto' : 'smooth' });
+        input.focus({ preventScroll: true });
+      } } }, ['Canjear un código']));
     }
     return U.el('div.pl-card' + (isPrem ? '.premium' : '') + ((isPrem && prem) || (!isPrem && !prem) ? '.current' : ''), [
       U.el('div.pl-top', [isPrem ? U.el('span.pl-gem', [U.icon('gem')]) : U.el('span.pl-gem.free', [U.icon('check')]),
@@ -115,7 +123,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       var faq = W.UI.section({ header: 'Preguntas frecuentes', items: [
         W.UI.cell({ title: '¿Pierdo algo si vuelvo a Gratis?', sub: 'No. Tus tareas, tu Cuaderno, tus hábitos, tus contactos y tus chats se quedan; solo se pausan las funciones Premium.' }),
         W.UI.cell({ title: '¿Vale para el móvil y el ordenador?', sub: 'Sí. Con tu cuenta, Premium se activa en todos tus dispositivos.' }),
-        W.UI.cell({ title: '¿Cómo se activa?', sub: P.hasCheckout() ? 'Paga de forma segura en la página de pago y canjea el código que recibirás.' : 'Empieza la prueba gratuita o canjea tu código de activación aquí abajo.' })
+        W.UI.cell({ title: '¿Cómo se activa?', sub: P.hasCheckout() ? 'Paga de forma segura en la página de pago y canjea el código que recibirás.' :
+          P.trialOn() ? 'Empieza la prueba gratuita o canjea tu código de activación aquí abajo.' : 'Con un código de activación: escríbelo aquí abajo.' })
       ] });
       var code = W.UI.section({ header: 'Código de activación', items: U.el('div.group', [U.el('div.cell.col', [codeBox()])]),
         footer: P.isPremium() && P.get().source === 'code' ? 'Premium activado con un código.' : 'Si te han dado un código de Premium, escríbelo aquí.' });

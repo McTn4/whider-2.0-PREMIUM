@@ -9,8 +9,8 @@
  *
  * El plan se guarda con su propia marca de tiempo y se sincroniza con la cuenta (el
  * dispositivo que lo activó gana aunque otro tenga ajustes más recientes).
- * Se activa con la prueba gratuita o con un código; el pago se configura en js/config.js
- * (premium.checkoutUrl): tras pagar se entrega un código de activación.
+ * Se activa con un código o, si premium.trialDays es mayor que 0, con la prueba gratuita; el pago
+ * se configura en js/config.js (premium.checkoutUrl): tras pagar se entrega un código de activación.
  */
 window.Whider = window.Whider || {};
 
@@ -24,8 +24,10 @@ window.Whider = window.Whider || {};
     currency: CFG.currency || '€',
     monthly: typeof CFG.monthly === 'number' ? CFG.monthly : 3.99,
     yearly: typeof CFG.yearly === 'number' ? CFG.yearly : 29.99,
-    trialDays: typeof CFG.trialDays === 'number' ? CFG.trialDays : 14
+    trialDays: typeof CFG.trialDays === 'number' ? Math.max(0, Math.floor(CFG.trialDays)) : 14
   };
+  // Prueba gratuita: con trialDays 0 no se ofrece, y una prueba que estuviera en marcha deja de dar Premium
+  var TRIAL = PRICES.trialDays > 0;
   // Códigos de activación: SHA-256 del código en mayúsculas (ver docs)
   var CODES = (CFG.codes || []).map(function (h) { return String(h).toLowerCase(); });
 
@@ -119,19 +121,23 @@ window.Whider = window.Whider || {};
     get: plan,
     isPremium: function () {
       var p = plan();
-      return !!p && p.tier === 'premium' && (!p.until || p.until > now());
+      if (!p || p.tier !== 'premium') return false;
+      if (p.source === 'trial' && !TRIAL) return false;
+      return !p.until || p.until > now();
     },
     isTrial: function () { var p = plan(); return Plan.isPremium() && p.source === 'trial'; },
     daysLeft: function () { var p = plan(); return p && p.until ? Math.max(0, Math.ceil((p.until - now()) / DAY)) : null; },
     label: function () { return Plan.isPremium() ? (Plan.isTrial() ? 'Premium (prueba)' : 'Premium') : 'Gratis'; },
     /** Texto corto del estado: «Premium · quedan 9 días de prueba» */
     status: function () {
-      if (!Plan.isPremium()) return plan() && plan().trialUsed ? 'Plan gratuito · ya usaste la prueba' : 'Plan gratuito';
+      if (!Plan.isPremium()) return TRIAL && plan() && plan().trialUsed ? 'Plan gratuito · ya usaste la prueba' : 'Plan gratuito';
       var d = Plan.daysLeft();
       if (Plan.isTrial()) return 'Prueba de Premium · ' + (d === 1 ? 'queda 1 día' : 'quedan ' + d + ' días');
       return d != null ? 'Premium · ' + (d === 1 ? 'queda 1 día' : 'quedan ' + d + ' días') : 'Premium activo';
     },
-    canTrial: function () { var p = plan(); return !(p && p.trialUsed) && !Plan.isPremium(); },
+    canTrial: function () { var p = plan(); return TRIAL && !(p && p.trialUsed) && !Plan.isPremium(); },
+    /** ¿Ofrece la app prueba gratuita? (premium.trialDays > 0 en js/config.js) */
+    trialOn: function () { return TRIAL; },
 
     can: function (feature) { return Plan.isPremium() || !FEATURES[feature]; },
     /** Límite del plan gratuito (Infinity con Premium) */
@@ -207,10 +213,11 @@ window.Whider = window.Whider || {};
       if (W.Router) W.Router.refresh();
     },
 
-    /** Al abrir la app: avisa (una vez) de que la prueba terminó */
+    /** Al abrir la app: avisa (una vez) de que la prueba terminó (o de que la app ya no ofrece prueba) */
     check: function () {
       var p = plan();
-      if (!p || p.tier !== 'premium' || !p.until || p.until > now() || warnedEnd) return;
+      if (!p || p.tier !== 'premium' || !p.until || warnedEnd) return;
+      if (p.until > now() && !(p.source === 'trial' && !TRIAL)) return;
       warnedEnd = true;
       if (S().meta.trialEndSeen === p.until) return;
       S().setMeta('trialEndSeen', p.until);

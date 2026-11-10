@@ -33,8 +33,10 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
   allowedEmailDomains: [],
 
   // Planes (Gratis y Premium): precios que muestra la app, días de prueba y cómo se activa Premium.
+  //  - trialDays: días de la prueba gratuita de Premium. 0 = sin prueba (ni se ofrece ni se puede
+  //    empezar, y una prueba que estuviera en marcha termina). Para volver a ofrecerla, pon 14.
   //  - checkoutUrl / checkoutUrlYearly: tu enlace de pago (por ejemplo un «Payment Link» de Stripe).
-  //    Si los dejas en null, la app ofrece la prueba gratuita y los códigos de activación.
+  //    Si los dejas en null, Premium solo se activa con códigos (o con la prueba, si trialDays > 0).
   //  - testCheckoutUrl / testCheckoutUrlYearly: enlaces del MODO DE PRUEBA de Stripe
   //    (https://buy.stripe.com/test_…: no se cobra nada). Solo se usan con el modo de pruebas de
   //    pago encendido en ese dispositivo: Ajustes → toca 7 veces la línea «WHIDER 8.x» del final.
@@ -45,7 +47,7 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
   //    La primera es tu código de fundador.
   //  Ver docs/CONFIGURAR-CUENTAS.md, apartado «Planes y pagos».
   premium: {
-    currency: '€', monthly: 3.99, yearly: 29.99, trialDays: 14, checkoutUrl: null, checkoutUrlYearly: null,
+    currency: '€', monthly: 3.99, yearly: 29.99, trialDays: 0, checkoutUrl: null, checkoutUrlYearly: null,
     testCheckoutUrl: 'https://buy.stripe.com/test_bJe4gz3kF4wm2rz1wBcAo00', testCheckoutUrlYearly: null,
     codes: ['6eb1ff5a9855a1bb70b2bb4e606bfe77beeaa32eb41d33307e4fb45879a0af44']
   },

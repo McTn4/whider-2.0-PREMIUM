@@ -26,7 +26,7 @@ La app se divide en tres grandes apartados:
 | **Móvil** | Calendario · Tareas por categorías · Cuaderno · **Mejor ecosistema**: una sola app sincronizada con el ordenador | **Mayor rapidez** (plantillas de un toque y sincronización al instante) · **Gestionar el ordenador** (dispositivos y enfoque a distancia) · **Invitar con tu código QR** |
 | **General** | Sonidos de botones y avisos · Personaje personalizable y **como foto de perfil** · Notificaciones · **Contactos y chats**: aceptar invitaciones, chatear y unirse a equipos | **Invitar** por enlace, QR o código · **Personajes Premium** (astronauta, dragón, fénix, unicornio y gema) con acabados, efectos, fondos y marcos · Copia en la nube al instante |
 
-**Precios:** Gratis para siempre · **Premium 3,99 € al mes o 29,99 € al año** (2,50 € al mes, un 37 % menos), con **14 días de prueba gratis**. Se cambian en [`js/config.js`](js/config.js).
+**Precios:** Gratis para siempre · **Premium 3,99 € al mes o 29,99 € al año** (2,50 € al mes, un 37 % menos). Se cambian en [`js/config.js`](js/config.js), donde también se puede volver a ofrecer una prueba gratuita (`premium.trialDays`; ahora está en 0, sin prueba).
 
 > Para conectar basta con que **una de las dos personas** tenga Premium: quien invita comparte su enlace o su QR, y quien lo recibe se une gratis, chatea y entra en los equipos.
 
@@ -286,7 +286,7 @@ npm start
 
 ## 💎 Planes, pagos y comunidad (para quien publica la app)
 
-- **Prueba gratuita**: 14 días, una vez por cuenta, desde *Planes* o desde cualquier función Premium.
+- **Prueba gratuita**: desactivada (`premium.trialDays: 0` en [`js/config.js`](js/config.js)): no se ofrece y una prueba que estuviera en marcha termina. Con `trialDays: 14` vuelve: 14 días, una vez por cuenta, desde *Planes* o desde cualquier función Premium.
 - **Códigos de activación**: se canjean en *Planes → Código de activación*. En [`js/config.js`](js/config.js) solo se guarda su huella cifrada (SHA-256), así que el código en claro no aparece en ningún archivo: guárdalo solo para ti, porque el repositorio es público.
 - **Cobrar**: pon tu enlace de pago (por ejemplo un *Payment Link* de Stripe) en `premium.checkoutUrl` de [`js/config.js`](js/config.js). Tras el pago, envía al cliente un código de activación. Para activar Premium automáticamente al pagar hace falta un pequeño servidor (por ejemplo una Cloud Function con el *webhook* de Stripe); los pasos están en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md).
 - **Probar el pago sin cobrar (8.0.1)**: pon el *Payment Link* del modo de prueba de Stripe (`https://buy.stripe.com/test_…`) en `premium.testCheckoutUrl`. En el dispositivo donde quieras probar, *Ajustes* → toca 7 veces la línea «WHIDER 8.x» del final: *Planes* muestra «Hazte Premium (prueba)», que abre ese enlace (tarjeta `4242 4242 4242 4242`, no se cobra nada). Los usuarios normales no lo ven. Otros 7 toques lo apagan.
@@ -298,6 +298,11 @@ npm start
 Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 8.0.2
+
+- **Sin prueba gratuita de 14 días**: *Planes*, la ventana de Premium y la barra lateral ya no la ofrecen, y quien la tuviera en marcha vuelve al plan gratuito (con un aviso; todo lo suyo sigue ahí). Así se puede probar el pago. Se vuelve a activar con `premium.trialDays` en [`js/config.js`](js/config.js).
+- Si no hay pago ni prueba, la tarjeta de Premium ofrece «Canjear un código», que lleva a la casilla del código (antes se quedaba sin botón).
 
 ## 📝 Novedades de la 8.0.1
 
