@@ -147,7 +147,7 @@ WHIDER funciona con **Gratis** y **Premium**. En [`js/config.js`](../js/config.j
 | `monthly`, `yearly`, `currency` | Precios que se muestran (por defecto 3,99 € al mes y 29,99 € al año). |
 | `trialDays` | Días de la prueba gratuita. Ahora `0`: sin prueba (no se ofrece y una prueba en marcha termina). Con `14`, cada cuenta puede probar Premium 14 días una vez. |
 | `checkoutUrl`, `checkoutUrlYearly` | Tu página de pago, por ejemplo un *Payment Link* de Stripe. La app añade `client_reference_id` con el identificador de la cuenta y, si la cuenta tiene correo, `prefilled_email` para que Stripe lo rellene. |
-| `testCheckoutUrl`, `testCheckoutUrlYearly` | Enlaces del **modo de prueba** de Stripe (`https://buy.stripe.com/test_…`). Solo se usan con el modo de pruebas de pago encendido (ver abajo). Si no hay enlace anual, el anual usa el mismo. |
+| `testCheckoutUrl`, `testCheckoutUrlYearly` | Enlaces del **modo de prueba** de Stripe (`https://buy.stripe.com/test_…`). Mientras `checkoutUrl` sea `null`, se usan para todos (con un aviso de que es de prueba); con enlace real, solo con el modo de pruebas de pago encendido (ver abajo). Si no hay enlace anual, el anual usa el mismo. |
 | `codes` | Códigos de activación (SHA-256 del código en mayúsculas). |
 
 **Opción sencilla (sin servidor):** crea un *Payment Link* en Stripe, ponlo en `checkoutUrl` y, cuando alguien pague, envíale un código de activación. Para generar el hash de un código nuevo:
@@ -160,13 +160,13 @@ node -e "console.log(require('crypto').createHash('sha256').update('MI-CODIGO-20
 
 ### Probar el pago sin cobrar (modo de prueba de Stripe)
 
-El modo de prueba de Stripe no pide los datos de la empresa ni cobra nada. Crea el *Payment Link* con el interruptor **«Modo de prueba»** encendido en Stripe (su enlace empieza por `https://buy.stripe.com/test_`) y ponlo en `testCheckoutUrl`. Los usuarios normales no lo ven nunca: solo se usa en el dispositivo donde enciendas el modo de pruebas de pago.
+El modo de prueba de Stripe no pide los datos de la empresa ni cobra nada. Crea el *Payment Link* con el interruptor **«Modo de prueba»** encendido en Stripe (su enlace empieza por `https://buy.stripe.com/test_`) y ponlo en `testCheckoutUrl`.
 
-1. **Ajustes** (el engranaje) → baja del todo y toca **7 veces seguidas** la línea «WHIDER 8.x · …». Aparece «· Pagos de prueba».
-2. **Planes** muestra el aviso «Modo de pruebas de pago» y el botón **«Hazte Premium (prueba)»**, que abre tu enlace de prueba.
+1. Mientras no haya enlace real (`checkoutUrl: null`), **Planes** muestra a todos el aviso «Pagos de prueba» y el botón **«Hazte Premium (prueba)»**, que abre tu enlace de prueba. Cuando pongas un enlace real, el de prueba solo se usa en el dispositivo donde, en **Ajustes** (el engranaje), toques **7 veces seguidas** la línea «WHIDER 8.x · …» del final (aparece «· Pagos de prueba»).
+2. Pulsa **«Hazte Premium (prueba)»**: se abre la página de pago de prueba en el navegador.
 3. Paga con la tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC. Para probar un rechazo: `4000 0000 0000 9995`; con verificación 3D Secure: `4000 0025 0000 3155`.
 4. En Stripe, con el modo de prueba encendido, el pago aparece en **Transacciones**. El evento `checkout.session.completed` de ese pago lleva `client_reference_id` con el identificador de la cuenta que pagó (o `invitado` si no había sesión): es el dato que usará la activación automática.
-5. Otros 7 toques en la misma línea lo apagan.
+5. Con enlace real, otros 7 toques en la misma línea apagan el modo de pruebas.
 
 El pago de prueba no activa Premium por sí solo: igual que con el enlace real, hace falta el código de activación o el *webhook* de la opción automática. Cuando pases a cobrar de verdad, pon el enlace real en `checkoutUrl` (y `checkoutUrlYearly` si tienes uno anual): `testCheckoutUrl` puede quedarse para seguir probando.
 

@@ -31,13 +31,16 @@ window.Whider = window.Whider || {};
   // Códigos de activación: SHA-256 del código en mayúsculas (ver docs)
   var CODES = (CFG.codes || []).map(function (h) { return String(h).toLowerCase(); });
 
-  // Enlaces de pago: los reales, o los de prueba de Stripe si este dispositivo tiene encendido el
-  // modo de pruebas de pago (Ajustes → 7 toques en la versión). Sin enlace anual, sirve el mensual.
+  // Enlaces de pago. Mientras no haya enlace real (checkoutUrl), se usa el de prueba de Stripe para
+  // todos, avisando de que es de prueba. Con enlace real, el de prueba solo en el dispositivo que
+  // encienda el modo de pruebas de pago (Ajustes → 7 toques en la versión): forced.
+  // Sin enlace anual, sirve el mensual.
   var TEST_KEY = 'whider.payTest';
   function testOn() { try { return localStorage.getItem(TEST_KEY) === '1'; } catch (e) { return false; } }
   function links() {
-    if (testOn() && CFG.testCheckoutUrl) return { monthly: CFG.testCheckoutUrl, yearly: CFG.testCheckoutUrlYearly || CFG.testCheckoutUrl, test: true };
-    return { monthly: CFG.checkoutUrl || null, yearly: CFG.checkoutUrlYearly || CFG.checkoutUrl || null, test: false };
+    var real = CFG.checkoutUrl || null, test = CFG.testCheckoutUrl || null;
+    if (test && (!real || testOn())) return { monthly: test, yearly: CFG.testCheckoutUrlYearly || test, test: true, forced: !!real };
+    return { monthly: real, yearly: CFG.checkoutUrlYearly || real, test: false, forced: false };
   }
 
   /** Qué incluye Premium (con su explicación para la ventana de «Hazte Premium») */
@@ -198,14 +201,17 @@ window.Whider = window.Whider || {};
       if (window.WhiderDesktop) window.WhiderDesktop.openExternal(full);
       else if (window.WhiderAndroid && window.WhiderAndroid.openUrl) window.WhiderAndroid.openUrl(full);
       else window.open(full, '_blank', 'noopener');
-      if (L.test) W.Toast.show({ text: 'Pago de prueba: usa la tarjeta 4242 4242 4242 4242 (fecha futura y cualquier CVC). No se cobra nada.', icon: 'gem', duration: 8000 });
+      if (L.test) W.Toast.show({ text: 'Pago de prueba: usa la tarjeta 4242 4242 4242 4242 (fecha futura y cualquier CVC). No se cobra nada y, por ahora, no activa Premium.', icon: 'gem', duration: 8000 });
       else W.Toast.show({ text: 'Al completar el pago recibirás tu código de activación', icon: 'mail', duration: 5000 });
       return true;
     },
     hasCheckout: function () { return !!links().monthly; },
-    /** Modo de pruebas de pago (solo en este dispositivo): usa los enlaces de prueba de Stripe */
+    /** ¿El pago abre el enlace de prueba de Stripe? (sin enlace real, o con el modo de pruebas encendido) */
     isTestCheckout: function () { return links().test; },
-    canTestCheckout: function () { return !!CFG.testCheckoutUrl; },
+    /** Modo de pruebas de pago encendido en este dispositivo aunque haya enlace real */
+    isTestForced: function () { return links().forced; },
+    /** Los 7 toques en la versión solo sirven si hay enlace real y de prueba entre los que cambiar */
+    canTestCheckout: function () { return !!(CFG.testCheckoutUrl && CFG.checkoutUrl); },
     setTestCheckout: function (on) {
       try { if (on) localStorage.setItem(TEST_KEY, '1'); else localStorage.removeItem(TEST_KEY); } catch (e) { /* sin almacenamiento */ }
       Plan.changed();

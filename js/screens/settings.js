@@ -8,7 +8,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '8.0.2';
+  var VERSION = '8.0.3';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
     { value: 'notes', label: 'Cuaderno' }, { value: 'chats', label: 'Chats' }, { value: 'habits', label: 'Hábitos' }, { value: 'focus', label: 'Enfoque' }
@@ -39,11 +39,12 @@ window.Whider = window.Whider || {};
   }
 
   /**
-   * Línea de la versión. Siete toques seguidos encienden o apagan el modo de pruebas de pago de
-   * este dispositivo (los enlaces de prueba de Stripe de js/config.js): solo para quien publica la app.
+   * Línea de la versión. Cuando ya hay enlace de pago real, siete toques seguidos encienden o apagan
+   * el modo de pruebas de pago de este dispositivo (el enlace de prueba de Stripe de js/config.js):
+   * solo para quien publica la app. Sin enlace real, el de prueba ya lo usa todo el mundo.
    */
   function versionLine(nav) {
-    var P = W.Plan, taps = 0, last = 0, test = P.isTestCheckout();
+    var P = W.Plan, taps = 0, last = 0, test = P.isTestForced();
     var line = U.el('p.version' + (test ? '.test' : ''), { attrs: { title: 'WHIDER ' + VERSION } }, [
       U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
       'WHIDER ' + VERSION + ' · ' + P.label() + (test ? ' · Pagos de prueba' : '')
@@ -54,7 +55,7 @@ window.Whider = window.Whider || {};
       taps = now - last < 1200 ? taps + 1 : 1; last = now;
       if (taps < 7) return;
       taps = 0;
-      var on = !P.isTestCheckout();
+      var on = !P.isTestForced();
       P.setTestCheckout(on);
       W.Toast.show(on
         ? { text: 'Modo de pruebas de pago activado en este dispositivo. En Planes, «Hazte Premium» abre tu pago de prueba de Stripe.', icon: 'gem', type: 'success', duration: 6000 }

@@ -38,9 +38,10 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
   //  - checkoutUrl / checkoutUrlYearly: tu enlace de pago (por ejemplo un «Payment Link» de Stripe).
   //    Si los dejas en null, Premium solo se activa con códigos (o con la prueba, si trialDays > 0).
   //  - testCheckoutUrl / testCheckoutUrlYearly: enlaces del MODO DE PRUEBA de Stripe
-  //    (https://buy.stripe.com/test_…: no se cobra nada). Solo se usan con el modo de pruebas de
-  //    pago encendido en ese dispositivo: Ajustes → toca 7 veces la línea «WHIDER 8.x» del final.
-  //    Los usuarios normales no lo ven. Sin enlace anual, el anual usa el mismo enlace.
+  //    (https://buy.stripe.com/test_…: no se cobra nada). Mientras checkoutUrl sea null, «Hazte
+  //    Premium» usa este enlace para todos, avisando de que es de prueba. Con un enlace real, el de
+  //    prueba solo se usa en el dispositivo donde enciendas el modo de pruebas de pago: Ajustes →
+  //    toca 7 veces la línea «WHIDER 8.x» del final. Sin enlace anual, el anual usa el mismo enlace.
   //  - codes: códigos de activación guardados como SHA-256 del código en MAYÚSCULAS. Para crear uno:
   //    node -e "console.log(require('crypto').createHash('sha256').update('MI-CODIGO').digest('hex'))"
   //    Escribe aquí solo la huella (SHA-256), nunca el código en claro: este repositorio es público.

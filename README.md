@@ -289,7 +289,7 @@ npm start
 - **Prueba gratuita**: desactivada (`premium.trialDays: 0` en [`js/config.js`](js/config.js)): no se ofrece y una prueba que estuviera en marcha termina. Con `trialDays: 14` vuelve: 14 días, una vez por cuenta, desde *Planes* o desde cualquier función Premium.
 - **Códigos de activación**: se canjean en *Planes → Código de activación*. En [`js/config.js`](js/config.js) solo se guarda su huella cifrada (SHA-256), así que el código en claro no aparece en ningún archivo: guárdalo solo para ti, porque el repositorio es público.
 - **Cobrar**: pon tu enlace de pago (por ejemplo un *Payment Link* de Stripe) en `premium.checkoutUrl` de [`js/config.js`](js/config.js). Tras el pago, envía al cliente un código de activación. Para activar Premium automáticamente al pagar hace falta un pequeño servidor (por ejemplo una Cloud Function con el *webhook* de Stripe); los pasos están en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md).
-- **Probar el pago sin cobrar (8.0.1)**: pon el *Payment Link* del modo de prueba de Stripe (`https://buy.stripe.com/test_…`) en `premium.testCheckoutUrl`. En el dispositivo donde quieras probar, *Ajustes* → toca 7 veces la línea «WHIDER 8.x» del final: *Planes* muestra «Hazte Premium (prueba)», que abre ese enlace (tarjeta `4242 4242 4242 4242`, no se cobra nada). Los usuarios normales no lo ven. Otros 7 toques lo apagan.
+- **Probar el pago sin cobrar**: pon el *Payment Link* del modo de prueba de Stripe (`https://buy.stripe.com/test_…`) en `premium.testCheckoutUrl`. Mientras no haya enlace real (`checkoutUrl`), *Planes* muestra a todos «Hazte Premium (prueba)», que abre ese enlace (tarjeta `4242 4242 4242 4242`; no se cobra nada y, por ahora, no activa Premium), con un aviso de que es de prueba. Con enlace real, el de prueba solo se usa en el dispositivo donde toques 7 veces la línea «WHIDER 8.x» del final de *Ajustes* (otros 7 toques lo apagan).
 - **Archivos del Cuaderno (8.0)**: vuelve a publicar [`firestore.rules`](firestore.rules) (hay una regla nueva para los archivos de los equipos). Los archivos se guardan en Firestore en trozos de menos de 1 MB, sin Cloud Storage (que exige el plan de pago de Firebase); en el plan gratuito caben 1 GB de datos en total.
 - **Personas, chats y equipos (7.0)**: publica las reglas nuevas de [`firestore.rules`](firestore.rules) en *Firebase → Firestore Database → Reglas* y añade `whider-red.vercel.app` en *Authentication → Configuración → Dominios autorizados*. Los enlaces de invitación usan `links.base` de [`js/config.js`](js/config.js). Detalles en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md).
 
@@ -298,6 +298,10 @@ npm start
 Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde Ajustes.
 
 ---
+
+## 📝 Novedades de la 8.0.3
+
+- **El pago de prueba se ve sin trucos**: mientras no haya enlace de pago real, *Planes* muestra «Hazte Premium (prueba)» con el enlace del modo de prueba de Stripe, sin tener que tocar 7 veces la versión. Un aviso explica que no se cobra nada y que, por ahora, pagar no activa Premium. Cuando haya enlace real, el de prueba vuelve a quedar solo para quien lo encienda con los 7 toques.
 
 ## 📝 Novedades de la 8.0.2
 

@@ -106,10 +106,13 @@ window.Whider.Screens = window.Whider.Screens || {};
         seg
       ]);
       var cards = U.el('div.pl-cards', [priceCard('free'), priceCard('premium')]);
-      // Modo de pruebas de pago (Ajustes → 7 toques en la versión): que nunca se confunda con un pago real
+      // Pago de prueba de Stripe (sin enlace real todavía, o con los 7 toques en la versión): que nunca
+      // se confunda con un pago real
       var testNote = P.isTestCheckout() ? U.el('div.pl-test', { attrs: { role: 'note' } }, [
         U.icon('alert', 'sm'),
-        U.el('span', [U.el('strong', { text: 'Modo de pruebas de pago. ' }), 'El pago abre tu enlace de prueba de Stripe y no se cobra nada. Tarjeta: 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC. Se apaga con 7 toques en la versión, en Ajustes.'])
+        P.isTestForced()
+          ? U.el('span', [U.el('strong', { text: 'Modo de pruebas de pago. ' }), 'El pago abre tu enlace de prueba de Stripe y no se cobra nada. Tarjeta: 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC. Se apaga con 7 toques en la versión, en Ajustes.'])
+          : U.el('span', [U.el('strong', { text: 'Pagos de prueba. ' }), 'La página de pago es de prueba de Stripe: no se cobra nada y, por ahora, no activa Premium. Tarjeta: 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC.'])
       ]) : null;
       var table = U.el('div.pl-table', TABLE.map(function (sec) {
         return U.el('div.group.pl-sec', [
@@ -123,7 +126,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       var faq = W.UI.section({ header: 'Preguntas frecuentes', items: [
         W.UI.cell({ title: '¿Pierdo algo si vuelvo a Gratis?', sub: 'No. Tus tareas, tu Cuaderno, tus hábitos, tus contactos y tus chats se quedan; solo se pausan las funciones Premium.' }),
         W.UI.cell({ title: '¿Vale para el móvil y el ordenador?', sub: 'Sí. Con tu cuenta, Premium se activa en todos tus dispositivos.' }),
-        W.UI.cell({ title: '¿Cómo se activa?', sub: P.hasCheckout() ? 'Paga de forma segura en la página de pago y canjea el código que recibirás.' :
+        W.UI.cell({ title: '¿Cómo se activa?', sub: P.isTestCheckout() ? 'Los pagos aún son de prueba: no se cobra nada y Premium todavía no se activa al pagar. Si tienes un código de activación, escríbelo aquí abajo.' :
+          P.hasCheckout() ? 'Paga de forma segura en la página de pago y canjea el código que recibirás.' :
           P.trialOn() ? 'Empieza la prueba gratuita o canjea tu código de activación aquí abajo.' : 'Con un código de activación: escríbelo aquí abajo.' })
       ] });
       var code = W.UI.section({ header: 'Código de activación', items: U.el('div.group', [U.el('div.cell.col', [codeBox()])]),
