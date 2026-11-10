@@ -60,7 +60,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     } else if (prem) {
       actions.push(U.el('button.btn.primary.block', { attrs: { disabled: true } }, [U.icon('gem', 'sm'), P.isTrial() ? 'Prueba activa' : 'Tienes Premium']));
     } else {
-      if (P.hasCheckout()) actions.push(U.el('button.btn.primary.block', { on: { click: function () { P.checkout(period); } } }, [U.icon('gem', 'sm'), 'Hazte Premium']));
+      if (P.hasCheckout()) actions.push(U.el('button.btn.primary.block', { on: { click: function () { P.checkout(period); } } }, [U.icon('gem', 'sm'), P.isTestCheckout() ? 'Hazte Premium (prueba)' : 'Hazte Premium']));
       if (P.canTrial()) actions.push(U.el('button.btn.' + (P.hasCheckout() ? 'ghost' : 'primary') + '.block', { on: { click: function () { if (P.startTrial()) W.Router.refresh(); } } }, [P.hasCheckout() ? null : U.icon('gem', 'sm'), 'Probar ' + PR.trialDays + ' días gratis']));
     }
     return U.el('div.pl-card' + (isPrem ? '.premium' : '') + ((isPrem && prem) || (!isPrem && !prem) ? '.current' : ''), [
@@ -98,6 +98,11 @@ window.Whider.Screens = window.Whider.Screens || {};
         seg
       ]);
       var cards = U.el('div.pl-cards', [priceCard('free'), priceCard('premium')]);
+      // Modo de pruebas de pago (Ajustes → 7 toques en la versión): que nunca se confunda con un pago real
+      var testNote = P.isTestCheckout() ? U.el('div.pl-test', { attrs: { role: 'note' } }, [
+        U.icon('alert', 'sm'),
+        U.el('span', [U.el('strong', { text: 'Modo de pruebas de pago. ' }), 'El pago abre tu enlace de prueba de Stripe y no se cobra nada. Tarjeta: 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC. Se apaga con 7 toques en la versión, en Ajustes.'])
+      ]) : null;
       var table = U.el('div.pl-table', TABLE.map(function (sec) {
         return U.el('div.group.pl-sec', [
           U.el('div.pl-row.pl-head', [U.el('div.pl-feat', [U.el('strong', [U.icon(sec.icon, 'sm'), sec.title]), U.el('small', { text: sec.sub })]),
@@ -114,7 +119,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       ] });
       var code = W.UI.section({ header: 'Código de activación', items: U.el('div.group', [U.el('div.cell.col', [codeBox()])]),
         footer: P.isPremium() && P.get().source === 'code' ? 'Premium activado con un código.' : 'Si te han dado un código de Premium, escríbelo aquí.' });
-      W.UI.mount(root, head, [hero, cards, table, faq, code]);
+      W.UI.mount(root, head, [hero, testNote, cards, table, faq, code]);
     }
   };
 })(window.Whider);

@@ -8,7 +8,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '8.0.0';
+  var VERSION = '8.0.1';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
     { value: 'notes', label: 'Cuaderno' }, { value: 'chats', label: 'Chats' }, { value: 'habits', label: 'Hábitos' }, { value: 'focus', label: 'Enfoque' }
@@ -36,6 +36,32 @@ window.Whider = window.Whider || {};
     input.addEventListener('click', function () { try { if (input.showPicker) input.showPicker(); } catch (e) { /* lo abre el sistema */ } });
     pill.appendChild(input);
     return pill;
+  }
+
+  /**
+   * Línea de la versión. Siete toques seguidos encienden o apagan el modo de pruebas de pago de
+   * este dispositivo (los enlaces de prueba de Stripe de js/config.js): solo para quien publica la app.
+   */
+  function versionLine(nav) {
+    var P = W.Plan, taps = 0, last = 0, test = P.isTestCheckout();
+    var line = U.el('p.version' + (test ? '.test' : ''), { attrs: { title: 'WHIDER ' + VERSION } }, [
+      U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
+      'WHIDER ' + VERSION + ' · ' + P.label() + (test ? ' · Pagos de prueba' : '')
+    ]);
+    line.addEventListener('click', function () {
+      if (!P.canTestCheckout()) return;
+      var now = Date.now();
+      taps = now - last < 1200 ? taps + 1 : 1; last = now;
+      if (taps < 7) return;
+      taps = 0;
+      var on = !P.isTestCheckout();
+      P.setTestCheckout(on);
+      W.Toast.show(on
+        ? { text: 'Modo de pruebas de pago activado en este dispositivo. En Planes, «Hazte Premium» abre tu pago de prueba de Stripe.', icon: 'gem', type: 'success', duration: 6000 }
+        : { text: 'Modo de pruebas de pago desactivado', icon: 'gem' });
+      nav.refresh();
+    });
+    return line;
   }
 
   /* ---------- Páginas ---------- */
@@ -83,7 +109,7 @@ window.Whider = window.Whider || {};
           W.UI.cell({ icon: 'hand', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
           W.UI.cell({ icon: 'shield', title: 'Datos', sub: 'Copia de seguridad, importar y exportar', onTap: function () { nav.push(dataPage); } })
         ] }),
-        U.el('p.version', [U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]), 'WHIDER ' + VERSION + ' · ' + P.label()])
+        versionLine(nav)
       ]
     };
   }

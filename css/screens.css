@@ -292,8 +292,13 @@
 .photo-pick:active { transform: scale(.95); }
 .photo-pick .cam { position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 8px; color: #000000; background: #FFFFFF; box-shadow: 0 0 0 3px var(--s1); }
 .photo-pick .cam .ic { width: 12px; height: 12px; stroke-width: 2.2; }
-.version { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 0 4px; font-family: var(--mono); font-size: var(--fs-cap); color: var(--t3); }
+.version { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 0 4px; font-family: var(--mono); font-size: var(--fs-cap); color: var(--t3); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .version svg { width: 18px; height: 18px; }
+.version.test { color: var(--t1); }
+/* Aviso del modo de pruebas de pago en Planes: borde discontinuo, para que no parezca un pago real */
+.pl-test { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: var(--r-cell); border: 1px dashed rgba(255, 255, 255, .4); background: rgba(255, 255, 255, .04); color: var(--t2); font-size: var(--fs-foot); line-height: 1.45; }
+.pl-test strong { color: var(--t1); font-weight: 600; }
+.pl-test .ic { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--t1); }
 .list-name { width: 100%; padding: 13px 14px; border-radius: 13px; background: var(--s3); border: 1px solid var(--line); color: var(--t1); font-size: var(--fs-title3); font-weight: 500; text-align: center; transition: border-color .2s, box-shadow .2s; }
 .list-name:focus { border-color: rgba(255, 255, 255, .4); box-shadow: 0 0 18px -6px rgba(255, 255, 255, .3); }
 .list-name::placeholder { color: var(--t3); }

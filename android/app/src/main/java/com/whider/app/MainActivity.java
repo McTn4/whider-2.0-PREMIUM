@@ -580,6 +580,16 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        /** Abrir un enlace web en el navegador del sistema (p. ej. la página de pago de Stripe) */
+        @JavascriptInterface
+        public void openUrl(String url) {
+            if (url == null) return;
+            final Uri uri = Uri.parse(url);
+            final String scheme = uri.getScheme();
+            if (!"https".equalsIgnoreCase(scheme) && !"http".equalsIgnoreCase(scheme)) return;
+            runOnUiThread(() -> openExternally(uri));
+        }
+
         /** Abrir un adjunto del Cuaderno con otra aplicación (visor de PDF, Word, Excel…) */
         @JavascriptInterface
         public void openFile(String name, String mime, String base64) {

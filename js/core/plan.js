@@ -29,6 +29,15 @@ window.Whider = window.Whider || {};
   // Códigos de activación: SHA-256 del código en mayúsculas (ver docs)
   var CODES = (CFG.codes || []).map(function (h) { return String(h).toLowerCase(); });
 
+  // Enlaces de pago: los reales, o los de prueba de Stripe si este dispositivo tiene encendido el
+  // modo de pruebas de pago (Ajustes → 7 toques en la versión). Sin enlace anual, sirve el mensual.
+  var TEST_KEY = 'whider.payTest';
+  function testOn() { try { return localStorage.getItem(TEST_KEY) === '1'; } catch (e) { return false; } }
+  function links() {
+    if (testOn() && CFG.testCheckoutUrl) return { monthly: CFG.testCheckoutUrl, yearly: CFG.testCheckoutUrlYearly || CFG.testCheckoutUrl, test: true };
+    return { monthly: CFG.checkoutUrl || null, yearly: CFG.checkoutUrlYearly || CFG.checkoutUrl || null, test: false };
+  }
+
   /** Qué incluye Premium (con su explicación para la ventana de «Hazte Premium») */
   var FEATURES = {
     systems: { icon: 'system', title: 'Sistemas profesionales', text: 'Monta en un toque métodos como GTD, la matriz de Eisenhower o el bloqueo de tiempo, y crea tus propias automatizaciones.' },
@@ -169,19 +178,34 @@ window.Whider = window.Whider || {};
       S().setPlan({ tier: 'free', source: null, until: null, trialUsed: !!p.trialUsed });
       Plan.changed();
     },
-    /** Pago: abre la página de pago configurada (o explica cómo conseguir un código) */
+    /**
+     * Pago: abre la página de pago configurada (o explica cómo conseguir un código).
+     * Lleva la cuenta (client_reference_id) y su correo, para saber en Stripe quién ha pagado.
+     */
     checkout: function (period) {
-      var url = CFG.checkoutUrl && (period === 'yearly' && CFG.checkoutUrlYearly ? CFG.checkoutUrlYearly : CFG.checkoutUrl);
-      if (url) {
-        var uid = W.Auth && W.Auth.user ? W.Auth.user.uid : '';
-        var full = url + (url.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(uid || 'invitado');
-        if (window.WhiderDesktop) window.WhiderDesktop.openExternal(full); else window.open(full, '_blank', 'noopener');
-        W.Toast.show({ text: 'Al completar el pago recibirás tu código de activación', icon: 'mail', duration: 5000 });
-        return true;
-      }
-      return false;
+      var L = links(), url = period === 'yearly' ? L.yearly : L.monthly;
+      if (!url) return false;
+      var u = W.Auth && W.Auth.user;
+      var full = url + (url.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(u ? u.uid : 'invitado') +
+        (u && u.email ? '&prefilled_email=' + encodeURIComponent(u.email) : '');
+      // En el navegador del sistema: en el APK y en la app de escritorio, nunca dentro de la propia app
+      if (window.WhiderDesktop) window.WhiderDesktop.openExternal(full);
+      else if (window.WhiderAndroid && window.WhiderAndroid.openUrl) window.WhiderAndroid.openUrl(full);
+      else window.open(full, '_blank', 'noopener');
+      if (L.test) W.Toast.show({ text: 'Pago de prueba: usa la tarjeta 4242 4242 4242 4242 (fecha futura y cualquier CVC). No se cobra nada.', icon: 'gem', duration: 8000 });
+      else W.Toast.show({ text: 'Al completar el pago recibirás tu código de activación', icon: 'mail', duration: 5000 });
+      return true;
     },
-    hasCheckout: function () { return !!CFG.checkoutUrl; },
+    hasCheckout: function () { return !!links().monthly; },
+    /** Modo de pruebas de pago (solo en este dispositivo): usa los enlaces de prueba de Stripe */
+    isTestCheckout: function () { return links().test; },
+    canTestCheckout: function () { return !!CFG.testCheckoutUrl; },
+    setTestCheckout: function (on) {
+      try { if (on) localStorage.setItem(TEST_KEY, '1'); else localStorage.removeItem(TEST_KEY); } catch (e) { /* sin almacenamiento */ }
+      Plan.changed();
+      // La pantalla de debajo (p. ej. Planes, detrás de Ajustes) cambia de botón y de aviso al momento
+      if (W.Router) W.Router.refresh();
+    },
 
     /** Al abrir la app: avisa (una vez) de que la prueba terminó */
     check: function () {
