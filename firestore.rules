@@ -13,7 +13,10 @@ rules_version = '2';
 //  - spaces/{id}/files    Archivos adjuntos de esas páginas (ficha y trozos de menos de 1 MB): solo sus miembros.
 //  - chats/{id}           Chats de dos y de equipo: solo sus miembros.
 //  - chats/{id}/msgs      Mensajes: los escriben los miembros; cada uno edita o borra los suyos y solo su reacción.
-// Todo exige un correo verificado (las cuentas de Google ya vienen verificadas).
+//  - entitlements/{uid}   Premium pagado (8.1): lo escribe solo el servidor de pagos (pagos/api, con la cuenta de
+//                         servicio de Firebase, que no pasa por estas reglas); cada cuenta solo puede leer el suyo.
+//                         stripe_subscriptions/{id} (suscripción → cuenta) es solo del servidor: cerrado.
+// Todo exige un correo verificado (las cuentas de Google ya vienen verificadas), salvo leer tu propio Premium pagado.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
@@ -112,6 +115,11 @@ service cloud.firestore {
               || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['react']))
           && request.resource.data.get('react', {}).diff(resource.data.get('react', {})).affectedKeys().hasOnly([request.auth.uid]);
       }
+    }
+
+    // Premium pagado: solo lectura y solo el tuyo (aunque aún no hayas verificado el correo: ya has pagado)
+    match /entitlements/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
     }
 
     // Todo lo demás está cerrado
