@@ -43,6 +43,58 @@ window.Whider = window.Whider || {};
     return { monthly: real, yearly: CFG.checkoutUrlYearly || real, test: false, forced: false };
   }
 
+  // Premium pagado (8.1): al confirmar Stripe un pago, el servidor de pagos (pagos/api/stripe-webhook.js)
+  // guarda entitlements/{uid} en Firestore. La app lo lee al iniciar sesión, al volver a ella tras pagar
+  // y, mientras espera la confirmación, cada pocos segundos. Solo el servidor puede escribirlo.
+  var PEND_KEY = 'whider.payPending', PEND_TIME = 30 * 60000, POLL = 6000, POLL_FOR = 3 * 60000;
+  var buy = { checking: null, last: 0, timer: null, since: 0 };
+  var auto = { state: null, at: 0, p: null };   // ¿está configurada la activación automática en el servidor?
+  function pendingUntil() { try { return +localStorage.getItem(PEND_KEY) || 0; } catch (e) { return 0; } }
+  function setPending(t) { try { if (t) localStorage.setItem(PEND_KEY, String(t)); else localStorage.removeItem(PEND_KEY); } catch (e) { /* sin almacenamiento */ } }
+  function stopWatch() { if (buy.timer) { clearInterval(buy.timer); buy.timer = null; } }
+  /** Mientras se espera la confirmación: cada 6 s los primeros 3 minutos; después, al volver a la app */
+  function watch() {
+    stopWatch();
+    buy.since = Date.now();
+    buy.timer = setInterval(function () {
+      if (pendingUntil() < Date.now()) { setPending(0); stopWatch(); return; }
+      if (Date.now() - buy.since > POLL_FOR) { stopWatch(); return; }
+      if (document.visibilityState !== 'hidden') Plan.syncPurchase();
+    }, POLL);
+  }
+  function askLogin() {
+    W.Sheet.confirm({ title: 'Inicia sesión para hacerte Premium', text: 'Premium se guarda en tu cuenta: así se activa solo al pagar y lo tienes en todos tus dispositivos.', ok: 'Iniciar sesión' })
+      .then(function (ok) { if (ok && W.AuthScreen) W.AuthScreen.open({ mode: 'login' }); });
+  }
+  /** Aplica el Premium pagado que dice el servidor (null = la cuenta no tiene ninguno) */
+  function applyEntitlement(e) {
+    var p = plan() || {}, t = Date.now();
+    var valid = !!e && e.premium === true && (typeof e.until !== 'number' || e.until > t);
+    var bought = p.tier === 'premium' && p.source === 'purchase';
+    if (valid) {
+      setPending(0); stopWatch();
+      if (p.tier === 'premium' && p.source === 'code' && !p.until) return false;   // ya tiene Premium para siempre
+      var until = typeof e.until === 'number' ? e.until : null, test = !!e.test;
+      if (bought && (p.until || null) === until && !!p.test === test) return false;
+      var fresh = !bought || !Plan.isPremium();
+      S().setPlan({ tier: 'premium', source: 'purchase', until: until, test: test, trialUsed: !!p.trialUsed });
+      if (fresh) {
+        W.Audio.complete();
+        W.Toast.show({ text: test ? 'Premium activado con tu pago de prueba (24 horas). ¡Gracias!' : 'Premium activado. ¡Gracias por tu pago!', type: 'success', icon: 'gem', duration: 5000 });
+      }
+      Plan.changed();
+      if (W.Router) W.Router.refresh();
+      return true;
+    }
+    if (bought) {
+      // Terminó o se retiró (baja de la suscripción, pago de prueba de más de 24 h…)
+      S().setPlan({ tier: 'free', source: null, until: null, test: false, trialUsed: !!p.trialUsed });
+      Plan.changed();
+      if (W.Router) W.Router.refresh();
+    }
+    return false;
+  }
+
   /** Qué incluye Premium (con su explicación para la ventana de «Hazte Premium») */
   var FEATURES = {
     systems: { icon: 'system', title: 'Sistemas profesionales', text: 'Monta en un toque métodos como GTD, la matriz de Eisenhower o el bloqueo de tiempo, y crea tus propias automatizaciones.' },
@@ -129,13 +181,20 @@ window.Whider = window.Whider || {};
       return !p.until || p.until > now();
     },
     isTrial: function () { var p = plan(); return Plan.isPremium() && p.source === 'trial'; },
+    /** Premium pagado (activado por el servidor de pagos) y, de ellos, los pagos de prueba de Stripe */
+    isPurchase: function () { var p = plan(); return Plan.isPremium() && p.source === 'purchase'; },
+    isTestPurchase: function () { var p = plan(); return Plan.isPurchase() && !!p.test; },
     daysLeft: function () { var p = plan(); return p && p.until ? Math.max(0, Math.ceil((p.until - now()) / DAY)) : null; },
-    label: function () { return Plan.isPremium() ? (Plan.isTrial() ? 'Premium (prueba)' : 'Premium') : 'Gratis'; },
+    label: function () { return Plan.isPremium() ? (Plan.isTrial() ? 'Premium (prueba)' : Plan.isTestPurchase() ? 'Premium (pago de prueba)' : 'Premium') : 'Gratis'; },
     /** Texto corto del estado: «Premium · quedan 9 días de prueba» */
     status: function () {
       if (!Plan.isPremium()) return TRIAL && plan() && plan().trialUsed ? 'Plan gratuito · ya usaste la prueba' : 'Plan gratuito';
       var d = Plan.daysLeft();
       if (Plan.isTrial()) return 'Prueba de Premium · ' + (d === 1 ? 'queda 1 día' : 'quedan ' + d + ' días');
+      if (Plan.isTestPurchase()) {
+        var h = Math.max(1, Math.ceil((plan().until - now()) / 3600000));
+        return 'Premium con un pago de prueba · ' + (h > 48 ? 'quedan ' + d + ' días' : h === 1 ? 'queda 1 hora' : 'quedan ' + h + ' horas');
+      }
       return d != null ? 'Premium · ' + (d === 1 ? 'queda 1 día' : 'quedan ' + d + ' días') : 'Premium activo';
     },
     canTrial: function () { var p = plan(); return TRIAL && !(p && p.trialUsed) && !Plan.isPremium(); },
@@ -194,17 +253,75 @@ window.Whider = window.Whider || {};
     checkout: function (period) {
       var L = links(), url = period === 'yearly' ? L.yearly : L.monthly;
       if (!url) return false;
-      var u = W.Auth && W.Auth.user;
+      var A = W.Auth, u = A && A.user;
+      // Premium se guarda en la cuenta: sin sesión no se sabría a quién activárselo
+      if (A && A.configured() && !u) { askLogin(); return true; }
       var full = url + (url.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(u ? u.uid : 'invitado') +
         (u && u.email ? '&prefilled_email=' + encodeURIComponent(u.email) : '');
       // En el navegador del sistema: en el APK y en la app de escritorio, nunca dentro de la propia app
       if (window.WhiderDesktop) window.WhiderDesktop.openExternal(full);
       else if (window.WhiderAndroid && window.WhiderAndroid.openUrl) window.WhiderAndroid.openUrl(full);
       else window.open(full, '_blank', 'noopener');
-      if (L.test) W.Toast.show({ text: 'Pago de prueba: usa la tarjeta 4242 4242 4242 4242 (fecha futura y cualquier CVC). No se cobra nada y, por ahora, no activa Premium.', icon: 'gem', duration: 8000 });
+      if (u) { setPending(now() + PEND_TIME); watch(); if (W.Router) W.Router.refresh(); }
+      var ready = Plan.autoActivation() && !!u;
+      if (L.test) W.Toast.show({ text: 'Pago de prueba: usa la tarjeta 4242 4242 4242 4242 (fecha futura y cualquier CVC). No se cobra nada' + (ready ? '. Al terminar, vuelve a WHIDER: Premium se activará solo durante 24 horas.' : ' y, por ahora, no activa Premium.'), icon: 'gem', duration: 9000 });
+      else if (ready) W.Toast.show({ text: 'Al terminar el pago, vuelve a WHIDER: Premium se activará solo.', icon: 'gem', duration: 6000 });
       else W.Toast.show({ text: 'Al completar el pago recibirás tu código de activación', icon: 'mail', duration: 5000 });
       return true;
     },
+
+    /**
+     * Lee el Premium pagado de la cuenta (entitlements/{uid}) y lo aplica. force: sin esperar.
+     * Mientras se espera un pago se mira como mucho cada 5 s; si no, cada 10 minutos.
+     */
+    syncPurchase: function (force) {
+      var A = W.Auth;
+      if (!A || !A.configured() || !A.user) return Promise.resolve(false);
+      if (buy.checking) return buy.checking;
+      var gap = pendingUntil() > now() ? 5000 : 10 * 60000;
+      if (!force && now() - buy.last < gap) return Promise.resolve(false);
+      buy.last = now();
+      var uid = A.user.uid;
+      buy.checking = A.whenReady().then(function () {
+        var F = A.sdk(), db = A.db();
+        if (!F || !db || !A.user || A.user.uid !== uid) return false;
+        return F.getDoc(F.doc(db, 'entitlements', uid)).then(function (snap) { return applyEntitlement(snap.exists() ? snap.data() : null); });
+      }).catch(function (e) { console.warn('Premium pagado:', e && (e.code || e.message)); return false; })
+        .then(function (r) { buy.checking = null; return r; });
+      return buy.checking;
+    },
+    /** ¿Se está esperando la confirmación de un pago hecho desde este dispositivo? */
+    isPending: function () { return pendingUntil() > now() && !Plan.isPremium(); },
+    /** Al arrancar: vigila el pago pendiente y, al volver a la app, mira si ya está confirmado */
+    initPurchases: function () {
+      var back = function () {
+        if (document.visibilityState === 'hidden') return;
+        var p = plan() || {};
+        if (pendingUntil() > now() || p.source === 'purchase') Plan.syncPurchase();
+      };
+      document.addEventListener('visibilitychange', back);
+      window.addEventListener('focus', back);
+      if (W.Auth && W.Auth.onChange) W.Auth.onChange(function (u) { if (u) Plan.syncPurchase(true); });
+      if (pendingUntil() > now()) watch(); else setPending(0);
+      Plan.autoStatus();
+    },
+    /** ¿Está configurada la activación automática? Lo pregunta al servidor de pagos (sin secretos) */
+    autoStatus: function () {
+      var url = CFG.activationUrl;
+      if (!url || typeof fetch !== 'function') return Promise.resolve(false);
+      if (auto.p) return auto.p;
+      if (auto.state !== null && now() - auto.at < 5 * 60000) return Promise.resolve(auto.state);
+      auto.p = fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { return !!(j && j.ok && j.stripe && j.firebase); }, function () { return false; })
+        .then(function (s) {
+          var changed = s !== auto.state;
+          auto.state = s; auto.at = now(); auto.p = null;
+          if (changed && W.State && W.State.activeScreen === 'plans' && W.Router) W.Router.refresh();
+          return s;
+        });
+      return auto.p;
+    },
+    autoActivation: function () { return auto.state === true; },
     hasCheckout: function () { return !!links().monthly; },
     /** ¿El pago abre el enlace de prueba de Stripe? (sin enlace real, o con el modo de pruebas encendido) */
     isTestCheckout: function () { return links().test; },

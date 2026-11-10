@@ -299,6 +299,14 @@
 .pl-test { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: var(--r-cell); border: 1px dashed rgba(255, 255, 255, .4); background: rgba(255, 255, 255, .04); color: var(--t2); font-size: var(--fs-foot); line-height: 1.45; }
 .pl-test strong { color: var(--t1); font-weight: 600; }
 .pl-test .ic { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--t1); }
+.pl-wait { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border-radius: var(--r-cell); border: 1px solid var(--line); background: var(--s2); color: var(--t2); font-size: var(--fs-foot); line-height: 1.45; }
+.pl-wait strong { color: var(--t1); font-weight: 600; }
+.pl-wait > span:nth-child(2) { flex: 1; min-width: 0; }
+.pl-wait .btn { flex: none; }
+.pl-wait-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--t1); animation: plWait 1.4s ease-in-out infinite; }
+@keyframes plWait { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .pl-wait-dot { animation: none; } }
+@media (max-width: 560px) { .pl-wait { flex-wrap: wrap; } .pl-wait .btn { width: 100%; } }
 .list-name { width: 100%; padding: 13px 14px; border-radius: 13px; background: var(--s3); border: 1px solid var(--line); color: var(--t1); font-size: var(--fs-title3); font-weight: 500; text-align: center; transition: border-color .2s, box-shadow .2s; }
 .list-name:focus { border-color: rgba(255, 255, 255, .4); box-shadow: 0 0 18px -6px rgba(255, 255, 255, .3); }
 .list-name::placeholder { color: var(--t3); }

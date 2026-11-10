@@ -232,6 +232,7 @@ window.Whider = window.Whider || {};
     W.Sidebar.init();
     W.Auto.init();
     W.Plan.check();
+    W.Plan.initPurchases();
     W.People.init();
     W.Chat.init();
     W.Devices.init();

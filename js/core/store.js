@@ -417,15 +417,18 @@ window.Whider = window.Whider || {};
   function cleanNotes(arr) { return (Array.isArray(arr) ? arr : []).map(cleanNote).filter(Boolean); }
 
   /* ---------- Plan, personaje, amigos y dispositivos ---------- */
-  var FREE_PLAN = { tier: 'free', source: null, until: null, trialUsed: false, code: null, at: 0 };
+  var FREE_PLAN = { tier: 'free', source: null, until: null, trialUsed: false, code: null, test: false, at: 0 };
   function cleanPlan(p) {
     if (!p || typeof p !== 'object') return clone(FREE_PLAN);
+    var source = p.source === 'trial' || p.source === 'code' || p.source === 'purchase' ? p.source : null;
     return {
       tier: p.tier === 'premium' ? 'premium' : 'free',
-      source: p.source === 'trial' || p.source === 'code' || p.source === 'purchase' ? p.source : null,
+      source: source,
       until: typeof p.until === 'number' ? p.until : null,
       trialUsed: !!p.trialUsed,
       code: typeof p.code === 'string' ? p.code.slice(0, 12) : null,
+      // Premium pagado con un pago de prueba de Stripe (solo tiene sentido con source 'purchase')
+      test: source === 'purchase' && !!p.test,
       at: typeof p.at === 'number' ? p.at : 0
     };
   }

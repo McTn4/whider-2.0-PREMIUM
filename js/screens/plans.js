@@ -53,13 +53,16 @@ window.Whider.Screens = window.Whider.Screens || {};
     else if (period === 'yearly') { price = P.fmtPrice(PR.yearly); per = 'al año'; note = P.fmtPrice(PR.yearly / 12) + ' al mes · ahorras ' + Math.round((1 - PR.yearly / (PR.monthly * 12)) * 100) + ' %'; }
     else { price = P.fmtPrice(PR.monthly); per = 'al mes'; note = 'Cancela cuando quieras'; }
     var actions = [];
-    if (!isPrem) {
+    if (!isPrem && P.isPurchase()) {
+      // Premium pagado: se deja cancelando el pago en Stripe (desde su correo); aquí volvería a activarse solo
+      actions.push(U.el('button.btn.ghost.block', { attrs: { disabled: true } }, ['Plan gratuito']));
+    } else if (!isPrem) {
       actions.push(U.el('button.btn.ghost.block', { attrs: prem ? null : { disabled: true }, on: { click: function () {
         W.Sheet.confirm({ title: '¿Volver al plan gratuito?', text: 'Tus datos se conservan. Las funciones Premium dejarán de estar disponibles.', ok: 'Volver a Gratis', danger: true })
           .then(function (ok) { if (ok) { P.cancel(); W.Router.refresh(); } });
       } } }, [prem ? 'Volver a Gratis' : 'Tu plan actual']));
     } else if (prem) {
-      actions.push(U.el('button.btn.primary.block', { attrs: { disabled: true } }, [U.icon('gem', 'sm'), P.isTrial() ? 'Prueba activa' : 'Tienes Premium']));
+      actions.push(U.el('button.btn.primary.block', { attrs: { disabled: true } }, [U.icon('gem', 'sm'), P.isTrial() ? 'Prueba activa' : P.isTestPurchase() ? 'Premium de prueba activo' : 'Tienes Premium']));
     } else {
       if (P.hasCheckout()) actions.push(U.el('button.btn.primary.block', { on: { click: function () { P.checkout(period); } } }, [U.icon('gem', 'sm'), P.isTestCheckout() ? 'Hazte Premium (prueba)' : 'Hazte Premium']));
       if (P.canTrial()) actions.push(U.el('button.btn.' + (P.hasCheckout() ? 'ghost' : 'primary') + '.block', { on: { click: function () { if (P.startTrial()) W.Router.refresh(); } } }, [P.hasCheckout() ? null : U.icon('gem', 'sm'), 'Probar ' + PR.trialDays + ' días gratis']));
@@ -95,7 +98,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     title: 'Planes',
     back: function () { W.Router.back(); return true; },
     render: function (root) {
-      var P = W.Plan, PR = P.PRICES;
+      var P = W.Plan, PR = P.PRICES, auto = P.autoActivation();
+      P.autoStatus();   // pregunta al servidor si la activación automática está configurada (con caché)
       var head = W.UI.header({ title: 'Planes', back: { label: 'Atrás', onTap: function () { W.Router.back(); } }, sub: P.status(), gear: false });
       var seg = W.UI.segmented([{ value: 'monthly', label: 'Mensual' }, { value: 'yearly', label: 'Anual · −' + Math.round((1 - PR.yearly / (PR.monthly * 12)) * 100) + ' %' }], period,
         function (v) { period = v; W.Router.refresh(); }, { mini: true });
@@ -112,7 +116,21 @@ window.Whider.Screens = window.Whider.Screens || {};
         U.icon('alert', 'sm'),
         P.isTestForced()
           ? U.el('span', [U.el('strong', { text: 'Modo de pruebas de pago. ' }), 'El pago abre tu enlace de prueba de Stripe y no se cobra nada. Tarjeta: 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC. Se apaga con 7 toques en la versión, en Ajustes.'])
-          : U.el('span', [U.el('strong', { text: 'Pagos de prueba. ' }), 'La página de pago es de prueba de Stripe: no se cobra nada y, por ahora, no activa Premium. Tarjeta: 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC.'])
+          : U.el('span', [U.el('strong', { text: 'Pagos de prueba. ' }), auto
+            ? 'La página de pago es de prueba de Stripe: no se cobra nada y Premium se activa solo en tu cuenta durante 24 horas. Tarjeta: 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC.'
+            : 'La página de pago es de prueba de Stripe: no se cobra nada y, por ahora, no activa Premium. Tarjeta: 4242 4242 4242 4242, cualquier fecha futura y cualquier CVC.'])
+      ]) : null;
+      // Pago hecho desde aquí, esperando la confirmación de Stripe
+      var pending = P.isPending() ? U.el('div.pl-wait', { attrs: { role: 'status' } }, [
+        U.el('span.pl-wait-dot'),
+        U.el('span', [U.el('strong', { text: 'Esperando la confirmación del pago. ' }), 'Premium se activará solo en cuanto Stripe lo confirme (suelen ser unos segundos).']),
+        U.el('button.btn.soft', { text: 'Comprobar ahora', on: { click: function () {
+          var b = this; b.disabled = true;
+          P.syncPurchase(true).then(function (on) {
+            b.disabled = false;
+            if (!on) W.Toast.show({ text: 'Aún no ha llegado la confirmación del pago. Prueba de nuevo en unos segundos.', icon: 'gem' });
+          });
+        } } })
       ]) : null;
       var table = U.el('div.pl-table', TABLE.map(function (sec) {
         return U.el('div.group.pl-sec', [
@@ -126,13 +144,17 @@ window.Whider.Screens = window.Whider.Screens || {};
       var faq = W.UI.section({ header: 'Preguntas frecuentes', items: [
         W.UI.cell({ title: '¿Pierdo algo si vuelvo a Gratis?', sub: 'No. Tus tareas, tu Cuaderno, tus hábitos, tus contactos y tus chats se quedan; solo se pausan las funciones Premium.' }),
         W.UI.cell({ title: '¿Vale para el móvil y el ordenador?', sub: 'Sí. Con tu cuenta, Premium se activa en todos tus dispositivos.' }),
-        W.UI.cell({ title: '¿Cómo se activa?', sub: P.isTestCheckout() ? 'Los pagos aún son de prueba: no se cobra nada y Premium todavía no se activa al pagar. Si tienes un código de activación, escríbelo aquí abajo.' :
+        W.UI.cell({ title: '¿Cómo se activa?', sub: P.isTestCheckout() && auto ? 'Los pagos aún son de prueba: no se cobra nada y Premium se activa solo en tu cuenta durante 24 horas. También puedes canjear un código aquí abajo.' :
+          P.isTestCheckout() ? 'Los pagos aún son de prueba: no se cobra nada y Premium todavía no se activa al pagar. Si tienes un código de activación, escríbelo aquí abajo.' :
+          P.hasCheckout() && auto ? 'Paga de forma segura en la página de pago: Premium se activa solo en tu cuenta y en todos tus dispositivos.' :
           P.hasCheckout() ? 'Paga de forma segura en la página de pago y canjea el código que recibirás.' :
           P.trialOn() ? 'Empieza la prueba gratuita o canjea tu código de activación aquí abajo.' : 'Con un código de activación: escríbelo aquí abajo.' })
       ] });
       var code = W.UI.section({ header: 'Código de activación', items: U.el('div.group', [U.el('div.cell.col', [codeBox()])]),
-        footer: P.isPremium() && P.get().source === 'code' ? 'Premium activado con un código.' : 'Si te han dado un código de Premium, escríbelo aquí.' });
-      W.UI.mount(root, head, [hero, testNote, cards, table, faq, code]);
+        footer: P.isPremium() && P.get().source === 'code' ? 'Premium activado con un código.' :
+          P.isTestPurchase() ? 'Premium activado con un pago de prueba (24 horas).' :
+          P.isPurchase() ? 'Premium activado con tu pago. Para dejar de pagar, cancela la suscripción desde el correo de Stripe.' : 'Si te han dado un código de Premium, escríbelo aquí.' });
+      W.UI.mount(root, head, [hero, testNote, pending, cards, table, faq, code]);
     }
   };
 })(window.Whider);
