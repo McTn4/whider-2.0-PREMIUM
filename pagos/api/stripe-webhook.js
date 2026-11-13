@@ -29,15 +29,40 @@ const YEARLY_MIN = 2000;   // pago único (en céntimos) a partir del cual se da
 const UID = /^[A-Za-z0-9_-]{10,128}$/;
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
+/* ---------- Variables de entorno: se aceptan los despistes típicos al pegarlas y, si falla algo, se
+   dice qué (sin enseñar nunca su valor) ---------- */
+function unquote(s) { return s.replace(/^\s*(["'])([\s\S]*)\1\s*$/, '$2').trim(); }
 function secrets() {
-  return String(process.env.STRIPE_WEBHOOK_SECRET || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  return String(process.env.STRIPE_WEBHOOK_SECRET || '').split(',').map(function (s) { return unquote(s.trim()); }).filter(Boolean);
 }
-function account() {
-  try {
-    const a = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '');
-    return a && a.client_email && a.private_key && a.project_id ? a : null;
-  } catch (e) { return null; }
+function stripeProblem() {
+  if (process.env.STRIPE_WEBHOOK_SECRET == null) return 'falta la variable STRIPE_WEBHOOK_SECRET en este proyecto de Vercel (o falta volver a publicarlo)';
+  const list = secrets();
+  if (!list.length) return 'STRIPE_WEBHOOK_SECRET está vacía';
+  if (!list.every(function (s) { return /^whsec_/.test(s); })) return 'STRIPE_WEBHOOK_SECRET debe ser el «secreto de firma» del webhook de Stripe, que empieza por whsec_';
+  return null;
 }
+function readAccount() {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (raw == null) return { problem: 'falta la variable FIREBASE_SERVICE_ACCOUNT en este proyecto de Vercel (o falta volver a publicarlo)' };
+  const text = String(raw).trim();
+  if (!text) return { problem: 'FIREBASE_SERVICE_ACCOUNT está vacía' };
+  let a = null;
+  try { a = JSON.parse(text); } catch (e) {
+    try { a = JSON.parse(unquote(text)); } catch (e2) {
+      try { a = JSON.parse(Buffer.from(text, 'base64').toString('utf8')); } catch (e3) { a = null; }
+    }
+  }
+  if (typeof a === 'string') { try { a = JSON.parse(a); } catch (e) { a = null; } }
+  if (!a || typeof a !== 'object') return { problem: 'FIREBASE_SERVICE_ACCOUNT no es un JSON válido: abre el archivo .json con el Bloc de notas y pega TODO, desde la primera { hasta la última }' };
+  if (a.apiKey && !a.private_key) return { problem: 'FIREBASE_SERVICE_ACCOUNT tiene la configuración web (apiKey), no la clave de la cuenta de servicio: Firebase → Configuración del proyecto → Cuentas de servicio → Generar nueva clave privada' };
+  const missing = ['project_id', 'client_email', 'private_key'].filter(function (k) { return !a[k]; });
+  if (missing.length) return { problem: 'a FIREBASE_SERVICE_ACCOUNT le falta ' + missing.join(', ') + ': ¿se pegó el archivo .json entero?' };
+  const key = String(a.private_key).replace(/\\n/g, '\n');
+  try { crypto.createPrivateKey(key); } catch (e) { return { problem: 'la private_key de FIREBASE_SERVICE_ACCOUNT está incompleta o dañada: vuelve a pegar el archivo .json entero' }; }
+  return { account: Object.assign({}, a, { private_key: key }) };
+}
+function account() { return readAccount().account || null; }
 
 /* ---------- Firma de Stripe: HMAC-SHA256 de «t.cuerpo» con el secreto del webhook ---------- */
 function verify(raw, header, list, nowSec) {
@@ -165,9 +190,11 @@ function json(body, status) { return new Response(JSON.stringify(body), { status
 
 async function POST(request) {
   const raw = await request.text();
-  if (!verify(raw, request.headers.get('stripe-signature'), secrets(), Math.floor(Date.now() / 1000))) return json({ error: 'firma no válida' }, 400);
-  const sa = account();
-  if (!sa) return json({ error: 'falta FIREBASE_SERVICE_ACCOUNT' }, 500);
+  if (!verify(raw, request.headers.get('stripe-signature'), secrets(), Math.floor(Date.now() / 1000))) {
+    return json({ error: 'firma no válida', motivo: stripeProblem() || 'el secreto whsec_ de Vercel no es el de este webhook de Stripe' }, 400);
+  }
+  const acc = readAccount(), sa = acc.account;
+  if (!sa) return json({ error: acc.problem }, 500);
   let event;
   try { event = JSON.parse(raw); } catch (e) { return json({ error: 'aviso no válido' }, 400); }
   try {
@@ -176,10 +203,27 @@ async function POST(request) {
     return json({ received: true, result: result });
   } catch (e) {
     console.error('WHIDER pagos:', event.type, e.message);
-    return json({ error: 'no se pudo guardar; Stripe lo reintentará' }, 500);
+    return json({ error: 'no se pudo guardar; Stripe lo reintentará', motivo: e.message }, 500);
   }
 }
-function GET() { return json({ ok: true, stripe: secrets().length > 0, firebase: !!account() }); }
+/**
+ * Estado, sin secretos: {"ok":true,"stripe":true,"firebase":true,"proyecto":"…"}, y «problemas» si falta algo.
+ * Con ?comprobar=1 además entra de verdad en Firestore con la cuenta de servicio («firestore»: "ok" o el error).
+ */
+async function GET(request) {
+  const sp = stripeProblem(), acc = readAccount();
+  const body = { ok: true, stripe: !sp, firebase: !!acc.account };
+  if (acc.account) body.proyecto = acc.account.project_id;
+  const problems = [sp, acc.problem].filter(Boolean);
+  if (problems.length) body.problemas = problems;
+  let check = false;
+  try { check = !!request && new URL(request.url).searchParams.has('comprobar'); } catch (e) { check = false; }
+  if (check && acc.account) {
+    try { await getDoc(acc.account, 'entitlements/_comprobacion'); body.firestore = 'ok'; }
+    catch (e) { body.firestore = String(e.message || e).slice(0, 300); }
+  }
+  return json(body);
+}
 function OPTIONS() { return new Response(null, { status: 204, headers: headers() }); }
 
-module.exports = { GET: GET, POST: POST, OPTIONS: OPTIONS, _internals: { verify: verify, handle: handle, jwt: jwt, setDoc: setDoc, getDoc: getDoc } };
+module.exports = { GET: GET, POST: POST, OPTIONS: OPTIONS, _internals: { verify: verify, handle: handle, jwt: jwt, setDoc: setDoc, getDoc: getDoc, readAccount: readAccount, stripeProblem: stripeProblem } };
