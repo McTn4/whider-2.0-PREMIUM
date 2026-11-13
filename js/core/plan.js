@@ -9,8 +9,10 @@
  *
  * El plan se guarda con su propia marca de tiempo y se sincroniza con la cuenta (el
  * dispositivo que lo activó gana aunque otro tenga ajustes más recientes).
- * Se activa con un código o, si premium.trialDays es mayor que 0, con la prueba gratuita; el pago
- * se configura en js/config.js (premium.checkoutUrl): tras pagar se entrega un código de activación.
+ * Premium se consigue suscribiéndose («Suscribirse» abre la página de pago de Stripe) y se activa solo
+ * al confirmar Stripe el pago (servidor pagos/). Los códigos ya no se canjean en Planes: el de fundador
+ * (Premium para siempre) solo se usa en las opciones del propietario (Ajustes → 7 toques en la versión).
+ * Si premium.trialDays es mayor que 0, también hay prueba gratuita.
  */
 window.Whider = window.Whider || {};
 
@@ -184,6 +186,8 @@ window.Whider = window.Whider || {};
     /** Premium pagado (activado por el servidor de pagos) y, de ellos, los pagos de prueba de Stripe */
     isPurchase: function () { var p = plan(); return Plan.isPremium() && p.source === 'purchase'; },
     isTestPurchase: function () { var p = plan(); return Plan.isPurchase() && !!p.test; },
+    /** Premium para siempre (código de fundador) */
+    isLifetime: function () { var p = plan(); return Plan.isPremium() && p.source === 'code' && !p.until; },
     daysLeft: function () { var p = plan(); return p && p.until ? Math.max(0, Math.ceil((p.until - now()) / DAY)) : null; },
     label: function () { return Plan.isPremium() ? (Plan.isTrial() ? 'Premium (prueba)' : Plan.isTestPurchase() ? 'Premium (pago de prueba)' : 'Premium') : 'Gratis'; },
     /** Texto corto del estado: «Premium · quedan 9 días de prueba» */
@@ -236,7 +240,7 @@ window.Whider = window.Whider || {};
       var p = plan() || {};
       S().setPlan({ tier: 'premium', source: 'code', until: null, trialUsed: true, code: c.slice(0, 4) + '…' });
       W.Audio.complete();
-      W.Toast.show({ text: 'Premium activado. ¡Gracias por apoyar WHIDER!', type: 'success', icon: 'gem', duration: 4500 });
+      W.Toast.show({ text: 'Premium para siempre activado en esta cuenta', type: 'success', icon: 'gem', duration: 4500 });
       Plan.changed();
       return true;
     },
@@ -252,7 +256,7 @@ window.Whider = window.Whider || {};
      */
     checkout: function (period) {
       var L = links(), url = period === 'yearly' ? L.yearly : L.monthly;
-      if (!url) return false;
+      if (!url || !Plan.canSubscribe()) return false;
       var A = W.Auth, u = A && A.user;
       // Premium se guarda en la cuenta: sin sesión no se sabría a quién activárselo
       if (A && A.configured() && !u) { askLogin(); return true; }
@@ -265,8 +269,7 @@ window.Whider = window.Whider || {};
       if (u) { setPending(now() + PEND_TIME); watch(); if (W.Router) W.Router.refresh(); }
       var ready = Plan.autoActivation() && !!u;
       if (L.test) W.Toast.show({ text: 'Pago de prueba: usa la tarjeta 4242 4242 4242 4242 (fecha futura y cualquier CVC). No se cobra nada' + (ready ? '. Al terminar, vuelve a WHIDER: Premium se activará solo durante 24 horas.' : ' y, por ahora, no activa Premium.'), icon: 'gem', duration: 9000 });
-      else if (ready) W.Toast.show({ text: 'Al terminar el pago, vuelve a WHIDER: Premium se activará solo.', icon: 'gem', duration: 6000 });
-      else W.Toast.show({ text: 'Al completar el pago recibirás tu código de activación', icon: 'mail', duration: 5000 });
+      else W.Toast.show({ text: ready ? 'Al terminar el pago, vuelve a WHIDER: Premium se activará solo.' : 'Al terminar el pago, vuelve a WHIDER.', icon: 'gem', duration: 6000 });
       return true;
     },
 
@@ -323,6 +326,16 @@ window.Whider = window.Whider || {};
     },
     autoActivation: function () { return auto.state === true; },
     hasCheckout: function () { return !!links().monthly; },
+    /**
+     * ¿Se puede suscribir ya? Con el pago de prueba, siempre (no se cobra nada). Con el real, solo si el
+     * servidor de pagos confirma que activa Premium al pagar y la app tiene cuentas (Premium se guarda en
+     * la cuenta que paga): sin códigos, cobrar sin poder activarlo no vale.
+     */
+    canSubscribe: function () {
+      if (!Plan.hasCheckout()) return false;
+      if (Plan.isTestCheckout()) return true;
+      return Plan.autoActivation() && !!(W.Auth && W.Auth.configured());
+    },
     /** ¿El pago abre el enlace de prueba de Stripe? (sin enlace real, o con el modo de pruebas encendido) */
     isTestCheckout: function () { return links().test; },
     /** Modo de pruebas de pago encendido en este dispositivo aunque haya enlace real */

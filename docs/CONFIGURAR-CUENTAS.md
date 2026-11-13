@@ -148,27 +148,27 @@ WHIDER funciona con **Gratis** y **Premium**. En [`js/config.js`](../js/config.j
 | `trialDays` | Días de la prueba gratuita. Ahora `0`: sin prueba (no se ofrece y una prueba en marcha termina). Con `14`, cada cuenta puede probar Premium 14 días una vez. |
 | `checkoutUrl`, `checkoutUrlYearly` | Tu página de pago, por ejemplo un *Payment Link* de Stripe. La app añade `client_reference_id` con el identificador de la cuenta y, si la cuenta tiene correo, `prefilled_email` para que Stripe lo rellene. |
 | `testCheckoutUrl`, `testCheckoutUrlYearly` | Enlaces del **modo de prueba** de Stripe (`https://buy.stripe.com/test_…`). Mientras `checkoutUrl` sea `null`, se usan para todos (con un aviso de que es de prueba); con enlace real, solo con el modo de pruebas de pago encendido (ver abajo). Si no hay enlace anual, el anual usa el mismo. |
-| `codes` | Códigos de activación (SHA-256 del código en mayúsculas). |
+| `codes` | Códigos de Premium para siempre (SHA-256 del código en mayúsculas). Desde la 8.2 no se canjean en *Planes*: solo en las opciones del propietario (**Ajustes** → 7 toques en la línea «WHIDER 8.x» del final). El primero es tu código de fundador. |
 
-**Opción sencilla (sin servidor):** crea un *Payment Link* en Stripe, ponlo en `checkoutUrl` y, cuando alguien pague, envíale un código de activación. Para generar el hash de un código nuevo:
+**Cómo se consigue Premium (8.2):** en *Planes*, **«Suscribirse»** abre la página de pago de Stripe del periodo elegido (mensual o anual) y, al confirmarse el pago, Premium se activa solo en la cuenta (ver «Activar Premium al pagar»). Ya no hay casilla para canjear códigos. Para no cobrar sin dar Premium, con el enlace **real** «Suscribirse» solo funciona cuando el servidor de pagos responde que está configurado; con el de prueba funciona siempre (no se cobra nada).
+
+**Premium para siempre (propietario):** en **Ajustes**, toca 7 veces seguidas la línea «WHIDER 8.x» del final → *Opciones del propietario* → escribe tu código de fundador → **Activar**. Se guarda en tu cuenta y vale en todos tus dispositivos. Para crear otro código (por ejemplo para alguien de tu equipo), genera su huella y añádela a `codes`:
 
 ```bash
 node -e "console.log(require('crypto').createHash('sha256').update('MI-CODIGO-2026').digest('hex'))"
 ```
 
-**Opción automática:** una Cloud Function que reciba el *webhook* de Stripe (`checkout.session.completed`), lea `client_reference_id` y active Premium en esa cuenta. Es el paso que falta para cobrar de forma totalmente automática; la app ya está preparada para mostrar el estado del plan sincronizado con la cuenta.
-
 ### Probar el pago sin cobrar (modo de prueba de Stripe)
 
 El modo de prueba de Stripe no pide los datos de la empresa ni cobra nada. Crea el *Payment Link* con el interruptor **«Modo de prueba»** encendido en Stripe (su enlace empieza por `https://buy.stripe.com/test_`) y ponlo en `testCheckoutUrl`.
 
-1. Mientras no haya enlace real (`checkoutUrl: null`), **Planes** muestra a todos el aviso «Pagos de prueba» y el botón **«Hazte Premium (prueba)»**, que abre tu enlace de prueba. Cuando pongas un enlace real, el de prueba solo se usa en el dispositivo donde, en **Ajustes** (el engranaje), toques **7 veces seguidas** la línea «WHIDER 8.x · …» del final (aparece «· Pagos de prueba»).
-2. Pulsa **«Hazte Premium (prueba)»**: se abre la página de pago de prueba en el navegador.
+1. Mientras no haya enlace real (`checkoutUrl: null`), **Planes** muestra a todos el aviso «Pagos de prueba» y el botón **«Suscribirse (prueba)»**, que abre tu enlace de prueba. Cuando pongas un enlace real, el de prueba solo se usa en el dispositivo donde lo actives en las opciones del propietario (**Ajustes** → 7 toques seguidos en la línea «WHIDER 8.x · …» del final → *Pagos de prueba en este dispositivo*; la línea muestra «· Pagos de prueba»).
+2. Pulsa **«Suscribirse (prueba)»**: se abre la página de pago de prueba en el navegador.
 3. Paga con la tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC. Para probar un rechazo: `4000 0000 0000 9995`; con verificación 3D Secure: `4000 0025 0000 3155`.
 4. En Stripe, con el modo de prueba encendido, el pago aparece en **Transacciones**. El evento `checkout.session.completed` de ese pago lleva `client_reference_id` con el identificador de la cuenta que pagó: es el dato que usa la activación automática.
 5. Con enlace real, otros 7 toques en la misma línea apagan el modo de pruebas.
 
-Sin la activación automática (abajo), pagar no activa Premium: haría falta un código de activación. Cuando pases a cobrar de verdad, pon el enlace real en `checkoutUrl` (y `checkoutUrlYearly` si tienes uno anual): `testCheckoutUrl` puede quedarse para seguir probando.
+Sin la activación automática (abajo), pagar no activa Premium. Cuando pases a cobrar de verdad, pon el enlace real en `checkoutUrl` (y `checkoutUrlYearly` si tienes uno anual): `testCheckoutUrl` puede quedarse para seguir probando.
 
 ### Activar Premium al pagar (automático, 8.1)
 
@@ -188,7 +188,7 @@ Los secretos (el de Stripe y la clave de Firebase) **solo** se ponen en Vercel: 
 4. **En Vercel**: proyecto `whider-pagos` → **Settings → Environment Variables** → nombre `FIREBASE_SERVICE_ACCOUNT`, valor: abre el `.json` con el Bloc de notas y pega **todo** su contenido → **Save**.
 5. **En Stripe** (con **Modo de prueba** encendido): **Desarrolladores → Webhooks → Añadir destino** (o *Add endpoint*) → URL `https://whider-pagos.vercel.app/api/stripe-webhook` → eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated` y `customer.subscription.deleted` → guarda. Abre el destino y, en **Secreto de firma**, pulsa *Revelar* y copia el valor (`whsec_…`).
 6. **En Vercel**: otra variable, `STRIPE_WEBHOOK_SECRET`, con ese `whsec_…` → **Save**. Después, **Deployments** → en el último, **⋯ → Redeploy** (las variables se aplican al volver a publicar).
-7. **Comprobar**: `https://whider-pagos.vercel.app/api/stripe-webhook` debe mostrar `{"ok":true,"stripe":true,"firebase":true}`. En la app, con sesión iniciada: **Planes → «Hazte Premium (prueba)»** → paga con `4242 4242 4242 4242` → vuelve a WHIDER: en unos segundos sale «Premium activado con tu pago de prueba (24 horas)». En Stripe, el webhook muestra el aviso con respuesta `200`.
+7. **Comprobar**: `https://whider-pagos.vercel.app/api/stripe-webhook` debe mostrar `{"ok":true,"stripe":true,"firebase":true}`. En la app, con sesión iniciada: **Planes → «Suscribirse (prueba)»** → paga con `4242 4242 4242 4242` → vuelve a WHIDER: en unos segundos sale «Premium activado con tu pago de prueba (24 horas)». En Stripe, el webhook muestra el aviso con respuesta `200`.
 
 **Para cobrar de verdad**: activa tu cuenta de Stripe, crea el *Payment Link* real (mejor como suscripción mensual o anual) y ponlo en `checkoutUrl`; crea también el webhook en el modo real (mismos eventos y URL) y añade su secreto a `STRIPE_WEBHOOK_SECRET` separado por una coma del de prueba. El plan gratuito de Vercel es para uso no comercial: para vender, usa Vercel Pro o publica `pagos/` en otro servicio.
 

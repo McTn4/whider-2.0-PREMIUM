@@ -8,7 +8,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '8.1.0';
+  var VERSION = '8.2.0';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
     { value: 'notes', label: 'Cuaderno' }, { value: 'chats', label: 'Chats' }, { value: 'habits', label: 'Hábitos' }, { value: 'focus', label: 'Enfoque' }
@@ -39,9 +39,8 @@ window.Whider = window.Whider || {};
   }
 
   /**
-   * Línea de la versión. Cuando ya hay enlace de pago real, siete toques seguidos encienden o apagan
-   * el modo de pruebas de pago de este dispositivo (el enlace de prueba de Stripe de js/config.js):
-   * solo para quien publica la app. Sin enlace real, el de prueba ya lo usa todo el mundo.
+   * Línea de la versión. Siete toques seguidos abren las opciones del propietario: solo para quien
+   * publica la app (ningún usuario las necesita y no aparecen en ningún menú).
    */
   function versionLine(nav) {
     var P = W.Plan, taps = 0, last = 0, test = P.isTestForced();
@@ -50,19 +49,45 @@ window.Whider = window.Whider || {};
       'WHIDER ' + VERSION + ' · ' + P.label() + (test ? ' · Pagos de prueba' : '')
     ]);
     line.addEventListener('click', function () {
-      if (!P.canTestCheckout()) return;
       var now = Date.now();
       taps = now - last < 1200 ? taps + 1 : 1; last = now;
       if (taps < 7) return;
       taps = 0;
-      var on = !P.isTestForced();
-      P.setTestCheckout(on);
-      W.Toast.show(on
-        ? { text: 'Modo de pruebas de pago activado en este dispositivo. En Planes, «Hazte Premium» abre tu pago de prueba de Stripe.', icon: 'gem', type: 'success', duration: 6000 }
-        : { text: 'Modo de pruebas de pago desactivado', icon: 'gem' });
-      nav.refresh();
+      ownerSheet(nav);
     });
     return line;
+  }
+
+  /**
+   * Opciones del propietario: Premium para siempre en su cuenta, sin pagar, con el código de fundador
+   * (se comprueba con su SHA-256 de js/config.js) y, cuando haya enlace de pago real, el modo de
+   * pruebas de pago de este dispositivo.
+   */
+  function ownerSheet(nav) {
+    var P = W.Plan, body = [], s;
+    if (P.isLifetime()) {
+      body.push(W.UI.section({ header: 'Premium para siempre', items: [W.UI.cell({ icon: 'gem', title: 'Activo en esta cuenta', sub: 'Sin pagar y sin fecha de fin, en todos tus dispositivos.' })] }));
+    } else {
+      var input = U.el('input.input', { attrs: { type: 'password', placeholder: 'Código de fundador', 'aria-label': 'Código de fundador', autocapitalize: 'characters', autocomplete: 'off', spellcheck: 'false' } });
+      var go = function () {
+        if (!input.value.trim()) { input.focus(); return; }
+        if (P.redeem(input.value)) { s.close(); nav.refresh(); W.Router.refresh(); return; }
+        input.classList.add('shake'); setTimeout(function () { input.classList.remove('shake'); }, 450);
+        W.Toast.show({ text: 'Ese código no es válido', type: 'danger' });
+      };
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+      body.push(W.UI.section({ header: 'Premium para siempre', items: U.el('div.group', [U.el('div.cell.col', [U.el('div.pl-code', [input, U.el('button.btn.primary', { text: 'Activar', on: { click: go } })])])]),
+        footer: 'Con tu código de fundador, sin pagar y sin fecha de fin. Se guarda en tu cuenta y vale en todos tus dispositivos.' }));
+    }
+    if (P.canTestCheckout()) {
+      body.push(W.UI.section({ header: 'Pagos', items: [toggleCell({ icon: 'gem', title: 'Pagos de prueba en este dispositivo', sub: '«Suscribirse» abre tu enlace de prueba de Stripe en vez del real', value: P.isTestForced(), onChange: function (on) {
+        P.setTestCheckout(on);
+        W.Toast.show(on ? { text: 'Pagos de prueba activados en este dispositivo', icon: 'gem', type: 'success' } : { text: 'Pagos de prueba desactivados', icon: 'gem' });
+        nav.refresh();
+      } })] }));
+    }
+    s = W.Sheet.open({ title: 'Opciones del propietario', className: 'owner', body: body });
+    if (input) setTimeout(function () { try { input.focus(); } catch (e) { /* sin foco */ } }, 350);
   }
 
   /* ---------- Páginas ---------- */
