@@ -2,7 +2,7 @@
   "firestore": { "rules": "firestore.rules" },
   "hosting": {
     "public": ".",
-    "ignore": ["android/**", "tools/**", "docs/**", "desktop/**", "pagos/**", "**/*.py", "firebase.json", "firestore.rules", "firestore-debug.log", ".git/**", ".github/**", "**/.gitignore", "**/.DS_Store", "**/node_modules/**"]
+    "ignore": ["android/**", "tools/**", "docs/**", "desktop/**", "pagos/**", "api/**", "**/*.py", "firebase.json", "firestore.rules", "firestore-debug.log", ".git/**", ".github/**", "**/.gitignore", "**/.DS_Store", "**/node_modules/**"]
   },
   "emulators": {
     "auth": { "port": 9099 },
