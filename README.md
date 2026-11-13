@@ -301,6 +301,10 @@ Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan ad
 
 ---
 
+## 📝 Novedades de la 8.2.1
+
+- La app pregunta al servidor de pagos ya publicado (`whider-20-premium-pagos.vercel.app`) si la activación automática está lista, para que sus textos y el botón «Suscribirse» lo reflejen.
+
 ## 📝 Novedades de la 8.2
 
 - **«Suscribirse» en lugar de canjear códigos**: en *Planes*, la tarjeta de Premium y la sección del final tienen «Suscribirse», que abre la página de pago de Stripe del periodo elegido; al confirmarse el pago, Premium se activa solo. Ya no hay casilla para canjear códigos.

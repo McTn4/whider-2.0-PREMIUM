@@ -52,7 +52,7 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
     testCheckoutUrl: 'https://buy.stripe.com/test_bJe4gz3kF4wm2rz1wBcAo00', testCheckoutUrlYearly: null,
     // Servidor de pagos (carpeta pagos/ publicada en Vercel): recibe el aviso de Stripe y activa Premium
     // solo en la cuenta que paga. La app le pregunta aquí si está configurado (no hay nada secreto).
-    activationUrl: 'https://whider-pagos.vercel.app/api/stripe-webhook',
+    activationUrl: 'https://whider-20-premium-pagos.vercel.app/api/stripe-webhook',
     codes: ['6eb1ff5a9855a1bb70b2bb4e606bfe77beeaa32eb41d33307e4fb45879a0af44']
   },
 
