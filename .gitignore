@@ -20,6 +20,8 @@ android/.idea/
 android/*.iml
 android/app/*.iml
 android/captures/
+# La app web se copia aquí al compilar (python package_apk.py --sync): no se guarda en el repositorio
+android/app/src/main/assets/www/
 *.keystore
 !android/app/whider-debug.keystore
 *.jks

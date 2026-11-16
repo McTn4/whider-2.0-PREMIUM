@@ -1,5 +1,5 @@
 /**
- * WHIDER · Mis dispositivos y plantillas de un toque (Premium)
+ * WHIDER · Mis dispositivos y plantillas de un toque
  *
  *  - Gestionar el ordenador desde el móvil: cada dispositivo con tu cuenta se anuncia (nombre y
  *    última conexión) y el enfoque se comparte: si lo empiezas en el ordenador, el móvil ve la
@@ -27,7 +27,8 @@ window.Whider = window.Whider || {};
     if (/Android|iPhone|iPad|Mobile/i.test(ua)) return { kind: 'mobile', name: 'Móvil · navegador' };
     return { kind: 'pc', name: 'Ordenador · navegador' };
   }
-  function active() { return !!(W.Auth && W.Auth.user) && W.Plan.isPremium(); }
+  /** Con cuenta: cada dispositivo se anuncia y el enfoque se comparte entre todos */
+  function active() { return !!(W.Auth && W.Auth.user); }
 
   var Devices = {
     id: deviceId,
@@ -48,7 +49,6 @@ window.Whider = window.Whider || {};
       return active() && f && f.device && f.device !== deviceId() && f.at > (since || 0) ? f : null;
     },
     sheet: function () {
-      if (!W.Plan.gate('remote')) return;
       var host = U.el('div.dev-body'), timer = null;
       var draw = function () {
         U.clear(host);
@@ -90,7 +90,6 @@ window.Whider = window.Whider || {};
     { name: 'Inicio de semana', icon: 'week', lines: ['Revisar el calendario de la semana', 'Elegir las 3 prioridades', 'Responder correos pendientes'] }
   ];
   function applyTemplate(t) {
-    if (!W.Plan.gate('quick')) return;
     var st = S(), n = 0;
     st.batch(function () {
       t.tasks.forEach(function (x) {
@@ -104,7 +103,6 @@ window.Whider = window.Whider || {};
     W.Toast.show({ text: '«' + t.name + '»: ' + U.plural(n, 'tarea creada', 'tareas creadas'), type: 'success', icon: t.icon || 'bolt' });
   }
   function editTemplate(t, preset) {
-    if (!W.Plan.gate('quick')) return;
     var st = S(), src = t || preset || { name: '', lines: [] };
     var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 40, placeholder: 'Nombre (p. ej. Rutina de mañana)', 'aria-label': 'Nombre de la plantilla' } });
     name.value = src.name || '';
@@ -139,7 +137,7 @@ window.Whider = window.Whider || {};
     var add = U.el('button.chip.tpl-chip', { attrs: { type: 'button', 'aria-label': 'Nueva plantilla' } }, [U.icon('plus'), U.el('span', { text: list.length ? '' : 'Plantilla' })]);
     add.addEventListener('click', function () { editTemplate(null); });
     chips.push(add);
-    return U.el('div.tpl-row', [U.el('span.tpl-h', [U.icon('bolt', 'xs'), 'De un toque', W.Plan.isPremium() ? null : U.el('span.sb-gem', [U.icon('gem')])]), U.el('div.chips', chips)]);
+    return U.el('div.tpl-row', [U.el('span.tpl-h', [U.icon('bolt', 'xs'), 'De un toque']), U.el('div.chips', chips)]);
   }
 
   W.Devices = Devices;

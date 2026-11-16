@@ -1,10 +1,8 @@
 /**
  * WHIDER · Comunidad: personas (amigos y trabajo), equipos e invitaciones
  *
- * Arreglos de la 7.0:
- *  - Cualquiera con cuenta puede aceptar invitaciones, tener contactos y chatear. Premium sirve
- *    para invitar (código, enlace o QR) y para crear equipos: así nadie se queda sin poder
- *    responder a quien le invita.
+ *  - Cualquiera con cuenta puede invitar (código, enlace o QR), aceptar invitaciones, tener
+ *    contactos, chatear y crear equipos.
  *  - Los avisos dicen qué pasa de verdad (sin cuenta, correo sin verificar, servidor sin las
  *    reglas nuevas o sin conexión) en vez de «revisa tu conexión» para todo.
  *  - El buzón se mira cada pocos segundos con Personas o Chats abiertos (antes, cada minuto).
@@ -199,7 +197,6 @@ window.Whider = window.Whider || {};
     code = normCode(code);
     if (!/^WH-[A-Z0-9]{6}$/.test(code)) { W.Toast.show({ text: 'Los códigos son así: WH-7K3Q9P', type: 'danger' }); return Promise.resolve(false); }
     if (code === S().social.code) { W.Toast.show({ text: 'Ese es tu propio código', icon: 'info' }); return Promise.resolve(false); }
-    if (!W.Plan.gate('community')) return Promise.resolve(false);
     return ensureEnabled().then(function () { return F().getDoc(ref('codes', code)); }).then(function (s) {
       if (!s.exists()) { W.Toast.show({ text: 'No hay nadie con ese código. Revisa que esté bien escrito.', type: 'danger' }); return false; }
       var to = s.data().uid, f = S().social.friends[to];
@@ -274,7 +271,6 @@ window.Whider = window.Whider || {};
     }).then(function (d) { teamData[id] = d; emit('team'); return d; });
   }
   function createTeam(name, members, icon) {
-    if (!W.Plan.gate('community')) return Promise.reject({ code: 'premium' });
     var st = S(), id = U.uid('sp').replace(/[^A-Za-z0-9_-]/g, ''), me = uid(), m = {};
     m[me] = myName();
     members.forEach(function (f) { m[f.uid] = f.name || 'Contacto'; });

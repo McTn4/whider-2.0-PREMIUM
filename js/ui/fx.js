@@ -1,5 +1,5 @@
 /**
- * WHIDER · Efectos visuales discretos: contadores y anillos de progreso
+ * WHIDER · Efectos visuales discretos: anillos de progreso
  */
 window.Whider = window.Whider || {};
 
@@ -8,20 +8,6 @@ window.Whider = window.Whider || {};
   var U = W.U;
 
   var Fx = {
-    /** Anima un número desde su valor actual hasta `to` */
-    countUp: function (node, to, opts) {
-      opts = opts || {};
-      var from = parseFloat(node.getAttribute('data-val')) || 0;
-      node.setAttribute('data-val', to);
-      var suffix = opts.suffix || '';
-      if (U.reducedMotion() || from === to) { node.textContent = to + suffix; return; }
-      var start = performance.now(), dur = opts.dur || 700;
-      (function frame(now) {
-        var p = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - p, 3);
-        node.textContent = Math.round(from + (to - from) * e) + suffix;
-        if (p < 1) requestAnimationFrame(frame);
-      })(start);
-    },
 
     /** Anillo SVG de progreso (0..1) */
     ring: function (size, stroke, value, label, from) {

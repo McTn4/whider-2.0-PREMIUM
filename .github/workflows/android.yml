@@ -1,7 +1,11 @@
-# Compila el APK de WHIDER en GitHub.
-# Descarga: pestaña "Releases" del repositorio → "WHIDER (última versión)" → app-debug.apk
-# La versión móvil está en pausa: el APK solo se recompila al cambiar el proyecto Android
-# o a mano desde Actions → "Compilar APK" → "Run workflow" (con la app web más reciente).
+# Compila WHIDER para Android en GitHub.
+#  - APK de pruebas (app-debug.apk): pestaña "Releases" → "WHIDER (última versión)". Se instala directamente.
+#  - Paquete para Google Play (whider-play.aab): artefacto "whider-google-play" de cada ejecución.
+#    Se firma con tu clave de subida si están estos secretos del repositorio (Settings → Secrets and
+#    variables → Actions): ANDROID_UPLOAD_KEYSTORE_B64, ANDROID_UPLOAD_STORE_PASSWORD,
+#    ANDROID_UPLOAD_KEY_ALIAS y ANDROID_UPLOAD_KEY_PASSWORD (ver docs/PUBLICAR-EN-GOOGLE-PLAY.md).
+#    Sin ellos se genera igualmente, sin firmar, para comprobar que la versión de Play compila.
+# Se recompila al cambiar la app (web o Android) o a mano desde Actions → "Compilar APK" → "Run workflow".
 name: Compilar APK
 
 on:
@@ -9,6 +13,14 @@ on:
     branches: [main]
     paths:
       - 'android/**'
+      - 'index.html'
+      - 'manifest.json'
+      - 'sw.js'
+      - 'css/**'
+      - 'js/**'
+      - 'fonts/**'
+      - 'icons/**'
+      - 'package_apk.py'
       - '.github/workflows/android.yml'
   workflow_dispatch:
 
@@ -18,6 +30,8 @@ permissions:
 jobs:
   apk:
     runs-on: ubuntu-latest
+    env:
+      HAS_UPLOAD_KEY: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -46,6 +60,41 @@ jobs:
           BT=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
           "$ANDROID_HOME/build-tools/$BT/apksigner" verify --print-certs android/app/build/outputs/apk/debug/app-debug.apk | grep -E "SHA-1|SHA-256"
 
+      - name: Preparar la clave de subida a Google Play
+        if: ${{ env.HAS_UPLOAD_KEY == 'true' }}
+        run: echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/whider-upload.jks"
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
+
+      - name: Compilar el paquete para Google Play (AAB)
+        working-directory: android
+        run: ./gradlew bundleRelease --stacktrace
+        env:
+          WHIDER_UPLOAD_KEYSTORE: ${{ env.HAS_UPLOAD_KEY == 'true' && format('{0}/whider-upload.jks', runner.temp) || '' }}
+          WHIDER_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+          WHIDER_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          WHIDER_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+
+      - name: Comprobar la firma del paquete para Google Play
+        run: |
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          cp "$AAB" whider-play.aab
+          if [ "$HAS_UPLOAD_KEY" = "true" ]; then
+            keytool -printcert -jarfile whider-play.aab | grep -E "SHA1|SHA256|Propietario|Owner" || true
+            echo "### Paquete para Google Play listo y firmado con tu clave de subida" >> "$GITHUB_STEP_SUMMARY"
+            echo "Descárgalo en el artefacto **whider-google-play** y súbelo en Play Console." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Paquete para Google Play generado SIN FIRMAR" >> "$GITHUB_STEP_SUMMARY"
+            echo "Compila bien, pero para subirlo a Play Console añade los secretos de la clave de subida (docs/PUBLICAR-EN-GOOGLE-PLAY.md)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          rm -f "$RUNNER_TEMP/whider-upload.jks"
+
+      - name: Guardar el paquete para Google Play
+        uses: actions/upload-artifact@v4
+        with:
+          name: whider-google-play
+          path: whider-play.aab
+
       - name: Guardar APK como artefacto
         uses: actions/upload-artifact@v4
         with:
@@ -60,7 +109,8 @@ jobs:
           prerelease: false
           make_latest: true
           body: |
-            APK generado automáticamente desde el commit ${{ github.sha }}.
+            WHIDER 1.0 · APK de pruebas generado automáticamente desde el commit ${{ github.sha }}.
             Descarga **app-debug.apk** e instálalo en tu móvil Android
             (permite "Instalar apps de orígenes desconocidos" si te lo pide).
+            La versión para Google Play (AAB) está en los artefactos de cada compilación en Actions.
           files: android/app/build/outputs/apk/debug/app-debug.apk

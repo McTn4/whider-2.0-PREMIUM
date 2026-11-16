@@ -63,7 +63,7 @@ window.Whider = window.Whider || {};
   /** Variación en %: null si no hay base */
   function delta(a, b) { return b ? Math.round((a - b) / b * 100) : (a ? null : 0); }
 
-  /** Conclusiones en frases (Premium en el ordenador) */
+  /** Conclusiones en frases (Estadísticas en el ordenador e Informes) */
   function insights(c) {
     var cur = c.cur, prev = c.prev, out = [], st = S();
     var d = delta(cur.done, prev.done);

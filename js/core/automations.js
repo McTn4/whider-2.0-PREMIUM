@@ -7,7 +7,7 @@
  *  - Entonces: fecha, hora, duración, prioridad, categoría, avisos, completar, eliminar, avisarte o crear una tarea.
  * Lo que hace una regla nunca dispara otras (sin bucles). Las reglas diarias se ponen al día si la app
  * estaba cerrada a su hora. Cada ejecución queda en el historial (solo en este dispositivo).
- * Plan gratuito: hasta 2 reglas activas (las plantillas); con Premium, sin límite y reglas propias.
+ * Sin límite de reglas activas.
  */
 window.Whider = window.Whider || {};
 
@@ -57,7 +57,7 @@ window.Whider = window.Whider || {};
   };
   var WHEN = [{ value: 'today', label: 'Hoy' }, { value: 'tomorrow', label: 'Mañana' }, { value: 'monday', label: 'El lunes' }, { value: 'week', label: 'En una semana' }, { value: 'none', label: 'Sin fecha' }];
 
-  /* ---------- Plantillas rápidas (gratis, también en el móvil) ---------- */
+  /* ---------- Plantillas rápidas (también en el móvil) ---------- */
   var TEMPLATES = [
     { id: 'tpl-overdue-today', icon: 'sun', name: 'Pasar lo vencido a hoy', desc: 'Cada mañana a las 7, lo que se quedó sin hacer pasa a hoy.',
       rule: { trigger: { type: 'daily', time: '07:00' }, conditions: [{ field: 'date', op: 'overdue' }], actions: [{ type: 'set_date', value: 'today' }] } },
@@ -120,10 +120,9 @@ window.Whider = window.Whider || {};
     return out;
   }
 
-  /** Reglas que se ejecutan (sin Premium, solo las primeras activas hasta el límite) */
+  /** Reglas que se ejecutan: todas las activas, por orden de creación */
   function activeRules() {
-    var st = S(), lim = W.Plan ? W.Plan.limit('rules') : Infinity;
-    return st.rules.filter(function (r) { return r.enabled; }).sort(function (a, b) { return a.createdAt - b.createdAt; }).slice(0, lim);
+    return S().rules.filter(function (r) { return r.enabled; }).sort(function (a, b) { return a.createdAt - b.createdAt; });
   }
 
   function record(rule, n, text) {
@@ -257,12 +256,6 @@ window.Whider = window.Whider || {};
     matches: matches, dryRun: dryRun, describe: describe, describeAction: describeAction, describeCond: describeCond,
     log: function () { return log.entries.slice().reverse(); },
     activeRules: activeRules,
-    /** Ejecuta ya una regla (botón «Ejecutar ahora») */
-    runNow: function (rule) {
-      var pool = dryRun(rule);
-      if (!pool.length && needsTask(rule)) return 0;
-      return apply(rule, rule.trigger.type === 'created' || rule.trigger.type === 'completed' ? pool : pool, 'A mano');
-    },
     template: function (id) { return TEMPLATES.filter(function (t) { return t.id === id; })[0] || null; },
     templateRule: function (id) { return S().rules.filter(function (r) { return r.template === id; })[0] || null; },
     init: function () {

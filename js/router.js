@@ -10,13 +10,14 @@ window.Whider = window.Whider || {};
   var U = W.U;
   var TABS = { home: 1, tasks: 1, calendar: 1, more: 1 };
   // Pantallas que se abren desde «Más» en el móvil (la pestaña Más queda marcada)
-  var UNDER_MORE = { notes: 1, chats: 1, friends: 1, habits: 1, focus: 1, stats: 1, reports: 1, automations: 1, plans: 1, progress: 1 };
+  var UNDER_MORE = { notes: 1, chats: 1, friends: 1, habits: 1, focus: 1, stats: 1, reports: 1, automations: 1, progress: 1 };
   // Rutas antiguas o secundarias → pantalla (y apartado)
-  var ALIASES = { records: ['progress', 'records'], achievements: ['progress', 'achievements'], alerts: ['home'], agenda: ['calendar'], profile: ['progress'] };
+  var ALIASES = { records: ['progress', 'records'], achievements: ['progress'], alerts: ['home'], agenda: ['calendar'], profile: ['progress'] };
   var refreshQueued = false, lastTab = 'home';
 
   function screenFromHash() {
     var h = (location.hash || '').replace(/^#\/?/, '');
+    if (h === 'cuenta') return null;   // Ajustes → Cuenta en cuanto haya sesión (W.App)
     if (ALIASES[h] || h === 'settings') return h;
     return W.Screens[h] ? h : null;
   }

@@ -1,8 +1,8 @@
 /**
  * WHIDER · Estadísticas
  *  - Móvil (resumidas): cifras del periodo, completadas por día y por categoría.
- *  - Ordenador: además, días de la semana, horas, prioridades, enfoque, hábitos, el año entero
- *    y conclusiones. Con Premium, hasta un año de historia y todos los apartados.
+ *  - Ordenador: además, horas, prioridades, enfoque, hábitos, el año entero y conclusiones,
+ *    con hasta un año de historia.
  * Un único filtro de periodo arriba manda sobre todo lo de abajo.
  */
 window.Whider = window.Whider || {};
@@ -31,7 +31,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   function build(range, desk) {
-    var st = S(), P = W.Plan, Ch = C(), td = U.today();
+    var st = S(), Ch = C(), td = U.today();
     var from = U.addDays(td, -(range - 1)), c = W.Stats.compare(from, td), cur = c.cur, prev = c.prev;
     var by = range <= 31 ? 'day' : range <= 120 ? 'week' : 'month';
     var buckets = W.Stats.bucket(cur.days, 'done', by);
@@ -75,12 +75,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 
     if (!desk) return out;
 
-    /* Ordenador: apartados avanzados (Premium) */
-    if (!P.isPremium()) {
-      grid.appendChild(Ch.locked('Por hora del día', 'Descubre a qué horas rindes más', 'stats'));
-      grid.appendChild(Ch.locked('Enfoque, hábitos y prioridades', 'Todo tu año de un vistazo, con conclusiones', 'stats'));
-      return out;
-    }
+    /* Ordenador: apartados detallados */
     var hmax = Math.max.apply(null, cur.byHour);
     var hData = cur.byHour.map(function (v, h) { return { x: h % 3 === 0 ? String(h) : '', name: h + ':00 – ' + (h + 1) + ':00', value: v, emph: hmax > 0 && v === hmax }; });
     grid.appendChild(Ch.card({ title: 'Por hora del día', sub: hmax ? 'Tu mejor hora: ' + cur.byHour.indexOf(hmax) + ':00' : 'Según la hora a la que completas',
@@ -114,18 +109,14 @@ window.Whider.Screens = window.Whider.Screens || {};
     title: 'Estadísticas',
     back: function () { if (W.Layout.desktop) return false; W.Router.back(); return true; },
     render: function (root) {
-      var st = S(), desk = W.Layout.desktop, P = W.Plan;
+      var st = S(), desk = W.Layout.desktop;
       var range = st.ui.statsRange || (desk ? 30 : 7);
-      if (!P.isPremium() && range > 30) range = 30;
       if (!desk && range > 30) range = 30;
       var td = U.today(), from = U.addDays(td, -(range - 1));
       var head = W.UI.header({ title: 'Estadísticas', back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } }, sub: rangeText(from, td),
         actions: [{ icon: 'print', label: 'Informe', text: desk ? 'Informe' : null, onTap: function () { W.Router.go('reports'); } }] });
       var opts = (desk ? RANGES : RANGES.slice(0, 2)).map(function (r) { return { value: r.value, label: r.label }; });
-      var seg = W.UI.segmented(opts, range, function (v) {
-        if (v > 30 && !P.isPremium()) { P.paywall('stats'); W.Router.refresh(); return; }
-        st.ui.statsRange = v; W.Router.refresh();
-      }, { mini: true });
+      var seg = W.UI.segmented(opts, range, function (v) { st.ui.statsRange = v; W.Router.refresh(); }, { mini: true });
       var content = [U.el('div.st-filters', [seg])].concat(build(range, desk));
       if (!desk) content.push(U.el('p.hint', { text: 'En el ordenador verás también horas, prioridades, enfoque, hábitos y tu año entero.' }));
       W.UI.mount(root, head, content);

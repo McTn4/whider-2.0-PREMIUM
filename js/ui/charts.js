@@ -63,13 +63,13 @@ window.Whider = window.Whider || {};
       var max = niceMax(Math.max.apply(null, data.map(function (d) { return d.value; }).concat([1])));
       var unit = o.unit || ['', ''];
       var lab = function (v) { return fmt(v) + (unit[0] ? ' ' + (v === 1 ? unit[0] : unit[1]) : ''); };
-      var wrap = U.el('div.vchart', { attrs: { role: 'img', 'aria-label': o.title || 'Gráfico de columnas' }, style: { '--h': (o.height || 150) + 'px' } });
+      var wrap = U.el('div.vchart', { attrs: { role: 'group', 'aria-label': o.title || 'Gráfico de columnas' }, style: { '--h': (o.height || 150) + 'px' } });
       var grid = U.el('div.vc-grid', [max, max / 2, 0].map(function (v) { return U.el('div.vc-line', [U.el('span', { text: fmt(v) })]); }));
       var cols = U.el('div.vc-cols' + (data.length > 40 ? '.dense' : ''));
       data.forEach(function (d, i) {
         var h = d.value ? Math.max(2, d.value / max * 100) : 0;
         var bar = U.el('i.vc-bar' + (d.emph ? '.emph' : '') + (d.future ? '.future' : ''), { style: { height: h + '%' } });
-        var col = U.el('div.vc-col', { attrs: { tabindex: '0', 'aria-label': (d.name || d.x) + ': ' + lab(d.value) } }, [U.el('div.vc-track', [bar]),
+        var col = U.el('div.vc-col', { attrs: { tabindex: '0', role: 'img', 'aria-label': (d.name || d.x) + ': ' + lab(d.value) } }, [U.el('div.vc-track', [bar]),
           U.el('span.vc-x', { text: !o.every || i % o.every === 0 || i === data.length - 1 ? (d.x || '') : '' })]);
         hover(col, lab(d.value), d.name || d.x);
         cols.appendChild(col);
@@ -89,9 +89,9 @@ window.Whider = window.Whider || {};
       o = o || {};
       var max = Math.max.apply(null, data.map(function (d) { return d.value; }).concat([1]));
       var unit = o.unit || ['', ''];
-      return U.el('div.hb', { attrs: { role: 'img', 'aria-label': o.title || 'Barras' } }, data.map(function (d) {
+      return U.el('div.hb', { attrs: { role: 'group', 'aria-label': o.title || 'Barras' } }, data.map(function (d) {
         var lab = fmt(d.value) + (unit[0] ? ' ' + (d.value === 1 ? unit[0] : unit[1]) : '');
-        var row = U.el('div.hb-row', { attrs: { tabindex: '0', 'aria-label': d.label + ': ' + lab } }, [
+        var row = U.el('div.hb-row', { attrs: { tabindex: '0', role: 'img', 'aria-label': d.label + ': ' + lab } }, [
           U.el('span.hb-label', [d.prio ? W.UI.prio(d.prio) : d.icon ? U.icon(d.icon, 'sm') : null, U.el('span', { text: d.label })]),
           U.el('div.hb-track', [U.el('i' + (d.emph ? '.emph' : ''), { style: { width: (d.value ? Math.max(1.5, d.value / max * 100) : 0) + '%' } })]),
           U.el('b.hb-val', { text: fmt(d.value) })
@@ -184,12 +184,6 @@ window.Whider = window.Whider || {};
       });
       return U.el('div.group.card.ch-card' + (o.wide ? '.wide' : '') + (o.cls ? '.' + o.cls : ''), [
         U.el('div.ch-head', [U.el('div', [U.el('strong', { text: o.title }), o.sub ? U.el('small', { text: o.sub }) : null]), btn]), body]);
-    },
-
-    /** Tarjeta bloqueada (Premium) */
-    locked: function (title, text, feature) {
-      return U.el('div.group.card.ch-card.ch-locked', [U.el('div.ch-head', [U.el('div', [U.el('strong', { text: title }), U.el('small', { text: text })])]),
-        U.el('button.btn.sm.soft', { on: { click: function () { W.Plan.paywall(feature || 'stats'); } } }, [U.icon('gem', 'sm'), 'Desbloquear con Premium'])]);
     },
 
     /** Cifra con variación y mini tendencia. o: { label, value, delta (%), goodUp, spark: [números], sub } */

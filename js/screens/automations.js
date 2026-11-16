@@ -1,10 +1,10 @@
 /**
  * WHIDER · Sistemas
- *  - Sistemas profesionales (Premium): métodos completos que se instalan de un toque
+ *  - Sistemas profesionales: métodos completos que se instalan de un toque
  *    (categorías, filtros, reglas, hábitos y ajustes): GTD, Eisenhower, bloques de tiempo,
  *    1-3-5, revisión semanal, bandeja a cero y Pomodoro.
- *  - Automatizaciones rápidas (gratis): plantillas que se activan con un interruptor.
- *  - Mis reglas (Premium, en el ordenador): «Cuando… Si… Entonces…» con prueba e historial.
+ *  - Automatizaciones rápidas: plantillas que se activan con un interruptor.
+ *  - Mis reglas: «Cuando… Si… Entonces…» con prueba e historial.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -86,7 +86,6 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   function installed(id) { return !!(S().meta.systems || {})[id]; }
   function install(sys) {
-    if (!W.Plan.gate('systems')) return;
     var st = S();
     st.batch(function () { sys.install(); });
     var m = Object.assign({}, st.meta.systems || {}); m[sys.id] = Date.now(); st.setMeta('systems', m);
@@ -124,7 +123,6 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   function editRule(rule) {
-    if (!W.Plan.gate('automations')) return;
     var st = S(), src = rule ? JSON.parse(JSON.stringify(rule)) : { name: '', enabled: true, trigger: { type: 'created', time: '07:00' }, conditions: [], actions: [{ type: 'set_date', value: 'today' }] };
     var d = src;
     var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 60, placeholder: 'Nombre de la regla', 'aria-label': 'Nombre de la regla' } });
@@ -190,7 +188,6 @@ window.Whider.Screens = window.Whider.Screens || {};
         U.el('button.btn.primary', { text: 'Guardar', on: { click: function () {
           d.name = name.value.trim() || 'Mi regla';
           if (!d.actions.length) { W.Toast.show({ text: 'Añade al menos una acción', type: 'danger' }); return; }
-          if (!rule && !W.Plan.gateLimit('rules', st.rules.filter(function (r) { return r.enabled; }).length, 'automations')) return;
           st.saveRule(Object.assign({}, d, rule ? { id: rule.id } : {}));
           W.Audio.success(); s.close();
         } } })] });
@@ -203,8 +200,6 @@ window.Whider.Screens = window.Whider.Screens || {};
     return W.UI.cell({ icon: tp.icon, title: tp.name, sub: tp.desc, right: W.UI.toggle(on, function (v) {
       var cur = A().templateRule(tp.id);
       if (v) {
-        var active = st.rules.filter(function (x) { return x.enabled; }).length;
-        if (!W.Plan.gateLimit('rules', active, 'automations')) { W.Router.refresh(); return; }
         if (cur) st.saveRule({ id: cur.id, enabled: true });
         else st.saveRule(Object.assign({ name: tp.name, enabled: true, template: tp.id }, JSON.parse(JSON.stringify(tp.rule))));
         W.Toast.show({ text: '«' + tp.name + '» activada', icon: 'bolt' });
@@ -213,17 +208,14 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   function ruleCell(r) {
-    var st = S(), act = A().activeRules().indexOf(r) >= 0;
+    var st = S();
     return U.el('div.cell.rule-cell', [
       W.UI.cellIcon(r.trigger.type === 'daily' ? 'clock' : r.trigger.type === 'overdue' ? 'alert' : r.trigger.type === 'completed' ? 'check' : 'plus'),
       U.el('span.cell-main', [U.el('span.cell-title', { text: r.name }), U.el('span.cell-sub', { text: A().describe(r) }),
-        U.el('span.rule-meta', { text: (r.enabled && !act ? 'En pausa: el plan gratuito incluye 2 reglas activas · ' : '') + (r.runs ? U.plural(r.runs, 'vez', 'veces') + (r.lastRun ? ' · última ' + U.fmtRel(r.lastRun - Date.now()) : '') : 'Aún no se ha ejecutado') })]),
+        U.el('span.rule-meta', { text: (r.runs ? U.plural(r.runs, 'vez', 'veces') + (r.lastRun ? ' · última ' + U.fmtRel(r.lastRun - Date.now()) : '') : 'Aún no se ha ejecutado') })]),
       U.el('div.rule-trail', [
         U.el('button.btn.xs.soft', { text: 'Editar', on: { click: function () { editRule(r); } } }),
-        W.UI.toggle(r.enabled, function (v) {
-          if (v && !W.Plan.gateLimit('rules', st.rules.filter(function (x) { return x.enabled; }).length, 'automations')) { W.Router.refresh(); return; }
-          st.saveRule({ id: r.id, enabled: v });
-        }, r.name)
+        W.UI.toggle(r.enabled, function (v) { st.saveRule({ id: r.id, enabled: v }); }, r.name)
       ])
     ]);
   }
@@ -234,7 +226,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     SYSTEMS: SYSTEMS,
     back: function () { if (W.Layout.desktop) return false; W.Router.back(); return true; },
     render: function (root) {
-      var st = S(), desk = W.Layout.desktop, P = W.Plan;
+      var st = S(), desk = W.Layout.desktop;
       var custom = st.rules.filter(function (r) { return !r.template || r.template.indexOf('sys-') === 0; });
       var head = W.UI.header({ title: 'Sistemas', back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } },
         sub: 'Métodos y automatizaciones que trabajan por ti',
@@ -246,16 +238,16 @@ window.Whider.Screens = window.Whider.Screens || {};
         return U.el('div.sys-card' + (done ? '.done' : ''), [
           U.el('div.sys-top', [U.el('span.sys-ic', [U.icon(sys.icon)]), U.el('div', [U.el('strong', { text: sys.name }), U.el('span', { text: sys.desc })])]),
           U.el('ul.sys-gives', sys.gives.map(function (g) { return U.el('li', [U.icon('check', 'xs'), U.el('span', { text: g })]); })),
-          U.el('button.btn.sm.' + (done ? 'ghost' : 'primary'), { on: { click: function () { install(sys); } } }, [P.isPremium() ? null : U.icon('gem', 'sm'), done ? 'Instalado · reinstalar' : 'Instalar'])
+          U.el('button.btn.sm.' + (done ? 'ghost' : 'primary'), { on: { click: function () { install(sys); } } }, [done ? 'Instalado · reinstalar' : 'Instalar'])
         ]);
       }));
-      content.push(W.UI.section({ title: 'Sistemas profesionales', first: true, side: P.isPremium() ? null : U.el('span.premium-chip', [U.icon('gem'), 'Premium']), items: cards }));
+      content.push(W.UI.section({ title: 'Sistemas profesionales', first: true, items: cards }));
       // Plantillas rápidas
       content.push(W.UI.section({ title: 'Automatizaciones rápidas', items: A().TEMPLATES.map(templateCell),
-        footer: P.isPremium() ? 'Se ejecutan solas, también con la app en segundo plano mientras esté abierta.' : 'El plan gratuito incluye 2 automatizaciones activas a la vez.' }));
+        footer: 'Se ejecutan solas, también con la app en segundo plano mientras esté abierta.' }));
       // Mis reglas
       var mine = custom.map(ruleCell);
-      mine.push(W.UI.cell({ icon: 'plus', title: 'Nueva regla', sub: P.isPremium() ? 'Cuando… Si… Entonces…' : 'Reglas a tu medida con Premium', accent: true, chevron: false, onTap: function () { editRule(null); } }));
+      mine.push(W.UI.cell({ icon: 'plus', title: 'Nueva regla', sub: 'Cuando… Si… Entonces…', accent: true, chevron: false, onTap: function () { editRule(null); } }));
       content.push(W.UI.section({ title: 'Mis reglas', side: custom.length ? U.el('small', { text: custom.length }) : null, items: mine }));
       // Historial
       var hist = A().log().slice(0, desk ? 20 : 8);

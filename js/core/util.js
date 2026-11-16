@@ -154,6 +154,14 @@ window.Whider = window.Whider || {};
      * Guarda un archivo: en la app de escritorio pregunta dónde; en el navegador lo descarga.
      * kind: 'csv' · 'json' · 'txt' · 'ics' · 'md'
      */
+    /** Abre un enlace web fuera de la app: navegador del sistema en Android y en el ordenador */
+    openExternal: function (url) {
+      if (!/^https?:\/\//i.test(String(url || ''))) return;
+      var D = window.WhiderDesktop, A = window.WhiderAndroid;
+      if (D && D.openExternal) D.openExternal(url);
+      else if (A && A.openUrl) A.openUrl(url);
+      else window.open(url, '_blank', 'noopener');
+    },
     saveFile: function (name, text, kind) {
       var MIME = { csv: 'text/csv', json: 'application/json', txt: 'text/plain', ics: 'text/calendar', md: 'text/markdown' };
       var D = window.WhiderDesktop;

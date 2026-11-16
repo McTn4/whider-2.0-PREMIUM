@@ -737,7 +737,6 @@ window.Whider = window.Whider || {};
     download: download,
     preview: preview,
     closePreview: closePreview,
-    isPreviewOpen: function () { return !!viewer; },
     /** Sube lo pendiente ahora */
     sync: pump,
     maintain: scheduleMaintain,

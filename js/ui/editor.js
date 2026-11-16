@@ -34,7 +34,6 @@ window.Whider = window.Whider || {};
     for (var i = 0; i < REMIND_OPTS.length; i++) if (REMIND_OPTS[i].value === v) return REMIND_OPTS[i].label;
     return v + ' min antes';
   }
-  function labelOf(list, v) { for (var i = 0; i < list.length; i++) if (list[i].value === v) return list[i].label; return ''; }
   function autosize(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
   function dateLabel(d) {
     if (!d) return '';

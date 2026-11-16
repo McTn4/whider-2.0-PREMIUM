@@ -89,7 +89,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (s.streak) chips.push(U.el('span.hero-chip', [U.icon('flame'), U.el('b', { text: String(s.streak) }), (s.streak === 1 ? ' día' : ' días') + ' de racha']));
     if (s.focusToday) chips.push(U.el('span.hero-chip', [U.icon('timer'), U.el('b', { text: String(s.focusToday) }), ' min']));
     if (!chips.length) chips.push(U.el('span.hero-chip', [U.icon('chart'), s.todayTotal && pct === 100 ? 'Día completado' : 'Ver resumen']));
-    return U.el('button.hero', { attrs: { 'aria-label': 'Ver tu perfil y resumen' }, on: { click: function () { W.Router.go('progress'); } } }, [
+    return U.el('button.hero', { attrs: { type: 'button', title: 'Ver tu perfil y resumen' }, on: { click: function () { W.Router.go('progress'); } } }, [
       ring,
       U.el('span.hero-text', [U.el('strong', { text: line1 }), U.el('span.hero-chips', chips)]),
       U.icon('chev', 'chev')

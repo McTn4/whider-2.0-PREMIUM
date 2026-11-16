@@ -93,16 +93,14 @@ window.Whider.Screens = window.Whider.Screens || {};
     host.firstChild.classList.add('first');
   }
 
-  /** Tarjeta de perfil: foto, nombre, cuenta y plan */
+  /** Tarjeta de perfil: foto, nombre y cuenta */
   function profileCard(st) {
-    var u = W.Auth && W.Auth.user, name = st.displayName(), P = W.Plan;
+    var u = W.Auth && W.Auth.user, name = st.displayName();
     return U.el('div.profile-card', [
       U.el('button.photo-pick', { attrs: { 'aria-label': 'Editar nombre y foto' }, on: { click: function () { W.Profile.edit(); } } }, [W.Profile.avatar('lg'), U.el('span.cam', [U.icon('camera')])]),
       U.el('div.profile-id', [
         U.el('strong', { text: name || 'Tu perfil' }),
-        U.el('span', { text: u && u.email ? u.email : (W.Auth && W.Auth.configured() ? 'Sin cuenta · datos solo en este dispositivo' : 'Datos guardados en este dispositivo') }),
-        U.el('button.plan-pill', { attrs: { type: 'button', title: 'Planes y precios' }, on: { click: function () { P.open(); } } },
-          P.isPremium() ? [U.el('span.premium-chip', [U.icon('gem'), 'Premium']), U.el('span', { text: P.isTrial() ? P.status() : '' })] : [U.el('span.premium-chip.ghost', { text: 'Gratis' }), U.el('span', { text: 'Mejorar a Premium' })])
+        U.el('span', { text: u && u.email ? u.email : (W.Auth && W.Auth.configured() ? 'Sin cuenta · datos solo en este dispositivo' : 'Datos guardados en este dispositivo') })
       ])
     ]);
   }
@@ -116,10 +114,9 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   /** Cuenta: lo que es de tu cuenta, no de las secciones de la app */
   function accountLinks() {
-    var desk = W.Layout.desktop, P = W.Plan;
+    var desk = W.Layout.desktop;
     return W.UI.section({ items: [
-      W.UI.cell({ icon: desk ? 'monitor' : 'phone', title: 'Mis dispositivos', sub: desk ? 'Enfoque compartido con tu móvil' : 'Gestiona el ordenador desde aquí', value: P.isPremium() ? '' : 'Premium', onTap: function () { W.Devices.sheet(); } }),
-      W.UI.cell({ icon: 'gem', title: 'Plan', value: P.label(), onTap: function () { P.open(); } }),
+      W.UI.cell({ icon: desk ? 'monitor' : 'phone', title: 'Mis dispositivos', sub: desk ? 'Enfoque compartido con tu móvil' : 'Gestiona el ordenador desde aquí', onTap: function () { W.Devices.sheet(); } }),
       W.UI.cell({ icon: 'gear', title: 'Ajustes', sub: 'Apariencia, avisos, cuenta y datos', onTap: function () { W.Settings.open(); } })
     ] });
   }

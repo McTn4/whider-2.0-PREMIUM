@@ -2,7 +2,7 @@
  * WHIDER · Fotos de perfil con tu personaje
  *
  * En toda la app (barra lateral, perfil, personas, chats, equipos, bases de datos) cada persona
- * aparece con su personaje: busto con fondo y marco a elegir (algunos de Premium). Quien lo
+ * aparece con su personaje: busto con fondo y marco a elegir. Quien lo
  * prefiera puede usar su foto o solo la inicial (Editar perfil → Foto de perfil).
  */
 window.Whider = window.Whider || {};

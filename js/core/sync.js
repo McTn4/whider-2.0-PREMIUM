@@ -11,9 +11,9 @@
  *  - Registro de hábitos: en cada día gana la marca más reciente (así desmarcar también se sincroniza).
  *  - Borrados: se recuerdan para que no "resuciten" desde otro dispositivo.
  *  - Historial diario, enfoque y récords: se conserva el valor más alto.
- *  - Plan, personaje y enfoque compartido: gana el cambio más reciente; logros: la fecha más antigua.
- * Se sincroniza al abrir, al volver a la app, tras cada cambio y, mientras está abierta, cada
- * minuto (cada 15 segundos con Premium: «sincronización al instante»).
+ *  - Personaje y enfoque compartido: gana el cambio más reciente.
+ * Se sincroniza al abrir, al volver a la app, tras cada cambio y, mientras está a la vista, cada
+ * 15 segundos («sincronización al instante»).
  * Sin conexión no pasa nada: los datos ya están guardados y se suben al volver la red.
  */
 window.Whider = window.Whider || {};
@@ -24,6 +24,8 @@ window.Whider = window.Whider || {};
   var ref = null, notesRef = null, timer = null, poll = null, applying = false, active = false, uid = null, lastPush = 0;
   var dirty = false, inFlight = null, queued = false, firstSyncPromise = null;
   var listeners = [];
+  // Con la app a la vista se mira la nube cada 15 s; un cambio se sube a los 0,6 s
+  var POLL_EVERY = 15000, PUSH_DELAY = 600;
 
   var Sync = {
     status: 'off',       // off · connecting · synced · pending · offline · unverified · error
@@ -129,12 +131,6 @@ window.Whider = window.Whider || {};
       });
 
       var ma = a.meta || {}, mb = b.meta || {};
-      var seen = {};
-      (ma.seenAchievements || []).concat(mb.seenAchievements || []).forEach(function (x) { seen[x] = true; });
-      var achievedAt = {};
-      [ma.achievedAt || {}, mb.achievedAt || {}].forEach(function (m) {
-        Object.keys(m).forEach(function (k) { if (typeof m[k] === 'number' && (!achievedAt[k] || m[k] < achievedAt[k])) achievedAt[k] = m[k]; });
-      });
       var newest = function (x, y) { if (!x) return y || null; if (!y) return x; return (y.at || 0) > (x.at || 0) ? y : x; };
 
       // Amigos, dispositivos y enfoque compartido
@@ -166,7 +162,6 @@ window.Whider = window.Whider || {};
         filters: byId('filters', 'filter:'),
         notes: byId('notes', 'note:'),
         templates: byId('templates', 'tpl:'),
-        plan: newest(a.plan, b.plan),
         character: newest(a.character, b.character),
         social: {
           friends: perKey(soa.friends, sob.friends, 'at'),
@@ -187,8 +182,6 @@ window.Whider = window.Whider || {};
         },
         meta: {
           createdAt: Math.min(ma.createdAt || Date.now(), mb.createdAt || Date.now()),
-          seenAchievements: Object.keys(seen),
-          achievedAt: achievedAt,
           onboarded: !!(ma.onboarded || mb.onboarded)
         },
         sync: {
@@ -238,8 +231,7 @@ window.Whider = window.Whider || {};
       Sync.push(true).then(resolveFirst, resolveFirst);
       clearInterval(poll);
       poll = setInterval(function () {
-        var every = W.Plan && W.Plan.isPremium() ? 15000 : 60000;
-        if (!document.hidden && active && !dirty && Date.now() - lastPush >= every) Sync.push();
+        if (!document.hidden && active && !dirty && Date.now() - lastPush >= POLL_EVERY) Sync.push();
       }, 5000);
       return firstSyncPromise;
     },
@@ -257,7 +249,7 @@ window.Whider = window.Whider || {};
       dirty = true;
       clearTimeout(timer);
       Sync.setStatus('pending');
-      timer = setTimeout(function () { Sync.push(); }, W.Plan && W.Plan.isPremium() ? 600 : 1500);
+      timer = setTimeout(function () { Sync.push(); }, PUSH_DELAY);
     },
 
     /**

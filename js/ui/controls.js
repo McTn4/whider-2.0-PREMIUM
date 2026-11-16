@@ -196,7 +196,7 @@ window.Whider = window.Whider || {};
      */
     monthGrid: function (o) {
       var ws = W.State.settings.weekStart, td = U.today();
-      var g = U.el('div.cal-grid' + (o.slide > 0 ? '.slide-l' : o.slide < 0 ? '.slide-r' : ''), { attrs: { role: 'grid' } });
+      var g = U.el('div.cal-grid' + (o.slide > 0 ? '.slide-l' : o.slide < 0 ? '.slide-r' : ''), { attrs: { role: 'group', 'aria-label': U.fmtMonth(o.y, o.m) } });
       for (var i = 0; i < 7; i++) g.appendChild(U.el('span.cal-wd', { text: U.WEEKDAYS_LETTER[(i + ws) % 7], attrs: { 'aria-hidden': 'true' } }));
       var first = new Date(o.y, o.m, 1), lead = (first.getDay() - ws + 7) % 7;
       var days = new Date(o.y, o.m + 1, 0).getDate();

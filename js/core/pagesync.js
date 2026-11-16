@@ -182,7 +182,7 @@ window.Whider = window.Whider || {};
     if (inFlight) { queued = true; return inFlight; }
     if (navigator.onLine === false) return Promise.resolve();
     lastRun = Date.now();
-    var scopes = [null].concat(W.Plan && W.Plan.isPremium() ? teams() : teams());
+    var scopes = [null].concat(teams());
     inFlight = scopes.reduce(function (pr, team) {
       return pr.then(function () {
         return syncScope(team).catch(function (e) {
@@ -224,7 +224,7 @@ window.Whider = window.Whider || {};
       setTimeout(run, 1200);
       poll = setInterval(function () {
         if (document.hidden || !active) return;
-        var every = W.State.activeScreen === 'notes' ? 15000 : (W.Plan && W.Plan.isPremium() ? 30000 : 60000);
+        var every = W.State.activeScreen === 'notes' ? 15000 : 30000;
         if (Date.now() - lastRun >= every) run();
       }, 5000);
       livePoll = setInterval(livePage, 4000);
@@ -235,7 +235,7 @@ window.Whider = window.Whider || {};
     schedule: function () {
       if (!active) return;
       clearTimeout(timer);
-      timer = setTimeout(run, W.Plan && W.Plan.isPremium() ? 900 : 1800);
+      timer = setTimeout(run, 900);
     },
     now: run,
     /** Borrado definitivo: también desaparece de la nube */

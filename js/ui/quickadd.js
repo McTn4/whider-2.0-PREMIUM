@@ -111,7 +111,7 @@ window.Whider = window.Whider || {};
             manual.date = v || null; if (!v) manual.time = null; drawChips();
           });
         }));
-        var timeChip = chip('clock', time ? U.fmtTime(time) : 'Hora', !!time, function () {});
+        var timeChip = U.el('span.chip' + (time ? '.on' : ''), [U.icon('clock'), U.el('span', { text: time ? U.fmtTime(time) : 'Hora' })]);
         var ti = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': 'Hora' } });
         ti.value = time || '';
         ti.addEventListener('click', function () { try { if (ti.showPicker) ti.showPicker(); } catch (e) { /* lo abre el sistema */ } });

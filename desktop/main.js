@@ -86,7 +86,7 @@ function createWindow(show) {
   const st = prefs.get('window') || {};
   const opts = {
     width: st.width || 1280, height: st.height || 820, minWidth: 420, minHeight: 560,
-    show: false, title: 'WHIDER', backgroundColor: '#050505', autoHideMenuBar: true,
+    show: false, title: 'WHIDER', backgroundColor: '#070708', autoHideMenuBar: true,
     icon: path.join(__dirname, 'assets', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -96,7 +96,7 @@ function createWindow(show) {
     }
   };
   if (visibleBounds(st)) { opts.x = st.x; opts.y = st.y; }
-  if (IS_WIN) Object.assign(opts, { titleBarStyle: 'hidden', titleBarOverlay: { color: '#050505', symbolColor: '#A3A3A3', height: 34 } });
+  if (IS_WIN) Object.assign(opts, { titleBarStyle: 'hidden', titleBarOverlay: { color: '#070708', symbolColor: '#A3A3A3', height: 34 } });
   if (IS_MAC) Object.assign(opts, { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 14, y: 10 } });
 
   win = new BrowserWindow(opts);

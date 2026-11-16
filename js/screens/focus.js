@@ -26,7 +26,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     return Object.assign({ mode: 'work', running: false, endAt: 0, remaining: null, round: 1, taskId: null }, d || {});
   }
   function persist() { try { localStorage.setItem(KEY, JSON.stringify(T)); } catch (e) { /* sin espacio */ } }
-  /** Guarda y lo comparte con tus otros dispositivos (Premium: gestionar el ordenador desde el móvil) */
+  /** Guarda y lo comparte con tus otros dispositivos (gestionar el ordenador desde el móvil y al revés) */
   function share() { T.at = Date.now(); persist(); if (W.Devices) W.Devices.shareFocus(T); }
   /** Llega un enfoque más reciente desde otro dispositivo: se adopta */
   function adoptRemote() {

@@ -144,7 +144,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     return { groups: groups, done: done };
   }
 
-  /* ---------- Tablero (Premium, ordenador): columnas por categoría, prioridad o fecha ---------- */
+  /* ---------- Tablero (ordenador): columnas por categoría, prioridad o fecha ---------- */
   var BOARD_BY = [{ value: 'list', label: 'Categoría' }, { value: 'priority', label: 'Prioridad' }, { value: 'date', label: 'Fecha' }];
   function boardColumns(st, pend, by) {
     var td = U.today(), tm = U.addDays(td, 1), wk = U.addDays(td, 7), cmp = st.compareDeadline;
@@ -262,12 +262,11 @@ window.Whider.Screens = window.Whider.Screens || {};
     var content = [];
     // En el ordenador se añade escribiendo aquí mismo (con la lista o el filtro de esta página)
     var desk = W.Layout.desktop;
-    var layout = desk && st.ui.taskLayout === 'board' && W.Plan.can('board') ? 'board' : 'list';
+    var layout = desk && st.ui.taskLayout === 'board' ? 'board' : 'list';
     if (desk) {
       var by = st.ui.boardBy || (list ? 'priority' : 'list');
       if (list && by === 'list') by = 'priority';
       var tools = [W.UI.segmented([{ value: 'list', label: 'Lista' }, { value: 'board', label: 'Tablero' }], layout, function (val) {
-        if (val === 'board' && !W.Plan.gate('board')) { Screen.render(rootEl); return; }
         st.ui.taskLayout = val; Screen.render(rootEl);
       }, { mini: true })];
       if (layout === 'board') tools.push(W.UI.segmented(BOARD_BY.filter(function (o) { return !(list && o.value === 'list'); }), by, function (val) { st.ui.boardBy = val; Screen.render(rootEl); }, { mini: true }));
@@ -330,7 +329,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 
     var grid = U.el('div.smart-grid', Object.keys(SMART).map(function (id) {
       var m = SMART[id];
-      return U.el('button.smart', { attrs: { 'aria-label': m.title + ': ' + smartCount(st, id) }, on: { click: function () { Screen.open({ type: 'smart', id: id }); } } }, [
+      return U.el('button.smart', { attrs: { type: 'button' }, on: { click: function () { Screen.open({ type: 'smart', id: id }); } } }, [
         U.el('span.smart-top', [W.UI.cellIcon(m.icon), U.el('span.smart-count', { text: smartCount(st, id) })]),
         U.el('span.smart-label', { text: m.title })
       ]);

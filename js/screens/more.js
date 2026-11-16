@@ -1,10 +1,10 @@
 /**
- * WHIDER · «Más» (móvil): todo WHIDER ordenado por importancia
+ * WHIDER · «Más» (móvil): el índice de todo WHIDER
  *
- * Arriba tu perfil con tu personaje. Después, con los mismos grupos que la barra lateral del
- * ordenador: Cuaderno y equipo (Cuaderno, Chats y Personas, con lo que tienes sin leer),
- * Rutinas (Hábitos, Enfoque y Sistemas), Análisis (Estadísticas e Informes) y tu cuenta
- * (Planes y Ajustes).
+ * Arriba tu perfil con tu personaje. Después, en lista y con los mismos grupos que la barra
+ * lateral del ordenador: Cuaderno y equipo (Cuaderno, Chats y Personas, con lo que tienes sin
+ * leer), Rutinas (Hábitos, Enfoque y Sistemas), Análisis (Estadísticas e Informes) y Ajustes.
+ * Una fila por sección con su estado al día: se recorre de un vistazo y sin huecos.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -13,14 +13,12 @@ window.Whider.Screens = window.Whider.Screens || {};
   'use strict';
   var U = W.U, S = function () { return W.State; };
 
-  function tile(o) {
-    var t = U.el('button.mo-tile' + (o.premium && !W.Plan.isPremium() ? '.locked' : ''), { attrs: { type: 'button', 'data-go': o.go || null } }, [
-      U.el('span.mo-ic', [U.icon(o.icon), o.badge ? U.el('span.mo-badge', { text: o.badge > 9 ? '9+' : String(o.badge) }) : null]),
-      U.el('span.mo-t', [U.el('strong', { text: o.label }), o.sub ? U.el('small', { text: o.sub }) : null]),
-      o.premium && !W.Plan.isPremium() ? U.el('span.sb-gem', { attrs: { title: 'Premium' } }, [U.icon('gem')]) : null
-    ]);
-    t.addEventListener('click', function () { if (o.run) o.run(); else W.Router.go(o.go); });
-    return t;
+  function row(o) {
+    return W.UI.cell({
+      icon: o.icon, title: o.label, sub: o.sub, cls: 'mo-row', attrs: o.go ? { 'data-go': o.go } : null,
+      value: o.badge ? U.el('span.mo-badge', { text: o.badge > 9 ? '9+' : String(o.badge), attrs: { 'aria-label': o.badge + ' sin ver' } }) : null,
+      onTap: function () { if (o.run) o.run(); else W.Router.go(o.go); }
+    });
   }
 
   W.Screens.more = {
@@ -32,34 +30,29 @@ window.Whider.Screens = window.Whider.Screens || {};
       var habitsLeft = W.Habits ? W.Habits.list().filter(W.Habits.pendingToday).length : 0;
       var f = W.Screens.focus.status();
       var me = U.el('button.mo-me', { attrs: { type: 'button' }, on: { click: function () { W.Router.go('progress'); } } }, [
-        W.Avatar.me(64, { live: true }),
+        W.Avatar.me(56, { live: true }),
         U.el('span.mo-me-main', [U.el('strong', { text: st.displayName() || 'Tu perfil' }), U.el('small', { text: u && u.email ? u.email : 'Perfil, actividad y marcas' })]),
-        U.el('span.mo-plan' + (W.Plan.isPremium() ? '.on' : ''), [U.icon('gem', 'xs'), W.Plan.isPremium() ? 'Premium' : 'Gratis']),
         U.icon('chev', 'chev')
       ]);
-      var sec = function (title, tiles) { return U.el('div.mo-sec', [U.el('div.sec-h', { text: title }), U.el('div.mo-grid', tiles)]); };
       var pages = W.Pages ? W.Pages.count() : 0;
       W.UI.mount(root, head, [
         me,
         // Mismos grupos y mismo orden que la barra lateral del ordenador
-        sec('Cuaderno y equipo', [
-          tile({ go: 'notes', icon: 'notebook', label: 'Cuaderno', sub: pages ? U.plural(pages, 'página', 'páginas') : 'Páginas, archivos y bases de datos' }),
-          tile({ go: 'chats', icon: 'chat', label: 'Chats', sub: unread ? U.plural(unread, 'sin leer', 'sin leer') : 'Con tus contactos y equipos', badge: unread }),
-          tile({ go: 'friends', icon: 'users', label: 'Personas', sub: reqs ? U.plural(reqs, 'solicitud', 'solicitudes') : 'Amigos, trabajo y equipos', badge: reqs })
-        ]),
-        sec('Rutinas', [
-          tile({ go: 'habits', icon: 'target', label: 'Hábitos', sub: habitsLeft ? 'Te quedan ' + habitsLeft + ' hoy' : 'Rutinas y rachas' }),
-          tile({ go: 'focus', icon: 'timer', label: 'Enfoque', sub: f.running ? f.text + ' · en marcha' : 'Temporizador para concentrarte' }),
-          tile({ go: 'automations', icon: 'system', label: 'Sistemas', sub: 'Métodos y automatizaciones', premium: true })
-        ]),
-        sec('Análisis', [
-          tile({ go: 'stats', icon: 'chart', label: 'Estadísticas', sub: 'Tu progreso' }),
-          tile({ go: 'reports', icon: 'print', label: 'Informes', sub: 'Resúmenes para compartir' })
-        ]),
-        sec('Cuenta', [
-          tile({ go: 'plans', icon: 'gem', label: 'Planes', sub: W.Plan.label() }),
-          tile({ icon: 'gear', label: 'Ajustes', sub: 'Apariencia, avisos y datos', run: function () { W.Settings.open(); } })
-        ])
+        W.UI.section({ header: 'Cuaderno y equipo', items: [
+          row({ go: 'notes', icon: 'notebook', label: 'Cuaderno', sub: pages ? U.plural(pages, 'página', 'páginas') : 'Páginas, archivos y bases de datos' }),
+          row({ go: 'chats', icon: 'chat', label: 'Chats', sub: unread ? U.plural(unread, 'mensaje sin leer', 'mensajes sin leer') : 'Con tus contactos y equipos', badge: unread }),
+          row({ go: 'friends', icon: 'users', label: 'Personas', sub: reqs ? U.plural(reqs, 'solicitud', 'solicitudes') + ' por responder' : 'Amigos, trabajo y equipos', badge: reqs })
+        ] }),
+        W.UI.section({ header: 'Rutinas', items: [
+          row({ go: 'habits', icon: 'target', label: 'Hábitos', sub: habitsLeft ? 'Te ' + (habitsLeft === 1 ? 'queda 1' : 'quedan ' + habitsLeft) + ' hoy' : 'Rutinas y rachas' }),
+          row({ go: 'focus', icon: 'timer', label: 'Enfoque', sub: f.running ? f.text + ' · en marcha' : 'Temporizador para concentrarte' }),
+          row({ go: 'automations', icon: 'system', label: 'Sistemas', sub: 'Métodos y automatizaciones' })
+        ] }),
+        W.UI.section({ header: 'Análisis', items: [
+          row({ go: 'stats', icon: 'chart', label: 'Estadísticas', sub: 'Tu progreso' }),
+          row({ go: 'reports', icon: 'print', label: 'Informes', sub: 'Resúmenes para compartir' })
+        ] }),
+        W.UI.section({ items: [row({ icon: 'gear', label: 'Ajustes', sub: 'Apariencia, avisos, cuenta y datos', run: function () { W.Settings.open(); } })] })
       ]);
     }
   };

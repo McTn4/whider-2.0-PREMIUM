@@ -1,6 +1,6 @@
 /**
  * WHIDER · Ajustes: hoja con páginas (como los ajustes del sistema), abierta desde
- * la foto de perfil. Perfil, cuenta y plan arriba; cada apartado abre su propia página:
+ * la foto de perfil. Perfil y cuenta arriba; cada apartado abre su propia página:
  * apariencia, personalización, personaje, sonidos, avisos, tareas, hábitos, enfoque y datos.
  */
 window.Whider = window.Whider || {};
@@ -8,7 +8,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '8.2.1';
+  var VERSION = '1.0';
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
     { value: 'notes', label: 'Cuaderno' }, { value: 'chats', label: 'Chats' }, { value: 'habits', label: 'Hábitos' }, { value: 'focus', label: 'Enfoque' }
@@ -38,56 +38,12 @@ window.Whider = window.Whider || {};
     return pill;
   }
 
-  /**
-   * Línea de la versión. Siete toques seguidos abren las opciones del propietario: solo para quien
-   * publica la app (ningún usuario las necesita y no aparecen en ningún menú).
-   */
-  function versionLine(nav) {
-    var P = W.Plan, taps = 0, last = 0, test = P.isTestForced();
-    var line = U.el('p.version' + (test ? '.test' : ''), { attrs: { title: 'WHIDER ' + VERSION } }, [
+  /** Línea de la versión, al final de los ajustes */
+  function versionLine() {
+    return U.el('p.version', [
       U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
-      'WHIDER ' + VERSION + ' · ' + P.label() + (test ? ' · Pagos de prueba' : '')
+      'WHIDER ' + VERSION
     ]);
-    line.addEventListener('click', function () {
-      var now = Date.now();
-      taps = now - last < 1200 ? taps + 1 : 1; last = now;
-      if (taps < 7) return;
-      taps = 0;
-      ownerSheet(nav);
-    });
-    return line;
-  }
-
-  /**
-   * Opciones del propietario: Premium para siempre en su cuenta, sin pagar, con el código de fundador
-   * (se comprueba con su SHA-256 de js/config.js) y, cuando haya enlace de pago real, el modo de
-   * pruebas de pago de este dispositivo.
-   */
-  function ownerSheet(nav) {
-    var P = W.Plan, body = [], s;
-    if (P.isLifetime()) {
-      body.push(W.UI.section({ header: 'Premium para siempre', items: [W.UI.cell({ icon: 'gem', title: 'Activo en esta cuenta', sub: 'Sin pagar y sin fecha de fin, en todos tus dispositivos.' })] }));
-    } else {
-      var input = U.el('input.input', { attrs: { type: 'password', placeholder: 'Código de fundador', 'aria-label': 'Código de fundador', autocapitalize: 'characters', autocomplete: 'off', spellcheck: 'false' } });
-      var go = function () {
-        if (!input.value.trim()) { input.focus(); return; }
-        if (P.redeem(input.value)) { s.close(); nav.refresh(); W.Router.refresh(); return; }
-        input.classList.add('shake'); setTimeout(function () { input.classList.remove('shake'); }, 450);
-        W.Toast.show({ text: 'Ese código no es válido', type: 'danger' });
-      };
-      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go(); } });
-      body.push(W.UI.section({ header: 'Premium para siempre', items: U.el('div.group', [U.el('div.cell.col', [U.el('div.pl-code', [input, U.el('button.btn.primary', { text: 'Activar', on: { click: go } })])])]),
-        footer: 'Con tu código de fundador, sin pagar y sin fecha de fin. Se guarda en tu cuenta y vale en todos tus dispositivos.' }));
-    }
-    if (P.canTestCheckout()) {
-      body.push(W.UI.section({ header: 'Pagos', items: [toggleCell({ icon: 'gem', title: 'Pagos de prueba en este dispositivo', sub: '«Suscribirse» abre tu enlace de prueba de Stripe en vez del real', value: P.isTestForced(), onChange: function (on) {
-        P.setTestCheckout(on);
-        W.Toast.show(on ? { text: 'Pagos de prueba activados en este dispositivo', icon: 'gem', type: 'success' } : { text: 'Pagos de prueba desactivados', icon: 'gem' });
-        nav.refresh();
-      } })] }));
-    }
-    s = W.Sheet.open({ title: 'Opciones del propietario', className: 'owner', body: body });
-    if (input) setTimeout(function () { try { input.focus(); } catch (e) { /* sin foco */ } }, 350);
   }
 
   /* ---------- Páginas ---------- */
@@ -104,8 +60,7 @@ window.Whider = window.Whider || {};
         else W.Profile.edit(function () { nav.refresh(); });
       }
     });
-    var P = W.Plan, desk = W.Layout.desktop;
-    var planCell = W.UI.cell({ icon: 'gem', title: 'Plan', sub: P.status(), value: P.label(), onTap: function () { nav.close(); setTimeout(function () { P.open(); }, 200); } });
+    var desk = W.Layout.desktop;
     /*
      * Por orden de uso y con nombre: tu cuenta arriba; cómo se ve y cómo suena; cómo te avisa y
      * cómo organiza tu trabajo; lo de este ordenador; y al final privacidad y datos.
@@ -113,10 +68,10 @@ window.Whider = window.Whider || {};
     return {
       title: 'Ajustes',
       body: [
-        U.el('div.group', [profileCell, planCell]),
+        U.el('div.group', [profileCell]),
         W.UI.section({ header: 'Cómo se ve y suena', items: [
           W.UI.cell({ icon: 'type', title: 'Apariencia', value: 'Texto ' + labelOf(TEXT, cfg.textSize).toLowerCase(), onTap: function () { nav.push(appearancePage); } }),
-          W.UI.cell({ icon: 'palette', title: 'Personalización', value: desk ? (P.isPremium() ? 'Barra, Hoy y calendario' : 'Premium') : 'Qué ves en Hoy', onTap: function () { nav.push(customPage); } }),
+          W.UI.cell({ icon: 'palette', title: 'Personalización', value: desk ? 'Barra, Hoy y calendario' : 'Qué ves en Hoy', onTap: function () { nav.push(customPage); } }),
           W.UI.cell({ icon: 'smile', title: 'Tu personaje', value: W.Character.config().name, onTap: function () { nav.close(); setTimeout(function () { W.Character.edit(); }, 200); } }),
           W.UI.cell({ icon: 'sound', title: 'Sonidos y vibración', value: cfg.sound ? 'Activados' : 'Desactivados', onTap: function () { nav.push(soundsPage); } })
         ] }),
@@ -135,7 +90,7 @@ window.Whider = window.Whider || {};
           W.UI.cell({ icon: 'hand', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
           W.UI.cell({ icon: 'shield', title: 'Datos', sub: 'Copia de seguridad, importar y exportar', onTap: function () { nav.push(dataPage); } })
         ] }),
-        versionLine(nav)
+        versionLine()
       ]
     };
   }
@@ -324,22 +279,15 @@ window.Whider = window.Whider || {};
     };
   }
 
-  /** Personalización: básica en el móvil; avanzada (Premium) en el ordenador */
+  /** Personalización: básica en el móvil; completa en el ordenador */
   function customPage(nav) {
-    var st = S(), cfg = st.settings, dk = cfg.desk, P = W.Plan, desk = W.Layout.desktop;
+    var st = S(), cfg = st.settings, dk = cfg.desk, desk = W.Layout.desktop;
     var basic = W.UI.section({ header: 'Qué ves en Hoy', items: [
       toggleCell({ icon: 'smile', title: 'Tu personaje', value: cfg.homeBuddy, onChange: function (v) { st.setSetting('homeBuddy', v); } }),
       toggleCell({ icon: 'target', title: 'Hábitos de hoy', value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })
     ] });
     // Móvil: solo lo que se decide aquí (Apariencia y Tu personaje ya están en la portada de Ajustes)
-    if (!desk) return { title: 'Personalización', body: [basic, U.el('p.hint', { text: 'En el ordenador, con Premium, también eliges la barra lateral, los bloques junto a Hoy y el calendario.' })] };
-    if (!P.isPremium()) {
-      return { title: 'Personalización', body: [
-        U.el('div.pw-hero', [U.el('span.pw-gem', [U.icon('palette')]), U.el('strong', { text: 'Personalización avanzada' }), U.el('p', { text: P.FEATURES.custom.text })]),
-        U.el('div.pw-actions', [U.el('button.btn.primary.block', { on: { click: function () { nav.close(); setTimeout(function () { P.paywall('custom'); }, 150); } } }, [U.icon('gem', 'sm'), 'Desbloquear con Premium'])]),
-        basic
-      ] };
-    }
+    if (!desk) return { title: 'Personalización', body: [basic, U.el('p.hint', { text: 'En el ordenador también eliges la barra lateral, los bloques junto a Hoy y el calendario.' })] };
     var saveDesk = function () { st.saveSettings('settings:desk'); };
     var sb = dk.sidebar;
     var sbItem = function (key, label, icon) { return toggleCell({ icon: icon, title: label, value: sb[key] !== false, onChange: function (v) { sb[key] = v; saveDesk(); } }); };
@@ -568,9 +516,13 @@ window.Whider = window.Whider || {};
   }
 
   function privacyPage() {
+    var base = ((window.WHIDER_CONFIG || {}).links || {}).base || 'https://whider-red.vercel.app';
     return {
       title: 'Privacidad',
-      body: [U.el('div.legal', { html: W.PRIVACY_HTML })]
+      body: [
+        U.el('div.legal', { html: W.PRIVACY_HTML }),
+        W.UI.group([W.UI.cell({ icon: 'external', title: 'Política de privacidad completa', sub: 'Qué datos se guardan, para qué y tus derechos', onTap: function () { U.openExternal(base + '/privacidad/'); } })])
+      ]
     };
   }
 
@@ -579,7 +531,7 @@ window.Whider = window.Whider || {};
     '<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>' +
     '<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros.</p>' +
     '<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>' +
-    '<p><b>Tus derechos.</b> Puedes cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
+    '<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
     '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>';
 
   var PAGES = { desktop: desktopPage, account: accountPage, appearance: appearancePage, tasks: tasksPage, lists: listsPage, alerts: alertsPage, focus: focusPage, start: startPage,

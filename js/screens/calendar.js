@@ -183,7 +183,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) shiftMonth(st, dx < 0 ? 1 : -1);
     });
     grid.addEventListener('pointercancel', function () { sx = null; });
-    var title = U.el('button.cal-title', { attrs: { 'aria-label': 'Elegir mes' } }, [U.fmtMonth(cm.y, cm.m), U.icon('down')]);
+    var title = U.el('button.cal-title', { attrs: { type: 'button', 'aria-label': U.fmtMonth(cm.y, cm.m) + ', elegir mes' } }, [U.fmtMonth(cm.y, cm.m), U.icon('down')]);
     title.addEventListener('click', function () { pickMonth(st, title); });
     var card = U.el('div.group.cal', [
       U.el('div.cal-head', [title, U.el('div.cal-arrows', [
@@ -454,7 +454,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var weeks = Math.ceil((lead + new Date(cm.y, cm.m + 1, 0).getDate()) / 7);
     var data = collect(st, start, U.addDays(start, weeks * 7 - 1));
     var grid = U.el('div.mgrid' + (slideDir > 0 ? '.slide-l' : slideDir < 0 ? '.slide-r' : ''), {
-      attrs: { role: 'grid', 'aria-label': U.fmtMonth(cm.y, cm.m) },
+      attrs: { role: 'group', 'aria-label': U.fmtMonth(cm.y, cm.m) },
       style: { gridTemplateRows: 'auto repeat(' + weeks + ', minmax(108px, 1fr))', gridTemplateColumns: 'repeat(' + nCols + ', minmax(0, 1fr))' }
     });
     slideDir = 0;
@@ -467,8 +467,8 @@ window.Whider.Screens = window.Whider.Screens || {};
         var items = real.map(function (t) { return { t: t, proj: false }; }).concat(proj.map(function (p) { return { t: p.base, proj: true }; }));
         var pend = real.filter(function (t) { return !t.done; }).length;
         var cell = U.el('div.mg-cell' + (inMonth ? '' : '.out') + (ds === td ? '.today' : '') + (ds === sel ? '.selected' : '') + (ds < td ? '.past' : ''), {
-          attrs: { role: 'gridcell', 'data-date': ds, 'aria-selected': ds === sel ? 'true' : 'false',
-            'aria-label': U.fmtLong(ds) + (pend ? ', ' + U.plural(pend, 'pendiente', 'pendientes') : '') }
+          attrs: { role: 'group', 'data-date': ds, 'aria-current': ds === td ? 'date' : null,
+            'aria-label': U.fmtLong(ds) + (pend ? ', ' + U.plural(pend, 'pendiente', 'pendientes') : '') + (ds === sel ? ', elegido' : '') }
         });
         cell.appendChild(U.el('div.mg-top', [U.el('span.mg-num', { text: d.getDate() === 1 ? d.getDate() + ' ' + U.MONTHS[d.getMonth()].slice(0, 3) : d.getDate() }),
           U.el('button.mg-add', { attrs: { type: 'button', 'aria-label': 'Nueva tarea el ' + U.fmtLong(ds).toLowerCase(), title: 'Nueva tarea este día' },
@@ -686,7 +686,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       ]),
       U.el('button.btn.ghost.sm.ct-today', { attrs: { type: 'button', title: 'Ir a hoy (T)' }, on: { click: function () { select(st, td); rerender(); } } }, ['Hoy']),
       week || day ? U.el('h2.ct-title', { text: U.cap(title) }) : (function () {
-        var b = U.el('button.ct-title', { attrs: { type: 'button', 'aria-label': 'Elegir mes' } }, [title, U.icon('down')]);
+        var b = U.el('button.ct-title', { attrs: { type: 'button', 'aria-label': title + ', elegir mes' } }, [title, U.icon('down')]);
         b.addEventListener('click', function () { pickMonth(st, b); });
         return b;
       })()

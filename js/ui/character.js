@@ -2,8 +2,8 @@
  * WHIDER · Tu personaje
  *
  * Un compañero propio, dibujado en SVG en blanco y negro como el resto de la app:
- *  - Se personaliza: cuerpo, tono, ojos, boca, mejillas, cabeza (pelo, gorros…) y accesorios.
- *    Todo está disponible; los personajes, acabados, efectos, fondos y marcos Premium van con el plan.
+ *  - Se personaliza: especie, acabado, ojos, boca, mejillas, cabeza (pelo, gorros…), accesorios,
+ *    efectos, y el fondo y el marco de la foto de perfil. Todo está disponible para todos.
  *  - Tiene estados de ánimo según tu día: contento, orgulloso (todo hecho), concentrado
  *    (enfoque en marcha), preocupado (muchas vencidas), dormido (de noche) y de fiesta.
  *  - Al tocarlo reacciona y te dice algo útil (con una acción a mano cuando tiene sentido).
@@ -23,15 +23,13 @@ window.Whider = window.Whider || {};
     body: [
       { id: 'gota', name: 'Gota' }, { id: 'cubo', name: 'Cubo' }, { id: 'capsula', name: 'Cápsula' }, { id: 'gato', name: 'Gato' },
       { id: 'oso', name: 'Oso' }, { id: 'nube', name: 'Nube' }, { id: 'buho', name: 'Búho' }, { id: 'zorro', name: 'Zorro' },
-      { id: 'fantasma', name: 'Fantasma' }, { id: 'robot', name: 'Robot' },
-      { id: 'gema', name: 'Gema', premium: true }, { id: 'dragon', name: 'Dragón', premium: true, star: true }, { id: 'astronauta', name: 'Astronauta', premium: true, star: true },
-      { id: 'fenix', name: 'Fénix', premium: true, star: true }, { id: 'unicornio', name: 'Unicornio', premium: true, star: true }
+      { id: 'fantasma', name: 'Fantasma' }, { id: 'robot', name: 'Robot' }
     ],
     tone: [
       { id: 'blanco', name: 'Blanco' }, { id: 'perla', name: 'Perla' }, { id: 'grafito', name: 'Grafito' },
-      { id: 'negro', name: 'Noche' }, { id: 'cromo', name: 'Cromo', premium: true }, { id: 'platino', name: 'Platino', premium: true, star: true },
-      { id: 'obsidiana', name: 'Obsidiana', premium: true, star: true }, { id: 'holo', name: 'Holográfico', premium: true, star: true },
-      { id: 'cristal', name: 'Cristal', premium: true }, { id: 'marmol', name: 'Mármol', premium: true }
+      { id: 'negro', name: 'Noche' }, { id: 'cromo', name: 'Cromo' }, { id: 'platino', name: 'Platino' },
+      { id: 'obsidiana', name: 'Obsidiana' }, { id: 'holo', name: 'Holográfico' },
+      { id: 'cristal', name: 'Cristal' }, { id: 'marmol', name: 'Mármol' }
     ],
     eyes: [
       { id: 'puntos', name: 'Puntos' }, { id: 'grandes', name: 'Grandes' }, { id: 'felices', name: 'Felices' },
@@ -45,24 +43,24 @@ window.Whider = window.Whider || {};
       { id: 'nada', name: 'Nada' }, { id: 'antena', name: 'Antena' }, { id: 'flequillo', name: 'Flequillo' },
       { id: 'gorro', name: 'Gorro' }, { id: 'lazo', name: 'Lazo' }, { id: 'brote', name: 'Brote' },
       { id: 'auriculares', name: 'Auriculares' }, { id: 'cresta', name: 'Cresta' },
-      { id: 'birrete', name: 'Birrete' }, { id: 'corona', name: 'Corona' }, { id: 'halo', name: 'Halo', premium: true }
+      { id: 'birrete', name: 'Birrete' }, { id: 'corona', name: 'Corona' }, { id: 'halo', name: 'Halo' }
     ],
     acc: [
       { id: 'nada', name: 'Nada' }, { id: 'gafas', name: 'Gafas' }, { id: 'bufanda', name: 'Bufanda' },
-      { id: 'pajarita', name: 'Pajarita' }, { id: 'medalla', name: 'Medalla' }, { id: 'capa', name: 'Capa', premium: true },
-      { id: 'solares', name: 'Gafas de sol', premium: true }, { id: 'collar', name: 'Collar de perlas', premium: true }
+      { id: 'pajarita', name: 'Pajarita' }, { id: 'medalla', name: 'Medalla' }, { id: 'capa', name: 'Capa' },
+      { id: 'solares', name: 'Gafas de sol' }, { id: 'collar', name: 'Collar de perlas' }
     ],
     fx: [
-      { id: 'nada', name: 'Ninguno' }, { id: 'brillo', name: 'Destellos' }, { id: 'aura', name: 'Aura', premium: true, star: true },
-      { id: 'orbita', name: 'Órbita', premium: true, star: true }, { id: 'estela', name: 'Polvo de estrellas', premium: true }, { id: 'rayos', name: 'Rayos de luz', premium: true }
+      { id: 'nada', name: 'Ninguno' }, { id: 'brillo', name: 'Destellos' }, { id: 'aura', name: 'Aura' },
+      { id: 'orbita', name: 'Órbita' }, { id: 'estela', name: 'Polvo de estrellas' }, { id: 'rayos', name: 'Rayos de luz' }
     ],
     bg: [
       { id: 'liso', name: 'Liso' }, { id: 'puntos', name: 'Puntos' }, { id: 'degradado', name: 'Degradado' }, { id: 'rayas', name: 'Rayas' },
-      { id: 'estrellas', name: 'Estrellas', premium: true }, { id: 'holo', name: 'Holográfico', premium: true, star: true }
+      { id: 'estrellas', name: 'Estrellas' }, { id: 'holo', name: 'Holográfico' }
     ],
     frame: [
       { id: 'nada', name: 'Sin marco' }, { id: 'aro', name: 'Aro' }, { id: 'doble', name: 'Doble aro' }, { id: 'laurel', name: 'Laurel' },
-      { id: 'diamante', name: 'Diamante', premium: true, star: true }, { id: 'animado', name: 'Aro de luz', premium: true, star: true }, { id: 'corona', name: 'Con corona', premium: true }
+      { id: 'diamante', name: 'Diamante' }, { id: 'animado', name: 'Aro de luz' }, { id: 'corona', name: 'Con corona' }
     ]
   };
   var MOODS = { happy: 'Contento', proud: 'Orgulloso', focus: 'Concentrado', worried: 'Preocupado', sleepy: 'Dormido', party: 'De fiesta' };
@@ -72,7 +70,6 @@ window.Whider = window.Whider || {};
     cubo: { d: 'M49 30h22c12 0 22 10 22 22v28c0 12-10 22-22 22H49c-12 0-22-10-22-22V52c0-12 10-22 22-22z', top: 30, ey: 62, ex: 13, my: 79, arm: [27, 76], feet: 101 },
     capsula: { d: 'M60 20c14 0 25 11 25 25v34c0 14-11 25-25 25S35 93 35 79V45c0-14 11-25 25-25z', top: 20, ey: 55, ex: 10.5, my: 71, arm: [35, 74], feet: 103 },
     nube: { d: 'M34 103c-8 0-12-6-12-14V76c0-8 5-14 12-16 1-10 10-17 20-15 4-6 11-8 17-5 8-4 18 1 20 10 7 3 11 9 11 16v13c0 8-4 14-12 14H34z', top: 34, ey: 67, ex: 13, my: 83, arm: [24, 80], feet: 102 },
-    gema: { d: 'M60 25c3 0 5 1 7 2l20 11c4 2 6 6 6 10v30c0 4-2 8-6 10L67 99c-4 2-10 2-14 0L33 88c-4-2-6-6-6-10V48c0-4 2-8 6-10l20-11c2-1 4-2 7-2z', top: 25, ey: 62, ex: 12, my: 78, arm: [28, 74], feet: 100 },
     gato: { d: 'M60 30C82 30 94 48 94 70c0 21-15 34-34 34S26 91 26 70c0-22 12-40 34-40z', top: 30, ey: 64, ex: 12.5, my: 81, arm: [27, 78], feet: 103,
       back: function (b, t, f) { return '<path d="M31 50 34.5 20 54 34z M89 50 85.5 20 66 34z" fill="' + f + '" stroke="' + t.line + '" stroke-width="1.6" stroke-linejoin="round"/><path d="M37 41 38.6 28 47.5 35z M83 41 81.4 28 72.5 35z" fill="' + t.shade + '"/><path d="M88 97c14 2 20-9 15-21" fill="none" stroke="' + f + '" stroke-width="7" stroke-linecap="round"/>'; },
       front: function (b, t) { return '<path d="M57.4 75.5h5.2L60 78.5z" fill="' + t.ink + '"/><g stroke="' + t.ink + '" stroke-width="1.3" stroke-linecap="round" opacity=".45"><path d="M36 77 23 74M36 81 22 82M37 85 25 89M84 77l13-3M84 81l14 1M83 85l12 4"/></g>'; } },
@@ -89,19 +86,7 @@ window.Whider = window.Whider || {};
     fantasma: { d: 'M60 26c19 0 32 15 32 36v38c0 3-3 4-5 2l-5-5-6 6c-1.5 1.5-3.5 1.5-5 0l-6-6-5 5c-1.5 1.5-3.5 1.5-5 0l-6-6-5 5c-2 2-5 1-5-2V62c0-21 13-36 32-36z', top: 26, ey: 58, ex: 11.5, my: 74, arm: [28, 70], feet: 0, nofeet: true, cls: 'float' },
     robot: { d: 'M42 30h36c9 0 16 7 16 16v40c0 10-8 18-18 18H44c-10 0-18-8-18-18V46c0-9 7-16 16-16z', top: 30, ey: 62, ex: 11, my: 79, arm: [26, 77], feet: 103, ink: '#F2F2F2',
       back: function (b, t) { return '<rect x="19" y="56" width="9" height="16" rx="3" fill="' + t.shade + '"/><rect x="92" y="56" width="9" height="16" rx="3" fill="' + t.shade + '"/>'; },
-      front: function () { return '<rect x="35" y="49" width="50" height="38" rx="12" fill="#121212" stroke="rgba(255,255,255,.22)" stroke-width="1.4"/><rect x="51" y="92" width="18" height="5" rx="2.5" fill="#2A2A2A"/><circle cx="55" cy="94.5" r="1.2" fill="#FFF"/><circle cx="60" cy="94.5" r="1.2" fill="#9A9A9A"/><circle cx="65" cy="94.5" r="1.2" fill="#FFF"/>'; } },
-    dragon: { d: 'M60 30C83 30 95 49 95 71c0 20-15 33-35 33S25 91 25 71c0-22 12-41 35-41z', top: 30, ey: 63, ex: 12.5, my: 82, arm: [26, 78], feet: 103, premium: true,
-      back: function (b, t, f) { return '<path d="M31 64C15 50 6 53 3 61c6-1 10 2 12 6-5 0-8 3-8 7 6-2 11 0 15 4zM89 64c16-14 25-11 28-3-6-1-10 2-12 6 5 0 8 3 8 7-6-2-11 0-15 4z" fill="' + t.shade + '" stroke="' + t.line + '" stroke-width="1.2" stroke-linejoin="round"/><path d="M86 101c14 4 24-2 26-13" fill="none" stroke="' + f + '" stroke-width="6" stroke-linecap="round"/><path d="M108 86l8-7 1 10z" fill="' + f + '"/><path d="M41 37c-7-8-7-16-3-23 1 7 5 12 11 15zM79 37c7-8 7-16 3-23-1 7-5 12-11 15z" fill="' + t.item + '"/><path d="M50 31l4-7 4 6M62 30l4-7 4 7" fill="' + t.shade + '"/>'; },
-      front: function (b, t) { return '<path d="M50 88h20M48 94h24M51 100h18" stroke="' + t.shade + '" stroke-width="2" stroke-linecap="round" opacity=".8"/><circle cx="57" cy="76" r="1.1" fill="' + t.ink + '"/><circle cx="63" cy="76" r="1.1" fill="' + t.ink + '"/>'; } },
-    astronauta: { d: 'M44 32h32c10 0 18 8 18 18v34c0 11-9 20-20 20H46c-11 0-20-9-20-20V50c0-10 8-18 18-18z', top: 32, ey: 61, ex: 11, my: 77, arm: [26, 79], feet: 103, premium: true,
-      back: function (b, t) { return '<rect x="22" y="44" width="76" height="50" rx="14" fill="' + t.shade + '" stroke="' + t.line + '" stroke-width="1.2"/>'; },
-      front: function () { return '<rect x="50" y="91" width="20" height="8" rx="3" fill="#1E1E1E"/><circle cx="55" cy="95" r="1.4" fill="#FFF"/><circle cx="60" cy="95" r="1.4" fill="#8A8A8A"/><circle cx="65" cy="95" r="1.4" fill="#FFF"/>'; },
-      over: function () { return '<circle cx="60" cy="64" r="27" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.8)" stroke-width="2.4"/><path d="M41 54a21 21 0 0 1 14-12" fill="none" stroke="#FFF" stroke-width="3" stroke-linecap="round" opacity=".85"/><circle cx="76" cy="47" r="2" fill="#FFF" opacity=".8"/>'; } },
-    fenix: { d: 'M60 30C83 30 94 49 94 71c0 20-15 33-34 33S26 91 26 71c0-22 11-41 34-41z', top: 30, ey: 63, ex: 12, my: 81, arm: [27, 78], feet: 103, premium: true,
-      back: function (b, t, f, id) { return '<g filter="url(#F)"><path d="M30 72C14 66 8 52 12 38c3 8 8 12 14 13-4-6-4-14 0-20 3 10 9 17 16 21zM90 72c16-6 22-20 18-34-3 8-8 12-14 13 4-6 4-14 0-20-3 10-9 17-16 21z" fill="url(#Fx)"/><path d="M60 31c-5-8-3-17 4-21-1 7 2 11 6 14-2-6 0-11 5-14 0 9-4 16-9 21zM56 31c-4-6-3-12 0-16 0 5 2 9 5 11z" fill="url(#Fx)"/><path d="M47 101c-6 8-14 10-20 8 6-3 9-7 10-12zM73 101c6 8 14 10 20 8-6-3-9-7-10-12z" fill="url(#Fx)"/></g>'; } },
-    unicornio: { d: 'M60 30C82 30 94 48 94 70c0 21-15 34-34 34S26 91 26 70c0-22 12-40 34-40z', top: 30, ey: 64, ex: 12.5, my: 81, arm: [27, 78], feet: 103, premium: true,
-      back: function (b, t, f) { return '<path d="M35 46 37 26 50 36z M85 46 83 26 70 36z" fill="' + f + '" stroke="' + t.line + '" stroke-width="1.4" stroke-linejoin="round"/><path d="M42 33c-9 4-13 13-11 23 4-4 8-5 12-4-4 4-5 10-2 16 2-6 6-9 11-10" fill="' + t.item + '" opacity=".85"/>'; },
-      over: function () { return '<g filter="url(#F)"><path d="M60 5l6.5 25h-13z" fill="url(#Pt)" stroke="#BDBDBD" stroke-width="1" stroke-linejoin="round"/><path d="M55.6 24.5l8.2-2.4M56.8 18.5l6.5-1.9M58 12.6l4.2-1.2" stroke="#8A8A8A" stroke-width="1.3" stroke-linecap="round"/></g>'; } }
+      front: function () { return '<rect x="35" y="49" width="50" height="38" rx="12" fill="#121212" stroke="rgba(255,255,255,.22)" stroke-width="1.4"/><rect x="51" y="92" width="18" height="5" rx="2.5" fill="#2A2A2A"/><circle cx="55" cy="94.5" r="1.2" fill="#FFF"/><circle cx="60" cy="94.5" r="1.2" fill="#9A9A9A"/><circle cx="65" cy="94.5" r="1.2" fill="#FFF"/>'; } }
   };
   function light(t) { return t.ink === '#111111' || t.ink === '#0B0B0B'; }
   var TONES = {
@@ -117,18 +102,12 @@ window.Whider = window.Whider || {};
     marmol: { body: 'url(#Mb)', shade: '#A8A8A8', ink: '#111111', line: 'rgba(0,0,0,.1)', item: '#1E1E1E', gloss: .55, solid: '#E6E6E6' }
   };
 
-  /* ---------- Requisitos y desbloqueos ---------- */
+  /* ---------- Catálogo: lo que existe ---------- */
   function find(cat, id) { var list = CATALOG[cat] || []; for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
-  /** { ok, why } para un objeto del catálogo */
-  function access(item) {
-    if (!item) return { ok: false, why: '' };
-    if (item.premium && !(W.Plan && W.Plan.isPremium())) return { ok: false, why: 'Premium', premium: true };
-    return { ok: true, why: '' };
-  }
-  /** Configuración actual (lo bloqueado se sustituye por lo básico) */
+  /** Configuración actual (lo que ya no existe en el catálogo vuelve a lo básico) */
   function config(raw) {
     var c = Object.assign({}, DEFAULT, raw || S().character || {});
-    CATS.forEach(function (k) { if (!access(find(k, c[k])).ok) c[k] = DEFAULT[k]; });
+    CATS.forEach(function (k) { if (!find(k, c[k])) c[k] = DEFAULT[k]; });
     return c;
   }
 
@@ -226,7 +205,6 @@ window.Whider = window.Whider || {};
       '<linearGradient id="Ho" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#F2F2F2"/><stop offset=".3" stop-color="#9E9E9E"/><stop offset=".5" stop-color="#FFFFFF"/><stop offset=".7" stop-color="#8E8E8E"/><stop offset="1" stop-color="#EDEDED"/>' +
         '<animateTransform attributeName="gradientTransform" type="translate" values="-1 0;1 0;-1 0" dur="6s" repeatCount="indefinite"/></linearGradient>' +
       '<pattern id="Mb" width="60" height="60" patternUnits="userSpaceOnUse"><rect width="60" height="60" fill="#ECECEC"/><path d="M-5 18c12-6 20 4 32-2s18-10 33-4M-4 44c10 2 16-6 28-2s22 8 36 0M20 -4c2 14-6 20 2 34s4 22 10 34" fill="none" stroke="#B0B0B0" stroke-width="1.2" opacity=".8"/><path d="M8 30c6-2 10 2 16 0" stroke="#8C8C8C" stroke-width=".8" fill="none"/></pattern>' +
-      '<linearGradient id="Fx" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#7A7A7A"/><stop offset=".6" stop-color="#E6E6E6"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>' +
       '<radialGradient id="Au"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".45"/><stop offset=".6" stop-color="#FFFFFF" stop-opacity=".12"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>' +
       '<linearGradient id="Ry" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".5"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient></defs>';
     var fill = t.body;
@@ -260,7 +238,7 @@ window.Whider = window.Whider || {};
     var view = o.crop ? '14 6 92 92' : '0 0 120 120';
     var html = '<svg class="ch-svg mood-' + mood + (o.still ? ' still' : '') + '" viewBox="' + view + '" width="' + (o.size || 96) + '" height="' + (o.size || 96) + '" aria-hidden="true">' + parts.join('') + '</svg>';
     // Cada dibujo con sus propios degradados (varios personajes en la misma pantalla)
-    html = html.replace(/id="(G|F|Pt|Ob|Ho|Mb|Fx|Au|Ry)"/g, 'id="' + id + '$1"').replace(/url\(#(G|F|Pt|Ob|Ho|Mb|Fx|Au|Ry)\)/g, 'url(#' + id + '$1)');
+    html = html.replace(/id="(G|F|Pt|Ob|Ho|Mb|Au|Ry)"/g, 'id="' + id + '$1"').replace(/url\(#(G|F|Pt|Ob|Ho|Mb|Au|Ry)\)/g, 'url(#' + id + '$1)');
     void solid;
     return U.el('span.ch-wrap', { html: html }).firstChild;
   }
@@ -272,7 +250,7 @@ window.Whider = window.Whider || {};
           : '<path d="M' + p[0] + ' ' + p[1] + 'l2 4 4 .5-3 2.6 1 4-4-2.2-4 2.2 1-4-3-2.6 4-.5z" fill="#FFF" style="--i:' + i + '"/>';
     }).join('') + '</g>';
   }
-  /** Efectos Premium alrededor del personaje */
+  /** Efectos alrededor del personaje */
   function fxSvg(kind, behind) {
     if (behind) {
       if (kind === 'aura') return '<circle class="ch-aura" cx="60" cy="66" r="50" fill="url(#Au)"/>';
@@ -418,22 +396,14 @@ window.Whider = window.Whider || {};
     name.addEventListener('input', function () { draft.name = name.value.trim(); });
     var grid = U.el('div.be-grid');
     var option = function (cat, it) {
-      var acc = access(it), cfg = Object.assign({}, draft); cfg[cat] = it.id;
+      var cfg = Object.assign({}, draft); cfg[cat] = it.id;
       var on = draft[cat] === it.id;
       var preview = (cat === 'bg' || cat === 'frame') && W.Avatar ? W.Avatar.buddy(cfg, 58) : svg({ size: 58, cfg: cfg, mood: 'happy', still: true });
-      var b = U.el('button.be-opt' + (on ? '.on' : '') + (acc.ok ? '' : '.locked') + (it.star ? '.star' : ''), { attrs: { type: 'button', 'aria-pressed': on ? 'true' : 'false', title: acc.ok ? it.name : it.name + ' · ' + acc.why } }, [
+      var b = U.el('button.be-opt' + (on ? '.on' : ''), { attrs: { type: 'button', 'aria-pressed': on ? 'true' : 'false', title: it.name } }, [
         preview,
-        U.el('span.be-name', { text: it.name }),
-        it.star ? U.el('span.be-star', { attrs: { title: 'Premium' } }, [U.icon('gem')]) : null,
-        acc.ok ? null : U.el('span.be-lock', [U.icon(acc.premium ? 'gem' : 'lock'), U.el('span', { text: acc.why })])
+        U.el('span.be-name', { text: it.name })
       ]);
-      b.addEventListener('click', function () {
-        if (!acc.ok) {
-          if (acc.premium) W.Plan.paywall('items');
-          return;
-        }
-        draft[cat] = it.id; W.Audio.select(); drawStage(); drawGrid();
-      });
+      b.addEventListener('click', function () { draft[cat] = it.id; W.Audio.select(); drawStage(); drawGrid(); });
       return b;
     };
     var drawGrid = function () {
@@ -448,8 +418,8 @@ window.Whider = window.Whider || {};
     var tabs = W.UI.segmented(TABS, tab, function (v) { tab = v; drawGrid(); });
     var randomize = function () {
       Object.keys(CATALOG).filter(function (cat) { return cat !== 'bg' && cat !== 'frame'; }).forEach(function (cat) {
-        var open = CATALOG[cat].filter(function (it) { return access(it).ok; });
-        draft[cat] = open[Math.floor(Math.random() * open.length)].id;
+        var all = CATALOG[cat];
+        draft[cat] = all[Math.floor(Math.random() * all.length)].id;
       });
       draft.cheeks = Math.random() > .4;
       W.Audio.boop(); drawStage(); drawGrid();
@@ -480,7 +450,6 @@ window.Whider = window.Whider || {};
     MOODS: MOODS,
     DEFAULT: DEFAULT,
     config: config,
-    access: access,
     svg: svg,
     node: node,
     mood: mood,

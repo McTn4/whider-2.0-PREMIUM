@@ -17,8 +17,8 @@ window.Whider = window.Whider || {};
     html.setAttribute('data-density', cfg.density);
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
     html.setAttribute('data-contrast', cfg.contrast === 'high' ? 'high' : 'normal');
-    // Personalización avanzada (ordenador, Premium): contenido a todo el ancho
-    html.setAttribute('data-wide', cfg.desk && cfg.desk.wide && W.Plan && W.Plan.isPremium() ? 'true' : 'false');
+    // Personalización del ordenador: contenido a todo el ancho
+    html.setAttribute('data-wide', cfg.desk && cfg.desk.wide ? 'true' : 'false');
     // El tamaño de texto se aplica antes de pintar en el siguiente arranque
     try { localStorage.setItem('whider.ui', JSON.stringify({ t: cfg.textSize })); } catch (e) { /* opcional */ }
     W.Profile.refreshAll();
@@ -121,12 +121,24 @@ window.Whider = window.Whider || {};
     if (Object.keys(patch).length) S.setProfile(patch, { stamp: false });
   }
 
+  /*
+   * Enlace https://…/#cuenta (página de privacidad y Google Play: «eliminar tu cuenta sin la app»):
+   * en cuanto hay sesión se abre Ajustes → Cuenta, donde está «Eliminar la cuenta».
+   */
+  var wantsAccount = /^#\/?cuenta$/.test(location.hash || '');
+  function openAccountIfAsked() {
+    if (!wantsAccount || !W.Auth.user || !W.Auth.isVerified()) return;
+    wantsAccount = false;
+    setTimeout(function () { if (!W.Settings.isOpen()) W.Settings.open('account'); }, 400);
+  }
+
   function onUser(user) {
     if (user) {
       var wasOpen = W.AuthScreen.isOpen();
       W.Sync.start(user).then(function () {
         adoptGoogleProfile(user);
         if (W.Auth.isVerified()) {
+          openAccountIfAsked();
           if (W.Invite) W.Invite.retryPending();
           if (W.People && W.People.ready()) { W.People.publish(); W.People.poll(true); }
           if (W.Chat) W.Chat.refreshList();
@@ -213,12 +225,25 @@ window.Whider = window.Whider || {};
     });
   }
 
+  /** Android: la primera vez, el texto sigue el tamaño de letra del sistema (después manda Ajustes) */
+  function adoptSystemFontScale() {
+    var b = window.WhiderAndroid;
+    if (!b || typeof b.fontScale !== 'function' || S.meta.fontScaleSeen) return;
+    var fs = 1;
+    try { fs = +b.fontScale() || 1; } catch (e) { fs = 1; }
+    S.setMeta('fontScaleSeen', true);
+    if (S.settings.textSize !== 'm') return;
+    if (fs >= 1.3) S.setSetting('textSize', 'xl');
+    else if (fs >= 1.12) S.setSetting('textSize', 'l');
+  }
+
   function init() {
     if (migrateFromFileOrigin()) return;
+    adoptSystemFontScale();
     applyAppearance();
 
     S.subscribe(function (reason) {
-      if (/^settings|^profile|^plan/.test(reason)) applyAppearance();
+      if (/^settings|^profile/.test(reason)) applyAppearance();
       W.Router.refresh();
       W.Notify.emitBadge();
       if (reason === 'done' || reason === 'focus') scheduleLateWork(reason);
@@ -231,8 +256,6 @@ window.Whider = window.Whider || {};
     W.Keys.init();
     W.Sidebar.init();
     W.Auto.init();
-    W.Plan.check();
-    W.Plan.initPurchases();
     W.People.init();
     W.Chat.init();
     W.Devices.init();

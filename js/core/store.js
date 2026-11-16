@@ -19,7 +19,6 @@ window.Whider = window.Whider || {};
     records: 'whider.records.v1',   // Marcas automáticas y personales
     habits: 'whider.habits.v1',     // Hábitos y su registro diario
     notes: 'whider.notes.v1',       // Apuntes
-    plan: 'whider.plan.v1',         // Plan (Gratis o Premium)
     character: 'whider.character.v1', // Tu personaje
     social: 'whider.social.v1',     // Amigos, dispositivos y enfoque compartido
     templates: 'whider.templates.v1', // Plantillas de un toque (acciones rápidas)
@@ -28,6 +27,8 @@ window.Whider = window.Whider || {};
     sync: 'whider.sync.v1'          // Marcas de tiempo y borrados para la sincronización
   };
   var ALL_KEYS = Object.keys(KEYS).map(function (k) { return KEYS[k]; });
+  // Claves de versiones anteriores que ya no se usan (planes y pagos): se borran al arrancar
+  var RETIRED_KEYS = ['whider.plan.v1', 'whider.payPending', 'whider.payTest'];
 
   /*
    * Colores de versiones anteriores. Desde la 4.4 la interfaz es en blanco y negro y no los usa,
@@ -282,10 +283,11 @@ window.Whider = window.Whider || {};
   var tasksBefore = tasks.length;
   tasks = purgeSamples(tasks, syncMeta.deleted);
   var purgedOnLoad = tasks.length !== tasksBefore;
-  var meta = Object.assign({ onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [], owner: null, guest: false }, read(KEYS.meta) || {});
+  var meta = Object.assign({ onboarded: false, createdAt: Date.now(), celebrated: null, owner: null, guest: false }, read(KEYS.meta) || {});
+  // Restos de versiones anteriores (logros y planes): ya no se usan
+  delete meta.seenAchievements; delete meta.achievedAt; delete meta.trialEndSeen;
   var focusLog = read(KEYS.focus) || {};
   var profile = read(KEYS.profile) || {};
-  if (!Array.isArray(meta.seenAchievements)) meta.seenAchievements = [];
 
   function emptyRecords() {
     return { best: {}, history: [], custom: [] };
@@ -416,22 +418,9 @@ window.Whider = window.Whider || {};
   }
   function cleanNotes(arr) { return (Array.isArray(arr) ? arr : []).map(cleanNote).filter(Boolean); }
 
-  /* ---------- Plan, personaje, amigos y dispositivos ---------- */
-  var FREE_PLAN = { tier: 'free', source: null, until: null, trialUsed: false, code: null, test: false, at: 0 };
-  function cleanPlan(p) {
-    if (!p || typeof p !== 'object') return clone(FREE_PLAN);
-    var source = p.source === 'trial' || p.source === 'code' || p.source === 'purchase' ? p.source : null;
-    return {
-      tier: p.tier === 'premium' ? 'premium' : 'free',
-      source: source,
-      until: typeof p.until === 'number' ? p.until : null,
-      trialUsed: !!p.trialUsed,
-      code: typeof p.code === 'string' ? p.code.slice(0, 12) : null,
-      // Premium pagado con un pago de prueba de Stripe (solo tiene sentido con source 'purchase')
-      test: source === 'purchase' && !!p.test,
-      at: typeof p.at === 'number' ? p.at : 0
-    };
-  }
+  /* ---------- Personaje, amigos y dispositivos ---------- */
+  // Especies retiradas en la 1.0: quien tuviera una vuelve a la de siempre
+  var RETIRED_BODIES = { gema: 1, dragon: 1, astronauta: 1, fenix: 1, unicornio: 1 };
   function cleanCharacter(c) {
     var out = {};
     if (c && typeof c === 'object') Object.keys(c).forEach(function (k) {
@@ -441,6 +430,7 @@ window.Whider = window.Whider || {};
       else if (typeof v === 'number' && isFinite(v)) out[k] = v;
       else if (typeof v === 'boolean') out[k] = v;
     });
+    if (out.body && RETIRED_BODIES[out.body]) delete out.body;
     if (typeof out.at !== 'number') out.at = 0;
     return out;
   }
@@ -510,11 +500,15 @@ window.Whider = window.Whider || {};
   var habitLog = cleanHabitLog(storedHabits.log);
   var rules = cleanRules(read(KEYS.rules));
   var notes = cleanNotes(read(KEYS.notes));
-  var planData = cleanPlan(read(KEYS.plan));
+  RETIRED_KEYS.forEach(function (k) {
+    var has = false;
+    try { has = localStorage.getItem(k) != null; } catch (e) { /* bloqueado */ }
+    if (!has && bridge()) { try { has = !!bridge().storeGet(k); } catch (e) { /* sin puente */ } }
+    if (has) remove(k);
+  });
   var character = cleanCharacter(read(KEYS.character));
   var social = cleanSocial(read(KEYS.social));
   var templates = cleanTemplates(read(KEYS.templates));
-  if (!meta.achievedAt || typeof meta.achievedAt !== 'object') meta.achievedAt = {};
   var filters = cleanFilters(read(KEYS.filters));
 
   var subscribers = [];
@@ -557,7 +551,6 @@ window.Whider = window.Whider || {};
     rules: rules,
     filters: filters,
     notes: notes,
-    plan: planData,
     character: character,
     social: social,
     templates: templates,
@@ -596,7 +589,6 @@ window.Whider = window.Whider || {};
       write(KEYS.rules, State.rules);
       write(KEYS.filters, State.filters);
       write(KEYS.notes, State.notes);
-      write(KEYS.plan, State.plan);
       write(KEYS.character, State.character);
       write(KEYS.social, State.social);
       write(KEYS.templates, State.templates);
@@ -617,9 +609,9 @@ window.Whider = window.Whider || {};
         tasks: State.tasks, lists: State.lists, settings: State.settings,
         focus: focusLog, doneLog: doneLog, records: State.records,
         habits: State.habits, habitLog: State.habitLog, rules: State.rules, filters: State.filters,
-        notes: State.notes, plan: State.plan, character: State.character, social: State.social, templates: State.templates,
+        notes: State.notes, character: State.character, social: State.social, templates: State.templates,
         profile: { name: profile.name || '', email: profile.email || '', photo: profile.photo || '', photoURL: profile.photoURL || '', avatar: profile.avatar || '' },
-        meta: { createdAt: State.meta.createdAt, seenAchievements: State.meta.seenAchievements, achievedAt: State.meta.achievedAt, onboarded: !!State.meta.onboarded },
+        meta: { createdAt: State.meta.createdAt, onboarded: !!State.meta.onboarded },
         sync: State.syncMeta
       };
     },
@@ -642,7 +634,6 @@ window.Whider = window.Whider || {};
       State.rules = cleanRules(snap.rules);
       State.filters = cleanFilters(snap.filters);
       State.notes = cleanNotes(snap.notes);
-      if (snap.plan) State.plan = cleanPlan(snap.plan);
       if (snap.character) State.character = cleanCharacter(snap.character);
       if (snap.social) State.social = cleanSocial(snap.social);
       State.templates = cleanTemplates(snap.templates);
@@ -658,8 +649,6 @@ window.Whider = window.Whider || {};
       }
       if (snap.meta) {
         if (snap.meta.createdAt) State.meta.createdAt = Math.min(State.meta.createdAt || Date.now(), snap.meta.createdAt);
-        if (Array.isArray(snap.meta.seenAchievements)) State.meta.seenAchievements = snap.meta.seenAchievements;
-        if (snap.meta.achievedAt && typeof snap.meta.achievedAt === 'object') State.meta.achievedAt = Object.assign({}, snap.meta.achievedAt);
         if (snap.meta.onboarded) State.meta.onboarded = true;
       }
       // Si llegaron tareas de ejemplo de la nube, se borran y el borrado se sube enseguida
@@ -675,9 +664,9 @@ window.Whider = window.Whider || {};
       State.tasks = []; State.lists = cleanLists(null); State.settings = clone(DEFAULT_SETTINGS);
       focusLog = {}; doneLog = {}; State.records = emptyRecords();
       State.habits = []; State.habitLog = {}; State.rules = []; State.filters = [];
-      State.notes = []; State.plan = clone(FREE_PLAN); State.character = cleanCharacter(null); State.social = cleanSocial(null); State.templates = [];
+      State.notes = []; State.character = cleanCharacter(null); State.social = cleanSocial(null); State.templates = [];
       State.syncMeta = { deleted: {}, settingsAt: 0, listsAt: 0, profileAt: 0 };
-      State.meta = { onboarded: false, createdAt: Date.now(), celebrated: null, seenAchievements: [], achievedAt: {}, owner: null, guest: false };
+      State.meta = { onboarded: false, createdAt: Date.now(), celebrated: null, owner: null, guest: false };
       State.save();
       State.notify('reset');
     },
@@ -793,13 +782,6 @@ window.Whider = window.Whider || {};
       State.notify(t.done ? 'done' : 'undone');
       return t;
     },
-    toggleSubtask: function (id, subId) {
-      var t = State.find(id);
-      if (!t) return;
-      t.subtasks.forEach(function (s) { if (s.id === subId) s.done = !s.done; });
-      t.updatedAt = Date.now();
-      State.notify('update');
-    },
     removeTask: function (id) {
       var idx = -1;
       for (var i = 0; i < State.tasks.length; i++) if (State.tasks[i].id === id) { idx = i; break; }
@@ -832,13 +814,6 @@ window.Whider = window.Whider || {};
       t.warnedAt = null; t.remindedAt = null; t.updatedAt = Date.now();
       State.notify('update');
     },
-    clearCompleted: function () {
-      var n = State.tasks.filter(function (t) { return t.done; }).length;
-      State.tasks.forEach(function (t) { if (t.done) State.markDeleted(t.id); });
-      State.tasks = State.tasks.filter(function (t) { return !t.done; });
-      State.notify('clear');
-      return n;
-    },
     resetAll: function () {
       State.tasks.forEach(function (t) { State.markDeleted(t.id); });
       State.tasks = [];
@@ -853,7 +828,6 @@ window.Whider = window.Whider || {};
       if (W.Files) W.Files.resetAll();
       State.syncMeta.resetAt = Date.now();
       State.meta.celebrated = null;
-      State.meta.seenAchievements = [];
       State.notify('reset');
     },
 
@@ -883,18 +857,9 @@ window.Whider = window.Whider || {};
     pending: function () { return State.tasks.filter(function (t) { return !t.done; }); },
     forDate: function (d) { return State.tasks.filter(function (t) { return t.date === d; }); },
     todayTasks: function () { return State.forDate(U.today()); },
-    overdueWarnings: function () {
-      var now = Date.now();
-      return State.tasks.filter(function (t) { return t.warn && isOverdue(t, now); });
-    },
     overdueAll: function () {
       var now = Date.now();
       return State.tasks.filter(function (t) { return isOverdue(t, now); });
-    },
-    upcomingWarnings: function () {
-      var now = Date.now();
-      return State.tasks.filter(function (t) { return t.warn && !t.done && !isOverdue(t, now); })
-        .sort(State.compareDeadline);
     },
     compareDeadline: function (a, b) {
       var da = a.date ? U.deadlineTs(a.date, a.time) : Infinity;
@@ -905,16 +870,6 @@ window.Whider = window.Whider || {};
     comparePriority: function (a, b) {
       var r = PRIORITIES[a.highlight].rank - PRIORITIES[b.highlight].rank;
       return r || State.compareDeadline(a, b);
-    },
-    /** Siguiente tarea relevante: vencida más antigua o la próxima con plazo, si no la de más prioridad */
-    nextTask: function () {
-      var p = State.pending().filter(function (t) { return !t.date || t.date <= U.today(); });
-      if (!p.length) p = State.pending();
-      return p.sort(function (a, b) {
-        var ao = isOverdue(a) ? 0 : 1, bo = isOverdue(b) ? 0 : 1;
-        if (ao !== bo) return ao - bo;
-        return State.compareDeadline(a, b);
-      })[0] || null;
     },
 
     /* ---------- Enfoque ---------- */
@@ -1141,15 +1096,6 @@ window.Whider = window.Whider || {};
       for (var i = 0; i < State.notes.length; i++) if (State.notes[i].id === id) return State.notes[i];
       return null;
     },
-    saveNote: function (n) {
-      var existing = n.id ? State.getNote(n.id) : null;
-      var c = cleanNote(Object.assign({}, existing || {}, n, { id: n.id || U.uid('n'), createdAt: existing ? existing.createdAt : Date.now(), updatedAt: Date.now() }));
-      if (!c) return existing ? (State.removeNote(existing.id), null) : null;
-      if (existing) Object.keys(c).forEach(function (k) { existing[k] = c[k]; }); else State.notes.push(c);
-      delete State.syncMeta.deleted['note:' + c.id];
-      State.notify('notes');
-      return existing || c;
-    },
     removeNote: function (id) {
       var n = State.getNote(id);
       if (!n) return null;
@@ -1157,19 +1103,6 @@ window.Whider = window.Whider || {};
       State.markDeleted('note:' + id);
       State.notify('notes');
       return n;
-    },
-    restoreNote: function (n) {
-      if (!n || State.getNote(n.id)) return;
-      delete State.syncMeta.deleted['note:' + n.id];
-      n.updatedAt = Date.now();
-      State.notes.push(n);
-      State.notify('notes');
-    },
-
-    /* ---------- Plan ---------- */
-    setPlan: function (p) {
-      State.plan = cleanPlan(Object.assign({}, State.plan, p, { at: Date.now() }));
-      State.notify('plan');
     },
 
     /* ---------- Personaje ---------- */

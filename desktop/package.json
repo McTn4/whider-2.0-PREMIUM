@@ -1,7 +1,7 @@
 {
   "name": "whider-desktop",
   "productName": "WHIDER",
-  "version": "8.2.1",
+  "version": "1.0.0",
   "description": "WHIDER para ordenador: tareas, calendario, avisos y enfoque.",
   "main": "main.js",
   "author": "McTn4",

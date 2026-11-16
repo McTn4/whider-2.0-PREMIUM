@@ -32,7 +32,7 @@ window.Whider = window.Whider || {};
   var DAY = [
     { id: 'habits', label: 'Hábitos', icon: 'target', key: '7', opt: 'habits' },
     { id: 'focus', label: 'Enfoque', icon: 'timer', key: '8', opt: 'focus' },
-    { id: 'automations', label: 'Sistemas', icon: 'system', opt: 'automations', premium: 'systems' }
+    { id: 'automations', label: 'Sistemas', icon: 'system', opt: 'automations' }
   ];
   var TOOLS = [
     { id: 'stats', label: 'Estadísticas', icon: 'chart', key: '9', opt: 'stats' },
@@ -88,7 +88,6 @@ window.Whider = window.Whider || {};
   function count(n, strong) { return n && (showCounts || strong) ? U.el('span.sb-count' + (strong ? '.strong' : ''), { text: n > 99 ? '99+' : String(n) }) : null; }
 
   function navItem(st, n, on, extra) {
-    if (!extra && n.premium && W.Plan && !W.Plan.isPremium()) extra = U.el('span.sb-gem', { attrs: { title: 'Premium' } }, [U.icon('gem')]);
     return U.el('button.sb-item' + (on ? '.active' : ''), {
       attrs: { 'aria-current': on ? 'page' : null, title: n.label + (n.key ? ' · ' + n.key : ''), 'data-go': n.id },
       on: { click: function () { go(n.id); } }
@@ -216,13 +215,10 @@ window.Whider = window.Whider || {};
       lists
     ]));
     if (filtersSec) el.appendChild(filtersSec);
-    var P = W.Plan;
-    if (P && !P.isPremium()) el.appendChild(U.el('button.sb-premium', { attrs: { title: 'Planes y precios' }, on: { click: function () { P.open(); } } }, [
-      U.el('span.sb-premium-ic', [U.icon('gem')]), U.el('span', [U.el('strong', { text: 'Hazte Premium' }), U.el('small', { text: P.canTrial() ? P.PRICES.trialDays + ' días gratis' : 'Sistemas, comunidad y más' })])]));
     el.appendChild(U.el('div.sb-foot', [
       U.el('button.sb-profile' + (active === 'progress' ? '.active' : ''), { attrs: { title: 'Perfil y resumen · P' }, on: { click: function () { W.Router.go('progress'); } } }, [
         W.Profile.avatar(),
-        U.el('span.sb-who', [U.el('strong', [name || 'Tu perfil', P && P.isPremium() ? U.el('span.premium-chip.mini', [U.icon('gem')]) : null]), U.el('small', { text: sync })])
+        U.el('span.sb-who', [U.el('strong', { text: name || 'Tu perfil' }), U.el('small', { text: sync })])
       ]),
       U.el('button.nav-icon.sb-gear', { attrs: { 'aria-label': 'Ajustes', title: 'Ajustes · ' + W.Layout.keys(',') }, on: { click: function () { W.Settings.open(); } } }, [U.icon('gear')])
     ]));

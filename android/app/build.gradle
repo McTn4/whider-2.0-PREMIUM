@@ -2,16 +2,22 @@ plugins {
     id 'com.android.application'
 }
 
+// Clave de subida a Google Play (solo en la compilación de GitHub, desde sus secretos; nunca en el repositorio)
+def uploadKeystore = System.getenv('WHIDER_UPLOAD_KEYSTORE')
+def hasUploadKey = uploadKeystore != null && !uploadKeystore.isEmpty() && file(uploadKeystore).exists()
+
 android {
     namespace 'com.whider.app'
-    compileSdk 34
+    // Google Play exige Android 16 (API 36) para apps nuevas y actualizaciones desde el 31 de agosto de 2026
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.whider.app"
         minSdk 24
-        targetSdk 34
-        versionCode 821
-        versionName "8.2.1"
+        targetSdk 36
+        // 1.0.0: primera versión para Google Play (el código sigue por encima de las 8.x ya instaladas)
+        versionCode 1000
+        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -26,6 +32,14 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        if (hasUploadKey) {
+            upload {
+                storeFile file(uploadKeystore)
+                storePassword System.getenv('WHIDER_UPLOAD_STORE_PASSWORD')
+                keyAlias System.getenv('WHIDER_UPLOAD_KEY_ALIAS')
+                keyPassword System.getenv('WHIDER_UPLOAD_KEY_PASSWORD')
+            }
+        }
     }
 
     buildTypes {
@@ -33,6 +47,8 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
+            // Paquete para Google Play (AAB). Sin la clave de subida se genera sin firmar.
+            if (hasUploadKey) signingConfig signingConfigs.upload
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }

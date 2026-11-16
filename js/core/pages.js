@@ -806,10 +806,6 @@ window.Whider = window.Whider || {};
       children(id).filter(function (ch) { return m.kind !== 'db'; }).forEach(function (ch) { Pages.duplicate(ch.id, copy.id); });
       return copy;
     },
-    /** Una subpágina nueva dentro de otra, con su bloque de enlace */
-    newSubpage: function (parentId, o) {
-      return Pages.create(Object.assign({ parent: parentId }, o || {}));
-    },
     newDb: newDb,
 
     /* Bases de datos */

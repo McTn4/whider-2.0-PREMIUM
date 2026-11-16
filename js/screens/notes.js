@@ -192,7 +192,6 @@ window.Whider.Screens = window.Whider.Screens || {};
       });
       return;
     }
-    if (!W.Plan.gate('community')) return;
     W.Sheet.choose({ title: 'Compartir «' + P().title(m) + '» con', options: teams().map(function (t) { return { value: t.id, label: t.name, icon: t.icon }; }) }).then(function (sid) {
       if (!sid) return;
       [P().get(id)].concat(P().descendants(id)).forEach(function (x) { P().update(x.id, { team: sid }); });
@@ -256,7 +255,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     return out;
   }
   function section(title, items, action) {
-    return U.el('div.pt-sec', [U.el('div.pt-h', [U.el('span', { text: title }), action || null]), U.el('div.pt-list', { attrs: { role: 'tree' } }, items)]);
+    // Árbol solo si hay páginas (un árbol sin elementos no es válido para los lectores de pantalla)
+    var tree = items.some(function (n) { return n && n.getAttribute && n.getAttribute('role') === 'treeitem'; });
+    return U.el('div.pt-sec', [U.el('div.pt-h', [U.el('span', { text: title }), action || null]), U.el('div.pt-list', { attrs: { role: tree ? 'tree' : null, 'aria-label': tree ? title : null } }, items)]);
   }
   function drawTree() {
     if (!treeEl) return;
@@ -287,7 +288,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       var items = [];
       P().children(null, t.id).forEach(function (m) { items = items.concat(treeItem(m, 0)); });
       treeEl.appendChild(section(t.name, items.length ? items : [U.el('div.pt-none', { text: 'Aún no hay páginas del equipo' })],
-        U.el('button.pt-h-add', { attrs: { type: 'button', 'aria-label': 'Nueva página del equipo', title: 'Nueva página del equipo' }, on: { click: function (e) { if (W.Plan.gate('community')) newMenu(e.currentTarget, { team: t.id }); } } }, [U.icon('plus')])));
+        U.el('button.pt-h-add', { attrs: { type: 'button', 'aria-label': 'Nueva página del equipo', title: 'Nueva página del equipo' }, on: { click: function (e) { newMenu(e.currentTarget, { team: t.id }); } } }, [U.icon('plus')])));
     });
     var trashN = P().trash().length;
     treeEl.appendChild(U.el('div.pt-foot', [
@@ -481,7 +482,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (mine.length) content.push(W.UI.section({ title: 'Mis páginas', items: U.el('div.group.pt-list.mobile', mine) }));
     teams().forEach(function (t) {
       var items = []; P().children(null, t.id).forEach(function (m) { items = items.concat(treeItem(m, 0)); });
-      content.push(W.UI.section({ title: t.name, side: U.el('button.btn.xs.soft', { on: { click: function () { if (W.Plan.gate('community')) newMenu(null, { team: t.id }); } } }, [U.icon('plus', 'sm'), 'Nueva']), items: items.length ? U.el('div.group.pt-list.mobile', items) : [W.UI.cell({ title: 'Aún no hay páginas del equipo', sub: 'Crea una y editadla entre todos' })] }));
+      content.push(W.UI.section({ title: t.name, side: U.el('button.btn.xs.soft', { on: { click: function () { newMenu(null, { team: t.id }); } } }, [U.icon('plus', 'sm'), 'Nueva']), items: items.length ? U.el('div.group.pt-list.mobile', items) : [W.UI.cell({ title: 'Aún no hay páginas del equipo', sub: 'Crea una y editadla entre todos' })] }));
     });
     content.push(W.UI.section({ title: 'Plantillas', items: U.el('div.pg-strip', P().TEMPLATES.map(function (t) {
       return U.el('button.pg-tpl', { attrs: { type: 'button' }, on: { click: function () { create({ template: t.id }); } } }, [U.el('span.pg-tpl-ic', [U.icon(t.icon)]), U.el('strong', { text: t.name }), U.el('small', { text: t.desc })]);

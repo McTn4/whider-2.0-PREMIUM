@@ -9,6 +9,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -20,6 +21,8 @@ import android.os.VibratorManager;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
@@ -41,6 +44,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.credentials.ClearCredentialStateRequest;
 import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
@@ -78,7 +86,8 @@ public class MainActivity extends AppCompatActivity {
     /*
      * La app se sirve desde un origen HTTPS local (WebViewAssetLoader). Así funcionan
      * IndexedDB, las cuentas (Firebase) y la copia sin conexión de forma fiable.
-     * Las versiones anteriores usaban file://; la primera vez se migran sus datos.
+     * Las versiones anteriores usaban file://; al actualizar desde una de ellas se migran sus datos
+     * (en una instalación nueva no hay nada que migrar y el acceso a archivos queda cerrado).
      */
     private static final String ASSET_HOST = "appassets.androidplatform.net";
     private static final String APP_URL = "https://" + ASSET_HOST + "/assets/www/index.html";
@@ -87,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String STORE = "whider_store";
     private static final String PREF_MIGRATED = "migrated_file_origin";
     private static final String PREF_ASKED_NOTIF = "asked_notifications";
+    /** Fondo de la app (el mismo que --bg en css/tokens.css): se ve detrás de las barras del sistema */
+    private static final int APP_BG = 0xFF070708;
     private static final int REQ_NOTIFICATIONS = 4021;
     private static final int REQ_CAMERA = 4022;
     /** Petición de cámara de la web (escáner de QR) esperando el permiso de Android */
@@ -166,26 +177,53 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
+        // De borde a borde (obligatorio desde Android 15): la app dibuja detrás de las barras del sistema
+        // y aparta el contenido con sus márgenes; el teclado encoge la vista como antes adjustResize.
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat bars = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        bars.setAppearanceLightStatusBars(false);
+        bars.setAppearanceLightNavigationBars(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) getWindow().setNavigationBarContrastEnforced(false);
+
         webView = new WebView(this);
-        webView.setBackgroundColor(0xFF050505);
+        webView.setBackgroundColor(APP_BG);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setVerticalScrollBarEnabled(false);
         webView.setHorizontalScrollBarEnabled(false);
-        setContentView(webView);
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(APP_BG);
+        root.addView(webView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        setContentView(root);
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets sys = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            v.setPadding(sys.left, sys.top, sys.right, Math.max(sys.bottom, ime.bottom));
+            return WindowInsetsCompat.CONSUMED;
+        });
+        ViewCompat.requestApplyInsets(root);
+
+        // Instalación nueva: no hay datos de versiones con file:// que migrar
+        SharedPreferences nativePrefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        boolean migrated = nativePrefs.getBoolean(PREF_MIGRATED, false);
+        if (!migrated && isFreshInstall()) {
+            nativePrefs.edit().putBoolean(PREF_MIGRATED, true).apply();
+            migrated = true;
+        }
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(true);
+        // Solo hace falta leer file:// para migrar los datos de una versión muy antigua
+        settings.setAllowFileAccess(!migrated);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        // La app tiene su propio ajuste de tamaño de texto: el tamaño de fuente del
-        // sistema no debe descuadrar el diseño, que ya se adapta a la pantalla.
+        // La app tiene su propio ajuste de tamaño de texto (Ajustes → Apariencia): la primera vez lo elige
+        // según el tamaño de letra del sistema (fontScale), sin escalar a ciegas y descuadrar el diseño.
         settings.setTextZoom(100);
 
         assetLoader = new WebViewAssetLoader.Builder()
@@ -262,11 +300,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        boolean migrated = getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(PREF_MIGRATED, false);
         if (!migrated) webView.loadUrl(LEGACY_URL);          // Copia los datos de la versión anterior y vuelve
         else if (savedInstanceState != null) webView.restoreState(savedInstanceState);
         else webView.loadUrl(APP_URL);
         handleLaunchIntent(getIntent());
+    }
+
+    /** Primera instalación (no una actualización): en ella no puede haber datos de versiones anteriores */
+    @SuppressWarnings("deprecation")
+    private boolean isFreshInstall() {
+        try {
+            PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return pi.firstInstallTime == pi.lastUpdateTime;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
@@ -507,6 +555,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        /** Tamaño de letra del sistema (1 = normal): la app adapta su tamaño de texto la primera vez */
+        @JavascriptInterface
+        public float fontScale() {
+            return getResources().getConfiguration().fontScale;
+        }
+
         /* ----- Migración desde la versión anterior (origen file://) ----- */
         @JavascriptInterface
         public boolean migrationPending() {
@@ -580,7 +634,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        /** Abrir un enlace web en el navegador del sistema (p. ej. la página de pago de Stripe) */
+        /** Abrir un enlace web en el navegador del sistema (p. ej. la política de privacidad) */
         @JavascriptInterface
         public void openUrl(String url) {
             if (url == null) return;

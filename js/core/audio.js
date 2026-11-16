@@ -95,7 +95,7 @@ window.Whider = window.Whider || {};
         tone(c, 1568, t + 0.045, 0.2, 'sine', 0.045);
       }, 'event');
     },
-    /** Algo importante quedó hecho (Premium activado, contacto añadido, nueva marca): tres notas tranquilas */
+    /** Algo importante quedó hecho (contacto añadido, sistema instalado, nueva marca): tres notas tranquilas */
     complete: function () {
       play('complete', function (c, t) {
         [783.99, 987.77, 1318.5].forEach(function (f, i) { tone(c, f, t + i * 0.09, 0.45, 'sine', 0.06); });

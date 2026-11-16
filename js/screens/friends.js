@@ -17,7 +17,6 @@ window.Whider.Screens = window.Whider.Screens || {};
   var unsub = null, teamTimer = null;
 
   function tab() { return S().ui.peopleTab || 'friend'; }
-  function premiumGem() { return W.Plan.isPremium() ? null : U.el('span.sb-gem', { attrs: { title: 'Premium' } }, [U.icon('gem')]); }
 
   /* ---------- Tarjetas ---------- */
   function contactCard(f) {
@@ -81,7 +80,6 @@ window.Whider.Screens = window.Whider.Screens || {};
     ]);
   }
   function newTeam() {
-    if (!W.Plan.gate('community')) return;
     var people = PE().contacts().filter(function (f) { return !f.pending; }), chosen = {};
     var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 40, placeholder: 'Nombre del equipo (p. ej. Marketing)', 'aria-label': 'Nombre del equipo' } });
     var s = W.Sheet.open({ title: 'Nuevo equipo', className: 'editor', body: [
@@ -94,7 +92,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       var n = name.value.trim(); if (!n) { name.focus(); return; }
       var members = people.filter(function (f) { return chosen[f.uid]; }).map(function (f) { return { uid: f.uid, name: (PE().profile(f.uid) || {}).name || f.name }; });
       PE().createTeam(n, members).then(function (id) { s.close(); W.Toast.show({ text: 'Equipo «' + n + '» creado', icon: 'team', type: 'success' }); setTimeout(function () { teamSheet(id); }, 250); })
-        .catch(function (e) { if (!e || e.code !== 'premium') W.Toast.show({ text: 'No se pudo crear el equipo', type: 'danger' }); });
+        .catch(function () { W.Toast.show({ text: 'No se pudo crear el equipo', type: 'danger' }); });
     } } })] });
     setTimeout(function () { name.focus(); }, W.Layout.desktop ? 30 : 380);
   }
@@ -154,7 +152,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     title: 'Personas',
     back: function () { if (W.Layout.desktop) return false; W.Router.back(); return true; },
     render: function (root) {
-      var st = S(), desk = W.Layout.desktop, P = W.Plan;
+      var st = S(), desk = W.Layout.desktop;
       if (!unsub) unsub = PE().subscribe(function (r) { if (S().activeScreen === 'friends' && (r === 'requests' || r === 'profiles' || r === 'error' || r === 'team')) W.Router.refresh(); });
       var head = W.UI.header({ title: 'Personas', back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } }, sub: 'Amigos, trabajo y equipos' });
       var content = [];
@@ -176,7 +174,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (b && b.soft) content.push(U.el('div.group', [W.UI.cell({ icon: 'cloud', title: b.title, sub: b.text, onTap: function () { PE().poll(true); } })]));
       // Tu tarjeta e invitar
       var code = st.social.code || '…';
-      var invite = function (kind) { if (P.gate('community')) W.Invite.share(W.Invite.personLink(kind)); };
+      var invite = function (kind) { W.Invite.share(W.Invite.personLink(kind)); };
       var input = U.el('input.input', { attrs: { type: 'text', placeholder: 'Código (WH-…) o enlace', 'aria-label': 'Código o enlace de invitación', autocapitalize: 'characters', spellcheck: 'false' } });
       var go = function () { var v = input.value.trim(); if (!v) { input.focus(); return; } var inv = W.Invite.parse(v); if (inv && inv.type !== 'code') { W.Invite.open(inv); input.value = ''; return; } PE().addByCode(v, tab() === 'work' ? 'work' : 'friend').then(function (okk) { if (okk) input.value = ''; }); };
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go(); } });
@@ -185,12 +183,12 @@ window.Whider.Screens = window.Whider.Screens || {};
           U.el('button.pp-me-av', { attrs: { 'aria-label': 'Personalizar tu personaje', title: 'Personalizar' }, on: { click: function () { W.Character.edit('avatar'); } } }, [W.Avatar.me(78, { live: true })]),
           U.el('div.pp-me-main', [U.el('strong', { text: PE().myName() }), U.el('small', { text: 'Tu código: ' + code }),
             U.el('div.pp-me-acts', [
-              U.el('button.btn.sm.primary', { on: { click: function () { invite(tab() === 'work' ? 'work' : 'friend'); } } }, [U.icon('share', 'sm'), 'Invitar', premiumGem()]),
-              U.el('button.btn.sm.soft', { on: { click: function () { if (P.gate('community')) W.Invite.qrSheet({ kind: tab() === 'work' ? 'work' : 'friend' }); } } }, [U.icon('qr', 'sm'), 'Mi QR']),
+              U.el('button.btn.sm.primary', { on: { click: function () { invite(tab() === 'work' ? 'work' : 'friend'); } } }, [U.icon('share', 'sm'), 'Invitar']),
+              U.el('button.btn.sm.soft', { on: { click: function () { W.Invite.qrSheet({ kind: tab() === 'work' ? 'work' : 'friend' }); } } }, [U.icon('qr', 'sm'), 'Mi QR']),
               U.el('button.btn.sm.soft', { on: { click: function () { W.Invite.scan(); } } }, [U.icon('scan', 'sm'), 'Escanear'])
             ])])
         ]),
-        U.el('div.group.card.pp-add', [U.el('small', { text: 'Añadir con un código o un enlace' }), U.el('div.pl-code', [input, U.el('button.btn.primary', { text: 'Añadir', on: { click: go } })])])
+        U.el('div.group.card.pp-add', [U.el('small', { text: 'Añadir con un código o un enlace' }), U.el('div.code-row', [input, U.el('button.btn.primary', { text: 'Añadir', on: { click: go } })])])
       ]));
       var reqs = PE().requests(), rk = Object.keys(reqs);
       if (rk.length) content.push(W.UI.section({ title: 'Solicitudes', side: U.el('small', { text: rk.length }), items: rk.map(function (k) { return requestRow(k, reqs[k]); }) }));
@@ -199,7 +197,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (tab() === 'teams') {
         teams.forEach(function (t) { if (!PE().team(t.id)) PE().loadTeam(t.id).catch(function () {}); });
         content.push(U.el('div.pp-teams', teams.map(teamCard).concat([
-          U.el('button.pp-team.new', { attrs: { type: 'button' }, on: { click: newTeam } }, [U.el('span.pp-team-ic', [U.icon('plus')]), U.el('span.pp-team-main', [U.el('strong', { text: 'Nuevo equipo' }), U.el('small', { text: 'Chat, tareas y páginas compartidas' })]), premiumGem()]),
+          U.el('button.pp-team.new', { attrs: { type: 'button' }, on: { click: newTeam } }, [U.el('span.pp-team-ic', [U.icon('plus')]), U.el('span.pp-team-main', [U.el('strong', { text: 'Nuevo equipo' }), U.el('small', { text: 'Chat, tareas y páginas compartidas' })])]),
           U.el('button.pp-team.new', { attrs: { type: 'button' }, on: { click: function () { W.Invite.scan(); } } }, [U.el('span.pp-team-ic', [U.icon('scan')]), U.el('span.pp-team-main', [U.el('strong', { text: 'Unirme a un equipo' }), U.el('small', { text: 'Con su enlace o su código QR' })])])
         ])));
         if (st.ui.team && PE().team(st.ui.team)) { var t0 = st.ui.team; st.ui.team = null; setTimeout(function () { teamSheet(t0); }, 200); }

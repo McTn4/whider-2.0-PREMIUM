@@ -54,8 +54,6 @@ window.Whider = window.Whider || {};
 
   function edit(f, after) {
     var st = S();
-    // Plan gratuito: hasta 3 filtros guardados
-    if (!f && !W.Plan.gateLimit('filters', st.filters.length, 'filters')) return null;
     var d = f ? JSON.parse(JSON.stringify(f)) : { name: '', lists: [], priorities: [], when: 'any', text: '', status: 'pending' };
     var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 24, placeholder: 'Nombre del filtro', 'aria-label': 'Nombre del filtro' } });
     name.value = d.name;

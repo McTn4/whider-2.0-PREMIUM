@@ -2,7 +2,6 @@
  * WHIDER · Informes
  *  - Ordenador: informe completo de un periodo con los apartados que elijas, listo para
  *    imprimir o guardar en PDF, y para exportar en CSV (hoja de cálculo), JSON o texto.
- *    Gratis: esta semana y la pasada, para imprimir. Premium: cualquier periodo y exportaciones.
  *  - Móvil: el resumen de tu semana, para leerlo o compartirlo.
  */
 window.Whider = window.Whider || {};
@@ -33,7 +32,6 @@ window.Whider.Screens = window.Whider.Screens || {};
       default: return [weekStart(td), td];
     }
   }
-  function premiumPeriod(p) { return p !== 'week' && p !== 'lastweek'; }
   function longDate(ds) { var d = U.parse(ds); return d.getDate() + ' de ' + U.MONTHS[d.getMonth()] + ' de ' + d.getFullYear(); }
   function periodText(a, b) { return a === b ? longDate(a) : 'Del ' + longDate(a) + ' al ' + longDate(b); }
 
@@ -150,18 +148,14 @@ window.Whider.Screens = window.Whider.Screens || {};
     /** Menú Archivo → Informe en PDF */
     pdf: function () { if (current) pdf(current); },
     render: function (root) {
-      var st = S(), desk = W.Layout.desktop, P = W.Plan;
-      if (!P.isPremium() && premiumPeriod(ui.period)) ui.period = 'week';
+      var st = S(), desk = W.Layout.desktop;
       if (!desk && ui.period !== 'week' && ui.period !== 'lastweek') ui.period = 'week';
       var r = range(ui.period), d = data(r[0], r[1]);
       current = d;
       var head = W.UI.header({ title: desk ? 'Informes' : 'Tu semana', back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } }, sub: periodText(r[0], r[1]) });
       var content = [];
       var opts = (desk ? PERIODS : PERIODS.slice(0, 2));
-      var periodSeg = W.UI.segmented(opts.map(function (o) { return { value: o.value, label: o.label }; }), ui.period, function (v) {
-        if (premiumPeriod(v) && !P.isPremium()) { P.paywall('reports'); W.Router.refresh(); return; }
-        ui.period = v; W.Router.refresh();
-      }, { mini: true });
+      var periodSeg = W.UI.segmented(opts.map(function (o) { return { value: o.value, label: o.label }; }), ui.period, function (v) { ui.period = v; W.Router.refresh(); }, { mini: true });
       var controls = [U.el('div.rp-row', [periodSeg])];
       if (desk && ui.period === 'custom') {
         var mk = function (val, set) { var i = U.el('input.input.rp-date', { attrs: { type: 'date', 'aria-label': 'Fecha' } }); i.value = val; i.addEventListener('change', function () { if (i.value) { set(i.value); W.Router.refresh(); } }); return i; };
@@ -173,13 +167,11 @@ window.Whider.Screens = window.Whider.Screens || {};
           c.addEventListener('click', function () { ui.sections[s.id] = !ui.sections[s.id]; W.Router.refresh(); });
           return c;
         })));
-        var gate = function (fn) { return function () { if (!P.isPremium()) { P.paywall('reports'); return; } fn(); }; };
         controls.push(U.el('div.rp-actions', [
           U.el('button.btn.primary.sm', { on: { click: function () { pdf(d); } } }, [U.icon('print', 'sm'), window.WhiderDesktop ? 'Guardar en PDF' : 'Imprimir o PDF']),
-          U.el('button.btn.ghost.sm', { on: { click: gate(function () { U.saveFile('whider-informe-' + r[0] + '_' + r[1], toCsv(d), 'csv'); }) } }, [U.icon('download', 'sm'), 'CSV']),
-          U.el('button.btn.ghost.sm', { on: { click: gate(function () { U.saveFile('whider-informe-' + r[0] + '_' + r[1], toJson(d), 'json'); }) } }, [U.icon('download', 'sm'), 'JSON']),
-          U.el('button.btn.ghost.sm', { on: { click: function () { copy(toText(d)); } } }, [U.icon('layers', 'sm'), 'Copiar resumen']),
-          P.isPremium() ? null : U.el('span.premium-chip.ghost', [U.icon('gem'), 'Más periodos, CSV y JSON con Premium'])
+          U.el('button.btn.ghost.sm', { on: { click: function () { U.saveFile('whider-informe-' + r[0] + '_' + r[1], toCsv(d), 'csv'); } } }, [U.icon('download', 'sm'), 'CSV']),
+          U.el('button.btn.ghost.sm', { on: { click: function () { U.saveFile('whider-informe-' + r[0] + '_' + r[1], toJson(d), 'json'); } } }, [U.icon('download', 'sm'), 'JSON']),
+          U.el('button.btn.ghost.sm', { on: { click: function () { copy(toText(d)); } } }, [U.icon('layers', 'sm'), 'Copiar resumen'])
         ]));
         content.push(U.el('div.rp-controls', controls));
         content.push(U.el('div.rp-paper', [doc(d, ui.sections)]));
