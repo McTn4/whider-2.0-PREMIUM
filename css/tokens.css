@@ -2,14 +2,26 @@
    WHIDER · Tokens de diseño
    Blanco y negro. La profundidad sale de la luz: superficies apenas más claras
    que el fondo, sombras negras debajo y un brillo blanco contenido en lo activo.
-   Tipografía Onest (variable, 100–900): grotesca moderna de x alta y aperturas abiertas,
-   muy legible en pantallas pequeñas. Cifras tabulares solo donde alinean o cambian (horas,
-   contadores, temporizador y tablas: usan var(--mono)); en el texto, las proporcionales.
+   Dos tipografías variables (100–900), locales:
+   · Outfit (var(--display)), geométrica y rotunda, para lo grande y llamativo: títulos de
+     pantalla y de página, cabeceras de hojas y avisos, nombres destacados y cifras grandes.
+   · Onest (var(--font)), grotesca de x alta y aperturas abiertas, muy legible en pantallas
+     pequeñas, para todo lo demás.
+   Cifras tabulares solo donde alinean o cambian (horas, contadores, temporizador y tablas:
+   usan var(--mono) o lo declaran); en el texto, las proporcionales.
    ========================================================================== */
 @font-face {
   font-family: 'Onest';
   src: url('../fonts/onest-latin-wght-normal.woff2') format('woff2-variations'),
        url('../fonts/onest-latin-wght-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Outfit';
+  src: url('../fonts/outfit-latin-wght-normal.woff2') format('woff2-variations'),
+       url('../fonts/outfit-latin-wght-normal.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -70,17 +82,11 @@
   --p-purple: #B5B5B5;
   --p-star: #7A7A7A;
 
-  /*
-   * Forma «Índice»: lo que es papel (tarjetas, hojas, botones, campos, etiquetas) tiene las
-   * esquinas cortadas a 45°, como las fichas de un índice y los iconos de la app; lo que es
-   * vivo o puntual (tu personaje, avatares, indicadores, anillos) es redondo.
-   * Cortes: s (casillas, etiquetas) · m (botones pequeños, campos) · l (tarjetas) · xl (hojas).
-   * Sin soporte de corner-shape, las mismas medidas se ven como esquinas redondeadas.
-   */
-  --cut-s: 4px;
-  --cut-m: 6px;
-  --cut-l: 9px;
-  --cut-xl: 12px;
+  /* Forma: esquinas curvadas, precisas (menos «burbuja») */
+  --r-card: 14px;
+  --r-cell: 12px;
+  --r-btn: 11px;
+  --r-sheet: 20px;
   --r-pill: 999px;
   --pad: 18px;
   --gap: 28px;
@@ -97,6 +103,7 @@
   /* Tipografía */
   --font: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --mono: var(--font);   /* cada regla que la usa añade font-variant-numeric: tabular-nums */
+  --display: 'Outfit', var(--font);   /* títulos y cifras grandes */
   --eyebrow: .6875rem;    /* 11 · etiquetas en versalitas de secciones y cabeceras */
   --fs-large: 1.875rem;   /* 30 */
   --fs-title2: 1.375rem;  /* 22 */
@@ -145,6 +152,3 @@ html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
-
-/* Geometría «Índice»: chaflán por defecto; lo redondo lo declara cada componente (corner-shape: round) */
-*, *::before, *::after { corner-shape: bevel; }

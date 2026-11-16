@@ -4,7 +4,7 @@
 
 **Todo es gratis y para todos**: no hay planes de pago, anuncios ni compras dentro de la app.
 
-**Diseño «Índice»**, en blanco y negro: cabeceras cerradas por una regla fina, secciones en versalitas y una geometría propia, la de las fichas de un índice. Lo que es *papel* (tarjetas, hojas, botones, campos y etiquetas) tiene las **esquinas cortadas a 45°**, igual que los iconos de la app, una colección propia en rejilla de 24; lo que es *vivo* (tu personaje, los avatares, los anillos y los indicadores) es redondo. La tipografía es **Onest**, una grotesca moderna de x alta y aperturas abiertas, muy legible en pantallas pequeñas, con cifras tabulares en horas y contadores.
+**Diseño «Índice»**, en blanco y negro: cabeceras cerradas por una regla fina, secciones en versalitas y **esquinas curvadas** y precisas en tarjetas, hojas, botones, campos y etiquetas, igual que en los iconos de la app, una colección propia en rejilla de 24. Dos tipografías: **Outfit**, geométrica y rotunda, en los títulos, las cabeceras y las cifras grandes, y **Onest**, una grotesca moderna de x alta y aperturas abiertas, muy legible en pantallas pequeñas, en el resto del texto, con cifras tabulares en horas y contadores.
 
 <p align="center">
   <img src="docs/capturas/pc-70-hoy.jpg" width="900" alt="WHIDER 7.0 en el ordenador: Hoy con lo más importante arriba, tu personaje y tus páginas del Cuaderno">
@@ -250,7 +250,7 @@ npm start
 ├── privacidad/index.html   # Política de privacidad pública (la que pide Google Play) y cómo eliminar la cuenta
 ├── .well-known/            # assetlinks.json: los enlaces de invitación abren la app de Android (App Links)
 ├── css/
-│   ├── tokens.css          # Grises, sombras, tipografía, cortes de esquina «Índice», tamaños y movimiento
+│   ├── tokens.css          # Grises, sombras, tipografías, radios de esquina, tamaños y movimiento
 │   ├── layout.css          # Pantalla de carga, estructura a pantalla completa, barra superior y dock
 │   ├── components.css      # Celdas agrupadas, botones, hojas, alertas, menús, interruptores…
 │   ├── screens.css         # Estilos de cada pantalla
@@ -275,7 +275,7 @@ npm start
 │   ├── router.js
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable
-├── fonts/                  # Onest (variable, 100–900), local, y su licencia OFL
+├── fonts/                  # Outfit (títulos y cifras) y Onest (texto), variables 100–900, locales, con sus licencias OFL
 ├── desktop/                # App de escritorio (Electron): ventana, bandeja, acceso con Google por el navegador
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones), API 36
 ├── tools/firebase-bundle/  # Cómo regenerar js/vendor/firebase.js
@@ -304,7 +304,7 @@ La primera versión preparada para **Google Play**. La numeración empieza de nu
 
 - **Todo gratis**: desaparecen los planes, los pagos, la pantalla de Planes, los candados y los avisos de Premium. Sistemas y automatizaciones, tablero, filtros y reglas sin límite, estadísticas de un año, informes completos con CSV y JSON, personalización del ordenador, invitar y crear equipos, gestionar el ordenador desde el móvil y las plantillas de un toque son para todos.
 - **Personajes**: se retiran los personajes que eran de Premium (gema, dragón, astronauta, fénix y unicornio); quien tuviera uno pasa al de siempre y conserva su nombre. Los acabados, accesorios, efectos, fondos y marcos quedan disponibles para todos.
-- **Nueva identidad visual**: tipografía **Onest**, una **colección de iconos propia** (rejilla de 24, trazo único, contenedores achaflanados como fichas de índice) y la misma geometría en toda la interfaz: casillas, botones, campos, tarjetas, hojas, el botón central y el dock con las esquinas cortadas; lo vivo, redondo. «Más» pasa a ser un índice en lista y el contenido arranca siempre a la misma distancia de la cabecera.
+- **Nueva identidad visual**: **Outfit** en los títulos y las cifras grandes y **Onest** en el resto del texto, una **colección de iconos propia** (rejilla de 24, trazo único, contenedores de esquinas curvadas) y la misma forma curvada en toda la interfaz: casillas, botones, campos, tarjetas, hojas, el botón central y el dock. «Más» pasa a ser un índice en lista y el contenido arranca siempre a la misma distancia de la cabecera.
 - **Accesibilidad**: textos secundarios con contraste AA, nombres accesibles coherentes, calendarios y gráficos bien descritos para lectores de pantalla y zoom permitido en la web. Auditoría con axe-core: 0 incumplimientos de WCAG 2.1 A/AA en 25 vistas de móvil y ordenador.
 - **Android**: Android 16 (API 36), de borde a borde, gesto Atrás predictivo, tamaño de letra del sistema la primera vez, recordatorios compatibles con las reglas de Android 15+, acceso a archivos del WebView cerrado en instalaciones nuevas y paquete AAB para Google Play compilado en GitHub (firmado con tu clave de subida desde los secretos del repositorio).
 - **Privacidad**: política pública en `/privacidad/` y eliminación de la cuenta desde la web (`/#cuenta`), como pide Google Play.
