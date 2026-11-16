@@ -1,13 +1,15 @@
 # WHIDER 1.0
 
-**Tu día, bajo control.** WHIDER es una app de productividad **gratuita para Android y ordenador (Windows, macOS y Linux)** que reúne tareas por categorías, calendario profesional, un **Cuaderno** (páginas por bloques con **fotos y archivos adjuntos**, bases de datos y plantillas), hábitos, avisos, enfoque, sistemas y automatizaciones, estadísticas e informes. **Tu personaje** es tu foto de perfil, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión.
+**Tu día, bajo control.** WHIDER es una app de productividad **gratuita para ordenador (Windows, macOS y Linux), la web y Android** (pronto en Google Play) que reúne tareas por categorías, calendario profesional, un **Cuaderno** (páginas por bloques con **fotos y archivos adjuntos**, bases de datos y plantillas), hábitos, avisos, enfoque, sistemas y automatizaciones, estadísticas e informes. **Tu personaje** es tu foto de perfil, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión.
 
 **Todo es gratis y para todos**: no hay planes de pago, anuncios ni compras dentro de la app.
+
+**Web: [whider-red.vercel.app](https://whider-red.vercel.app)** — la portada presenta WHIDER y ofrece la descarga para tu dispositivo (en el ordenador, Windows, macOS o Linux; en el móvil, Google Play, próximamente). La app en el navegador está en [`/app`](https://whider-red.vercel.app/app).
 
 **Diseño «Índice»**, en blanco y negro: cabeceras cerradas por una regla fina, secciones en versalitas y **esquinas curvadas** y precisas en tarjetas, hojas, botones, campos y etiquetas, igual que en los iconos de la app, una colección propia en rejilla de 24. Dos tipografías: **Outfit**, geométrica y rotunda, en los títulos, las cabeceras y las cifras grandes, y **Onest**, una grotesca moderna de x alta y aperturas abiertas, muy legible en pantallas pequeñas, en el resto del texto, con cifras tabulares en horas y contadores.
 
 <p align="center">
-  <img src="docs/capturas/pc-70-hoy.jpg" width="900" alt="WHIDER 7.0 en el ordenador: Hoy con lo más importante arriba, tu personaje y tus páginas del Cuaderno">
+  <img src="sitio/img/pc-hoy.webp" width="900" alt="WHIDER 1.0 en el ordenador: Hoy con lo más importante arriba, tu personaje, el progreso y los hábitos del día">
 </p>
 
 ---
@@ -54,7 +56,7 @@
 | **macOS** | [WHIDER-mac.dmg](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-mac.dmg) | Arrastra WHIDER a Aplicaciones. La primera vez, ábrela con **clic derecho → Abrir**. |
 | **Linux** | [WHIDER-linux.AppImage](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-linux.AppImage) | Dale permiso de ejecución y ábrelo. |
 
-Los instaladores se compilan solos en GitHub con cada cambio (pestaña **Releases → WHIDER para ordenador**). La app también funciona en el navegador del ordenador con el mismo diseño.
+Los instaladores se compilan solos en GitHub con cada cambio (pestaña **Releases → WHIDER para ordenador**) y la portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.vercel.app/descargar), destacando el de tu sistema. La app también funciona en el navegador del ordenador con el mismo diseño, en [`/app`](https://whider-red.vercel.app/app).
 
 **Pensada para pantalla grande, ratón y teclado**
 - **Barra lateral ordenada por importancia**: *Nueva tarea* y *Buscar*; **Hoy, Tareas, Calendario y Cuaderno**; **Equipo** (Chats y Personas, con los mensajes sin leer); **Rutinas** (Hábitos y Enfoque); **Análisis** (Estadísticas, Informes y Sistemas); tus **categorías** y **filtros**; y abajo, tu perfil, tu plan y los ajustes. Qué se ve, los contadores y el tamaño se eligen en *Personalización*.
@@ -208,7 +210,19 @@ Con Python 3.8 o superior:
 python serve.py
 ```
 
-Se abre `http://localhost:8080` y la consola muestra también la dirección para el móvil en tu red Wi‑Fi. Opciones: `python serve.py 9000` (otro puerto) y `python serve.py --no-open`.
+Se abre `http://localhost:8080` y la consola muestra también la dirección para el móvil en tu red Wi‑Fi. Opciones: `python serve.py 9000` (otro puerto) y `python serve.py --no-open`. En local la app está en `/` y en `/app`, y la portada en `/sitio/`.
+
+## 🌐 La web (Vercel)
+
+| Dirección | Qué es |
+| --- | --- |
+| `/` | **Portada** ([`sitio/index.html`](sitio/index.html)): qué es WHIDER, «Abrir en el navegador» y la descarga según el dispositivo. En el ordenador destaca su sistema (Windows, macOS o Linux) con el tamaño de cada instalador; en el móvil muestra **Google Play · Próximamente** y cómo añadir la web a la pantalla de inicio. Quien ya usa WHIDER en ese navegador entra directo a la app (`/?inicio` enseña la portada igualmente). |
+| `/app` | La app en el navegador (la misma `index.html` que usan Android y el ordenador). |
+| `/descargar` | Lleva a la sección de descarga de la portada (también desde **Ajustes → Descargar la app** en la web). |
+| `/i/…` | Invitaciones: abren la app o la web y ofrecen las mismas descargas. |
+| `/privacidad/` | Política de privacidad; «Eliminar mi cuenta» abre `/app#cuenta`. |
+
+Vercel ejecuta `node tools/web-build.js` (ver [`vercel.json`](vercel.json)), que deja en `dist/` la portada como `index.html` y la app como `app.html`, servida en `/app`. Para verla igual en local: `node tools/web-build.js` y sirve `dist/` con esas mismas reglas. Las direcciones de descarga están todas en [`sitio/descargas.js`](sitio/descargas.js): cuando WHIDER esté en Google Play, basta con poner su enlace en `play`.
 
 Si tienes [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) instalado, el servidor crea además un enlace HTTPS temporal: ábrelo en Chrome del móvil y usa **⋮ → Instalar aplicación** para instalarla como app.
 
@@ -246,7 +260,8 @@ npm start
 ├── index.html              # Estructura de la app + colección de iconos «Índice» (SVG propio)
 ├── manifest.json           # PWA: iconos y accesos directos (nueva tarea, nueva página, chats, hábitos)
 ├── sw.js                   # Funcionamiento sin conexión y clic en notificaciones
-├── i/index.html            # Página de las invitaciones (enlaces y QR): abre la app o enseña a descargarla
+├── sitio/                  # La web: portada (index.html), enlaces de descarga (descargas.js) y capturas (img/)
+├── i/index.html            # Página de las invitaciones (enlaces y QR): abre la app o la web, o enseña a descargarla
 ├── privacidad/index.html   # Política de privacidad pública (la que pide Google Play) y cómo eliminar la cuenta
 ├── .well-known/            # assetlinks.json: los enlaces de invitación abren la app de Android (App Links)
 ├── css/
@@ -259,6 +274,7 @@ npm start
 │   └── desktop.css         # Ordenador: barra lateral, diálogos, calendario grande, ratón y teclado
 ├── firestore.rules         # Reglas de seguridad: tus datos solo tuyos; perfiles, buzón, equipos y chats solo de sus miembros
 ├── firebase.json           # Configuración de Firebase (reglas, hosting y emuladores)
+├── vercel.json             # Publicación de la web: compilación (tools/web-build.js), /app y /descargar
 ├── js/
 │   ├── config.js           # ← Configuración de cuentas (Firebase) y enlaces: ver docs/CONFIGURAR-CUENTAS.md
 │   ├── vendor/             # SDK de Firebase empaquetado (funciona sin CDN), generador y lector de códigos QR
@@ -278,6 +294,7 @@ npm start
 ├── fonts/                  # Outfit (títulos y cifras) y Onest (texto), variables 100–900, locales, con sus licencias OFL
 ├── desktop/                # App de escritorio (Electron): ventana, bandeja, acceso con Google por el navegador
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones), API 36
+├── tools/web-build.js      # Prepara la web para Vercel en dist/ (portada en /, app en /app)
 ├── tools/firebase-bundle/  # Cómo regenerar js/vendor/firebase.js
 ├── serve.py                # Servidor local para PC y móvil
 └── package_apk.py          # Copia la web a android/…/assets/www y crea el ZIP del proyecto
@@ -292,7 +309,7 @@ npm start
 
 ## 🔒 Privacidad
 
-Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde Ajustes o, sin la app, desde la web (`https://whider-red.vercel.app/#cuenta`). Política completa: [`privacidad/index.html`](privacidad/index.html), publicada en `https://whider-red.vercel.app/privacidad/`.
+Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde Ajustes o, sin la app, desde la web (`https://whider-red.vercel.app/app#cuenta`). Política completa: [`privacidad/index.html`](privacidad/index.html), publicada en `https://whider-red.vercel.app/privacidad/`.
 
 ---
 
@@ -307,5 +324,6 @@ La primera versión preparada para **Google Play**. La numeración empieza de nu
 - **Nueva identidad visual**: **Outfit** en los títulos y las cifras grandes y **Onest** en el resto del texto, una **colección de iconos propia** (rejilla de 24, trazo único, contenedores de esquinas curvadas) y la misma forma curvada en toda la interfaz: casillas, botones, campos, tarjetas, hojas, el botón central y el dock. «Más» pasa a ser un índice en lista y el contenido arranca siempre a la misma distancia de la cabecera.
 - **Accesibilidad**: textos secundarios con contraste AA, nombres accesibles coherentes, calendarios y gráficos bien descritos para lectores de pantalla y zoom permitido en la web. Auditoría con axe-core: 0 incumplimientos de WCAG 2.1 A/AA en 25 vistas de móvil y ordenador.
 - **Android**: Android 16 (API 36), de borde a borde, gesto Atrás predictivo, tamaño de letra del sistema la primera vez, recordatorios compatibles con las reglas de Android 15+, acceso a archivos del WebView cerrado en instalaciones nuevas y paquete AAB para Google Play compilado en GitHub (firmado con tu clave de subida desde los secretos del repositorio).
-- **Privacidad**: política pública en `/privacidad/` y eliminación de la cuenta desde la web (`/#cuenta`), como pide Google Play.
+- **Privacidad**: política pública en `/privacidad/` y eliminación de la cuenta desde la web (`/app#cuenta`), como pide Google Play.
+- **Web**: portada nueva en `/` con la descarga para cada dispositivo (ordenador: Windows, macOS y Linux; móvil: Google Play, próximamente) y la app en el navegador en `/app`.
 - **Limpieza**: fuera el servidor de pagos (`pagos/` y `api/`), la regla `entitlements` de Firestore, ~90 reglas de estilo y 12 funciones sin uso, restos de la gamificación en la sincronización y la copia antigua de la web que se guardaba dentro del proyecto Android.

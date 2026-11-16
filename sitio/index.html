@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <script>
+    /* Quien ya usa WHIDER en este navegador entra directo a la app (salvo que venga a descargarla).
+       Las invitaciones antiguas (?c=… / #i=…) van siempre a la app. */
+    (function () {
+      var d = document.documentElement; d.className += ' js';
+      try {
+        var s = location.search, h = location.hash;
+        var invite = /[?&](c|s)=/.test(s) || /^#i=/.test(h);
+        if (!invite && (/[?&]inicio\b/.test(s) || /^#(descargar|funciones|movil|top)$/.test(h))) return;
+        var back = invite;
+        for (var i = 0; !back && i < localStorage.length; i++) if (/^whider\./.test(localStorage.key(i) || '')) back = true;
+        if (back) location.replace('/app' + s + h);
+      } catch (e) { /* sin almacenamiento: se queda en la portada */ }
+    })();
+  </script>
+  <title>WHIDER · Tu día, bajo control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Tareas, calendario, hábitos, enfoque y un Cuaderno en una sola app gratuita para Windows, macOS, Linux y la web, sincronizada entre tus dispositivos.">
+  <meta name="theme-color" content="#070708">
+  <meta name="color-scheme" content="dark">
+  <link rel="canonical" href="https://whider-red.vercel.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="WHIDER">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:url" content="https://whider-red.vercel.app/">
+  <meta property="og:title" content="WHIDER · Tu día, bajo control">
+  <meta property="og:description" content="Tareas, calendario, hábitos, enfoque y un Cuaderno. Gratis, sin anuncios y en todos tus dispositivos.">
+  <meta property="og:image" content="https://whider-red.vercel.app/sitio/img/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="WHIDER: «Tu día, bajo control», junto a la pantalla Hoy de la app en el ordenador">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preload" href="/fonts/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face { font-family: 'Outfit'; src: url('/fonts/outfit-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    @font-face { font-family: 'Onest'; src: url('/fonts/onest-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+
+    /* Los mismos tonos, letras y formas que la app («Índice», en blanco y negro) */
+    :root {
+      color-scheme: dark;
+      --bg: #070708; --bg-2: #0B0B0D; --s1: #111113; --s2: #18181B; --s3: #222226;
+      --t1: #F2F2F2; --t2: #A3A3A3; --t3: #8A8A8A;
+      --rule: rgba(255, 255, 255, .11); --line: rgba(255, 255, 255, .08); --line-2: rgba(255, 255, 255, .14);
+      --r-card: 14px; --r-btn: 11px; --r-big: 22px;
+      --display: 'Outfit', 'Onest', system-ui, sans-serif;
+      --font: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      --pad: clamp(18px, 4.5vw, 44px);
+      --ease: cubic-bezier(.2, .7, .2, 1);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    body { margin: 0; background: var(--bg); color: var(--t2); font: 400 17px/1.6 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    /* Grano muy fino: da textura al negro sin ensuciarlo */
+    body::after { content: ''; position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .04;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; height: auto; }
+    h1, h2, h3 { color: var(--t1); font-family: var(--display); margin: 0; }
+    .wrap { width: min(1200px, 100% - 2 * var(--pad)); margin-inline: auto; }
+    .ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    :focus-visible { outline: 2px solid var(--t1); outline-offset: 3px; }
+    .skip { position: absolute; left: 12px; top: -64px; z-index: 100; padding: 10px 16px; border-radius: var(--r-btn); background: var(--t1); color: #000; font-weight: 600; text-decoration: none; }
+    .skip:focus { top: 12px; }
+    [hidden] { display: none !important; }
+
+    /* ---------- Botones ---------- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border-radius: var(--r-btn);
+      font: 600 16px/1.1 var(--font); text-decoration: none; cursor: pointer; transition: transform .15s var(--ease), background-color .2s, box-shadow .2s; }
+    .btn:active { transform: scale(.98); }
+    .btn.primary { background: #FFF; color: #000; box-shadow: 0 0 0 1px rgba(255, 255, 255, .25), 0 12px 34px -12px rgba(255, 255, 255, .4); }
+    .btn.primary:hover { background: #EBEBEB; }
+    .btn.ghost { background: rgba(255, 255, 255, .04); color: var(--t1); box-shadow: inset 0 0 0 1px var(--line-2); }
+    .btn.ghost:hover { background: rgba(255, 255, 255, .08); }
+    .btn.sm { min-height: 40px; padding: 0 16px; font-size: 15px; }
+    .btn .ic { width: 19px; height: 19px; }
+    .store { display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px 0 20px; border-radius: var(--r-btn);
+      background: rgba(255, 255, 255, .025); box-shadow: inset 0 0 0 1px var(--line); color: var(--t2); }
+    .store b { color: var(--t1); font: 600 16px/1 var(--display); letter-spacing: .01em; }
+    .soon { padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, .08); color: var(--t2); font-size: 12.5px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+    a.store { text-decoration: none; transition: background-color .2s; }
+    a.store:hover { background: rgba(255, 255, 255, .07); }
+
+    /* ---------- Cabecera ---------- */
+    .top { position: sticky; top: 0; z-index: 60; background: rgba(7, 7, 8, .74); -webkit-backdrop-filter: saturate(140%) blur(16px); backdrop-filter: saturate(140%) blur(16px);
+      border-bottom: 1px solid transparent; transition: border-color .3s; }
+    .top.scrolled { border-bottom-color: var(--line); }
+    .top .wrap { display: flex; align-items: center; gap: 8px; height: 68px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--t1); text-decoration: none; font: 600 15px/1 var(--display); letter-spacing: .3em; }
+    .brand svg { width: 26px; height: 26px; filter: drop-shadow(0 0 8px rgba(255, 255, 255, .45)); }
+    .nav { display: flex; gap: 2px; margin-left: auto; }
+    .nav a { padding: 9px 14px; border-radius: 9px; color: var(--t2); text-decoration: none; font-size: 15px; font-weight: 500; transition: color .2s, background-color .2s; }
+    .nav a:hover { color: var(--t1); background: rgba(255, 255, 255, .05); }
+    .top .btn { margin-left: 10px; }
+    .top .btn .short { display: none; }
+    @media (max-width: 720px) {
+      .nav { display: none; }
+      .top .btn { margin-left: auto; }
+    }
+    @media (max-width: 380px) { .top .btn .long { display: none; } .top .btn .short { display: inline; } }
+
+    /* ---------- Héroe ---------- */
+    .hero { position: relative; padding-top: clamp(44px, 8vw, 104px); overflow-x: clip; }
+    .hero::before { content: ''; position: absolute; inset: -160px 0 auto 0; height: 760px; pointer-events: none;
+      background: radial-gradient(ellipse 50% 46% at 68% 40%, rgba(255, 255, 255, .085), transparent 70%); }
+    .hero .wrap { position: relative; }
+    .eyebrow, .label { display: flex; align-items: center; gap: 14px; margin: 0 0 24px; color: var(--t2); font-size: 12.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+    .eyebrow::after, .label::after { content: ''; width: 56px; height: 1px; background: var(--rule); }
+    h1 { position: relative; z-index: 2; font-weight: 650; font-size: clamp(3.1rem, 8.4vw, 6.4rem); line-height: .95; letter-spacing: -.038em; }
+    h1 .l { display: block; }
+    .lead { position: relative; z-index: 2; max-width: 35rem; margin: 28px 0 0; font-size: clamp(1.06rem, 1.5vw, 1.24rem); line-height: 1.55; }
+    .cta { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 34px; }
+    .cta-note { position: relative; z-index: 2; margin: 16px 0 0; color: var(--t3); font-size: 14.5px; }
+    .cta-note a { color: var(--t2); text-underline-offset: 3px; }
+    .cta-note a:hover { color: var(--t1); }
+
+    /* La W de WHIDER, dibujada como una gráfica que sube */
+    .chart { position: absolute; z-index: 1; right: -1%; top: -6px; width: min(540px, calc(100% - 36rem)); pointer-events: none; }
+    .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .chart .grid { stroke: rgba(255, 255, 255, .07); stroke-width: .12; }
+    .chart .w { fill: none; stroke: #FFF; stroke-width: .34; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1;
+      filter: drop-shadow(0 0 .6px rgba(255, 255, 255, .9)) drop-shadow(0 0 2.4px rgba(255, 255, 255, .45)); }
+    .chart .dot { fill: var(--bg); stroke: #FFF; stroke-width: .26; }
+    .chart .tag { fill: var(--t3); font: 600 1.25px/1 var(--font); letter-spacing: .12px; }
+
+    .shots { position: relative; margin-top: clamp(52px, 8vw, 92px); padding-bottom: clamp(56px, 8vw, 96px); }
+    .shots::before { content: ''; position: absolute; z-index: 0; left: 8%; right: 4%; top: 6%; height: 74%; pointer-events: none;
+      background: radial-gradient(closest-side, rgba(255, 255, 255, .13), transparent); filter: blur(24px); }
+    .pc { position: relative; z-index: 1; width: min(100%, 1060px); margin-left: auto; border-radius: 16px; overflow: hidden; background: var(--bg-2);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .13), 0 60px 120px -50px #000, 0 30px 90px -60px rgba(255, 255, 255, .3); }
+    .pc img { width: 100%; }
+    .phone { position: relative; padding: 7px; border-radius: 36px; background: #000;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .17), 0 40px 80px -28px #000, 0 0 70px -26px rgba(255, 255, 255, .35); }
+    .phone img { width: 100%; border-radius: 29px; }
+    .shots .phone { position: absolute; z-index: 2; left: 0; bottom: 0; width: clamp(150px, 21%, 248px); }
+
+    /* ---------- Lo esencial ---------- */
+    .facts { list-style: none; margin: 0 auto; padding: 26px 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .facts li { display: flex; align-items: flex-start; gap: 14px; padding: 4px 26px; font-size: 15.5px; line-height: 1.5; }
+    .facts li + li { border-left: 1px solid var(--line); }
+    .facts li:first-child { padding-left: 0; }
+    .facts .ic { width: 22px; height: 22px; margin-top: 1px; color: var(--t1); }
+    .facts b { color: var(--t1); font-weight: 600; }
+
+    /* ---------- Secciones ---------- */
+    .sec { padding: clamp(84px, 11vw, 140px) 0 0; }
+    h2 { font-weight: 600; font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.02; letter-spacing: -.03em; }
+    .sub { max-width: 36rem; margin: 22px 0 0; font-size: clamp(1.02rem, 1.4vw, 1.14rem); }
+
+    /* Funciones como un índice: número, icono, título y una línea */
+    .index { list-style: none; margin: clamp(40px, 6vw, 64px) 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: clamp(32px, 6vw, 88px); }
+    .index li { display: grid; grid-template-columns: 52px 1fr; column-gap: 8px; padding: 28px 0 30px; border-top: 1px solid var(--rule); }
+    .num { grid-row: span 2; font: 500 15px/1.6 var(--display); color: var(--t3); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+    .index h3 { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.42rem; line-height: 1.25; letter-spacing: -.012em; }
+    .index h3 .ic { width: 22px; height: 22px; color: var(--t1); }
+    .index p { margin: 10px 0 0; font-size: 16px; max-width: 30rem; }
+
+    /* En el móvil: tres pantallas */
+    .phones { list-style: none; margin: clamp(40px, 6vw, 64px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 4vw, 56px); }
+    .phones li:nth-child(2) { padding-top: 42px; }
+    .phones figure { margin: 0; }
+    .phones .phone { max-width: 300px; margin-inline: auto; }
+    .phones figcaption { max-width: 300px; margin: 20px auto 0; font-size: 15px; text-align: center; }
+    .phones figcaption b { display: block; color: var(--t1); font: 600 17px/1.4 var(--display); }
+
+    /* ---------- Descarga ---------- */
+    .dl-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; margin-top: clamp(36px, 5vw, 56px); align-items: start; }
+    .card { position: relative; padding: clamp(22px, 3vw, 32px); border-radius: var(--r-big); background: var(--s1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 0 0 1px var(--line), 0 30px 70px -40px #000; }
+    .card-h { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+    .card-h .ic { width: 24px; height: 24px; color: var(--t1); }
+    .card-h h3 { font-weight: 600; font-size: 1.5rem; letter-spacing: -.012em; }
+    .chip { margin-left: auto; padding: 5px 11px; border-radius: 999px; background: rgba(255, 255, 255, .08); color: var(--t1); font-size: 12.5px; font-weight: 600; }
+    .dl-main { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+    .dl-main .btn { width: 100%; min-height: 58px; font-size: 17px; }
+    .dl-main small { color: var(--t3); font-size: 14px; text-align: center; }
+    .others { margin: 0 0 10px; color: var(--t3); font-size: 12.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+    .dl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .dl-item { display: flex; align-items: center; gap: 14px; padding: 15px 16px; border-radius: var(--r-card); background: rgba(255, 255, 255, .03);
+      box-shadow: inset 0 0 0 1px var(--line); text-decoration: none; transition: background-color .2s, box-shadow .2s; }
+    .dl-item:hover { background: rgba(255, 255, 255, .07); box-shadow: inset 0 0 0 1px var(--line-2); }
+    .dl-item span { flex: 1; min-width: 0; }
+    .dl-item b { display: block; color: var(--t1); font: 600 16.5px/1.3 var(--display); }
+    .dl-item small { display: block; color: var(--t3); font-size: 14px; line-height: 1.45; }
+    .dl-item .ic { color: var(--t1); }
+    .dl-item i, .dl-main i { font-style: normal; }
+    .help { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+    .help summary { cursor: pointer; color: var(--t2); font-size: 15px; font-weight: 500; list-style: none; display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+    .help summary::-webkit-details-marker { display: none; }
+    .help summary::before { content: ''; width: 7px; height: 7px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: rotate(-45deg); transition: transform .2s; margin-right: 4px; }
+    .help[open] summary::before { transform: rotate(45deg); }
+    .help summary:hover { color: var(--t1); }
+    .help dl { margin: 10px 0 0; font-size: 15px; line-height: 1.55; }
+    .help dt { color: var(--t1); font-weight: 600; margin-top: 12px; }
+    .help dd { margin: 2px 0 0; }
+    .card p { margin: 0; font-size: 15.5px; }
+    .mob .store { width: 100%; margin-bottom: 18px; }
+    .mob .store .soon { margin-left: auto; }
+    .mob .btn { width: 100%; margin-top: 20px; }
+    .fine { margin: 22px 0 0; color: var(--t3); font-size: 14px; }
+
+    /* ---------- Pie ---------- */
+    .foot { margin-top: clamp(96px, 12vw, 150px); border-top: 1px solid var(--rule); }
+    .foot .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 28px; padding: 34px 0 calc(40px + env(safe-area-inset-bottom)); }
+    .foot p { margin: 0; color: var(--t3); font-size: 14.5px; }
+    .foot nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-left: auto; }
+    .foot nav a { color: var(--t2); font-size: 14.5px; text-decoration: none; }
+    .foot nav a:hover { color: var(--t1); text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ---------- Movimiento (una entrada orquestada y apariciones suaves) ---------- */
+    @media (prefers-reduced-motion: no-preference) {
+      .rise { opacity: 0; transform: translateY(16px); animation: rise .9s var(--ease) forwards; }
+      .d1 { animation-delay: .06s; } .d2 { animation-delay: .14s; } .d3 { animation-delay: .22s; } .d4 { animation-delay: .32s; } .d5 { animation-delay: .44s; } .d6 { animation-delay: .6s; }
+      .chart .w { animation: draw 2s .45s var(--ease) forwards; }
+      .chart .dot, .chart .tag { opacity: 0; animation: pop .5s var(--ease) forwards; }
+      .chart .dot:nth-of-type(1) { animation-delay: .5s; } .chart .dot:nth-of-type(2) { animation-delay: .95s; } .chart .dot:nth-of-type(3) { animation-delay: 1.35s; }
+      .chart .dot:nth-of-type(4) { animation-delay: 1.75s; } .chart .dot:nth-of-type(5) { animation-delay: 2.25s; } .chart .tag { animation-delay: 2.4s; }
+      .js .rv { opacity: 0; transform: translateY(22px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
+      .js .rv.in { opacity: 1; transform: none; }
+      .shots .phone { animation-delay: .75s; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .chart .w { stroke-dashoffset: 0; }
+    }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @keyframes pop { to { opacity: 1; } }
+
+    /* ---------- Tamaños ---------- */
+    @media (max-width: 1000px) {
+      .dl-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .chart { position: relative; right: auto; top: auto; width: min(66%, 420px); margin: 46px 0 -34px auto; }
+      .chart + .shots { margin-top: 0; }
+    }
+    @media (max-width: 860px) {
+      .index { grid-template-columns: 1fr; }
+      .facts { grid-template-columns: 1fr; gap: 16px; padding: 24px 0; }
+      .facts li, .facts li:first-child { padding: 0; }
+      .facts li + li { border-left: 0; }
+    }
+    @media (max-width: 640px) {
+      body { font-size: 16px; }
+      .eyebrow { letter-spacing: .16em; }
+      .eyebrow::after { display: none; }
+      .cta { flex-direction: column; align-items: stretch; }
+      .cta .btn, .cta .store { width: 100%; }
+      .cta .store .soon { margin-left: auto; }
+      .pc { width: 94%; border-radius: 12px; }
+      .shots .phone { width: 40%; bottom: -4%; padding: 5px; border-radius: 26px; }
+      .shots .phone img { border-radius: 21px; }
+      .phones { grid-template-columns: repeat(3, 72%); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; margin-inline: calc(-1 * var(--pad)); padding-inline: var(--pad); scrollbar-width: none; }
+      .phones::-webkit-scrollbar { display: none; }
+      .phones li { scroll-snap-align: center; }
+      .phones li:nth-child(2) { padding-top: 0; }
+      .index li { grid-template-columns: 40px 1fr; padding: 22px 0 24px; }
+      .index h3 { font-size: 1.28rem; }
+      .foot nav { margin-left: 0; width: 100%; }
+    }
+    /* En el móvil, primero lo del móvil */
+    html[data-movil] .dl-grid .mob { order: -1; }
+  </style>
+</head>
+<body id="top">
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-tasks" viewBox="0 0 24 24"><path d="M10.5 6.5H20.5M10.5 12H20.5M10.5 17.5H17"/><path d="m3.5 6.4 1.6 1.6 2.9-3.1M3.5 11.9l1.6 1.6 2.9-3.1"/><path d="M4.7 15.6H6.3A1.1 1.1 0 0 1 7.4 16.7V18.3A1.1 1.1 0 0 1 6.3 19.4H4.7A1.1 1.1 0 0 1 3.6 18.3V16.7A1.1 1.1 0 0 1 4.7 15.6Z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M6.25 5H17.75A2.75 2.75 0 0 1 20.5 7.75V17.75A2.75 2.75 0 0 1 17.75 20.5H6.25A2.75 2.75 0 0 1 3.5 17.75V7.75A2.75 2.75 0 0 1 6.25 5Z"/><path d="M3.5 9.75H20.5M8 3V6.5M16 3V6.5"/></symbol>
+    <symbol id="i-notebook" viewBox="0 0 24 24"><path d="M7.2 3.5H16.3A2.2 2.2 0 0 1 18.5 5.7V18.3A2.2 2.2 0 0 1 16.3 20.5H7.2A2.2 2.2 0 0 1 5 18.3V5.7A2.2 2.2 0 0 1 7.2 3.5Z"/><path d="M8.75 3.5V20.5M11.75 8H15.25M11.75 11.25H15.25"/><path d="M18.5 13.5H20.25V17H18.5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.3" r="7.6"/><path d="M12 13.3V9.3M9.6 2.75h4.8M18.6 6.7l1.4-1.4"/></symbol>
+    <symbol id="i-team" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M7 19.5a5 5 0 0 1 10 0M2.75 18a3.4 3.4 0 0 1 4.6-3M21.25 18a3.4 3.4 0 0 0-4.6-3"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20.5H21"/><path d="M5.6 12H6.9A1.1 1.1 0 0 1 8 13.1V19.4A1.1 1.1 0 0 1 6.9 20.5H5.6A1.1 1.1 0 0 1 4.5 19.4V13.1A1.1 1.1 0 0 1 5.6 12Z"/><path d="M11.35 4.5H12.65A1.1 1.1 0 0 1 13.75 5.6V19.4A1.1 1.1 0 0 1 12.65 20.5H11.35A1.1 1.1 0 0 1 10.25 19.4V5.6A1.1 1.1 0 0 1 11.35 4.5Z"/><path d="M17.1 8.5H18.4A1.1 1.1 0 0 1 19.5 9.6V19.4A1.1 1.1 0 0 1 18.4 20.5H17.1A1.1 1.1 0 0 1 16 19.4V9.6A1.1 1.1 0 0 1 17.1 8.5Z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4V15M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19.5H19"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><path d="M5.2 4.5H18.8A2.2 2.2 0 0 1 21 6.7V14.3A2.2 2.2 0 0 1 18.8 16.5H5.2A2.2 2.2 0 0 1 3 14.3V6.7A2.2 2.2 0 0 1 5.2 4.5Z"/><path d="M8.5 20H15.5M12 16.5V20"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M9.4 3H14.6A2.4 2.4 0 0 1 17 5.4V18.6A2.4 2.4 0 0 1 14.6 21H9.4A2.4 2.4 0 0 1 7 18.6V5.4A2.4 2.4 0 0 1 9.4 3Z"/><path d="M11 17.75H13"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7.25 18.5A4.25 4.25 0 0 1 6.6 10.05 5.6 5.6 0 0 1 17.4 8.8 4.9 4.9 0 0 1 16.7 18.5Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 19 6.25V11.9C19 16.2 16 19.4 12 20.5 8 19.4 5 16.2 5 11.9V6.25Z"/><path d="M8.8 12.1 11 14.3 15.3 9.75"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M6.75 17.25 17.25 6.75M8.5 6.75H17.25V15.5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.75 12.75 9.5 17.25 19.25 7.25"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M13.5 4.5H19.5V10.5M19.25 4.75 11 13"/><path d="M17.5 13.75V17.5A2 2 0 0 1 15.5 19.5H6.5A2 2 0 0 1 4.5 17.5V8.5A2 2 0 0 1 6.5 6.5H10.25"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><path d="M5.4 4H8.6A1.4 1.4 0 0 1 10 5.4V8.6A1.4 1.4 0 0 1 8.6 10H5.4A1.4 1.4 0 0 1 4 8.6V5.4A1.4 1.4 0 0 1 5.4 4Z"/><path d="M15.4 4H18.6A1.4 1.4 0 0 1 20 5.4V8.6A1.4 1.4 0 0 1 18.6 10H15.4A1.4 1.4 0 0 1 14 8.6V5.4A1.4 1.4 0 0 1 15.4 4Z"/><path d="M5.4 14H8.6A1.4 1.4 0 0 1 10 15.4V18.6A1.4 1.4 0 0 1 8.6 20H5.4A1.4 1.4 0 0 1 4 18.6V15.4A1.4 1.4 0 0 1 5.4 14Z"/><path d="M14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5z"/></symbol>
+  </defs>
+</svg>
+
+<header class="top" id="cabecera">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="WHIDER, inicio"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F2F2F2" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</a>
+    <nav class="nav" aria-label="Portada">
+      <a href="#funciones">Funciones</a>
+      <a href="#movil">En el móvil</a>
+      <a href="#descargar">Descargar</a>
+    </nav>
+    <a class="btn primary sm" href="/app"><span class="long">Abrir WHIDER</span><span class="short">Abrir</span></a>
+  </div>
+</header>
+
+<main id="contenido">
+  <section class="hero" aria-labelledby="t-hero">
+    <div class="wrap">
+      <p class="eyebrow rise d1">WHIDER 1.0 · Gratis y sin anuncios</p>
+      <h1 id="t-hero"><span class="l rise d2">Tu día,</span><span class="l rise d3">bajo control.</span></h1>
+      <p class="lead rise d4">Tareas, calendario, hábitos, enfoque y un Cuaderno para tus ideas. Todo en un sitio y sincronizado entre el ordenador, el móvil y la web.</p>
+      <div class="cta rise d5">
+        <a class="btn primary" href="/app">Abrir en el navegador</a>
+        <a class="btn ghost" id="cta-dl" href="#descargar"><svg class="ic"><use href="#i-download"/></svg><span>Descargar</span></a>
+        <div class="store" id="cta-play" hidden><b>Google Play</b><span class="soon">Próximamente</span></div>
+      </div>
+      <p class="cta-note rise d5" id="cta-note">Para Windows, macOS y Linux · En Android, pronto en Google Play</p>
+
+      <div class="chart rise d5" aria-hidden="true">
+        <svg viewBox="8 11 49 40">
+          <g class="grid"><path d="M8 17H57M8 25H57M8 33H57M8 41H57M8 49H57"/></g>
+          <path class="w" pathLength="1" d="M12.5 22.5 23 45l9-15.5L41 45l11-28"/>
+          <circle class="dot" cx="12.5" cy="22.5" r=".62"/><circle class="dot" cx="23" cy="45" r=".62"/><circle class="dot" cx="32" cy="29.5" r=".62"/>
+          <circle class="dot" cx="41" cy="45" r=".62"/><circle class="dot" cx="52" cy="17" r=".95"/>
+          <text class="tag" x="50.2" y="14.2">HOY</text>
+        </svg>
+      </div>
+      <div class="shots rise d6">
+        <figure class="pc" style="margin:0 0 0 auto">
+          <img src="/sitio/img/pc-hoy.webp" width="1920" height="1200" fetchpriority="high" alt="WHIDER en el ordenador: la pantalla Hoy con lo más importante del día, el personaje Whi, el progreso y los hábitos">
+        </figure>
+        <figure class="phone" style="margin:0">
+          <img src="/sitio/img/movil-hoy.webp" width="600" height="1222" alt="La misma pantalla Hoy en el móvil">
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <ul class="facts rv" aria-label="Lo esencial">
+      <li><svg class="ic"><use href="#i-cloud"/></svg><span><b>Sincronizada.</b> Lo mismo en el ordenador, el móvil y la web con tu cuenta.</span></li>
+      <li><svg class="ic"><use href="#i-check"/></svg><span><b>Sin conexión.</b> Sigue funcionando aunque te quedes sin internet.</span></li>
+      <li><svg class="ic"><use href="#i-shield"/></svg><span><b>Sin anuncios ni rastreo.</b> Gratis, y tus datos son solo tuyos.</span></li>
+    </ul>
+  </div>
+
+  <section class="sec" id="funciones" aria-labelledby="t-fun">
+    <div class="wrap">
+      <p class="label rv">Índice</p>
+      <h2 id="t-fun" class="rv">Todo tu día,<br>en un solo sitio.</h2>
+      <ol class="index">
+        <li class="rv"><span class="num">01</span><h3><svg class="ic"><use href="#i-tasks"/></svg>Tareas con prioridad</h3><p>Lo más importante arriba y el resto en orden: categorías, fechas, recordatorios y tareas que se repiten.</p></li>
+        <li class="rv"><span class="num">02</span><h3><svg class="ic"><use href="#i-calendar"/></svg>Calendario</h3><p>Mes, semana y agenda para ver tu día de un vistazo y planificar los siguientes.</p></li>
+        <li class="rv"><span class="num">03</span><h3><svg class="ic"><use href="#i-notebook"/></svg>Cuaderno</h3><p>Páginas por bloques con fotos, archivos, tablas y plantillas para tus ideas, viajes y proyectos.</p></li>
+        <li class="rv"><span class="num">04</span><h3><svg class="ic"><use href="#i-timer"/></svg>Hábitos y enfoque</h3><p>Rachas para lo que quieres repetir cada día y un temporizador para trabajar sin distracciones.</p></li>
+        <li class="rv"><span class="num">05</span><h3><svg class="ic"><use href="#i-team"/></svg>Personas y equipos</h3><p>Chats, equipos y páginas compartidas. Añade a amigos y compañeros con un enlace o un código QR.</p></li>
+        <li class="rv"><span class="num">06</span><h3><svg class="ic"><use href="#i-chart"/></svg>Estadísticas e informes</h3><p>Tu progreso por días, semanas y categorías, con informes para imprimir o exportar.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec" id="movil" aria-labelledby="t-mov">
+    <div class="wrap">
+      <p class="label rv">En el móvil</p>
+      <h2 id="t-mov" class="rv">Lo mismo,<br>en el bolsillo.</h2>
+      <p class="sub rv">Tus tareas, tus páginas y tus hábitos te siguen del ordenador al móvil, con Whi, tu personaje, de compañía.</p>
+      <ul class="phones" aria-label="Capturas de WHIDER en el móvil">
+        <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-cuaderno.webp" width="560" height="1140" loading="lazy" decoding="async" alt="Una página del Cuaderno con un plan de viaje, casillas y un aviso"></div><figcaption><b>Cuaderno</b>Tus páginas, con listas, fotos y avisos.</figcaption></figure></li>
+        <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-enfoque.webp" width="560" height="1140" loading="lazy" decoding="async" alt="El temporizador de enfoque en 25:00"></div><figcaption><b>Enfoque</b>25 minutos para una sola cosa.</figcaption></figure></li>
+        <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-calendario.webp" width="560" height="1140" loading="lazy" decoding="async" alt="El calendario del mes con el día de hoy marcado"></div><figcaption><b>Calendario</b>El mes entero, de un vistazo.</figcaption></figure></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec" id="descargar" aria-labelledby="t-dl">
+    <div class="wrap">
+      <p class="label rv">Descargar</p>
+      <h2 id="t-dl" class="rv">Descarga WHIDER.</h2>
+      <p class="sub rv">Gratis y sin registrarte: empieza sin cuenta y crea una cuando quieras para tener lo mismo en todos tus dispositivos.</p>
+
+      <div class="dl-grid">
+        <article class="card pc-card rv" aria-labelledby="t-pc">
+          <div class="card-h"><svg class="ic"><use href="#i-monitor"/></svg><h3 id="t-pc">Ordenador</h3><span class="chip" id="pc-chip" hidden></span></div>
+          <div class="dl-main" id="pc-main" hidden>
+            <a class="btn primary" id="pc-main-btn" href="#"><svg class="ic"><use href="#i-download"/></svg><span>Descargar</span></a>
+            <small id="pc-main-meta"></small>
+          </div>
+          <p class="others" id="pc-others" hidden>Otros sistemas</p>
+          <ul class="dl-list">
+            <li><a class="dl-item" data-os="windows" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-Setup.exe"><span><b>Windows</b><small>Instalador para Windows 10 y 11 (64 bits)<i data-size="WHIDER-Setup.exe"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="mac" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-mac.dmg"><span><b>macOS</b><small>Para Mac con Apple Silicon o Intel<i data-size="WHIDER-mac.dmg"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="linux" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-linux.AppImage"><span><b>Linux</b><small>AppImage para 64 bits<i data-size="WHIDER-linux.AppImage"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+          </ul>
+          <details class="help">
+            <summary>¿Cómo se instala?</summary>
+            <dl>
+              <dt data-help="windows">Windows</dt><dd data-help="windows">Abre el instalador. Si Windows muestra «Windows protegió su PC», pulsa «Más información» y después «Ejecutar de todas formas»: aparece porque la app todavía no está firmada con un certificado de pago.</dd>
+              <dt data-help="mac">macOS</dt><dd data-help="mac">Abre el archivo y arrastra WHIDER a Aplicaciones. La primera vez, ábrela con clic derecho → «Abrir».</dd>
+              <dt data-help="linux">Linux</dt><dd data-help="linux">Dale permiso de ejecución (Propiedades → «Permitir ejecutar como programa», o <code>chmod +x</code>) y ábrela.</dd>
+            </dl>
+          </details>
+        </article>
+
+        <article class="card mob rv" aria-labelledby="t-mob">
+          <div class="card-h"><svg class="ic"><use href="#i-phone"/></svg><h3 id="t-mob">Móvil</h3><span class="chip" id="mob-chip" hidden>Tu dispositivo</span></div>
+          <div class="store" id="play"><b>Google Play</b><span class="soon">Próximamente</span></div>
+          <p>WHIDER para Android llegará pronto a Google Play. Mientras tanto, úsala en el navegador del móvil: añádela a la pantalla de inicio desde el menú del navegador y se abrirá como una app.</p>
+          <a class="btn ghost" href="/app">Abrir en el navegador</a>
+        </article>
+      </div>
+      <p class="fine rv">Los instaladores para ordenador se descargan de GitHub, donde se publica cada versión.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F2F2F2" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</a>
+    <p>Tu día, bajo control · Versión 1.0 · © <span id="year">2026</span></p>
+    <nav aria-label="Pie de página">
+      <a href="/app">Abrir WHIDER</a>
+      <a href="#descargar">Descargar</a>
+      <a href="/privacidad/">Privacidad</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="/sitio/descargas.js"></script>
+<script>
+  (function () {
+    'use strict';
+    var $ = function (s) { return document.querySelector(s); };
+    var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+    $('#year').textContent = new Date().getFullYear();
+
+    // Cabecera: una regla fina al bajar
+    var top = $('#cabecera'), onScroll = function () { top.classList.toggle('scrolled', window.scrollY > 8); };
+    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+    // La tira de capturas, cuando se desplaza de lado (móvil), también se recorre con el teclado
+    var strip = $('.phones'), fitStrip = function () { if (strip.scrollWidth > strip.clientWidth + 2) strip.setAttribute('tabindex', '0'); else strip.removeAttribute('tabindex'); };
+    fitStrip(); window.addEventListener('resize', fitStrip);
+
+    // Apariciones al llegar a cada parte
+    var rv = $$('.rv');
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
+      rv.forEach(function (el) { io.observe(el); });
+    } else rv.forEach(function (el) { el.classList.add('in'); });
+
+    // Descarga según el dispositivo (las direcciones están en sitio/descargas.js)
+    var D = window.WhiderDescargas; if (!D) return;
+    var OS = D.ordenador, pl = D.plataforma(), movil = D.esMovil(pl), mine = OS[pl] || null, root = document.documentElement;
+    root.setAttribute('data-plataforma', pl);
+    if (movil) root.setAttribute('data-movil', '');
+    $$('[data-os]').forEach(function (a) { var o = OS[a.getAttribute('data-os')]; if (o) a.href = o.url; });
+    var keys = ['windows', 'mac', 'linux'];
+    var names = function (ks) { return ks.map(function (k) { return OS[k].nombre; }); };
+    var joinY = function (a) { return a.length > 1 ? a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1] : a.join(''); };
+
+    if (mine) {
+      // Héroe: descarga directa para este ordenador
+      $('#cta-dl').href = mine.url; $('#cta-dl span').textContent = 'Descargar para ' + mine.nombre;
+      $('#cta-note').innerHTML = 'Versión ' + D.version + ' para ' + mine.nombre + ' · También para <a href="#descargar">' + joinY(names(keys.filter(function (k) { return k !== pl; }))) + '</a>';
+      // Tarjeta: el suyo destacado y el resto debajo
+      $('#pc-main').hidden = false; $('#pc-main-btn').href = mine.url;
+      $('#pc-main-btn span').textContent = 'Descargar para ' + mine.nombre;
+      var item = $('.dl-item[data-os="' + pl + '"]');
+      $('#pc-main-meta').innerHTML = item.querySelector('small').innerHTML;
+      item.parentNode.hidden = true;
+      $('#pc-others').hidden = false;
+      $('#pc-chip').hidden = false; $('#pc-chip').textContent = 'Tu sistema: ' + mine.nombre;
+      // Ayuda: primero la de su sistema
+      var dl = $('.help dl'); $$('[data-help="' + pl + '"]').reverse().forEach(function (n) { dl.insertBefore(n, dl.firstChild); });
+    } else if (movil) {
+      $('#cta-dl').hidden = true;
+      $('#cta-play').hidden = false;
+      $('#mob-chip').hidden = false;
+      $('#cta-note').innerHTML = 'En el ordenador: <a href="#descargar">Windows, macOS y Linux</a>';
+    }
+
+    // Google Play, cuando esté publicada: el aviso «Próximamente» pasa a ser el enlace
+    if (D.play) {
+      ['play', 'cta-play'].forEach(function (id) {
+        var el = document.getElementById(id); if (!el) return;
+        var a = document.createElement('a'); a.id = id; a.className = 'store'; a.href = D.play; a.hidden = el.hidden;
+        a.innerHTML = '<b>Google Play</b><span class="soon">Descargar</span>';
+        el.parentNode.replaceChild(a, el);
+      });
+    }
+
+    // Tamaño de cada instalador
+    D.tamanos().then(function (m) {
+      if (!m) return;
+      $$('[data-size]').forEach(function (el) { var v = m[el.getAttribute('data-size')]; if (v) el.textContent = ' · ' + v; });
+      if (mine && m[mine.archivo]) $('#pc-main-meta').innerHTML = $('.dl-item[data-os="' + pl + '"] small').innerHTML;
+    });
+  })();
+</script>
+</body>
+</html>

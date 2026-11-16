@@ -69,6 +69,19 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
+    def do_GET(self):
+        # En la web publicada la portada está en / y la app en /app (ver vercel.json).
+        # Aquí la app se sirve en / y también en /app; la portada, en /sitio/.
+        path, sep, query = self.path.partition('?')
+        if path == '/app/':
+            self.send_response(302)
+            self.send_header('Location', '/app' + sep + query)
+            self.end_headers()
+            return
+        if path == '/app':
+            self.path = '/index.html' + sep + query
+        return super().do_GET()
+
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store, must-revalidate')
         self.send_header('Access-Control-Allow-Origin', '*')

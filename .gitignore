@@ -39,3 +39,6 @@ node_modules/
 # App de escritorio (se generan al compilar)
 desktop/www/
 desktop/dist/
+
+# Web publicada (la genera tools/web-build.js)
+dist/

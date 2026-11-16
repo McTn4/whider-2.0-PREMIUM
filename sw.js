@@ -2,10 +2,9 @@
  * WHIDER · Service Worker: funciona sin conexión y se actualiza solo
  * (estrategia "red primero" con respaldo en caché).
  */
-var CACHE_NAME = 'whider-v1.0-2';
+var CACHE_NAME = 'whider-v1.0-3';
 var ASSETS = [
-  './',
-  './index.html',
+  './app',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -119,7 +118,7 @@ self.addEventListener('fetch', function (event) {
     }).catch(function () {
       return caches.match(req, { ignoreSearch: true }).then(function (hit) {
         if (hit) return hit;
-        if (req.mode === 'navigate') return caches.match('./index.html');
+        if (req.mode === 'navigate') return caches.match('./app');
         return Response.error();
       });
     })
@@ -130,7 +129,7 @@ self.addEventListener('fetch', function (event) {
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
   var screen = (event.notification.data && event.notification.data.screen) || 'home';
-  var target = new URL('./index.html#' + screen, self.registration.scope).href;
+  var target = new URL('./app#' + screen, self.registration.scope).href;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
       for (var i = 0; i < list.length; i++) {

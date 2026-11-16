@@ -90,6 +90,11 @@ window.Whider = window.Whider || {};
           W.UI.cell({ icon: 'hand', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
           W.UI.cell({ icon: 'shield', title: 'Datos', sub: 'Copia de seguridad, importar y exportar', onTap: function () { nav.push(dataPage); } })
         ] }),
+        // Solo en el navegador: la sección de descarga de la portada (en las apps ya la tienes)
+        !W.Layout.app && !window.WhiderAndroid && /^https?:$/.test(location.protocol) ? W.UI.section({ items: [
+          W.UI.cell({ icon: 'download', title: 'Descargar la app', sub: desk ? 'Para Windows, macOS y Linux' : 'Para ordenador · Android, pronto en Google Play',
+            onTap: function () { U.openExternal(location.origin + '/#descargar'); } })
+        ] }) : null,
         versionLine()
       ]
     };

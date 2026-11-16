@@ -3,7 +3,7 @@
   "short_name": "WHIDER",
   "description": "WHIDER: tareas, calendario, Cuaderno, chats y equipos, hábitos y enfoque, con tu personaje.",
   "id": "com.whider.app",
-  "start_url": "./index.html",
+  "start_url": "./app",
   "scope": "./",
   "display": "standalone",
   "display_override": [
@@ -47,7 +47,7 @@
     {
       "name": "Nueva tarea",
       "short_name": "Tarea",
-      "url": "./index.html#new-task",
+      "url": "./app#new-task",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -58,7 +58,7 @@
     {
       "name": "Nueva página",
       "short_name": "Página",
-      "url": "./index.html#new-note",
+      "url": "./app#new-note",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -70,7 +70,7 @@
     {
       "name": "Hábitos de hoy",
       "short_name": "Hábitos",
-      "url": "./index.html#habits",
+      "url": "./app#habits",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -82,7 +82,7 @@
       "name": "Chats",
       "short_name": "Chats",
       "description": "Tus conversaciones",
-      "url": "./index.html#chats",
+      "url": "./app#chats",
       "icons": [
         {
           "src": "icons/icon-192.png",

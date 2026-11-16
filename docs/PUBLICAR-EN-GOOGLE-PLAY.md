@@ -51,7 +51,7 @@ GitHub lo compila solo con cada cambio de la app, o a mano: **Actions → Compil
      - Datos recogidos: *Información personal* → nombre y dirección de correo; *Fotos* → foto de perfil (opcional); *Mensajes* → mensajes de los chats; *Archivos y documentos* → adjuntos del Cuaderno; *Actividad en la app* → contenido generado por el usuario (tareas, notas, hábitos).
      - Finalidad: *Funcionalidad de la app* y *Gestión de la cuenta*. No se comparten con terceros (Firebase es proveedor de servicios, no cuenta como compartir).
      - Cifrados en tránsito: sí. Se pueden eliminar: sí.
-     - **Eliminación de la cuenta**: dentro de la app (Ajustes → Cuenta → Eliminar la cuenta) y en la web: `https://whider-red.vercel.app/#cuenta`.
+     - **Eliminación de la cuenta**: dentro de la app (Ajustes → Cuenta → Eliminar la cuenta) y en la web: `https://whider-red.vercel.app/app#cuenta`.
    - **Clasificación de contenido**: rellena el cuestionario (app de productividad; tiene chats entre usuarios, así que marca que permite la interacción entre usuarios).
    - **Público objetivo**: mayores de 14 años (la política lo indica así).
 6. **Ficha de Play Store**: descripción, icono de 512 × 512 (`icons/icon-512.png`), gráfico de funciones de 1024 × 500 y capturas del móvil (al menos 2). El **correo de contacto del desarrollador** que pongas aquí es el que la política de privacidad indica para consultas.
@@ -62,7 +62,7 @@ La versión de Google Play está firmada con la clave de Google, distinta de la 
 
 1. **SHA‑1** → Firebase → Configuración del proyecto → tu app Android `com.whider.app` → *Agregar huella digital*. Sin esto, **«Continuar con Google» falla** en la versión de la tienda.
 2. **SHA‑256** → añádela a la lista de [`.well-known/assetlinks.json`](../.well-known/assetlinks.json) (junto a la que ya hay) para que los enlaces de invitación abran la app directamente.
-3. Cuando la ficha esté publicada, cambia en [`i/index.html`](../i/index.html) los enlaces de descarga de Android (ahora el APK de GitHub) por `https://play.google.com/store/apps/details?id=com.whider.app`.
+3. Cuando la ficha esté publicada, pon `https://play.google.com/store/apps/details?id=com.whider.app` en `play` dentro de [`sitio/descargas.js`](../sitio/descargas.js). La portada y las invitaciones mostrarán entonces **Google Play** en lugar de «Próximamente», y en Android las invitaciones llevarán a la ficha cuando la app no esté instalada.
 
 ## 6. Actualizaciones
 
