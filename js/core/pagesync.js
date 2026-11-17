@@ -12,7 +12,7 @@ window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
-  var U = W.U, P = function () { return W.Pages; };
+  var P = function () { return W.Pages; };
   var F = function () { return W.Auth.sdk(); }, DB = function () { return W.Auth.db(); };
   var KEY = 'whider.pagesync.v1';
   var uid = null, active = false, timer = null, poll = null, livePoll = null, inFlight = null, queued = false, lastRun = 0, warnedBig = {};

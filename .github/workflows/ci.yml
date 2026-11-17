@@ -1,0 +1,108 @@
+# Comprobaciones de cada cambio, antes de que llegue a la gente:
+#  1. Estilo (ESLint y Prettier), tipos (TypeScript progresivo) y pruebas unitarias.
+#  2. Pruebas de extremo a extremo con Chromium: la app, la web publicada (dist/) y las cuentas
+#     contra los emuladores de Firebase (sin tocar el proyecto real).
+#  3. La app de escritorio (Electron) en una pantalla virtual.
+# Los registros y capturas de una prueba fallida quedan como artefacto «registros-…» de la ejecución.
+name: Comprobaciones
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comprobaciones-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  estatico:
+    name: Estilo, tipos y pruebas unitarias
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: ESLint
+        run: npm run lint
+      - name: Prettier
+        run: npm run format:check
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Pruebas unitarias
+        run: npm run test:unit
+
+  navegador:
+    name: Pruebas en el navegador (${{ matrix.grupo }})
+    needs: estatico
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        grupo: [app, web, nube]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Java para los emuladores de Firebase
+        if: matrix.grupo == 'nube'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: Chromium para Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Pruebas
+        run: node tests/run.mjs ${{ matrix.grupo }}
+      - name: Guardar registros y capturas
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registros-${{ matrix.grupo }}
+          path: tests/e2e/logs/
+          retention-days: 7
+
+  escritorio:
+    name: Pruebas de la app de escritorio
+    needs: estatico
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+      - run: npm ci
+      - name: Electron
+        working-directory: desktop
+        run: npm ci
+      - name: Chromium para Playwright (crea los archivos de ejemplo)
+        run: npx playwright install --with-deps chromium
+      - name: Pruebas
+        run: node tests/run.mjs escritorio
+      - name: Guardar registros y capturas
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registros-escritorio
+          path: tests/e2e/logs/
+          retention-days: 7

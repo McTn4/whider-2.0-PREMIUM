@@ -113,7 +113,7 @@ window.Whider = window.Whider || {};
 
   /* ---------- Dibujo ---------- */
   function eyesSvg(kind, b, t, mood) {
-    var L = 60 - b.ex, R = 60 + b.ex, y = b.ey, ink = t.ink, out = '';
+    var L = 60 - b.ex, R = 60 + b.ex, y = b.ey, ink = t.ink, out;
     if (mood === 'sleepy') kind = 'cerrados';
     if (mood === 'party') kind = kind === 'corazones' ? 'corazones' : 'estrellas';
     if (mood === 'proud' && kind === 'puntos') kind = 'felices';

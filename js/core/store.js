@@ -142,7 +142,7 @@ window.Whider = window.Whider || {};
   window.addEventListener('pagehide', flushNative);
 
   function read(key) {
-    var raw = null;
+    var raw;
     try { raw = localStorage.getItem(key); } catch (e) { raw = null; }
     if (raw == null && bridge()) {
       try { raw = bridge().storeGet(key) || null; } catch (e) { raw = null; }

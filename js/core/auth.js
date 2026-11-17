@@ -91,7 +91,7 @@ window.Whider = window.Whider || {};
       emit();
     });
     // Solo si el usuario inició un acceso con Google por redirección en la web
-    var pending = false;
+    var pending;
     try { pending = sessionStorage.getItem(REDIRECT_FLAG) === '1'; sessionStorage.removeItem(REDIRECT_FLAG); } catch (e) { pending = false; }
     if (pending && !isAndroid() && !isDesktopApp()) F.getRedirectResult(auth).catch(function () { /* sin resultado */ });
     setTimeout(function () { if (first) { first = false; readyResolve(Auth.user); } }, 8000);

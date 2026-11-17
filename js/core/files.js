@@ -170,6 +170,7 @@ window.Whider = window.Whider || {};
   function mimeOf(file) { var t = cleanType(file.type); return t !== 'application/octet-stream' ? t : (EXT[ext(file.name)] || t); }
   /** Nombre que se puede guardar en cualquier sistema (sin rutas ni caracteres prohibidos) */
   function cleanName(n) {
+    // eslint-disable-next-line no-control-regex -- se quitan a propósito los caracteres de control de los nombres de archivo
     n = String(n || '').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim();
     if (!n || /^\.+$/.test(n)) n = 'archivo';
     if (n.length > 120) { var e = ext(n); n = n.slice(0, 110 - e.length).trim() + (e ? '.' + e : ''); }

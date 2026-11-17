@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * WHIDER · Lectura de fechas y detalles en lenguaje natural (español) al crear tareas.
  *   "Llamar a Ana mañana a las 10 #trabajo !!"  →  título "Llamar a Ana", mañana 10:00, lista Trabajo, importante

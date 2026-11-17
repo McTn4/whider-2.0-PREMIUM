@@ -294,11 +294,23 @@ npm start
 ├── fonts/                  # Outfit (títulos y cifras) y Onest (texto), variables 100–900, locales, con sus licencias OFL
 ├── desktop/                # App de escritorio (Electron): ventana, bandeja, acceso con Google por el navegador
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones), API 36
-├── tools/web-build.js      # Prepara la web para Vercel en dist/ (portada en /, app en /app)
-├── tools/firebase-bundle/  # Cómo regenerar js/vendor/firebase.js
+├── tools/
+│   ├── web-build.js        # Prepara la web para Vercel en dist/ (portada en /, app en /app)
+│   ├── servir-web.py       # Sirve dist/ en local con las mismas reglas que vercel.json
+│   ├── iconos/             # Generador de la colección de iconos «Índice» y su muestrario
+│   ├── capturas/           # Capturas de la portada, imagen para compartir y recorrido por las pantallas
+│   └── firebase-bundle/    # Cómo regenerar js/vendor/firebase.js
+├── tests/
+│   ├── unit/               # Lógica sin navegador (node --test): fechas, lenguaje natural, tareas, sincronización…
+│   ├── e2e/                # Recorridos reales con Playwright: app, web, cuentas (emuladores) y escritorio
+│   └── run.mjs             # Lanzador de las pruebas (arranca servidores y emuladores si hace falta)
+├── types/whider.d.ts       # Tipos comunes para la comprobación progresiva con TypeScript
+├── package.json            # Herramientas de desarrollo y comandos (npm run check, npm test…)
 ├── serve.py                # Servidor local para PC y móvil
 └── package_apk.py          # Copia la web a android/…/assets/www y crea el ZIP del proyecto
 ```
+
+Cómo instalar, ejecutar, probar y compilar todo desde cero: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 
 ## 🚀 Para quien publica la app
 

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * WHIDER · Utilidades compartidas (DOM, fechas, formato, iconos)
  */
@@ -100,7 +101,7 @@ window.Whider = window.Whider || {};
       d.setDate(Math.min(day, last));
       return U.ymd(d);
     },
-    diffDays: function (a, b) { return Math.round((U.parse(b) - U.parse(a)) / 86400000); },
+    diffDays: function (a, b) { return Math.round((U.parse(b).getTime() - U.parse(a).getTime()) / 86400000); },
     weekday: function (s) { return U.parse(s).getDay(); },
     /** Marca de tiempo del plazo: con hora → esa hora; sin hora → fin del día */
     deadlineTs: function (date, time) {
@@ -183,7 +184,7 @@ window.Whider = window.Whider || {};
     uid: function (p) { return (p || 't') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
     clamp: function (v, a, b) { return Math.max(a, Math.min(b, v)); },
     debounce: function (fn, ms) {
-      var t; return function () { var a = arguments, s = this; clearTimeout(t); t = setTimeout(function () { fn.apply(s, a); }, ms); };
+      var t; return /** @this {any} */ function () { var a = arguments, s = this; clearTimeout(t); t = setTimeout(function () { fn.apply(s, a); }, ms); };
     },
     reducedMotion: function () {
       return document.documentElement.getAttribute('data-motion') === 'reduced' ||

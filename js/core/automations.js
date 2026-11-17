@@ -19,7 +19,7 @@ window.Whider = window.Whider || {};
   var log = load();
 
   function load() {
-    var d = null;
+    var d;
     try { d = JSON.parse(localStorage.getItem(LOG) || 'null'); } catch (e) { d = null; }
     d = d && typeof d === 'object' ? d : {};
     return { entries: Array.isArray(d.entries) ? d.entries.slice(-80) : [], seen: d.seen && typeof d.seen === 'object' ? d.seen : {}, daily: d.daily && typeof d.daily === 'object' ? d.daily : {} };

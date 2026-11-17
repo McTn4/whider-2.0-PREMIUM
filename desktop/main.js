@@ -311,6 +311,7 @@ ipcMain.handle('whider:print-pdf', function (_e, name) {
 // Lo que el sistema ejecutaría en vez de abrir: solo se puede descargar (podría llegar de un equipo)
 const RUNNABLE = /\.(exe|msi|msix|appx|bat|cmd|com|scr|pif|cpl|ps1|psm1|vbs|vbe|js|jse|wsf|wsh|hta|jar|lnk|reg|inf|app|command|tool|sh|bash|zsh|csh|run|bin|deb|rpm|appimage|pkg|dmg|workflow|scpt|desktop)$/i;
 function attachmentName(name) {
+  // eslint-disable-next-line no-control-regex -- se quitan a propósito los caracteres de control de los nombres de archivo
   let n = String(name || '').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim();
   if (!n || /^\.+$/.test(n)) n = 'archivo';
   return n.slice(0, 150);

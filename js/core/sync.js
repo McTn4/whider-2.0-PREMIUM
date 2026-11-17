@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * WHIDER · Sincronización con la nube (Cloud Firestore, versión ligera)
  *
@@ -108,7 +109,7 @@ window.Whider = window.Whider || {};
         .filter(function (m) { return !(deleted['mark:' + m.id] && deleted['mark:' + m.id] >= (m.updatedAt || 0)); });
 
       // Hábitos, automatizaciones y listas personalizadas: por elemento, gana el más reciente
-      var byId = function (field, prefix) {
+      var newestById = function (field, prefix) {
         var map = {};
         (a[field] || []).concat(b[field] || []).forEach(function (x) {
           if (x && x.id && (!map[x.id] || stamp(x) > stamp(map[x.id]))) map[x.id] = x;
@@ -156,12 +157,12 @@ window.Whider = window.Whider || {};
           history: Object.keys(hist).map(function (k) { return hist[k]; }).sort(function (x, y) { return (x.at || 0) - (y.at || 0); }).slice(-300),
           custom: custom
         },
-        habits: byId('habits', 'habit:'),
+        habits: newestById('habits', 'habit:'),
         habitLog: habitLog,
-        rules: byId('rules', 'rule:'),
-        filters: byId('filters', 'filter:'),
-        notes: byId('notes', 'note:'),
-        templates: byId('templates', 'tpl:'),
+        rules: newestById('rules', 'rule:'),
+        filters: newestById('filters', 'filter:'),
+        notes: newestById('notes', 'note:'),
+        templates: newestById('templates', 'tpl:'),
         character: newest(a.character, b.character),
         social: {
           friends: perKey(soa.friends, sob.friends, 'at'),

@@ -21,7 +21,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   var tickId = null, ui = null;
 
   function load() {
-    var d = null;
+    var d;
     try { d = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { d = null; }
     return Object.assign({ mode: 'work', running: false, endAt: 0, remaining: null, round: 1, taskId: null }, d || {});
   }

@@ -1,0 +1,30 @@
+# Prettier se adopta poco a poco: el código nuevo nace formateado y el anterior se formatea
+# cuando se reescribe (así los cambios de estilo no tapan los cambios reales en el historial).
+node_modules/
+dist/
+android/
+desktop/
+fonts/
+icons/
+docs/
+i/
+privacidad/
+js/
+css/
+sitio/
+*.html
+*.md
+*.yml
+sw.js
+manifest.json
+firebase.json
+package-lock.json
+.well-known/
+tools/firebase-bundle/
+tools/web-build.js
+tools/capturas/og.js
+tools/capturas/recorrido.js
+tests/e2e/logs/
+# Pruebas de extremo a extremo anteriores a la 1.1 (las utilidades comunes sí se formatean)
+tests/e2e/*.js
+!tests/e2e/_util.js

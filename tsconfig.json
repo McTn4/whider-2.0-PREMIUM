@@ -1,0 +1,31 @@
+{
+  // TypeScript de forma progresiva: se comprueban los archivos que empiezan por «// @ts-check»
+  // (la app sigue siendo JavaScript sin compilar). «npm run typecheck» no genera nada.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "strict": false,
+    "noImplicitThis": true,
+    "strictBindCallApply": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": [
+    "types/**/*.d.ts",
+    "js/core/**/*.js",
+    "js/ui/**/*.js",
+    "js/screens/**/*.js",
+    "js/*.js",
+    "sitio/**/*.js",
+    "tests/**/*.js",
+    "tests/**/*.mjs",
+    "tools/**/*.js",
+    "tools/**/*.mjs"
+  ],
+  "exclude": ["node_modules", "dist", "js/vendor", "tools/firebase-bundle", "desktop", "android", "tests/e2e/logs"]
+}

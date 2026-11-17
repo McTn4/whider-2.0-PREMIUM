@@ -83,7 +83,7 @@ window.Whider = window.Whider || {};
     return P().sanitize(tmp.innerHTML);
   }
   function html(el) { return P().sanitize(el.innerHTML); }
-  function isEmpty(el) { return !(el.textContent || '').replace(/​/g, '').length && !el.querySelector('.mention'); }
+  function isEmpty(el) { return !(el.textContent || '').replace(/\u200b/g, '').length && !el.querySelector('.mention'); }
 
   /* ---------- Editor ---------- */
   /**
@@ -492,7 +492,7 @@ window.Whider = window.Whider || {};
         });
         return U.el('div.bk-taskrow.new', [U.icon('link'), input]);
       }
-      var host = ''; try { host = new URL(b.url).hostname.replace(/^www\./, ''); } catch (x) { host = b.url; }
+      var host; try { host = new URL(b.url).hostname.replace(/^www\./, ''); } catch (x) { host = b.url; }
       var titleEl = U.el('span.bk-bm-t.bk-text', { attrs: { contenteditable: ro ? 'false' : 'true', 'data-ph': host } });
       titleEl.innerHTML = b.x || '';
       return U.el('div.bk-bookmark', [U.el('span.bk-bm-ic', [U.icon('link')]), U.el('span.bk-bm-main', [titleEl, U.el('a.bk-bm-url', { attrs: { href: b.url, target: '_blank', rel: 'noopener noreferrer' }, text: b.url })])]);
@@ -749,7 +749,7 @@ window.Whider = window.Whider || {};
       t.classList.toggle('is-empty', isEmpty(t));
       // Atajos de Markdown al principio del bloque
       if (b.t === 'p' || (b.t !== 'code' && ev.inputType === 'insertText' && ev.data === ' ')) {
-        var txt = (t.textContent || '').replace(/ /g, ' ');
+        var txt = (t.textContent || '').replace(/\u00a0/g, ' ');
         var off = caretOffset(t);
         var head = txt.slice(0, off);
         if (b.t === 'p') {

@@ -148,7 +148,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     /** Menú Archivo → Informe en PDF */
     pdf: function () { if (current) pdf(current); },
     render: function (root) {
-      var st = S(), desk = W.Layout.desktop;
+      var desk = W.Layout.desktop;
       if (!desk && ui.period !== 'week' && ui.period !== 'lastweek') ui.period = 'week';
       var r = range(ui.period), d = data(r[0], r[1]);
       current = d;

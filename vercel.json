@@ -1,13 +1,24 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm ci --omit=dev",
   "buildCommand": "node tools/web-build.js",
   "outputDirectory": "dist",
-  "rewrites": [
-    { "source": "/app", "destination": "/app.html" }
-  ],
+  "rewrites": [{ "source": "/app", "destination": "/app.html" }],
   "redirects": [
-    { "source": "/app/", "destination": "/app", "permanent": false },
-    { "source": "/descargar", "destination": "/#descargar", "permanent": false },
-    { "source": "/descargar/", "destination": "/#descargar", "permanent": false }
+    {
+      "source": "/app/",
+      "destination": "/app",
+      "permanent": false
+    },
+    {
+      "source": "/descargar",
+      "destination": "/#descargar",
+      "permanent": false
+    },
+    {
+      "source": "/descargar/",
+      "destination": "/#descargar",
+      "permanent": false
+    }
   ]
 }

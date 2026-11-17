@@ -228,7 +228,7 @@ window.Whider = window.Whider || {};
   function plain(html) {
     if (!html) return '';
     tpl.innerHTML = String(html).replace(/<br\s*\/?>/gi, '\n');
-    return (tpl.content.textContent || '').replace(/ /g, ' ');
+    return (tpl.content.textContent || '').replace(/\u00a0/g, ' ');
   }
   /** Markdown en línea sencillo → HTML seguro (**negrita**, *cursiva*, ~~tachado~~, `código`, [texto](url)) */
   function inlineMd(text) {

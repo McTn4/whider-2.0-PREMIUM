@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * WHIDER · Enlaces de descarga (los usan la portada y las invitaciones)
  * Todas las direcciones están aquí. Cuando WHIDER esté en Google Play, pon su enlace en «play»

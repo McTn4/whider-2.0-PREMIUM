@@ -229,7 +229,7 @@ window.Whider = window.Whider || {};
   function adoptSystemFontScale() {
     var b = window.WhiderAndroid;
     if (!b || typeof b.fontScale !== 'function' || S.meta.fontScaleSeen) return;
-    var fs = 1;
+    var fs;
     try { fs = +b.fontScale() || 1; } catch (e) { fs = 1; }
     S.setMeta('fontScaleSeen', true);
     if (S.settings.textSize !== 'm') return;

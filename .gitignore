@@ -42,3 +42,6 @@ desktop/dist/
 
 # Web publicada (la genera tools/web-build.js)
 dist/
+
+# Registros y capturas de las pruebas
+tests/e2e/logs/
