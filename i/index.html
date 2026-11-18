@@ -106,7 +106,8 @@
     // Descargas: las mismas direcciones que la portada (sitio/descargas.js)
     var D = window.WhiderDescargas || null;
     if (D) {
-      ['windows', 'mac', 'linux'].forEach(function (k) { $('dl-' + k).href = D.ordenador[k].url; });
+      // En un Mac hay que elegir entre Apple Silicon e Intel: eso se hace en la portada (../#descargar)
+      ['windows', 'linux'].forEach(function (k) { $('dl-' + k).href = D.ordenador[k].url; });
       if (D.play) $('dl-android').outerHTML = '<a id="dl-android" href="' + D.play + '"><b>Android</b><small>Google Play</small></a>';
     }
     // Abrir en la app: en Android con un «intent» (si no está instalada, Google Play o, mientras no esté, la invitación

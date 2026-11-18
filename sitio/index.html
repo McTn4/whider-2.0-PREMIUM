@@ -187,16 +187,18 @@
           </div>
           <p class="others" id="pc-others" hidden>Otros sistemas</p>
           <ul class="dl-list">
-            <li><a class="dl-item" data-os="windows" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-Setup.exe"><span><b>Windows</b><small>Instalador para Windows 10 y 11 (64 bits)<i data-size="WHIDER-Setup.exe"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
-            <li><a class="dl-item" data-os="mac" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-mac.dmg"><span><b>macOS</b><small>Para Mac con Apple Silicon o Intel<i data-size="WHIDER-mac.dmg"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
-            <li><a class="dl-item" data-os="linux" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-linux.AppImage"><span><b>Linux</b><small>AppImage para 64 bits<i data-size="WHIDER-linux.AppImage"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="windows" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-Setup.exe"><span><b>Windows</b><small>Instalador para Windows 10 y 11 (64 bits)<i data-size="WHIDER-Setup.exe"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="mac" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-mac-arm64.dmg"><span><b>macOS · Apple Silicon</b><small>Para Mac con M1 o posterior<i data-size="WHIDER-mac-arm64.dmg"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="mac-intel" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-mac-x64.dmg"><span><b>macOS · Intel</b><small>Para Mac con procesador Intel<i data-size="WHIDER-mac-x64.dmg"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="linux" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-linux.AppImage"><span><b>Linux · AppImage</b><small>Para cualquier distribución de 64 bits<i data-size="WHIDER-linux.AppImage"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="linux-deb" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-linux.deb"><span><b>Linux · .deb</b><small>Para Debian, Ubuntu y Mint<i data-size="WHIDER-linux.deb"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
           </ul>
           <details class="help">
             <summary>¿Cómo se instala?</summary>
             <dl>
-              <dt data-help="windows">Windows</dt><dd data-help="windows">Abre el instalador. Si Windows muestra «Windows protegió su PC», pulsa «Más información» y después «Ejecutar de todas formas»: aparece porque la app todavía no está firmada con un certificado de pago.</dd>
-              <dt data-help="mac">macOS</dt><dd data-help="mac">Abre el archivo y arrastra WHIDER a Aplicaciones. La primera vez, ábrela con clic derecho → «Abrir».</dd>
-              <dt data-help="linux">Linux</dt><dd data-help="linux">Dale permiso de ejecución (Propiedades → «Permitir ejecutar como programa», o <code>chmod +x</code>) y ábrela.</dd>
+              <dt data-help="windows">Windows</dt><dd data-help="windows">Abre el instalador. Si Windows muestra «Windows protegió su PC», pulsa «Más información» y después «Ejecutar de todas formas»: aparece porque la app todavía no está firmada con un certificado de pago. Después se actualiza sola.</dd>
+              <dt data-help="mac">macOS</dt><dd data-help="mac">Elige el de tu Mac (menú Apple → Acerca de este Mac: «Chip Apple» es Apple Silicon). Abre el archivo y arrastra WHIDER a Aplicaciones. La primera vez, ábrela con clic derecho → «Abrir». Te avisa cuando hay una versión nueva.</dd>
+              <dt data-help="linux">Linux</dt><dd data-help="linux">AppImage: dale permiso de ejecución (Propiedades → «Permitir ejecutar como programa», o <code>chmod +x</code>) y ábrela; se actualiza sola. En Ubuntu 22.04 o posterior necesita <code>libfuse2</code> (<code>sudo apt install libfuse2</code>). El .deb no la necesita: ábrelo con el instalador de programas o <code>sudo apt install ./WHIDER-linux.deb</code>.</dd>
             </dl>
           </details>
         </article>

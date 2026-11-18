@@ -228,7 +228,7 @@ Se actualiza al cerrar cada bloque.
 - **Publicaciones versionadas**: [`release.yml`](../.github/workflows/release.yml) publica `vX.Y.Z` al cambiar la
   versión (betas como *Pre-release*), con las notas, las sumas SHA-256 y todos los instaladores. Los flujos de cada
   cambio dejan de sobrescribir `desktop-latest` y `apk-latest`: sus compilaciones quedan como artefactos.
-  Hasta la primera estable (1.1.0) la portada sigue enlazando a `desktop-latest`.
+  Desde la primera estable (1.1.0), la portada, las invitaciones y el README enlazan a `releases/latest/download/…`.
 - **Actualizaciones del escritorio** (electron-updater 6.8): automáticas en Windows y AppImage (descarga en segundo
   plano, comprobación SHA-512, instalación al cerrar o con «Reiniciar ahora»); aviso con el enlace de su instalador en
   macOS (sin firma de Apple no puede instalarse sola) y .deb; solo versiones estables. Estado en Ajustes → App de
@@ -319,3 +319,76 @@ Se actualiza al cerrar cada bloque.
   sin campos de más) y política de privacidad al día.
 - **Pruebas**: `instalar.js` (15), `copias.js` (15), `escritorio-copias.js` (13, con archivos de verdad y la
   recuperación tras perder los datos) y `ayuda.js` (18, contra los emuladores con las reglas reales).
+
+### Bloque 9 · Web, publicación e informe — hecho
+
+- **Portada** ([`sitio/index.html`](../sitio/index.html)): las novedades de la versión que se descarga (las escribe
+  `tools/version.js` desde el CHANGELOG, junto con «WHIDER 1.x» en toda la página), nueve preguntas frecuentes
+  comprobadas con la app y con la política de privacidad, y cómo pedir ayuda (Ajustes → Ayuda o GitHub; no se inventa
+  ningún correo). En el iPhone explica cómo añadirla desde Safari en lugar de anunciar Google Play. Estilos y script
+  compartidos con la versión en inglés (`sitio/portada.css`, `sitio/portada.js`). Sin testimonios.
+- **Capturas** de la portada y la imagen para compartir, rehechas con la 1.1 (`tools/capturas/`), sin avisos de paso.
+- **Versión 1.1.0**: el CHANGELOG junta la beta y lo posterior en una sola entrada (quien viene de la 1.0 ve todo en
+  «Novedades»; la beta queda como historial). Publicada como «Latest» por el flujo de versiones: [v1.1.0](https://github.com/McTn4/whider-2.0-PREMIUM/releases/tag/v1.1.0) con Windows (114 MB), Mac con
+  Apple Silicon (119 MB) y con Intel (126 MB), AppImage (125 MB), `.deb` (101 MB), APK (7,4 MB), los `latest*.yml` de
+  las actualizaciones automáticas y `SHA256SUMS.txt`.
+- **Descargas** a `releases/latest/download/…` (no cambian con cada versión): un `.dmg` por tipo de Mac (en navegadores
+  basados en Chromium, la portada detecta un Mac con Intel), AppImage y `.deb` en Linux, con su ayuda (`libfuse2`).
+  README al día (descargas, APK de cada versión, web en inglés, novedades de la 1.1).
+- **Verificado**: las 35 suites de extremo a extremo y las 86 pruebas unitarias en local, la integración continua de
+  cada commit, los seis enlaces `releases/latest/download/…` (llevan a los archivos de la v1.1.0) y la web en producción.
+
+## 7. Informe final de la 1.1
+
+### Hecho y verificado (pruebas automáticas, integración continua y producción)
+
+| Bloque | Lo principal |
+| --- | --- |
+| 1 · Cimientos | ESLint, Prettier, TypeScript progresivo, 35 suites de extremo a extremo y 86 unitarias, integración continua en cada cambio. |
+| 2 · Uso diario | Prioridad legible sin color, color por categoría, Hoy por estados y «En curso», barra inferior a elegir, primeros pasos, nombres más claros. |
+| 3 · Datos | Fusión sin pérdidas (por campo; en el Cuaderno, por bloque con las dos versiones), errores de la nube explicados con reintentos, archivo automático por tamaño, menos consultas. |
+| 4 · Integraciones | Importar desde Todoist, Google Tasks, Notion, `.ics` y CSV con vista previa y deshacer; Android: widget, compartir y alarmas exactas. |
+| 5 · Seguridad | Reglas más estrictas y con límites, bloquear y denunciar, acciones de cuenta; App Check y 2FA preparados. |
+| 6 · Versiones | Versión única, CHANGELOG en la app y en GitHub, publicaciones con sumas SHA-256, actualizaciones automáticas en el ordenador, `.deb`, `.dmg` por arquitectura, ficha de Google Play. |
+| 7 · Rendimiento | Web empaquetada (−38 % hasta poder usarla), ningún archivo de más de 1.000 líneas, decisión Electron/Tauri. |
+| 8 · Complementos | Tema claro, ayuda y comentarios, iPhone, copias automáticas sin cuenta, informes de errores con permiso, Storage listo para encender, web en inglés; la comprobación de contraste ahora funciona. |
+| 9 · Web y publicación | Portada con novedades, preguntas y soporte; 1.1.0 publicada; descargas a la última versión. |
+
+### Necesita una comprobación fuera de aquí
+
+- **Publicar `firestore.rules`** en la consola de Firebase (Firestore → Reglas). Sin las reglas nuevas, en producción
+  fallan bloquear/denunciar, los informes de errores y los comentarios.
+- **La primera actualización automática real**: de la 1.1.0-beta.1 a la 1.1.0 (Windows y AppImage) y, después, de la
+  1.1.0 a la siguiente.
+- **Instaladores en equipos reales**: los `.dmg` en un Mac con Apple Silicon y en uno con Intel, el `.deb` en Ubuntu.
+- **Android en un teléfono**: widget, alarmas exactas, copias en Descargas, barras del sistema con el tema claro y el
+  aviso de versión nueva del APK.
+- **Lectores de pantalla** (TalkBack y VoiceOver): axe no ve problemas, pero no sustituye a una persona.
+
+### Pendiente (no está hecho)
+
+- **La app en inglés**: la web ya lo está; la app tiene ≈ 1.660 textos y un intérprete de fechas en español. Plan y
+  método en [decisiones/0003](decisiones/0003-idiomas.md) (unas dos semanas).
+- **Escuchas en tiempo real** (SDK completo de Firestore) en lugar de consultar cada 15 segundos.
+- **Google Calendar y Outlook en las dos direcciones**: necesita apps OAuth verificadas por Google y Microsoft.
+- **Encender** App Check (consola), 2FA (Identity Platform) y Storage (plan Blaze): todo preparado y documentado.
+- **Dominio propio y correos con ese dominio** ([DOMINIO.md](DOMINIO.md)): decisión y pago.
+- **Firmar los instaladores** (certificado de Windows, cuenta de desarrollador de Apple) y **publicar en Google Play**.
+
+### Riesgos
+
+- Mientras no se publiquen las reglas, lo nuevo que depende de ellas falla en producción (y lo dice con un error claro).
+- Instaladores sin firmar: Windows y macOS avisan al abrirlos; en Mac la actualización no puede instalarse sola.
+- La política de privacidad remite al correo de la ficha de Google Play, que aún no existe: hace falta un contacto.
+- El plan gratuito de Firebase (50.000 lecturas al día, 1 GiB) da para unas 30 personas muy activas al día con el
+  ordenador abierto toda la jornada (muchas más con un uso normal en el móvil): con más uso, hay que pasar a Blaze
+  ([COSTES.md](COSTES.md)).
+
+### Recomendaciones, por orden
+
+1. Publicar `firestore.rules` (cinco minutos) y poner un correo de contacto en la política de privacidad.
+2. Probar la 1.1.0 en un Mac, un Ubuntu y un Android de verdad (lista de arriba).
+3. Publicar en Google Play con la ficha y las capturas ya hechas ([PUBLICAR-EN-GOOGLE-PLAY.md](PUBLICAR-EN-GOOGLE-PLAY.md)).
+4. Pasar a Blaze con una alerta de presupuesto antes de llegar al límite gratuito; entonces, encender Storage y
+   App Check.
+5. Escuchas en tiempo real (ahorra lecturas y hace la sincronización instantánea) y, después, la app en inglés.

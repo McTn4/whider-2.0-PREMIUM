@@ -48,7 +48,7 @@ const path = p => new URL(p.url()).pathname;
   ok(/^\.\.\/app#i=/.test(inv.web), 'invitación: «Seguir en el navegador» va a /app#i=…');
   ok(/S\.browser_fallback_url=[^;]*%2Fapp%23i%3D/.test(inv.open), 'invitación en Android: si no está instalada, se abre en la web');
   ok(/Próximamente/.test(inv.android) && !inv.apk, 'invitación: Android → Google Play · Próximamente (sin APK)');
-  ok(/desktop-latest\/WHIDER-Setup\.exe$/.test(inv.win), 'invitación: Windows desde descargas.js');
+  ok(/\/releases\/latest\/download\/WHIDER-Setup\.exe$/.test(inv.win), 'invitación: Windows desde descargas.js');
   await p.click('#web'); await sleep(2500);
   ok(path(p) === '/app' && await p.evaluate(() => /^#?(i=|home|$)/.test(location.hash) || true), 'la invitación abre la app en /app (' + p.url().slice(BASE.length, BASE.length + 40) + '…)');
   ok(errs.length === 0, 'sin errores ' + JSON.stringify(errs));

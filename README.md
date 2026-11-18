@@ -52,9 +52,11 @@
 
 | Sistema | Descarga | Instalación |
 | --- | --- | --- |
-| **Windows 10 y 11** | [WHIDER-Setup.exe](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-Setup.exe) | Ábrelo y se instala solo (crea un acceso directo). Si aparece «Windows protegió su PC»: **Más información → Ejecutar de todas formas** (la app no está firmada con un certificado de pago). |
-| **macOS** | [WHIDER-mac.dmg](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-mac.dmg) | Arrastra WHIDER a Aplicaciones. La primera vez, ábrela con **clic derecho → Abrir**. |
-| **Linux** | [WHIDER-linux.AppImage](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-linux.AppImage) | Dale permiso de ejecución y ábrelo. |
+| **Windows 10 y 11** | [WHIDER-Setup.exe](https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-Setup.exe) | Ábrelo y se instala solo (crea un acceso directo). Si aparece «Windows protegió su PC»: **Más información → Ejecutar de todas formas** (la app no está firmada con un certificado de pago). Se actualiza sola. |
+| **macOS con Apple Silicon** (M1 o posterior) | [WHIDER-mac-arm64.dmg](https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-mac-arm64.dmg) | Arrastra WHIDER a Aplicaciones. La primera vez, ábrela con **clic derecho → Abrir**. Avisa de cada versión nueva. |
+| **macOS con Intel** | [WHIDER-mac-x64.dmg](https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-mac-x64.dmg) | Igual que la anterior. |
+| **Linux** (cualquiera) | [WHIDER-linux.AppImage](https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-linux.AppImage) | Dale permiso de ejecución y ábrela. Se actualiza sola. En Ubuntu 22.04 o posterior necesita `libfuse2` (`sudo apt install libfuse2`). |
+| **Debian, Ubuntu y Mint** | [WHIDER-linux.deb](https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-linux.deb) | `sudo apt install ./WHIDER-linux.deb` o el instalador de programas. No necesita `libfuse2`; avisa de cada versión nueva. |
 
 La portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.vercel.app/descargar), destacando el de tu sistema, y cada versión publicada los trae todos en la pestaña **[Releases](https://github.com/McTn4/whider-2.0-PREMIUM/releases)**, con sus novedades. **Desde la 1.1 la app se actualiza sola** en Windows y en Linux (AppImage) y avisa de cada versión nueva en macOS y en Linux (.deb, nuevo en la 1.1, que no necesita `libfuse2`). La app también funciona en el navegador del ordenador con el mismo diseño, en [`/app`](https://whider-red.vercel.app/app).
 
@@ -196,7 +198,7 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 - **Widget «Hoy»** para la pantalla de inicio: las tareas de hoy (lo urgente primero), cuántas llevas y un botón para añadir.
 - **Avisos a la hora exacta** (Android 12+), si lo permites en *Ajustes → Avisos*; sin el permiso, los recordatorios llegan igualmente, con unos minutos de margen.
 
-> **Descarga el APK de pruebas**: [app-debug.apk](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/apk-latest/app-debug.apk) (pestaña **Releases → WHIDER (última versión)**). Se recompila solo con cada cambio de la app, junto con el **paquete para Google Play (AAB)**, que queda en los artefactos de cada compilación (**Actions → Compilar APK**). Cómo publicarla: [`docs/PUBLICAR-EN-GOOGLE-PLAY.md`](docs/PUBLICAR-EN-GOOGLE-PLAY.md).
+> **Descarga el APK de pruebas**: [WHIDER-android.apk](https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/WHIDER-android.apk), en cada versión publicada (pestaña **[Releases](https://github.com/McTn4/whider-2.0-PREMIUM/releases)**); la app avisa cuando hay una nueva. El **paquete para Google Play (AAB)** queda en los artefactos de cada compilación (**Actions → Compilar APK**). Cómo publicarla: [`docs/PUBLICAR-EN-GOOGLE-PLAY.md`](docs/PUBLICAR-EN-GOOGLE-PLAY.md).
 
 - Los **enlaces de invitación** (`https://whider-red.vercel.app/i/…`) abren la app directamente, y el lector de **códigos QR** usa la cámara trasera.
 

@@ -37,9 +37,11 @@
   var D = /** @type {any} */ (window).WhiderDescargas;
   if (!D) return;
   var OS = D.ordenador, pl = D.plataforma(), movil = D.esMovil(pl), mine = OS[pl] || null, root = document.documentElement;
+  /** @type {any} */ var item = null;
   root.setAttribute('data-plataforma', pl);
   if (movil) root.setAttribute('data-movil', '');
-  $$('[data-os]').forEach(function (a) { var o = OS[a.getAttribute('data-os')]; if (o) a.href = o.url; });
+  var OTRAS = D.otras || {};
+  $$('[data-os]').forEach(function (a) { var o = OS[a.getAttribute('data-os')] || OTRAS[a.getAttribute('data-os')]; if (o) a.href = o.url; });
   var keys = ['windows', 'mac', 'linux'];
   var names = function (/** @type {string[]} */ ks) { return ks.map(function (k) { return OS[k].nombre; }); };
   var join = function (/** @type {string[]} */ a) { return a.length > 1 ? a.slice(0, -1).join(', ') + T.and + a[a.length - 1] : a.join(''); };
@@ -53,7 +55,7 @@
     $('#pc-main').hidden = false;
     $('#pc-main-btn').setAttribute('href', mine.url);
     $('#pc-main-btn span').textContent = T.get + mine.nombre;
-    var item = $('.dl-item[data-os="' + pl + '"]');
+    item = $('.dl-item[data-os="' + pl + '"]');
     $('#pc-main-meta').innerHTML = item.querySelector('small').innerHTML;
     /** @type {HTMLElement} */ (item.parentNode).hidden = true;
     $('#pc-others').hidden = false;
@@ -62,6 +64,20 @@
     // Ayuda: primero la de su sistema
     var dl = $('.help dl');
     $$('[data-help="' + pl + '"]').reverse().forEach(function (n) { dl.insertBefore(n, dl.firstChild); });
+    // Un Mac con Intel (solo lo dicen los navegadores basados en Chromium): su .dmg en lugar del de Apple Silicon
+    if (pl === 'mac' && OTRAS['mac-intel'] && D.arquitectura) {
+      D.arquitectura().then(function (/** @type {string | null} */ a) {
+        if (a !== 'x86') return;
+        var intel = $('.dl-item[data-os="mac-intel"]');
+        mine = OTRAS['mac-intel'];
+        $('#cta-dl').setAttribute('href', mine.url);
+        $('#pc-main-btn').setAttribute('href', mine.url);
+        $('#pc-main-meta').innerHTML = intel.querySelector('small').innerHTML;
+        /** @type {HTMLElement} */ (intel.parentNode).hidden = true;
+        /** @type {HTMLElement} */ (item.parentNode).hidden = false;
+        item = intel;
+      });
+    }
   } else if (movil) {
     $('#cta-dl').hidden = true;
     $('#mob-chip').hidden = false;
@@ -91,6 +107,6 @@
   D.tamanos().then(function (/** @type {Record<string, string> | null} */ m) {
     if (!m) return;
     $$('[data-size]').forEach(function (el) { var v = m[el.getAttribute('data-size')]; if (v) el.textContent = ' · ' + v; });
-    if (mine && m[mine.archivo]) $('#pc-main-meta').innerHTML = $('.dl-item[data-os="' + pl + '"] small').innerHTML;
+    if (mine && m[mine.archivo]) $('#pc-main-meta').innerHTML = item.querySelector('small').innerHTML;
   });
 })();

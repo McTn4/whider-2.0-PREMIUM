@@ -25,7 +25,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
     // Los tamaños de los instaladores salen de la API de GitHub: aquí, una respuesta fija (la prueba no depende
     // de la red ni del límite de peticiones de GitHub, que comparten muchas máquinas)
     await ctx.route('https://api.github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-      assets: ['WHIDER-Setup.exe', 'WHIDER-mac.dmg', 'WHIDER-linux.AppImage'].map((name) => ({ name, size: 120e6 })) }) }));
+      assets: ['WHIDER-Setup.exe', 'WHIDER-mac-arm64.dmg', 'WHIDER-mac-x64.dmg', 'WHIDER-linux.AppImage', 'WHIDER-linux.deb'].map((name) => ({ name, size: 120e6 })) }) }));
     const p = await ctx.newPage(); const errs = [];
     p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     await p.goto(URL0); await p.evaluate(() => document.fonts.ready); await sleep(2900);
@@ -45,7 +45,8 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
     ok(info.pl === expectPl, name + ': detecta ' + info.pl);
     if (['windows', 'mac', 'linux'].includes(name)) {
       ok(/Descargar para (Windows|macOS|Linux)/.test(info.cta) && info.main === info.cta, name + ': botón «' + info.cta + '»');
-      ok(/releases\/download\/desktop-latest\//.test(info.mainHref), name + ': enlace al instalador');
+      const want = { windows: /WHIDER-Setup\.exe$/, mac: /WHIDER-mac-(arm64|x64)\.dmg$/, linux: /WHIDER-linux\.AppImage$/ }[name];
+      ok(/\/releases\/latest\/download\//.test(info.mainHref) && want.test(info.mainHref), name + ': enlace al instalador de la última versión (' + info.mainHref.split('/').pop() + ')');
     } else if (name === 'android') {
       ok(info.play && !info.cta, name + ': Google Play · Próximamente en lugar de descarga');
     } else {
