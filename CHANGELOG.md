@@ -8,7 +8,7 @@ Este archivo es la fuente de las notas que enseña la app (Ajustes → Ayuda →
 Las secciones «Novedades», «Mejoras», «Correcciones» y «Seguridad» se ven en la app; «Para desarrolladores», solo aquí.
 Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VERSION.md).
 
-## [Sin publicar]
+## [1.1.0] · 2026-11-18
 
 La 1.1: tema claro, importar desde otras apps, un Hoy más claro, sincronización sin pérdidas, copias automáticas, más
 seguridad y un ordenador que se actualiza solo.
