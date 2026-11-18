@@ -104,7 +104,20 @@ algo falla, los registros y las capturas quedan como artefacto de esa ejecución
   las etiquetas `<script>` de `index.html`.
 - **Datos.** `js/core/store.js` guarda todo en el propio dispositivo y `js/core/sync.js` lo fusiona con la
   copia de la nube (Firestore) cuando hay cuenta. La fusión es una función pura, cubierta por
-  `tests/unit/sincronizacion.test.js`.
+  `tests/unit/sincronizacion.test.js`. Los valores por defecto y la limpieza de cada dato (lo que llega del
+  dispositivo o de la nube) están aparte, en `js/core/schema.js` (funciones puras, con `// @ts-check`).
+- **Cuaderno.** El editor de bloques se carga la primera vez que se abre el Cuaderno (`js/screens/notes.js`):
+  `js/ui/caret.js` (el cursor), `js/ui/blocks-kinds.js` (bloques especiales: páginas, tareas, imágenes,
+  archivos, tablas…), `js/ui/blocks-menus.js` (menús «/» y «@»), `js/ui/blocks.js` (el editor) y
+  `js/ui/dbview.js` (bases de datos). Los bloques y los menús reciben del editor un objeto `ed` con lo que
+  necesitan; lo que el editor reasigna (la lista de bloques) llega como función, `ed.blocks()`.
+- **Tamaño de los archivos.** Ninguno pasa de 1.000 líneas: si uno crece, se separa por responsabilidades
+  (como `schema.js` de `store.js` o los menús del editor) en lugar de partirlo a ciegas.
+- **La web publicada va empaquetada.** `tools/web-build.js` junta y minimiza con esbuild los scripts de
+  `app.html` en `assets/app.<huella>.js`, el editor del Cuaderno en `assets/cuaderno.<huella>.js` y los estilos
+  en `assets/app.<huella>.css` (con mapas de código), y el Service Worker publicado guarda esos archivos con
+  una caché que cambia con su contenido. En desarrollo, Android y el escritorio se usan los archivos sueltos.
+  `node tools/medir-carga.js` compara cuánto tarda en abrirse con y sin empaquetar.
 - **Estilos.** Variables de diseño en `css/tokens.css` (colores, radios, tipografías Onest y Outfit).
 - **Iconos.** La colección «Índice» se genera con `python3 tools/iconos/generar.py --escribir` (actualiza
   el sprite de `index.html`) y se revisa con `node tools/iconos/muestrario.js`.

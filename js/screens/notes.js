@@ -20,17 +20,23 @@ window.Whider.Screens = window.Whider.Screens || {};
   var TREE_DRAG = 'text/x-whider-page';
   var cur = null;          // { id, editor, pane }
   var wantFocus = false, editorLoading = null;
-  /** El editor y las bases de datos se cargan la primera vez que se abre el Cuaderno (arranque más rápido) */
+  /*
+   * El editor y las bases de datos se cargan la primera vez que se abre el Cuaderno (arranque más rápido).
+   * En la web publicada van juntos en un solo archivo (WHIDER_CHUNKS, lo pone tools/web-build.js).
+   */
+  var EDITOR = ['js/ui/caret.js', 'js/ui/blocks-kinds.js', 'js/ui/blocks-menus.js', 'js/ui/blocks.js', 'js/ui/dbview.js'];
   function ensureEditor() {
     if (W.Blocks && W.DbView) return Promise.resolve();
     if (editorLoading) return editorLoading;
-    var load = function (src) { return new Promise(function (resolve, reject) { var s = document.createElement('script'); s.src = src; s.onload = resolve; s.onerror = function () { editorLoading = null; reject(new Error(src)); }; document.head.appendChild(s); }); };
+    var files = (window.WHIDER_CHUNKS && window.WHIDER_CHUNKS.cuaderno) || EDITOR;
+    // Se descargan a la vez y se ejecutan en orden (async = false)
+    var load = function (src) { return new Promise(function (resolve, reject) { var s = document.createElement('script'); s.src = src; s.async = false; s.onload = resolve; s.onerror = function () { editorLoading = null; reject(new Error(src)); }; document.head.appendChild(s); }); };
     var css = new Promise(function (resolve) {
       if (document.querySelector('link[href="css/cuaderno.css"]')) { resolve(); return; }
       var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'css/cuaderno.css';
       l.onload = resolve; l.onerror = resolve; document.head.appendChild(l);
     });
-    editorLoading = Promise.all([css, load('js/ui/blocks.js').then(function () { return load('js/ui/dbview.js'); })]);
+    editorLoading = Promise.all([css].concat(files.map(load)));
     return editorLoading;
   }
   var screenRoot = null, treeEl = null, paneEl = null, searchQ = '', unsub = null, titleTimer = null, kbBar = null;

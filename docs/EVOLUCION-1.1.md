@@ -247,3 +247,29 @@ Se actualiza al cerrar cada bloque.
   contra un servidor que hace de GitHub).
 - **Pendiente de validar fuera**: la primera actualización automática real (de la 1.1.0 a la siguiente), los `.dmg`
   por arquitectura en un Mac y el `.deb` en Ubuntu; el aviso del APK en un teléfono.
+
+### Bloque 7 · Rendimiento y arquitectura — hecho
+
+- **Empaquetado de la web** (`tools/web-build.js`, esbuild): los 63 scripts de la app (todos menos `js/config.js`) pasan a uno
+  (`assets/app.<huella>.js`), el editor del Cuaderno a otro que se sigue cargando al abrirlo y las hojas de estilo
+  a una; todo minimizado, con mapas de código y nombres que cambian con el contenido (Vercel los guarda un año:
+  `vercel.json`). El Service Worker publicado guarda esos archivos y su caché se llama como su contenido, así que ya
+  no hay que cambiar su nombre a mano. Android y el escritorio siguen con los archivos sueltos (se leen del propio
+  dispositivo).
+- **Medido** (`node tools/medir-carga.js`, mediana de 7 primeras visitas con el procesador 4 veces más lento):
+  la app está lista en **216 ms en lugar de 347 ms (−38 %)**, con 6 peticiones en lugar de 73; con 40 ms de
+  latencia por petición, 917 ms en lugar de 1.323 ms (−31 %, algo menos en Vercel, que usa HTTP/2). Transferencia
+  con brotli: scripts de 213 a 163 KB, Cuaderno de 30 a 24 KB, estilos de 27 a 22 KB.
+- **Archivos de más de 1.000 líneas, divididos por responsabilidades** (sin cambiar lo que hacen):
+  `js/core/store.js` (1.344 → 931 líneas) deja los valores por defecto y la limpieza de los datos en
+  `js/core/schema.js` (funciones puras); `js/ui/blocks.js` (1.346 → 855) deja el cursor en `js/ui/caret.js`, los
+  bloques especiales en `js/ui/blocks-kinds.js` y los menús «/» y «@» en `js/ui/blocks-menus.js`. Lo que usan del
+  editor les llega en un objeto `ed`, y ESLint (`no-undef`) comprueba que no queda ninguna referencia suelta. El
+  editor se descarga ahora en paralelo (se ejecuta en orden).
+- **TypeScript progresivo**: `// @ts-check` también en `schema.js` y `caret.js` (11 archivos de la app en total).
+- **Electron o Tauri**: se sigue con Electron, con datos y condiciones para revisarlo
+  ([decisiones/0002](decisiones/0002-escritorio-electron-o-tauri.md)).
+- **Siguiente paso posible** (no hecho): cargar cada pantalla al abrirla. El peso está muy repartido (el archivo
+  más grande, 11 KB con brotli), así que el ahorro exigiría que el enrutador cargase pantallas bajo demanda.
+- **Pruebas**: las 26 suites de app, escritorio y nube y las 3 de la web publicada (empaquetada) en verde; la de la
+  portada ya no depende de la API de GitHub (que limita las peticiones por IP).

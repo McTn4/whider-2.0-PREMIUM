@@ -4,7 +4,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { cargar } = require('./_cargar');
 
-const W = cargar(['js/core/util.js', 'js/core/store.js', 'js/core/sync.js'], { ahora: '2026-11-16T09:40:00' });
+const W = cargar(['js/core/util.js', 'js/core/schema.js', 'js/core/store.js', 'js/core/sync.js'], {
+  ahora: '2026-11-16T09:40:00'
+});
 const merge = (a, b) => JSON.parse(JSON.stringify(W.Sync.merge(a, b)));
 const t = (id, text, updatedAt, extra) => Object.assign({ id, text, createdAt: 1000, updatedAt }, extra);
 const snap = (fields) => Object.assign({ v: 1, tasks: [], sync: { deleted: {} } }, fields);

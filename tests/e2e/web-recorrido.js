@@ -20,8 +20,8 @@ const path = p => new URL(p.url()).pathname;
   ok(keys.length > 0, 'la app guarda su marca en este navegador (' + keys.length + ' claves)');
   // Service worker y caché con la app
   const sw = await p.evaluate(async () => { const r = await navigator.serviceWorker.ready; await new Promise(r => setTimeout(r, 1500)); const ks = await caches.keys(); const c = await caches.open(ks.find(k => k.indexOf('whider-') === 0)); return { scope: r.scope, keys: ks, app: !!(await c.match('/app')) }; });
-  // El nombre de la caché cambia con cada versión: se lee del propio sw.js
-  const CACHE = /CACHE_NAME = '([^']+)'/.exec(require('fs').readFileSync(require('path').join(__dirname, '..', '..', 'sw.js'), 'utf8'))[1];
+  // El nombre de la caché cambia con el contenido de la web: se lee del sw.js publicado
+  const CACHE = /CACHE_NAME = '([^']+)'/.exec(await (await fetch(BASE + '/sw.js')).text())[1];
   ok(sw.scope === BASE + '/' && sw.keys.includes(CACHE) && sw.app, 'service worker en / con la app en caché (' + JSON.stringify(sw) + ')');
   const man = await p.evaluate(async () => { const m = await (await fetch(document.querySelector('link[rel=manifest]').href)).json(); return { start: new URL(m.start_url, location.origin + '/manifest.json').pathname, id: m.id, sc: m.shortcuts.map(s => s.url) }; });
   ok(man.start === '/app' && man.id === 'com.whider.app' && man.sc.every(u => u.indexOf('./app#') === 0), 'manifiesto: se abre en /app y conserva su id');

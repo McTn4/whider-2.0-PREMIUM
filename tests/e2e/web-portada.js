@@ -21,6 +21,10 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   const b = await chromium.launch();
   for (const [name, opts] of cases) {
     const ctx = await b.newContext(Object.assign({ deviceScaleFactor: 1 }, opts));
+    // Los tamaños de los instaladores salen de la API de GitHub: aquí, una respuesta fija (la prueba no depende
+    // de la red ni del límite de peticiones de GitHub, que comparten muchas máquinas)
+    await ctx.route('https://api.github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      assets: ['WHIDER-Setup.exe', 'WHIDER-mac.dmg', 'WHIDER-linux.AppImage'].map((name) => ({ name, size: 120e6 })) }) }));
     const p = await ctx.newPage(); const errs = [];
     p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     await p.goto(URL0); await p.evaluate(() => document.fonts.ready); await sleep(2900);

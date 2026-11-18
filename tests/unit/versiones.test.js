@@ -48,16 +48,38 @@ test('comparar versiones: las de prueba van antes que la estable', () => {
 });
 
 test('el CHANGELOG del repositorio: la versión actual, en orden y con fecha', () => {
-  const all = V.parseChangelog(CHANGELOG);
+  // Arriba puede haber una sección «Sin publicar» (lo hecho desde la última versión)
+  const todas = V.parseChangelog(CHANGELOG);
+  assert.ok(
+    todas.every((r, i) => V.SEMVER.test(r.v) || (i === 0 && r.v === 'Sin publicar')),
+    'solo versiones (y «Sin publicar» arriba)'
+  );
+  const all = todas.filter((r) => V.SEMVER.test(r.v));
   assert.ok(all.length >= 2);
-  assert.equal(all[0].v, PKG.version, 'la primera entrada es la versión de package.json');
+  assert.equal(all[0].v, PKG.version, 'la primera versión es la de package.json');
   for (const r of all) assert.match(r.date, /^\d{4}-\d{2}-\d{2}$/, r.v);
   for (let i = 1; i < all.length; i++) assert.equal(V.compare(all[i - 1].v, all[i].v), 1);
-  const actual = all[0];
-  assert.ok(actual.summary.length > 20);
-  assert.ok(actual.groups.find((g) => g.t === 'Novedades').items.length >= 3);
+  const beta1 = all.find((r) => r.v === '1.1.0-beta.1');
+  assert.ok(beta1.summary.length > 20);
+  assert.ok(beta1.groups.find((g) => g.t === 'Novedades').items.length >= 3);
   // Los puntos que ocupan dos líneas se unen
-  assert.ok(actual.groups[0].items.some((t) => /Importar.*deshacer durante un día/.test(t)));
+  assert.ok(beta1.groups[0].items.some((t) => /Importar.*deshacer durante un día/.test(t)));
+});
+
+test('al cambiar de versión, «Sin publicar» pasa a ser esa versión con su fecha (y nunca se ve en la app)', () => {
+  const md =
+    '# Novedades\n\n## [Sin publicar]\n\nAlgo.\n\n### Mejoras\n\n- Uno\n\n## [1.1.0-beta.1] · 2026-11-18\n\n### Novedades\n\n- Dos\n';
+  assert.deepEqual(
+    V.appReleases(V.parseChangelog(md)).map((r) => r.v),
+    ['1.1.0-beta.1']
+  );
+  const nueva = V.publicar(md, '1.1.0-beta.2', '2026-11-19');
+  assert.match(nueva, /^## \[1\.1\.0-beta\.2\] · 2026-11-19$/m);
+  assert.deepEqual(
+    V.parseChangelog(nueva).map((r) => r.v),
+    ['1.1.0-beta.2', '1.1.0-beta.1']
+  );
+  assert.equal(V.publicar(nueva, '1.2.0', '2026-12-01'), nueva, 'sin «Sin publicar», no cambia nada');
 });
 
 test('notas de la app: sin «Para desarrolladores» y sin las betas de una versión ya estable', () => {
@@ -114,7 +136,7 @@ test('todo el repositorio lleva la misma versión (lo que comprueba la integraci
   assert.ok(gradle.includes('versionName "' + PKG.version + '"'));
   // La portada anuncia la última estable, no una de prueba
   const web = fs.readFileSync(path.join(RAIZ, 'sitio/descargas.js'), 'utf8');
-  const estable = V.parseChangelog(CHANGELOG).find((r) => !/-/.test(r.v)).v;
+  const estable = V.parseChangelog(CHANGELOG).find((r) => V.SEMVER.test(r.v) && !/-/.test(r.v)).v;
   assert.ok(web.includes("version: '" + estable + "'"), 'portada: ' + estable);
 });
 

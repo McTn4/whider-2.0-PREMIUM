@@ -4,6 +4,12 @@
   "buildCommand": "node tools/web-build.js",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/app", "destination": "/app.html" }],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ],
   "redirects": [
     {
       "source": "/app/",

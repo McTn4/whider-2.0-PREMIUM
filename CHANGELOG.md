@@ -8,6 +8,25 @@ Este archivo es la fuente de las notas que enseña la app (Ajustes → Ayuda →
 Las secciones «Novedades», «Mejoras», «Correcciones» y «Seguridad» se ven en la app; «Para desarrolladores», solo aquí.
 Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VERSION.md).
 
+## [Sin publicar]
+
+La web abre antes y el código del Cuaderno y de los datos queda ordenado en piezas más pequeñas.
+
+### Mejoras
+
+- La web abre antes: en un móvil de gama media, la primera visita tarda un 38 % menos hasta poder usarla
+  (6 archivos en lugar de 73), y el navegador guarda la app hasta que cambia.
+
+### Para desarrolladores
+
+- La web publicada va empaquetada y minimizada con esbuild (`tools/web-build.js`), con mapas de código, nombres
+  que cambian con el contenido (caché de un año) y un Service Worker cuya caché se llama como su contenido;
+  `node tools/medir-carga.js` mide la carga con y sin empaquetar.
+- Ningún archivo pasa de 1.000 líneas: `js/core/store.js` se divide en `schema.js` (valores por defecto y limpieza
+  de los datos) y `js/ui/blocks.js` en `caret.js`, `blocks-kinds.js` y `blocks-menus.js`. El editor del Cuaderno
+  se sigue cargando solo al abrirlo, ahora con sus archivos descargados a la vez.
+- Comprobación de tipos en `schema.js` y `caret.js`; la prueba de la portada ya no depende de la API de GitHub.
+
 ## [1.1.0-beta.1] · 2026-11-18
 
 Versión de prueba de la 1.1: el día a día más claro, importar desde otras apps, sincronización sin pérdidas y más seguridad.

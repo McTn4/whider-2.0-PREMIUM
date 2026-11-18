@@ -141,6 +141,11 @@ function versionJs(/** @type {string} */ v, /** @type {any[]} */ releases) {
   );
 }
 
+/** «## [Sin publicar]» → «## [1.2.0] · 2026-12-01» (si existe esa sección) */
+function publicar(/** @type {string} */ text, /** @type {string} */ v, /** @type {string} */ fecha) {
+  return text.replace(/^## \[Sin publicar\][^\n]*$/m, '## [' + v + '] · ' + fecha);
+}
+
 /** Notas de una publicación en GitHub (Markdown): el CHANGELOG de esa versión y cómo instalarla */
 function releaseNotes(/** @type {string} */ v, /** @type {ReturnType<typeof parseChangelog>} */ all) {
   const r = all.find((x) => x.v === v);
@@ -237,6 +242,13 @@ function main(/** @type {string[]} */ argv) {
       throw new Error('La versión nueva (' + nueva + ') es anterior a la actual (' + pkg.version + ')');
     pkg.version = nueva;
     fs.writeFileSync(pkgFile, JSON.stringify(pkg, null, 2) + '\n');
+    // Lo apuntado en «## [Sin publicar]» pasa a ser la versión nueva, con la fecha de hoy
+    const cl = read('CHANGELOG.md');
+    const fechada = publicar(cl, nueva, new Date().toISOString().slice(0, 10));
+    if (fechada !== cl) {
+      fs.writeFileSync(abs('CHANGELOG.md'), fechada);
+      console.log('· CHANGELOG.md: «Sin publicar» → ' + nueva);
+    }
   }
   const v = pkg.version;
   versionCode(v);
@@ -286,4 +298,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { versionCode, parseChangelog, compare, appReleases, releaseNotes, versionJs, SEMVER };
+module.exports = { versionCode, parseChangelog, compare, appReleases, releaseNotes, versionJs, publicar, SEMVER };
