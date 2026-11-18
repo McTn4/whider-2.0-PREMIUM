@@ -9,6 +9,7 @@
  *    tareas (se puede desactivar en Ajustes → Ordenador). También puede abrirse al iniciar.
  *  - Google: el acceso se completa en el navegador del ordenador (ver lib/google.js).
  *  - Informes en PDF y exportaciones (CSV, JSON, texto) se guardan donde elijas.
+ *  - Actualizaciones: solas en Windows y Linux AppImage; aviso con enlace en macOS y .deb (lib/updates.js).
  */
 'use strict';
 const { app, BrowserWindow, protocol, ipcMain, Menu, Tray, nativeImage, shell, nativeTheme, Notification, screen, dialog } = require('electron');
@@ -17,12 +18,12 @@ const fs = require('fs');
 const os = require('os');
 const prefs = require('./lib/prefs');
 const google = require('./lib/google');
+const updatesLib = require('./lib/updates');
 
 const SCHEME = 'app';
 const HOST = 'whider';
 const WWW = path.join(__dirname, 'www');
 const START_URL = SCHEME + '://' + HOST + '/index.html';
-const RELEASES = 'https://github.com/McTn4/whider-2.0-PREMIUM/releases/tag/desktop-latest';
 const E2E = process.env.WHIDER_E2E === '1';
 const IS_MAC = process.platform === 'darwin';
 const IS_WIN = process.platform === 'win32';
@@ -36,7 +37,7 @@ protocol.registerSchemesAsPrivileged([{
   privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
 }]);
 
-let win = null, tray = null, quitting = false, badge = null;
+let win = null, tray = null, quitting = false, badge = null, updates = null;
 
 /* ---------- Archivos de la app web ---------- */
 const MIME = {
@@ -174,6 +175,19 @@ function openExternal(url) {
 
 function quit() { quitting = true; app.quit(); }
 
+/* ---------- Actualizaciones ---------- */
+function notifyUpdate(title, body) {
+  if (E2E) { global.__whider.notifications = (global.__whider.notifications || []).concat({ title: title, body: body }); return; }
+  if (!Notification.isSupported()) return;
+  const n = new Notification({ title: title, body: body });
+  n.on('click', function () { command('updates'); });
+  n.show();
+}
+function checkUpdates() {
+  command('updates');
+  if (updates) updates.check();
+}
+
 /* ---------- Bandeja y menús ---------- */
 function createTray() {
   const icon = nativeImage.createFromPath(path.join(__dirname, 'assets', IS_MAC ? 'trayTemplate.png' : 'tray.png'));
@@ -189,6 +203,7 @@ function createTray() {
     { label: 'Nuevo apunte', click: function () { command('new-note'); } },
     { label: 'Empezar o pausar el enfoque', click: function () { command('focus-toggle', false); } },
     { type: 'separator' },
+    { label: 'Buscar actualizaciones', click: checkUpdates },
     { label: 'Salir de WHIDER', click: quit }
   ]));
   if (!IS_MAC) tray.on('click', toggleWindow);
@@ -220,14 +235,16 @@ function buildMenu() {
     go('Hoy', 'home', '1'), go('Tareas', 'tasks', '2'), go('Calendario', 'calendar', '3'), go('Cuaderno', 'notes', '4'), { type: 'separator' },
     go('Chats', 'chats', '5'), go('Personas', 'friends', '6'), { type: 'separator' },
     go('Hábitos', 'habits', '7'), go('Enfoque', 'focus', '8'), go('Estadísticas', 'stats', '9'),
-    { label: 'Informes', click: function () { command('go:reports'); } }, { label: 'Sistemas', click: function () { command('go:automations'); } }, { type: 'separator' },
+    { label: 'Informes', click: function () { command('go:reports'); } }, { label: 'Automatizaciones', click: function () { command('go:automations'); } }, { type: 'separator' },
     { role: 'resetZoom', label: 'Tamaño real' }, { role: 'zoomIn', label: 'Ampliar' }, { role: 'zoomOut', label: 'Reducir' }, { type: 'separator' },
     { role: 'togglefullscreen', label: 'Pantalla completa' }
   ] });
   template.push({ label: 'Ventana', submenu: IS_MAC ? [{ role: 'minimize', label: 'Minimizar' }, { role: 'zoom', label: 'Zoom' }, { type: 'separator' }, { role: 'front', label: 'Traer todo al frente' }] : [{ role: 'minimize', label: 'Minimizar' }] });
   template.push({ label: 'Ayuda', submenu: [
     { label: 'Atajos de teclado', click: function () { command('shortcuts'); } },
-    { label: 'Descargar la última versión', click: function () { openExternal(RELEASES); } }
+    { label: 'Novedades', click: function () { command('whats-new'); } },
+    { type: 'separator' },
+    { label: 'Buscar actualizaciones…', click: checkUpdates }
   ] });
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
@@ -262,6 +279,10 @@ ipcMain.handle('whider:google-cancel', function () { google.cancel(); });
 ipcMain.handle('whider:get-settings', function () {
   return { openAtLogin: getOpenAtLogin(), closeToTray: prefs.get('closeToTray') !== false, version: app.getVersion() };
 });
+ipcMain.handle('whider:update-state', function () { return updates ? updates.state() : { mode: 'off', state: 'off' }; });
+ipcMain.handle('whider:update-check', function () { return updates ? updates.check() : null; });
+ipcMain.handle('whider:update-install', function () { return updates ? updates.install() : false; });
+ipcMain.on('whider:update-open', function () { if (updates) updates.open(); });
 ipcMain.handle('whider:set-setting', function (_e, key, value) {
   if (key === 'openAtLogin') setOpenAtLogin(!!value);
   else if (key === 'closeToTray') prefs.set('closeToTray', !!value);
@@ -373,6 +394,13 @@ if (!app.requestSingleInstanceLock()) {
     protocol.handle(SCHEME, serve);
     buildMenu();
     createTray();
+    updates = updatesLib.create({
+      send: function (s) { if (win && !win.isDestroyed()) win.webContents.send('whider:update', s); },
+      notify: notifyUpdate, openExternal: openExternal, prefs: prefs,
+      // Al instalar, la app se cierra de verdad (sin quedarse en la bandeja)
+      beforeInstall: function () { quitting = true; prefs.flush(); }
+    });
+    updates.start();
     let hidden = process.argv.indexOf('--hidden') >= 0;
     try { if (IS_MAC && app.getLoginItemSettings().wasOpenedAsHidden) hidden = true; } catch (e) { /* sin datos */ }
     createWindow(!hidden);

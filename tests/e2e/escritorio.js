@@ -1,7 +1,8 @@
-// App de escritorio 1.0: versión, tipografías (Onest y Outfit), esquinas curvadas, sin Premium y todas las secciones sin errores
+// App de escritorio: versión (la de package.json), tipografías (Onest y Outfit), esquinas curvadas, sin Premium y todas las secciones sin errores
 const { _electron: electron } = require('playwright');
 const { OUT, DESK } = require('./_util');
 const fs = require('fs'), os = require('os'), path = require('path');
+const PKG = require('../../package.json'), LABEL = PKG.version.replace(/-(alpha|beta|rc)\.(\d+)$/, ' $1 $2');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); if (!c) fails++; };
 (async () => {
@@ -14,7 +15,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   await win.reload(); await sleep(3000);
   await win.evaluate(() => { if (Whider.Onboarding.isOpen()) document.querySelector('#onboardingRoot .nav-btn').click(); }); await sleep(600);
   const v = await app.evaluate(({ app }) => app.getVersion());
-  ok(v === '1.0.0', 'versión de la app de escritorio: ' + v);
+  ok(v === PKG.version, 'versión de la app de escritorio (la de package.json): ' + v);
   const info = await win.evaluate(async () => {
     await document.fonts.ready;
     const el = document.querySelector('.btn, .sb-new'), cs = getComputedStyle(el), h1 = document.querySelector('.screen.active .lt h1') || document.querySelector('.lt h1');
@@ -30,7 +31,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   const txt = await win.evaluate(() => document.body.innerText);
   ok(!/premium|suscrib|planes y precios/i.test(txt), 'sin rastro de Premium en el ordenador');
   await win.evaluate(() => Whider.Settings.open()); await sleep(600);
-  ok(/WHIDER 1\.0/.test(await win.evaluate(() => document.querySelector('.sheet-root').innerText)), 'Ajustes muestra «WHIDER 1.0»');
+  ok((await win.evaluate(() => document.querySelector('.sheet-root').innerText)).includes('WHIDER ' + LABEL), 'Ajustes muestra «WHIDER ' + LABEL + '»');
   await win.evaluate(() => { while (Whider.Sheet.closeTop()); Whider.Router.go('home'); }); await sleep(500);
   await win.screenshot({ path: path.join(OUT, 'electron-hoy-1.0.png') });
   ok(!errs.length, 'sin errores ' + JSON.stringify(errs.slice(0, 3)));

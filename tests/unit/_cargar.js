@@ -114,6 +114,8 @@ function cargar(archivos, opts = {}) {
     TextEncoder,
     TextDecoder,
     structuredClone,
+    Uint8Array,
+    crypto: opts.sinCrypto ? undefined : globalThis.crypto,
     Date: opts.ahora ? relojFijo(opts.ahora) : Date
   };
   win.window = win;
@@ -124,6 +126,8 @@ function cargar(archivos, opts = {}) {
     const codigo = fs.readFileSync(path.join(RAIZ, f), 'utf8');
     vm.runInContext(codigo, ctx, { filename: f });
   }
+  // La ventana simulada queda a mano (localStorage, temporizadores…) sin estorbar al recorrer Whider
+  if (win.Whider) Object.defineProperty(win.Whider, '__win', { value: win });
   return win.Whider || win;
 }
 

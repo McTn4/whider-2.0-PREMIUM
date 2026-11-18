@@ -179,6 +179,10 @@ window.Whider.Screens = window.Whider.Screens || {};
       });
       var main = [], side = [];
 
+      // Tras una actualización: aviso discreto con las novedades (se cierra o se abre con un toque)
+      var news = W.WhatsNew ? W.WhatsNew.card() : null;
+      if (news) main.push(news);
+
       var perm = W.Notify.permission();
       if ((perm === 'default' || perm === 'denied') && st.tasks.some(function (t) { return t.warn && !t.done; })) {
         main.push(W.UI.section({ items: [W.UI.cell({

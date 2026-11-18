@@ -54,7 +54,7 @@ GitHub lo compila solo con cada cambio de la app, o a mano: **Actions → Compil
      - **Eliminación de la cuenta**: dentro de la app (Ajustes → Cuenta → Eliminar la cuenta) y en la web: `https://whider-red.vercel.app/app#cuenta`.
    - **Clasificación de contenido**: rellena el cuestionario (app de productividad; tiene chats entre usuarios, así que marca que permite la interacción entre usuarios).
    - **Público objetivo**: mayores de 14 años (la política lo indica así).
-6. **Ficha de Play Store**: descripción, icono de 512 × 512 (`icons/icon-512.png`), gráfico de funciones de 1024 × 500 y capturas del móvil (al menos 2). El **correo de contacto del desarrollador** que pongas aquí es el que la política de privacidad indica para consultas.
+6. **Ficha de Play Store**: los textos (nombre, descripción breve y completa), el gráfico de funciones de 1024 × 500 y seis capturas del móvil de 1080 × 1920 están listos en [`docs/play/`](play/FICHA.md), con una lista de comprobación antes de enviarla a revisión. El icono de 512 × 512 es `icons/icon-512.png`. El **correo de contacto del desarrollador** que pongas aquí es el que la política de privacidad indica para consultas.
 
 ## 5. Después de la primera subida (imprescindible para Google)
 
@@ -66,7 +66,7 @@ La versión de Google Play está firmada con la clave de Google, distinta de la 
 
 ## 6. Actualizaciones
 
-Cada nueva versión necesita un `versionCode` mayor en [`android/app/build.gradle`](../android/app/build.gradle) (la 1.0 es `1000`; la siguiente puede ser `1001`) y, si quieres, un `versionName` nuevo. GitHub generará el AAB firmado y lo subes a Play Console.
+El número de versión se cambia en un solo sitio (`node tools/version.js 1.2.0`, ver [PUBLICAR-UNA-VERSION.md](PUBLICAR-UNA-VERSION.md)), que calcula el `versionCode` de [`android/app/build.gradle`](../android/app/build.gradle) para que siempre suba: MAYOR·1.000.000 + MENOR·10.000 + PARCHE·100 + (beta 31-59 · rc 61-89 · estable 99). La 1.0 era `1000`; la 1.1.0 es `1010099`. Cada versión publicada deja el AAB firmado en los artefactos de su ejecución (**Actions → Publicar versión → Android**) para subirlo a Play Console; las versiones de prueba (`-beta.N`) pueden ir a la pista de prueba cerrada.
 
 ## Lo técnico ya resuelto en la 1.0
 

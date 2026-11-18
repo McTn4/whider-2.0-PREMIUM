@@ -43,6 +43,7 @@ window.Whider = window.Whider || {};
       { icon: 'filter', label: 'Nuevo filtro', run: function () { W.Filters.edit(null, function (f) { W.Sidebar.openView({ type: 'filter', id: f.id }); }); } },
       { icon: 'upload', label: 'Importar desde Todoist, Google Tasks, Notion o un calendario', run: function () { W.ImportWizard.open(); } },
       { icon: 'layers', label: 'Copias, importar y exportar', run: function () { W.Settings.open('data'); } },
+      { icon: 'star', label: 'Novedades de WHIDER', run: function () { W.WhatsNew.open(); } },
       { icon: 'sliders', label: 'Personalización', run: function () { W.Settings.open('custom'); } },
       { icon: 'gear', label: 'Ajustes', hint: K(','), run: function () { W.Settings.open(); } },
       { icon: 'type', label: 'Atajos de teclado', hint: '?', run: function () { W.Keys.help(); } }

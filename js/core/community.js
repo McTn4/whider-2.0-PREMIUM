@@ -85,7 +85,7 @@ window.Whider = window.Whider || {};
     return F().setDoc(ref('profiles', uid()), profileData()).then(ok).catch(function (e) { try { fail(e); } catch (x) { /* ya avisado */ } });
   }
   function schedulePublish(ms) { clearTimeout(publishTimer); publishTimer = setTimeout(publish, ms || 15000); }
-  function newCode() { var A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = 'WH-'; for (var i = 0; i < 6; i++) s += A[Math.floor(Math.random() * A.length)]; return s; }
+  function newCode() { return 'WH-' + U.randomChars(6, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'); }
   /** Activa la comunidad: reserva tu código y publica tu perfil */
   function enable() {
     var st = S(), me = uid();
@@ -239,7 +239,8 @@ window.Whider = window.Whider || {};
   }
 
   /* ---------- Invitaciones por enlace o QR ---------- */
-  function token() { var A = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = ''; for (var i = 0; i < 12; i++) s += A[Math.floor(Math.random() * A.length)]; return s; }
+  // Clave de las invitaciones y de los enlaces de equipo: es un secreto, así que va con el generador criptográfico
+  function token() { return U.randomChars(12, 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'); }
   /** Tu invitación (una para amigos y otra para trabajo; se reutiliza hasta que la renueves) */
   function invite(kind) {
     var st = S(), inv = st.social.invites, k = kind === 'work' ? 'work' : 'friend';

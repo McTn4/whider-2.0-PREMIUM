@@ -37,6 +37,8 @@ jobs:
         run: npm run format:check
       - name: TypeScript
         run: npm run typecheck
+      - name: Versión única y CHANGELOG
+        run: npm run version:check
       - name: Pruebas unitarias
         run: npm run test:unit
 

@@ -587,6 +587,24 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        /**
+         * Desde dónde se instaló la app: «com.android.vending» si viene de Google Play (que ya la actualiza);
+         * vacío si se instaló el APK a mano (entonces la app mira en GitHub si hay una versión nueva).
+         */
+        @JavascriptInterface
+        @SuppressWarnings("deprecation")
+        public String installer() {
+            try {
+                PackageManager pm = getPackageManager();
+                String who = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                        ? pm.getInstallSourceInfo(getPackageName()).getInstallingPackageName()
+                        : pm.getInstallerPackageName(getPackageName());
+                return who == null ? "" : who;
+            } catch (Exception e) {
+                return "";
+            }
+        }
+
         /** Tamaño de letra del sistema (1 = normal): la app adapta su tamaño de texto la primera vez */
         @JavascriptInterface
         public float fontScale() {

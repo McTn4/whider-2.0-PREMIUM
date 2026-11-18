@@ -15,9 +15,10 @@ android {
         applicationId "com.whider.app"
         minSdk 24
         targetSdk 36
-        // 1.0.0: primera versión para Google Play (el código sigue por encima de las 8.x ya instaladas)
-        versionCode 1000
-        versionName "1.0"
+        // Los pone tools/version.js desde package.json (versión única). versionCode = MAYOR·1.000.000 +
+        // MENOR·10.000 + PARCHE·100 + (beta 31-59 · rc 61-89 · estable 99): siempre sube, como exige Google Play.
+        versionCode 1010031
+        versionName "1.1.0-beta.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

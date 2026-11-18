@@ -1,5 +1,10 @@
-# Compila WHIDER para ordenador (Windows, macOS y Linux) cada vez que cambia la app.
-# Descarga: pestaña "Releases" del repositorio → "WHIDER para ordenador (última versión)"
+# Compila WHIDER para ordenador (Windows, macOS y Linux).
+#  - En cada cambio de la app: comprueba que compila y deja los instaladores como artefacto «whider-…» de la
+#    ejecución (para probarlos). No se publican: lo que descarga la gente son las versiones publicadas.
+#  - Al publicar una versión (release.yml la llama con version_release): los mismos instaladores, con los
+#    archivos que usan las actualizaciones automáticas (latest*.yml y *.blockmap).
+# Salida: WHIDER-Setup.exe (Windows) · WHIDER-mac-arm64.dmg y WHIDER-mac-x64.dmg (macOS) ·
+#         WHIDER-linux.AppImage y WHIDER-linux.deb (Linux)
 name: Compilar app de escritorio
 
 on:
@@ -15,9 +20,15 @@ on:
       - 'icons/**'
       - '.github/workflows/desktop.yml'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version_release:
+        description: 'Compilación para publicar una versión'
+        type: boolean
+        default: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -55,6 +66,7 @@ jobs:
 
       # A veces GitHub responde 504 al descargar Electron o su lista de sumas de comprobación
       # (SHASUMS256.txt): se reintenta hasta 4 veces, con pausas, antes de dar la compilación por fallida.
+      # --publish never: la publicación la hace release.yml, con las notas del CHANGELOG.
       - name: Compilar
         working-directory: desktop
         shell: bash
@@ -68,6 +80,16 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
+      - name: Tamaño de cada instalador
+        shell: bash
+        run: |
+          echo "### ${{ matrix.name }}" >> "$GITHUB_STEP_SUMMARY"
+          cd desktop/dist
+          for f in *.exe *.dmg *.AppImage *.deb; do
+            [ -f "$f" ] && echo "- $f: $(( $(wc -c < "$f") / 1048576 )) MB" >> "$GITHUB_STEP_SUMMARY"
+          done
+          true
+
       - name: Guardar como artefacto
         uses: actions/upload-artifact@v4
         with:
@@ -76,39 +98,8 @@ jobs:
             desktop/dist/*.exe
             desktop/dist/*.dmg
             desktop/dist/*.AppImage
+            desktop/dist/*.deb
+            desktop/dist/*.blockmap
+            desktop/dist/latest*.yml
           if-no-files-found: error
-
-  publish:
-    name: Publicar
-    needs: build
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: out
-          pattern: whider-*
-          merge-multiple: true
-
-      - name: Archivos compilados
-        run: ls -la out
-
-      - name: Publicar en "Releases"
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: desktop-latest
-          name: WHIDER para ordenador (última versión)
-          prerelease: false
-          make_latest: false
-          body: |
-            Compilado automáticamente desde el commit ${{ github.sha }}.
-
-            **Windows**: descarga **WHIDER-Setup.exe** y ábrelo. Se instala solo y crea un acceso directo.
-            Si Windows muestra «Windows protegió su PC», pulsa «Más información» → «Ejecutar de todas formas»
-            (aparece porque la app no está firmada con un certificado de pago).
-
-            **macOS**: descarga **WHIDER-mac.dmg**, arrastra WHIDER a Aplicaciones y la primera vez ábrela con
-            clic derecho → «Abrir».
-
-            **Linux**: descarga **WHIDER-linux.AppImage**, dale permiso de ejecución y ábrelo.
-          files: out/*
+          retention-days: ${{ inputs.version_release && 7 || 30 }}

@@ -61,6 +61,28 @@ test('los identificadores llevan prefijo y no se repiten', () => {
   for (const id of ids) assert.match(id, /^t_[a-z0-9]+$/);
 });
 
+test('ni al crear miles en el mismo milisegundo (importar), con o sin crypto', () => {
+  // Con la hora congelada todos comparten el prefijo de tiempo: solo el contador y el azar los distinguen
+  for (const sinCrypto of [false, true]) {
+    const V = cargar(['js/core/util.js'], { ahora: '2026-11-18T08:00:00', sinCrypto }).U;
+    const n = 20000,
+      ids = new Set(Array.from({ length: n }, () => V.uid('t')));
+    assert.equal(ids.size, n, sinCrypto ? 'sin crypto' : 'con crypto');
+    // Se ordenan por hora de creación: el tiempo va delante y tiene siempre la misma longitud
+    const [a] = ids;
+    assert.ok(a.startsWith('t_' + Date.parse('2026-11-18T08:00:00').toString(36)));
+  }
+});
+
+test('caracteres al azar: longitud, alfabeto y sin sesgo apreciable', () => {
+  const s = U.randomChars(36000, 'ab');
+  assert.equal(s.length, 36000);
+  assert.match(s, /^[ab]+$/);
+  const unos = s.split('a').length - 1;
+  assert.ok(Math.abs(unos - 18000) < 900, 'reparto ' + unos);
+  assert.match(U.randomChars(12, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), /^[A-HJ-NP-Z2-9]{12}$/);
+});
+
 test('el plazo de una tarea sin hora es el final del día', () => {
   const sinHora = U.deadlineTs('2026-11-16');
   const conHora = U.deadlineTs('2026-11-16', '10:00');

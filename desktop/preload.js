@@ -8,6 +8,10 @@ const listeners = [];
 ipcRenderer.on('whider:command', function (_e, cmd) {
   listeners.forEach(function (fn) { try { fn(String(cmd)); } catch (e) { /* una orden no rompe las demás */ } });
 });
+const updateListeners = [];
+ipcRenderer.on('whider:update', function (_e, state) {
+  updateListeners.forEach(function (fn) { try { fn(state); } catch (e) { /* un aviso no rompe los demás */ } });
+});
 
 contextBridge.exposeInMainWorld('WhiderDesktop', {
   platform: process.platform,
@@ -29,6 +33,14 @@ contextBridge.exposeInMainWorld('WhiderDesktop', {
   openFile: function (name, bytes) { return ipcRenderer.invoke('whider:open-file', String(name), bytes instanceof Uint8Array ? bytes : new Uint8Array(0)); },
   /** …y guardarlos donde elija el usuario → { ok, path } */
   saveBinary: function (name, bytes) { return ipcRenderer.invoke('whider:save-binary', String(name), bytes instanceof Uint8Array ? bytes : new Uint8Array(0)); },
-  /** Órdenes del menú y de la bandeja: 'new-task', 'search', 'settings', 'shortcuts', 'focus-toggle', 'report-pdf', 'data', 'go:home'… */
-  onCommand: function (fn) { if (typeof fn === 'function') listeners.push(fn); }
+  /** Órdenes del menú y de la bandeja: 'new-task', 'search', 'settings', 'shortcuts', 'focus-toggle', 'report-pdf', 'data', 'updates', 'go:home'… */
+  onCommand: function (fn) { if (typeof fn === 'function') listeners.push(fn); },
+  /** Versiones nuevas: estado { mode, state, current, version, percent, error, url }, buscar, instalar y descargar */
+  updates: {
+    state: function () { return ipcRenderer.invoke('whider:update-state'); },
+    check: function () { return ipcRenderer.invoke('whider:update-check'); },
+    install: function () { return ipcRenderer.invoke('whider:update-install'); },
+    open: function () { ipcRenderer.send('whider:update-open'); },
+    on: function (fn) { if (typeof fn === 'function') updateListeners.push(fn); }
+  }
 });

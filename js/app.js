@@ -240,6 +240,8 @@ window.Whider = window.Whider || {};
       else if (cmd.indexOf('invite:') === 0) { if (W.Invite) W.Invite.open(cmd.slice(7)); }
       else if (cmd === 'report-pdf') { W.Router.go('reports'); setTimeout(function () { if (W.Screens.reports.pdf) W.Screens.reports.pdf(); }, 350); }
       else if (cmd === 'data') { if (!W.Settings.isOpen()) W.Settings.open('data'); }
+      else if (cmd === 'updates') { if (!W.Settings.isOpen()) W.Settings.open('desktop'); }
+      else if (cmd === 'whats-new') W.WhatsNew.open();
       else if (cmd.indexOf('go:') === 0) W.Router.go(cmd.slice(3));
     });
   }
@@ -295,6 +297,8 @@ window.Whider = window.Whider || {};
     // Al pasar de móvil a ordenador (o al revés) se vuelve a pintar con el otro diseño
     W.Layout.onChange(function () { W.Menu.close(); W.Router.refresh(); W.Sidebar.refresh(); });
     initDesktopApp();
+    // Versiones nuevas: en el ordenador y en el APK instalado desde GitHub
+    W.Updates.init();
 
     // Refrescar fechas y avisos si la app sigue abierta al cambiar de día
     var day = U.today();

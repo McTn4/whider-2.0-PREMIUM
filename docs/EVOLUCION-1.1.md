@@ -215,3 +215,35 @@ Se actualiza al cerrar cada bloque.
   y, corrigiendo lo anterior, quién puede ver el perfil público y que los chats no van cifrados de extremo a
   extremo.
 - **Pruebas**: `tests/e2e/seguridad.js` (19 comprobaciones contra los emuladores con las reglas reales).
+
+### Bloque 6 · Versiones y distribución — hecho (la primera actualización automática real se verá de la 1.1.0 a la siguiente)
+
+- **Versión única**: `package.json` manda; `node tools/version.js` la lleva a la app de escritorio, a Android
+  (`versionName` y un `versionCode` que siempre sube: 1.1.0-beta.1 → 1010031, 1.1.0 → 1010099), a la app
+  (`js/core/version.js`) y a la portada (que anuncia la última estable). La integración continua falla si algo
+  no coincide o si falta la entrada del CHANGELOG.
+- **CHANGELOG y «Novedades»**: [`CHANGELOG.md`](../CHANGELOG.md) (Keep a Changelog, versionado semántico) es la
+  fuente de las notas de la app (Ajustes → Ayuda → Novedades, paleta y menú Ayuda del escritorio) y de cada
+  publicación en GitHub. Tras actualizar aparece un aviso discreto en Hoy (no interrumpe; caduca a las dos semanas).
+- **Publicaciones versionadas**: [`release.yml`](../.github/workflows/release.yml) publica `vX.Y.Z` al cambiar la
+  versión (betas como *Pre-release*), con las notas, las sumas SHA-256 y todos los instaladores. Los flujos de cada
+  cambio dejan de sobrescribir `desktop-latest` y `apk-latest`: sus compilaciones quedan como artefactos.
+  Hasta la primera estable (1.1.0) la portada sigue enlazando a `desktop-latest`.
+- **Actualizaciones del escritorio** (electron-updater 6.8): automáticas en Windows y AppImage (descarga en segundo
+  plano, comprobación SHA-512, instalación al cerrar o con «Reiniciar ahora»); aviso con el enlace de su instalador en
+  macOS (sin firma de Apple no puede instalarse sola) y .deb; solo versiones estables. Estado en Ajustes → App de
+  escritorio, avisos del sistema y «Buscar actualizaciones» en el menú y la bandeja.
+- **Android desde GitHub**: una vez al día mira si hay una estable nueva y ofrece el APK (el puente dice si se instaló
+  desde Google Play, y entonces no consulta nada).
+- **Paquetes**: nuevo `.deb`; un `.dmg` por arquitectura de Mac en lugar del universal (224 MB); solo los idiomas
+  que se usan; AppImage de 126,3 a 124,7 MB.
+- **Google Play**: textos de la ficha (nombre, descripción breve y completa), gráfico de funciones y seis capturas
+  de 1080 × 1920 generadas con la app de verdad ([`docs/play/`](play/FICHA.md)), y lista de comprobación.
+- **Corrección importante**: los identificadores de tareas podían repetirse al crear cientos en el mismo milisegundo
+  (al importar); ahora llevan un contador de sesión y azar criptográfico. Las claves de las invitaciones y de los
+  enlaces de equipo también usan el generador criptográfico.
+- **Pruebas**: `tests/unit/versiones.test.js` (16), `tests/e2e/novedades.js` (31 comprobaciones) y
+  `tests/e2e/escritorio-actualizaciones.js` (21: aviso, descarga real con SHA-512 y rechazo de un archivo alterado,
+  contra un servidor que hace de GitHub).
+- **Pendiente de validar fuera**: la primera actualización automática real (de la 1.1.0 a la siguiente), los `.dmg`
+  por arquitectura en un Mac y el `.deb` en Ubuntu; el aviso del APK en un teléfono.

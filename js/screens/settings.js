@@ -8,7 +8,8 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var VERSION = '1.0';
+  /** «1.1.0», «1.1.0 beta 1» (la versión sale de package.json vía js/core/version.js) */
+  function versionText() { return W.WhatsNew ? W.WhatsNew.label(W.VERSION) : String(W.VERSION || ''); }
   var SCREENS = [
     { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
     { value: 'notes', label: 'Cuaderno' }, { value: 'chats', label: 'Chats' }, { value: 'habits', label: 'Hábitos' }, { value: 'focus', label: 'Enfoque' }
@@ -42,7 +43,7 @@ window.Whider = window.Whider || {};
   function versionLine() {
     return U.el('p.version', [
       U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
-      'WHIDER ' + VERSION
+      'WHIDER ' + versionText()
     ]);
   }
 
@@ -99,8 +100,11 @@ window.Whider = window.Whider || {};
           W.UI.cell({ icon: 'info', title: 'Primeros pasos', sub: 'Lo esencial de WHIDER en cinco pasos', onTap: function () {
             W.FirstSteps.show();
             if (W.FirstSteps.visible()) { nav.close(); W.Router.go('home'); W.Router.refresh(); } else W.Toast.show({ text: 'Ya has completado los primeros pasos', icon: 'check' });
-          } })
-        ] }),
+          } }),
+          W.UI.cell({ icon: 'star', title: 'Novedades', sub: 'Qué ha cambiado en cada versión', onTap: function () { W.WhatsNew.open(); } }),
+          // En el ordenador y en el APK de GitHub: la versión y si hay otra más nueva
+          W.Updates && W.Updates.state().mode === 'android' ? W.Updates.cell(nav) : null
+        ].filter(Boolean) }),
         versionLine()
       ]
     };
@@ -546,10 +550,9 @@ window.Whider = window.Whider || {};
           footer: 'Se abre en segundo plano, sin ventana, para que los avisos lleguen desde el primer momento.' }),
         W.UI.section({ items: [toggleCell({ icon: 'bell', title: 'Seguir abierta al cerrar la ventana', value: prefs.closeToTray !== false, onChange: function (v) { set('closeToTray', v); } })],
           footer: 'WHIDER sigue en ' + tray + ' y te avisa de tus tareas aunque no tengas la ventana abierta. Para salir del todo, usa «Salir» en su menú.' }),
-        W.UI.section({ items: [
-          W.UI.cell({ title: 'Versión de la app', value: prefs.version || '' }),
-          W.UI.cell({ title: 'Descargar la última versión', onTap: function () { if (D) D.openExternal('https://github.com/McTn4/whider-2.0-PREMIUM/releases/tag/desktop-latest'); } })
-        ] })
+        W.UI.section({ header: 'Actualizaciones', items: [W.Updates.cell(nav)],
+          footer: D && D.platform === 'darwin' ? 'En el Mac, WHIDER te avisa cuando hay una versión nueva y la descargas tú (sin la firma de pago de Apple no puede instalarse sola).'
+            : 'Las versiones nuevas se descargan solas y se instalan al cerrar WHIDER. Si la instalaste con el paquete .deb, te avisa y la descargas tú.' })
       ]
     };
   }

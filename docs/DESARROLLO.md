@@ -134,8 +134,13 @@ algo falla, los registros y las capturas quedan como artefacto de esa ejecución
 | --- | --- | --- |
 | Web (portada y app) | Cada cambio en `main` | Vercel |
 | Comprobaciones | Cada cambio y cada pull request | GitHub Actions → Comprobaciones |
-| App de escritorio | Cambios en la app o en `desktop/` | Releases → «WHIDER para ordenador» |
-| APK y paquete de Google Play | Cambios en la app o en `android/` | Releases y artefactos de Actions |
+| App de escritorio, APK y AAB de prueba | Cambios en la app, en `desktop/` o en `android/` | Artefactos de Actions (Compilar app de escritorio, Compilar APK) |
+| **Una versión** (todos los instaladores, con sus notas) | Al cambiar la versión de `package.json` | Releases → `vX.Y.Z` (flujo «Publicar versión») |
+
+La versión es una sola, la de `package.json`: `node tools/version.js 1.2.0` la cambia en la app de escritorio, en
+Android (con su `versionCode`) y en la app; `npm run version:check` comprueba que todo coincide y que
+[`CHANGELOG.md`](../CHANGELOG.md) tiene su entrada. Paso a paso: [PUBLICAR-UNA-VERSION.md](PUBLICAR-UNA-VERSION.md).
+Los recursos de la ficha de Google Play se regeneran con `node tools/capturas/play.js` ([docs/play/](play/FICHA.md)).
 
 ## 8. Problemas frecuentes
 

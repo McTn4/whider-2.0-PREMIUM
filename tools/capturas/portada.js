@@ -82,6 +82,8 @@ async function run(b, label, ctxOpts) {
   await ctx.clock.install({ time: new Date(new Date().toISOString().slice(0, 10) + 'T09:40:00') });
   await ctx.addInitScript(() => {
     window.WHIDER_CONFIG = { firebase: null };
+    // Sin el aviso de «WHIDER se ha actualizado» en las capturas
+    localStorage.setItem('whider.seenVersion', '999.0.0');
     if (!localStorage.getItem('whider.meta.v1'))
       localStorage.setItem(
         'whider.meta.v1',
@@ -150,7 +152,14 @@ async function aWebp(b, png, ancho, calidad) {
   return Buffer.from(data, 'base64');
 }
 
-(async () => {
+if (require.main === module)
+  main().catch((e) => {
+    console.error(e);
+    process.exit(2);
+  });
+module.exports = { seed };
+
+async function main() {
   const b = await chromium.launch();
   let errs = await run(b, 'pc', { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
   errs += await run(b, 'movil', { ...devices['Pixel 7'], deviceScaleFactor: 3 });
@@ -165,7 +174,4 @@ async function aWebp(b, png, ancho, calidad) {
   }
   await b.close();
   process.exit(errs ? 1 : 0);
-})().catch((e) => {
-  console.error(e);
-  process.exit(2);
-});
+}

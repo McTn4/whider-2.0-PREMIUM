@@ -8,6 +8,26 @@ window.Whider = window.Whider || {};
   'use strict';
 
   var SVG_NS = 'http://www.w3.org/2000/svg';
+  var A36 = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  /**
+   * n caracteres al azar de un alfabeto, con el generador criptográfico del navegador (sin sesgo: se
+   * descartan los bytes que no caben un número entero de veces). Sin crypto, Math.random.
+   * @param {number} n
+   * @param {string} [alphabet]
+   */
+  function randomChars(n, alphabet) {
+    var A = alphabet || A36, out = '', max = 256 - (256 % A.length);
+    var c = /** @type {any} */ (window).crypto || /** @type {any} */ (window).msCrypto;
+    while (out.length < n) {
+      var buf = new Uint8Array(Math.max(8, (n - out.length) * 2));
+      try { c.getRandomValues(buf); } catch (e) { for (var k = 0; k < buf.length; k++) buf[k] = Math.floor(Math.random() * 256); }
+      for (var i = 0; i < buf.length && out.length < n; i++) if (buf[i] < max) out += A.charAt(buf[i] % A.length);
+    }
+    return out;
+  }
+  // Contador de la sesión: dos identificadores creados en el mismo milisegundo (al importar cientos de
+  // tareas, por ejemplo) nunca coinciden; el azar los separa de los de otros dispositivos.
+  var uidSeq = Math.floor(Math.random() * 1296);
   var MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   var MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   var WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -181,7 +201,12 @@ window.Whider = window.Whider || {};
       return Promise.resolve({ ok: true });
     },
 
-    uid: function (p) { return (p || 't') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
+    /** Identificador: prefijo_ + hora (base 36, así se ordenan por creación) + contador + 6 al azar */
+    uid: function (p) {
+      uidSeq = (uidSeq + 1) % 1296;
+      return (p || 't') + '_' + Date.now().toString(36) + (uidSeq < 36 ? '0' : '') + uidSeq.toString(36) + randomChars(6);
+    },
+    randomChars: randomChars,
     clamp: function (v, a, b) { return Math.max(a, Math.min(b, v)); },
     debounce: function (fn, ms) {
       var t; return /** @this {any} */ function () { var a = arguments, s = this; clearTimeout(t); t = setTimeout(function () { fn.apply(s, a); }, ms); };

@@ -1,7 +1,7 @@
 {
   "name": "whider-desktop",
   "productName": "WHIDER",
-  "version": "1.0.0",
+  "version": "1.1.0-beta.1",
   "description": "WHIDER para ordenador: tareas, calendario, avisos y enfoque.",
   "main": "main.js",
   "author": "McTn4",
@@ -18,11 +18,27 @@
     "electron": "45.2.2",
     "electron-builder": "26.18.1"
   },
+  "dependencies": {
+    "electron-updater": "6.8.11"
+  },
   "build": {
     "appId": "com.whider.desktop",
     "productName": "WHIDER",
     "copyright": "WHIDER",
-    "publish": null,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "McTn4",
+        "repo": "whider-2.0-PREMIUM",
+        "releaseType": "release"
+      }
+    ],
+    "electronLanguages": [
+      "es",
+      "es-419",
+      "en",
+      "en-US"
+    ],
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -61,7 +77,8 @@
         {
           "target": "dmg",
           "arch": [
-            "universal"
+            "arm64",
+            "x64"
           ]
         }
       ],
@@ -75,17 +92,23 @@
       }
     },
     "dmg": {
-      "artifactName": "WHIDER-mac.${ext}"
+      "artifactName": "WHIDER-mac-${arch}.${ext}"
     },
     "linux": {
       "target": [
-        "AppImage"
+        "AppImage",
+        "deb"
       ],
       "category": "Office",
       "icon": "build/icon.png",
       "artifactName": "WHIDER-linux.${ext}",
       "executableName": "whider",
-      "syncDesktopName": true
+      "syncDesktopName": true,
+      "maintainer": "McTn4 <190192099+McTn4@users.noreply.github.com>",
+      "synopsis": "Tareas, calendario, Cuaderno, hábitos y enfoque"
+    },
+    "deb": {
+      "artifactName": "WHIDER-linux.${ext}"
     },
     "protocols": [
       {

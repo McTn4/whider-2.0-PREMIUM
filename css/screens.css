@@ -27,6 +27,28 @@
 .fs-step .chev { color: var(--t3); }
 .sec.first-steps .sec-t .cell-row { gap: 12px; align-items: center; }
 
+/* ---------- Novedades: aviso en Hoy tras actualizar y hoja con las notas ---------- */
+.wn-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 10px; align-items: center; padding: 12px 12px 14px 14px; margin: 2px 0 18px; border-radius: var(--r-card); background: var(--s1); border: 1px solid var(--line); box-shadow: var(--sh-card); }
+.wn-badge { grid-row: 1 / span 2; align-self: start; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: var(--fill-2); color: var(--t1); }
+.wn-text { display: flex; flex-direction: column; gap: 3px; }
+.wn-text b { font-weight: 600; }
+.wn-text small { color: var(--t3); font-size: var(--fs-foot); display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.wn-card .circle-btn { grid-column: 3; grid-row: 1; align-self: start; }
+.wn-card .btn { grid-column: 2; grid-row: 2; justify-self: start; }
+.wn-release { padding: 2px 2px 18px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+.wn-release:last-child { border-bottom: 0; margin-bottom: 4px; }
+.wn-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 10px; }
+.wn-head h4 { margin: 0; font-family: var(--display); font-size: var(--fs-title3); font-weight: 600; }
+.wn-head small { margin-left: auto; color: var(--t3); font-size: var(--fs-foot); }
+.wn-summary { margin: 6px 0 2px; color: var(--t2); }
+.wn-release h5 { margin: 16px 0 6px; color: var(--t2); font-size: var(--fs-sub); font-weight: 600; }
+.wn-release ul { display: flex; flex-direction: column; gap: 7px; margin: 0; padding-left: 18px; }
+.wn-release li { line-height: 1.45; }
+.wn-release li::marker { color: var(--t3); }
+.wn-release code { padding: 1px 5px; border-radius: 6px; background: var(--fill-2); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em; }
+.wn-all { margin: 0 0 6px; }
+.wn-foot { margin: 8px 0 0; }
+
 /* ---------- Asistente de importación ---------- */
 .imp { display: flex; flex-direction: column; gap: 14px; }
 .imp-lead, .imp-how { color: var(--t2); line-height: 1.5; }
