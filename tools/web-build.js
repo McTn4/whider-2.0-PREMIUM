@@ -3,6 +3,7 @@
  * WHIDER · Prepara la web para publicarla en Vercel (vercel.json ejecuta este script).
  *
  *   dist/index.html  ← sitio/index.html   la portada (qué es WHIDER y la descarga para cada dispositivo)
+ *   dist/en/index.html ← sitio/en/index.html   la portada en inglés (/en/; la política de privacidad, en /privacy/)
  *   dist/app.html    ← index.html         la app; vercel.json la sirve en /app (empaquetada: ver más abajo)
  *   y el resto de la web tal cual: css, js, fuentes, iconos, invitaciones (i/), privacidad, sitio/, .well-known…
  *
@@ -20,7 +21,7 @@ const esbuild = require('esbuild');
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'dist');
 // Solo lo que forma parte de la web (nada de android/, desktop/, docs/, herramientas ni registros)
-const WEB = ['index.html', 'manifest.json', 'sw.js', 'css', 'js', 'fonts', 'icons', 'i', 'privacidad', 'sitio', '.well-known'];
+const WEB = ['index.html', 'manifest.json', 'sw.js', 'css', 'js', 'fonts', 'icons', 'i', 'privacidad', 'privacy', 'sitio', '.well-known'];
 
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
@@ -33,6 +34,9 @@ for (const name of WEB) {
 // La app pasa a /app y la portada ocupa la raíz
 fs.renameSync(path.join(OUT, 'index.html'), path.join(OUT, 'app.html'));
 fs.renameSync(path.join(OUT, 'sitio', 'index.html'), path.join(OUT, 'index.html'));
+fs.mkdirSync(path.join(OUT, 'en'), { recursive: true });
+fs.renameSync(path.join(OUT, 'sitio', 'en', 'index.html'), path.join(OUT, 'en', 'index.html'));
+fs.rmdirSync(path.join(OUT, 'sitio', 'en'));
 
 /*
  * ---------- Empaquetado de la app (solo la web publicada) ----------

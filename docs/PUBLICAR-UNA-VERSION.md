@@ -22,6 +22,7 @@ La versión de verdad está en **`package.json`**. `node tools/version.js` la co
 | `android/app/build.gradle` | `versionName` y `versionCode` = MAYOR·1.000.000 + MENOR·10.000 + PARCHE·100 + (alpha 1-29 · beta 31-59 · rc 61-89 · estable 99). Siempre sube, como exige Google Play: 1.1.0-beta.1 → 1010031, 1.1.0 → 1010099 |
 | `js/core/version.js` | La versión que enseña la app y las notas de «Novedades» (sacadas del CHANGELOG) |
 | `sitio/descargas.js` | La versión que anuncia la portada: la última **estable** del CHANGELOG |
+| `sitio/index.html` y `sitio/en/index.html` | Esa versión en la portada («WHIDER 1.2») y, en la de español, sus novedades (las primeras de «Novedades» del CHANGELOG, en su primera frase) |
 
 ## Pasos
 
@@ -48,6 +49,10 @@ La versión de verdad está en **`package.json`**. `node tools/version.js` la co
    ```bash
    node tools/version.js 1.2.0
    ```
+
+   Si es una versión **estable nueva menor o mayor** (1.2.0, 2.0.0), traduce también sus novedades en la portada
+   en inglés: la lista `<ul class="news">` de `sitio/en/index.html`, con `data-news-version="1.2"`. Hasta entonces
+   `npm run version:check` lo recuerda y falla (las de un parche, 1.2.1, valen las de la 1.2).
 
 3. **Comprueba** que todo está en verde:
 

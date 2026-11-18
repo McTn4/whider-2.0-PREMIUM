@@ -223,7 +223,56 @@ function targets(/** @type {string} */ v) {
     actual: web,
     expected: web.replace(/version: '[^']*'/, "version: '" + (stable ? stable.v : v) + "'")
   });
-  return { list, all };
+  // Y en sus páginas, esa versión («WHIDER 1.1») y, en la de español, sus novedades sacadas de este CHANGELOG
+  const shown = stable || all.find((r) => r.v === v);
+  for (const file of SITE_PAGES) {
+    if (!fs.existsSync(abs(file))) continue;
+    const html = read(file);
+    let out = html.replace(
+      /(<span data-version>)[^<]*(<\/span>)/g,
+      (_m, a, b) => a + 'WHIDER ' + minor(shown ? shown.v : v) + b
+    );
+    if (file === 'sitio/index.html' && shown)
+      out = out.replace(
+        /(<ul class="news">)[\s\S]*?(<\/ul>)/,
+        (_m, a, b) => a + '\n' + newsHtml(shown) + '\n      ' + b
+      );
+    list.push({ file, actual: html, expected: out });
+  }
+  return { list, all, shown };
+}
+
+/** Páginas de la portada que dicen qué versión se descarga */
+const SITE_PAGES = ['sitio/index.html', 'sitio/en/index.html'];
+/** «1.1» de «1.1.3» (la portada habla de la versión menor; el número exacto sale en la descarga) */
+const minor = (/** @type {string} */ v) => v.split(/[.-]/).slice(0, 2).join('.');
+
+/** Markdown en línea del CHANGELOG → HTML (negrita y código; los enlaces se quedan en su texto) */
+function mdInline(/** @type {string} */ s) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+}
+
+/** Las novedades de una versión para la portada: hasta 6 «Novedades» (si son menos de 4, con «Mejoras»), cada una
+ *  en su primera frase */
+function newsHtml(/** @type {ReturnType<typeof parseChangelog>[number]} */ r) {
+  /** @type {string[]} */
+  const pick = [];
+  for (const t of ['Novedades', 'Mejoras']) {
+    const g = r.groups.find((x) => x.t === t);
+    if (g) for (const it of g.items) if (pick.length < (t === 'Novedades' ? 6 : 4)) pick.push(it);
+  }
+  return pick
+    .map((it) => {
+      const m = /^(.+?[.!?])(\s|$)/.exec(it);
+      return '        <li class="rv">' + mdInline(m ? m[1] : it) + '</li>';
+    })
+    .join('\n');
 }
 
 function main(/** @type {string[]} */ argv) {
@@ -252,10 +301,29 @@ function main(/** @type {string[]} */ argv) {
   }
   const v = pkg.version;
   versionCode(v);
-  const { list, all } = targets(v);
+  const { list, all, shown } = targets(v);
+  // Las novedades de la portada en inglés se traducen a mano: avisa si son de otra versión
+  /** @type {string[]} */
+  const english = [];
+  if (shown && fs.existsSync(abs('sitio/en/index.html'))) {
+    const m = /data-news-version="([^"]+)"/.exec(read('sitio/en/index.html'));
+    if (!m || m[1] !== minor(shown.v))
+      english.push(
+        'sitio/en/index.html: las novedades en inglés («What’s new») son de la ' +
+          (m ? m[1] : '¿?') +
+          ' y la portada anuncia la ' +
+          minor(shown.v) +
+          ': tradúcelas a mano y pon data-news-version="' +
+          minor(shown.v) +
+          '"'
+      );
+  }
 
   if (argv[0] === '--check') {
-    const problems = list.filter((t) => t.actual !== t.expected).map((t) => t.file + ' no está al día');
+    const problems = list
+      .filter((t) => t.actual !== t.expected)
+      .map((t) => t.file + ' no está al día')
+      .concat(english);
     if (!all.some((r) => r.v === v)) problems.push('CHANGELOG.md no tiene una entrada «## [' + v + '] · AAAA-MM-DD»');
     const sorted = all.filter((r) => SEMVER.test(r.v));
     for (let i = 1; i < sorted.length; i++) {
@@ -278,6 +346,7 @@ function main(/** @type {string[]} */ argv) {
     changed++;
   }
   if (!all.some((r) => r.v === v)) console.warn('Aviso: añade a CHANGELOG.md la entrada «## [' + v + '] · AAAA-MM-DD»');
+  for (const e of english) console.warn('Aviso: ' + e);
   console.log(
     'Versión ' +
       v +
@@ -298,4 +367,16 @@ if (require.main === module) {
   }
 }
 
-module.exports = { versionCode, parseChangelog, compare, appReleases, releaseNotes, versionJs, publicar, SEMVER };
+module.exports = {
+  versionCode,
+  parseChangelog,
+  compare,
+  appReleases,
+  releaseNotes,
+  versionJs,
+  publicar,
+  newsHtml,
+  mdInline,
+  minor,
+  SEMVER
+};

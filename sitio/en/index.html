@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script>
+    /* People who already use WHIDER in this browser go straight to the app (unless they came to download it).
+       Old invitations (?c=… / #i=…) always go to the app. */
+    (function () {
+      var d = document.documentElement; d.className += ' js';
+      try {
+        var s = location.search, h = location.hash;
+        var invite = /[?&](c|s)=/.test(s) || /^#i=/.test(h);
+        if (!invite && (/[?&]inicio\b/.test(s) || /^#(descargar|funciones|movil|novedades|ayuda|top)$/.test(h))) return;
+        var back = invite;
+        for (var i = 0; !back && i < localStorage.length; i++) if (/^whider\./.test(localStorage.key(i) || '')) back = true;
+        if (back) location.replace('/app' + s + h);
+      } catch (e) { /* no storage: stay on this page */ }
+    })();
+  </script>
+  <title>WHIDER · Your day, under control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Tasks, calendar, habits, focus and a Notebook in one free app for Windows, macOS, Linux and the web, synced across your devices.">
+  <meta name="theme-color" content="#070708">
+  <meta name="color-scheme" content="dark">
+  <link rel="canonical" href="https://whider-red.vercel.app/en/">
+  <link rel="alternate" hreflang="es" href="https://whider-red.vercel.app/">
+  <link rel="alternate" hreflang="en" href="https://whider-red.vercel.app/en/">
+  <link rel="alternate" hreflang="x-default" href="https://whider-red.vercel.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="WHIDER">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="es_ES">
+  <meta property="og:url" content="https://whider-red.vercel.app/en/">
+  <meta property="og:title" content="WHIDER · Your day, under control">
+  <meta property="og:description" content="Tasks, calendar, habits, focus and a Notebook. Free, no ads, on all your devices.">
+  <meta property="og:image" content="https://whider-red.vercel.app/sitio/img/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="WHIDER: “Tu día, bajo control” (your day, under control), next to the app's Today screen on a computer">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preload" href="/fonts/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/sitio/portada.css">
+</head>
+<body id="top">
+<a class="skip" href="#contenido">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-tasks" viewBox="0 0 24 24"><path d="M10.5 6.5H20.5M10.5 12H20.5M10.5 17.5H17"/><path d="m3.5 6.4 1.6 1.6 2.9-3.1M3.5 11.9l1.6 1.6 2.9-3.1"/><path d="M4.7 15.6H6.3A1.1 1.1 0 0 1 7.4 16.7V18.3A1.1 1.1 0 0 1 6.3 19.4H4.7A1.1 1.1 0 0 1 3.6 18.3V16.7A1.1 1.1 0 0 1 4.7 15.6Z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M6.25 5H17.75A2.75 2.75 0 0 1 20.5 7.75V17.75A2.75 2.75 0 0 1 17.75 20.5H6.25A2.75 2.75 0 0 1 3.5 17.75V7.75A2.75 2.75 0 0 1 6.25 5Z"/><path d="M3.5 9.75H20.5M8 3V6.5M16 3V6.5"/></symbol>
+    <symbol id="i-notebook" viewBox="0 0 24 24"><path d="M7.2 3.5H16.3A2.2 2.2 0 0 1 18.5 5.7V18.3A2.2 2.2 0 0 1 16.3 20.5H7.2A2.2 2.2 0 0 1 5 18.3V5.7A2.2 2.2 0 0 1 7.2 3.5Z"/><path d="M8.75 3.5V20.5M11.75 8H15.25M11.75 11.25H15.25"/><path d="M18.5 13.5H20.25V17H18.5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.3" r="7.6"/><path d="M12 13.3V9.3M9.6 2.75h4.8M18.6 6.7l1.4-1.4"/></symbol>
+    <symbol id="i-team" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M7 19.5a5 5 0 0 1 10 0M2.75 18a3.4 3.4 0 0 1 4.6-3M21.25 18a3.4 3.4 0 0 0-4.6-3"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20.5H21"/><path d="M5.6 12H6.9A1.1 1.1 0 0 1 8 13.1V19.4A1.1 1.1 0 0 1 6.9 20.5H5.6A1.1 1.1 0 0 1 4.5 19.4V13.1A1.1 1.1 0 0 1 5.6 12Z"/><path d="M11.35 4.5H12.65A1.1 1.1 0 0 1 13.75 5.6V19.4A1.1 1.1 0 0 1 12.65 20.5H11.35A1.1 1.1 0 0 1 10.25 19.4V5.6A1.1 1.1 0 0 1 11.35 4.5Z"/><path d="M17.1 8.5H18.4A1.1 1.1 0 0 1 19.5 9.6V19.4A1.1 1.1 0 0 1 18.4 20.5H17.1A1.1 1.1 0 0 1 16 19.4V9.6A1.1 1.1 0 0 1 17.1 8.5Z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4V15M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19.5H19"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><path d="M5.2 4.5H18.8A2.2 2.2 0 0 1 21 6.7V14.3A2.2 2.2 0 0 1 18.8 16.5H5.2A2.2 2.2 0 0 1 3 14.3V6.7A2.2 2.2 0 0 1 5.2 4.5Z"/><path d="M8.5 20H15.5M12 16.5V20"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M9.4 3H14.6A2.4 2.4 0 0 1 17 5.4V18.6A2.4 2.4 0 0 1 14.6 21H9.4A2.4 2.4 0 0 1 7 18.6V5.4A2.4 2.4 0 0 1 9.4 3Z"/><path d="M11 17.75H13"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7.25 18.5A4.25 4.25 0 0 1 6.6 10.05 5.6 5.6 0 0 1 17.4 8.8 4.9 4.9 0 0 1 16.7 18.5Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 19 6.25V11.9C19 16.2 16 19.4 12 20.5 8 19.4 5 16.2 5 11.9V6.25Z"/><path d="M8.8 12.1 11 14.3 15.3 9.75"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M6.75 17.25 17.25 6.75M8.5 6.75H17.25V15.5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.75 12.75 9.5 17.25 19.25 7.25"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M13.5 4.5H19.5V10.5M19.25 4.75 11 13"/><path d="M17.5 13.75V17.5A2 2 0 0 1 15.5 19.5H6.5A2 2 0 0 1 4.5 17.5V8.5A2 2 0 0 1 6.5 6.5H10.25"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><path d="M5.4 4H8.6A1.4 1.4 0 0 1 10 5.4V8.6A1.4 1.4 0 0 1 8.6 10H5.4A1.4 1.4 0 0 1 4 8.6V5.4A1.4 1.4 0 0 1 5.4 4Z"/><path d="M15.4 4H18.6A1.4 1.4 0 0 1 20 5.4V8.6A1.4 1.4 0 0 1 18.6 10H15.4A1.4 1.4 0 0 1 14 8.6V5.4A1.4 1.4 0 0 1 15.4 4Z"/><path d="M5.4 14H8.6A1.4 1.4 0 0 1 10 15.4V18.6A1.4 1.4 0 0 1 8.6 20H5.4A1.4 1.4 0 0 1 4 18.6V15.4A1.4 1.4 0 0 1 5.4 14Z"/><path d="M14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.75"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.85.85c0 1.65-2.45 2.2-2.45 3.75"/><circle cx="12" cy="16.9" r=".9" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M6.4 4.75H17.6A2.65 2.65 0 0 1 20.25 7.4V14.1A2.65 2.65 0 0 1 17.6 16.75H11L7 19.75V16.75H6.4A2.65 2.65 0 0 1 3.75 14.1V7.4A2.65 2.65 0 0 1 6.4 4.75Z"/><path d="M8 9.25H16M8 12.25H13"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.5 13.9 10.1 20.5 12 13.9 13.9 12 20.5 10.1 13.9 3.5 12 10.1 10.1Z"/></symbol>
+  </defs>
+</svg>
+
+<header class="top" id="cabecera">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="WHIDER, home"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F2F2F2" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</a>
+    <nav class="nav" aria-label="Home page">
+      <a href="#funciones">Features</a>
+      <a href="#novedades">What’s new</a>
+      <a href="#descargar">Download</a>
+      <a href="#ayuda">Help</a>
+    </nav>
+    <a class="lang" href="../" hreflang="es" lang="es" title="Ver esta página en español">ES</a>
+    <a class="btn primary sm" href="/app"><span class="long">Open WHIDER</span><span class="short">Open</span></a>
+  </div>
+</header>
+
+<main id="contenido">
+  <section class="hero" aria-labelledby="t-hero">
+    <div class="wrap">
+      <p class="eyebrow rise d1"><span data-version>WHIDER 1.0</span> · Free, no ads</p>
+      <h1 id="t-hero"><span class="l rise d2">Your day,</span><span class="l rise d3">under control.</span></h1>
+      <p class="lead rise d4">Tasks, calendar, habits, focus and a Notebook for your ideas. All in one place, synced between your computer, your phone and the web.</p>
+      <div class="cta rise d5">
+        <a class="btn primary" href="/app">Open in your browser</a>
+        <a class="btn ghost" id="cta-dl" href="#descargar"><svg class="ic"><use href="#i-download"/></svg><span>Download</span></a>
+        <div class="store" id="cta-play" hidden><b>Google Play</b><span class="soon">Coming soon</span></div>
+      </div>
+      <p class="cta-note rise d5" id="cta-note">For Windows, macOS and Linux · On Android, coming soon to Google Play</p>
+      <p class="cta-note rise d5">Good to know: the app is in Spanish for now. An English version is planned.</p>
+
+      <div class="chart rise d5" aria-hidden="true">
+        <svg viewBox="8 11 49 40">
+          <g class="grid"><path d="M8 17H57M8 25H57M8 33H57M8 41H57M8 49H57"/></g>
+          <path class="w" pathLength="1" d="M12.5 22.5 23 45l9-15.5L41 45l11-28"/>
+          <circle class="dot" cx="12.5" cy="22.5" r=".62"/><circle class="dot" cx="23" cy="45" r=".62"/><circle class="dot" cx="32" cy="29.5" r=".62"/>
+          <circle class="dot" cx="41" cy="45" r=".62"/><circle class="dot" cx="52" cy="17" r=".95"/>
+          <text class="tag" x="49.4" y="14.2">TODAY</text>
+        </svg>
+      </div>
+      <div class="shots rise d6">
+        <figure class="pc" style="margin:0 0 0 auto">
+          <img src="/sitio/img/pc-hoy.webp" width="1920" height="1200" fetchpriority="high" alt="WHIDER on a computer: the Today screen with the day's most important tasks, Whi the character, progress and habits">
+        </figure>
+        <figure class="phone" style="margin:0">
+          <img src="/sitio/img/movil-hoy.webp" width="600" height="1222" alt="The same Today screen on a phone">
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <ul class="facts rv" aria-label="The essentials">
+      <li><svg class="ic"><use href="#i-cloud"/></svg><span><b>Synced.</b> The same on your computer, phone and the web with your account.</span></li>
+      <li><svg class="ic"><use href="#i-check"/></svg><span><b>Works offline.</b> Keeps working even when you lose your connection.</span></li>
+      <li><svg class="ic"><use href="#i-shield"/></svg><span><b>No ads, no tracking.</b> Free, and your data is yours alone.</span></li>
+    </ul>
+  </div>
+
+  <section class="sec" id="funciones" aria-labelledby="t-fun">
+    <div class="wrap">
+      <p class="label rv">Index</p>
+      <h2 id="t-fun" class="rv">Your whole day,<br>in one place.</h2>
+      <ol class="index">
+        <li class="rv"><span class="num">01</span><h3><svg class="ic"><use href="#i-tasks"/></svg>Tasks with priorities</h3><p>What matters most on top and the rest in order: categories, dates, reminders and repeating tasks.</p></li>
+        <li class="rv"><span class="num">02</span><h3><svg class="ic"><use href="#i-calendar"/></svg>Calendar</h3><p>Month, week and agenda views to see your day at a glance and plan the next ones.</p></li>
+        <li class="rv"><span class="num">03</span><h3><svg class="ic"><use href="#i-notebook"/></svg>Notebook</h3><p>Block-based pages with photos, files, tables and templates for your ideas, trips and projects.</p></li>
+        <li class="rv"><span class="num">04</span><h3><svg class="ic"><use href="#i-timer"/></svg>Habits and focus</h3><p>Streaks for what you want to do every day and a timer to work without distractions.</p></li>
+        <li class="rv"><span class="num">05</span><h3><svg class="ic"><use href="#i-team"/></svg>People and teams</h3><p>Chats, teams and shared pages. Add friends and colleagues with a link or a QR code.</p></li>
+        <li class="rv"><span class="num">06</span><h3><svg class="ic"><use href="#i-chart"/></svg>Stats and reports</h3><p>Your progress by day, week and category, with reports to print or export.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec" id="movil" aria-labelledby="t-mov">
+    <div class="wrap">
+      <p class="label rv">On your phone</p>
+      <h2 id="t-mov" class="rv">The same,<br>in your pocket.</h2>
+      <p class="sub rv">Your tasks, pages and habits follow you from your computer to your phone, with Whi, your character, keeping you company.</p>
+      <ul class="phones" aria-label="Screenshots of WHIDER on a phone">
+        <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-cuaderno.webp" width="560" height="1140" loading="lazy" decoding="async" alt="A Notebook page with a travel plan, checkboxes and a callout"></div><figcaption><b>Notebook</b>Your pages, with lists, photos and callouts.</figcaption></figure></li>
+        <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-enfoque.webp" width="560" height="1140" loading="lazy" decoding="async" alt="The focus timer at 25:00"></div><figcaption><b>Focus</b>25 minutes for a single thing.</figcaption></figure></li>
+        <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-calendario.webp" width="560" height="1140" loading="lazy" decoding="async" alt="The month calendar with today highlighted"></div><figcaption><b>Calendar</b>The whole month at a glance.</figcaption></figure></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec" id="novedades" aria-labelledby="t-new">
+    <div class="wrap">
+      <p class="label rv">What’s new</p>
+      <h2 id="t-new" class="rv">New in<br><span data-version>WHIDER 1.0</span>.</h2>
+      <!-- Translated by hand from CHANGELOG.md (tools/version.js --check fails if they belong to another version) -->
+      <ul class="news" data-news-version="1.0">
+        <li class="rv">Every feature for everyone: Premium, plans and payments are gone.</li>
+        <li class="rv">A new identity: the Onest and Outfit typefaces, custom icons and rounded corners.</li>
+        <li class="rv">A website with the right download for each device; the web app moves to /app.</li>
+        <li class="rv">Delete your account from the app or from the web, without installing anything.</li>
+      </ul>
+      <p class="more rv"><a href="https://github.com/McTn4/whider-2.0-PREMIUM/blob/main/CHANGELOG.md">Every version and its changes</a> (in Spanish)</p>
+    </div>
+  </section>
+
+  <section class="sec" id="descargar" aria-labelledby="t-dl">
+    <div class="wrap">
+      <p class="label rv">Download</p>
+      <h2 id="t-dl" class="rv">Download WHIDER.</h2>
+      <p class="sub rv">Free, no sign-up needed: start without an account and create one whenever you like to have the same on all your devices.</p>
+
+      <div class="dl-grid">
+        <article class="card pc-card rv" aria-labelledby="t-pc">
+          <div class="card-h"><svg class="ic"><use href="#i-monitor"/></svg><h3 id="t-pc">Computer</h3><span class="chip" id="pc-chip" hidden></span></div>
+          <div class="dl-main" id="pc-main" hidden>
+            <a class="btn primary" id="pc-main-btn" href="#"><svg class="ic"><use href="#i-download"/></svg><span>Download</span></a>
+            <small id="pc-main-meta"></small>
+          </div>
+          <p class="others" id="pc-others" hidden>Other systems</p>
+          <ul class="dl-list">
+            <li><a class="dl-item" data-os="windows" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-Setup.exe"><span><b>Windows</b><small>Installer for Windows 10 and 11 (64-bit)<i data-size="WHIDER-Setup.exe"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="mac" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-mac.dmg"><span><b>macOS</b><small>For Macs with Apple silicon or Intel<i data-size="WHIDER-mac.dmg"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+            <li><a class="dl-item" data-os="linux" href="https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/desktop-latest/WHIDER-linux.AppImage"><span><b>Linux</b><small>AppImage for 64-bit<i data-size="WHIDER-linux.AppImage"></i></small></span><svg class="ic"><use href="#i-download"/></svg></a></li>
+          </ul>
+          <details class="help">
+            <summary>How do I install it?</summary>
+            <dl>
+              <dt data-help="windows">Windows</dt><dd data-help="windows">Open the installer. If Windows shows “Windows protected your PC”, click “More info” and then “Run anyway”: it appears because the app isn’t signed with a paid certificate yet.</dd>
+              <dt data-help="mac">macOS</dt><dd data-help="mac">Open the file and drag WHIDER to Applications. The first time, open it with right-click → “Open”.</dd>
+              <dt data-help="linux">Linux</dt><dd data-help="linux">Make it executable (Properties → “Allow executing file as program”, or <code>chmod +x</code>) and open it.</dd>
+            </dl>
+          </details>
+        </article>
+
+        <article class="card mob rv" aria-labelledby="t-mob">
+          <div class="card-h"><svg class="ic"><use href="#i-phone"/></svg><h3 id="t-mob">Phone</h3><span class="chip" id="mob-chip" hidden>Your device</span></div>
+          <div class="store" id="play" data-pl="android"><b>Google Play</b><span class="soon">Coming soon</span></div>
+          <p data-pl="android"><b>Android.</b> WHIDER is coming soon to Google Play. In the meantime, open it in Chrome and, from the ⋮ menu, choose “Add to Home screen” (or “Install app”): it will open like an app.</p>
+          <p data-pl="ios"><b>iPhone and iPad.</b> Open it in Safari, tap Share and then “Add to Home Screen”: it will open like an app, full screen.</p>
+          <a class="btn ghost" href="/app">Open in your browser</a>
+        </article>
+      </div>
+      <p class="fine rv">Desktop installers are downloaded from GitHub, where every version is published with its changes.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="ayuda" aria-labelledby="t-faq">
+    <div class="wrap">
+      <p class="label rv">Help</p>
+      <h2 id="t-faq" class="rv">Frequently asked<br>questions.</h2>
+      <div class="faq rv">
+        <details><summary>Is WHIDER free?</summary><p>Yes. Every feature, with no ads and no in-app purchases.</p></details>
+        <details><summary>Is it available in English?</summary><p>Not yet: the app is in Spanish for now. This page and the <a href="/privacy/">privacy policy</a> are in English, and an English version of the app is planned.</p></details>
+        <details><summary>Do I need an account?</summary><p>No. Without an account, everything is stored on your device and nobody else sees it. Create one whenever you like (with your email or Google) to have the same on your computer, phone and the web: it syncs on its own.</p></details>
+        <details><summary>Where is my data stored?</summary><p>On your device and, if you sign in, also in your cloud account (Google Firebase), where only you can read it. Without an account it can’t be recovered if you lose your device, so keep backups: on desktop and Android, WHIDER also makes an automatic backup every day. All the details are in the <a href="/privacy/">privacy policy</a>.</p></details>
+        <details><summary>Does it work offline?</summary><p>Yes. You can keep using it without internet and, with an account, your changes sync when you’re back online.</p></details>
+        <details><summary>Is there an iPhone app?</summary><p>Not on the App Store yet, but WHIDER works on iPhone and iPad from the browser: in Safari, tap Share and “Add to Home Screen”, and it will open like an app. With your account you get the same as on your computer.</p></details>
+        <details><summary>And on Android?</summary><p>It’s coming soon to Google Play. In the meantime, open it in Chrome and, from the ⋮ menu, choose “Add to Home screen” (or “Install app”).</p></details>
+        <details><summary>Can I bring my tasks from another app?</summary><p>Yes: from Todoist, Google Tasks, Notion, calendars (.ics) or any spreadsheet (CSV), in Ajustes → Datos → Importar desde otras apps (Settings → Data → Import from other apps). You’ll see a preview and can undo it for a day.</p></details>
+        <details><summary>Why does Windows say it “protected your PC”?</summary><p>Because the installer isn’t signed with a paid certificate yet. Click “More info” and then “Run anyway”. Every version is published on GitHub with its SHA-256 checksum, so you can check that the file hasn’t been altered.</p></details>
+        <details><summary>Are chats encrypted?</summary><p>Messages are encrypted in transit and stored encrypted on Google’s servers, where only the chat’s members can read them. They are not end-to-end encrypted.</p></details>
+      </div>
+
+      <div class="support">
+        <article class="card rv">
+          <h3><svg class="ic"><use href="#i-help"/></svg>Inside the app</h3>
+          <p>In Ajustes → Ayuda (Settings → Help) you’ll find these questions, what’s new in each version and “Enviar comentarios” (Send feedback), to tell us about an idea or something that isn’t working.</p>
+          <a class="btn ghost" href="/app">Open WHIDER</a>
+        </article>
+        <article class="card rv">
+          <h3><svg class="ic"><use href="#i-message"/></svg>Without installing anything</h3>
+          <p>Write to us on GitHub, where you can also see what’s being prepared.</p>
+          <a class="btn ghost" href="https://github.com/McTn4/whider-2.0-PREMIUM/issues/new"><svg class="ic"><use href="#i-external"/></svg><span>Write on GitHub</span></a>
+          <small>What you write there is public: don’t include personal data.</small>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F2F2F2" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</a>
+    <p>Your day, under control · <span data-version>WHIDER 1.0</span> · © <span id="year">2026</span></p>
+    <nav aria-label="Footer">
+      <a href="/app">Open WHIDER</a>
+      <a href="#descargar">Download</a>
+      <a href="#novedades">What’s new</a>
+      <a href="#ayuda">Help</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="../" hreflang="es" lang="es">Español</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="/sitio/descargas.js"></script>
+<script src="/sitio/portada.js"></script>
+</body>
+</html>

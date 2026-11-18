@@ -284,6 +284,11 @@ Se actualiza al cerrar cada bloque.
   ordenador guarda el último (ventana y barra de título ya claras al abrir; con «Como el sistema», Electron sigue
   al sistema para que la página vea sus cambios) y Android también (barras del sistema y fondo detrás de ellas).
   Contraste AA comprobado con axe en todas las pantallas, Ajustes, nueva tarea y personaje, en móvil y ordenador.
+- **Idiomas, con el inglés primero** ([decisiones/0003](decisiones/0003-idiomas.md)): la portada (`/en/`) y la política
+  de privacidad (`/privacy/`) completas en inglés, con `hreflang`, y diciendo que la app de momento está en español.
+  La app no se publica traducida a medias: tiene unos 1.660 textos distintos y un intérprete de fechas en español que
+  en inglés necesita otra gramática; la decisión deja el método (`W.t()` con el español como clave, `Intl`, catálogos)
+  y el orden, para unas dos semanas de trabajo.
 - **La comprobación de contraste no comprobaba nada**: axe 4.14 no sabe calcular fondos dentro de un contenedor
   `position: fixed` (todo `#app`) y lo marcaba «incompleto» (0 comprobados). Con `axePrep()` ya comprueba, y salió
   un fallo real, también en el tema oscuro: los días de otro mes en el calendario mensual (1,99:1; ahora ≥ 4,5:1).

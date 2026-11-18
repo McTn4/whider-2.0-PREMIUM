@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Privacy policy · WHIDER</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070708">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="What data WHIDER stores, why, who processes it, for how long and how to delete your account.">
+  <link rel="alternate" hreflang="es" href="https://whider-red.vercel.app/privacidad/">
+  <link rel="alternate" hreflang="en" href="https://whider-red.vercel.app/privacy/">
+  <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+  <style>
+    @font-face { font-family: 'Onest'; src: url('../fonts/onest-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    @font-face { font-family: 'Outfit'; src: url('../fonts/outfit-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    :root { --bg: #070708; --s1: #111113; --t1: #F2F2F2; --t2: #A3A3A3; --t3: #858585; --rule: rgba(255,255,255,.11); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--t1); font-family: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { padding: 32px 18px calc(48px + env(safe-area-inset-bottom)); }
+    main { max-width: 720px; margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 10px; letter-spacing: .32em; font-weight: 700; font-size: 13px; color: var(--t2); text-decoration: none; }
+    .brand svg { width: 22px; height: 22px; }
+    header { padding: 28px 0 18px; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+    h1, h2, .brand { font-family: 'Outfit', 'Onest', system-ui, sans-serif; }
+    h1 { margin: 0; font-size: 2.1rem; font-weight: 650; line-height: 1.1; letter-spacing: -.02em; }
+    .date { margin: 8px 0 0; color: var(--t3); font-size: 14px; }
+    h2 { margin: 30px 0 10px; font-size: 1.2rem; font-weight: 600; letter-spacing: -.005em; }
+    p, li { color: var(--t2); line-height: 1.6; font-size: 16px; }
+    p { margin: 0 0 12px; }
+    ul { margin: 0 0 12px; padding-left: 20px; }
+    li { margin: 4px 0; }
+    b, strong { color: var(--t1); font-weight: 600; }
+    a { color: var(--t1); }
+    .card { margin: 14px 0; padding: 18px 18px 6px; background: var(--s1); border-radius: 14px; box-shadow: 0 0 0 1px rgba(255,255,255,.07) inset; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 20px; margin: 4px 0 14px; border-radius: 12px; background: #F2F2F2; color: #000; font-weight: 650; text-decoration: none; }
+    .note { color: var(--t3); font-size: 14px; }
+    footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--t3); font-size: 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <a class="brand" href="../en/"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F2F2F2" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</a>
+  <header>
+    <h1>Privacy policy</h1>
+    <p class="date">Last updated: 18 November 2026 · App version 1.1</p>
+  </header>
+
+  <p class="note">This is a translation of the <a href="../privacidad/" hreflang="es" lang="es">Spanish privacy policy</a>. If they ever differ, the Spanish version prevails. The app’s interface is in Spanish, so menu names are given in Spanish with their English meaning.</p>
+
+  <p>WHIDER is a free app to organise tasks, a calendar, habits, focus sessions and a Notebook of pages, with optional chats and teams. This policy explains what data it stores, why, who processes it and how you can take it with you or delete it. It applies to the Android app, the desktop app (Windows, macOS and Linux) and the web version.</p>
+
+  <h2 id="summary">In short</h2>
+  <ul>
+    <li>WHIDER shows no ads, does not sell or share your data and uses no analytics or tracking tools.</li>
+    <li>Without an account, everything stays on your device.</li>
+    <li>With an account, your data is stored in Google Firebase so you have it on all your devices.</li>
+    <li>You can export your data and delete your account whenever you like, from the app or from the web.</li>
+  </ul>
+
+  <h2 id="data">What data it stores</h2>
+  <ul>
+    <li><b>Your account:</b> name, email address and, if you choose one, a profile photo. If you sign in with Google, also its public profile photo. Your password is handled, encrypted, by Firebase Authentication: WHIDER never sees or stores it.</li>
+    <li><b>What you create in the app:</b> tasks, categories, filters, reminders, habits, focus sessions, personal records, automations, your character, your settings and the Notebook pages with their attachments.</li>
+    <li><b>If you turn on the community:</b> your public profile (name, character or photo, streak and number of tasks completed per week), your friend code, your contacts, the messages in your chats and the teams you belong to with their tasks and pages.</li>
+    <li><b>Your devices:</b> a generic name for each device using your account (for example “Móvil · Android”, phone · Android) and when it last connected, to share focus sessions between them.</li>
+    <li><b>Feedback and error reports</b> (optional): if you write to us from Ajustes → Ayuda → Enviar comentarios (Settings → Help → Send feedback), or turn on “Enviar informes de errores” (send error reports) in Ajustes → Privacidad (Settings → Privacy), we store the text you write or the error (what failed and where), the WHIDER version and the system (for example “Android” or “Navegador · Chrome · Windows”). They do not carry your name or your account, never include your tasks or your Notebook, and are only read from the Firebase console to improve the app. Errors are first kept on your device (the last 20), where you can see or delete them.</li>
+    <li><b>Blocks and reports:</b> if you block someone, the fact that you blocked them is stored (only you see it; the other person is not notified). If you report someone or a message, we store your identifier, the reported person’s identifier, the reason and, for a message, an excerpt of up to 600 characters, to review it and act if it breaks the rules. Nobody can read reports from the app.</li>
+    <li><b>Archive:</b> tasks completed a long time ago may move to an archive inside your account (so that the cloud copy does not exceed its maximum size). They are still yours and you can export them.</li>
+  </ul>
+  <p>WHIDER does not collect your location, your phone contacts, your calendar, your browsing history or advertising identifiers.</p>
+
+  <h2 id="permissions">Android permissions</h2>
+  <ul>
+    <li><b>Notifications:</b> to remind you of your reminders and overdue tasks. You can turn them off whenever you like.</li>
+    <li><b>Camera:</b> only when you tap “Escanear” (scan), to read the QR code of an invitation. The image is analysed on the phone itself and is neither stored nor sent.</li>
+    <li><b>Vibration</b> and <b>phone start-up:</b> for notifications with vibration and to reschedule your reminders after a restart.</li>
+    <li><b>Alarms and reminders</b> (optional, Android 12 and later): so notifications go off at the exact time. Only used if you allow it in Ajustes → Avisos (Settings → Notifications).</li>
+    <li><b>Internet:</b> for the account, sync and the community.</li>
+  </ul>
+
+  <h2 id="purpose">What it is used for</h2>
+  <p>Only to make the app work: storing your data, syncing it between your devices, sending you the reminders you schedule and, if you turn it on, showing your profile to your contacts and delivering your messages. The legal basis is the performance of the service you request by using the app and, for the community, your consent when you turn it on.</p>
+
+  <h2 id="who">Who processes it and where</h2>
+  <ul>
+    <li><b>Google Firebase</b> (Authentication and Cloud Firestore), as the cloud provider that stores your account and your data. Communications are encrypted (HTTPS/TLS).</li>
+    <li><b>Sign in with Google</b>, only if you choose “Continuar con Google” (continue with Google).</li>
+    <li><b>Vercel</b>, which serves the web version and the invitation pages; like any web server, it logs technical connection data, such as the IP address.</li>
+    <li><b>GitHub</b>, where the desktop installers are published: when you download one, and when the home page checks their size, GitHub receives the same technical connection data.</li>
+  </ul>
+  <p>These providers may process data outside the European Economic Area with the safeguards required by the GDPR (standard contractual clauses). Your contacts only see your public profile; never your tasks or your Notebook, except the pages you share with a team. A chat’s messages are only read by its members.</p>
+
+  <h2 id="retention">How long it is kept</h2>
+  <p>For as long as you keep your account. When you delete it, your account, your data in the cloud, your public profile, your friend code and your files are deleted immediately, and you leave your teams (if you were the only member, the team is deleted). Messages you sent in shared chats may still be seen by the other members: you can delete them one by one beforehand. Data stored on your device is deleted when you sign out, reset the app or uninstall it.</p>
+
+  <h2 id="delete">Deleting your account and your data</h2>
+  <div class="card">
+    <p><b>From the app:</b> Ajustes → Cuenta → <b>Eliminar la cuenta</b> (Settings → Account → Delete account). It is deleted immediately, also on your other devices.</p>
+    <p><b>Without the app:</b> open WHIDER in a browser and sign in with your account; Ajustes → Cuenta (Settings → Account) will open, where “Eliminar la cuenta” is.</p>
+    <a class="btn" href="../app#cuenta">Open WHIDER to delete my account</a>
+  </div>
+
+  <h2 id="rights">Your rights</h2>
+  <p>You can access your data, correct it, export it (Ajustes → Datos → Guardar una copia, Settings → Data → Save a copy), object to its processing or ask for it to be deleted. If you believe your data is not being handled properly, you can lodge a complaint with the Spanish Data Protection Agency (<a href="https://www.aepd.es" rel="noopener">aepd.es</a>).</p>
+
+  <h2 id="children">Children</h2>
+  <p>WHIDER is not intended for children under 14 and does not knowingly collect data from children under that age.</p>
+
+  <h2 id="security">Security</h2>
+  <p>Your tasks, your Notebook, your habits and your settings in the cloud can only be read and written by you; what you share in a team or a chat, by its members. Your <b>public profile</b> (name, character or photo, streak and tasks completed per week), if you turn on the community, can be looked up by any verified account that knows your identifier (for example, someone who has your friend code); nobody can get the list of all profiles. All of this is enforced by security rules on the server. Connections are encrypted and passwords are never stored in plain text. Chat messages are encrypted in transit and on Google’s servers, but not end to end.</p>
+
+  <h2 id="contact">Contact and changes</h2>
+  <p>For any question about your privacy, write to the developer’s contact email shown on WHIDER’s Google Play listing. If this policy changes, this page will be updated with its new date and, if the change is important, we will tell you in the app.</p>
+
+  <footer>WHIDER · Privacy policy · 18 November 2026</footer>
+</main>
+</body>
+</html>

@@ -10,7 +10,8 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-Tema claro, copias automáticas sin cuenta, ayuda dentro de la app, instalar en el iPhone y una web que abre antes.
+Tema claro, copias automáticas sin cuenta, ayuda dentro de la app, instalar en el iPhone, la web en inglés y una web
+que abre antes.
 
 ### Novedades
 
@@ -24,6 +25,8 @@ Tema claro, copias automáticas sin cuenta, ayuda dentro de la app, instalar en 
 - **Instalar en el iPhone**: WHIDER explica cómo añadirla a la pantalla de inicio (así funciona como una app y te
   avisa); en Chrome y Edge, un botón «Instalar».
 - **Ayuda**: preguntas frecuentes y «Enviar comentarios» (una idea, algo que no funciona u otra cosa) en Ajustes → Ayuda.
+- **La web, también en inglés**: la portada (/en/) y la política de privacidad (/privacy/). La app sigue en español
+  por ahora, y la portada en inglés lo dice.
 
 ### Mejoras
 
@@ -34,6 +37,8 @@ Tema claro, copias automáticas sin cuenta, ayuda dentro de la app, instalar en 
   (6 archivos en lugar de 73), y el navegador guarda la app hasta que cambia.
 - En el calendario mensual del ordenador, los días del mes anterior y del siguiente se leen mejor (tenían
   poco contraste).
+- Portada: las novedades de la versión que se descarga, preguntas frecuentes y cómo pedir ayuda. En el iPhone explica
+  cómo añadirla desde Safari en lugar de anunciar Google Play.
 
 ### Para desarrolladores
 
@@ -47,6 +52,9 @@ Tema claro, copias automáticas sin cuenta, ayuda dentro de la app, instalar en 
 - Tema claro con variables: `css/tokens.css` define el oscuro en `:root` y el claro en `:root[data-theme='light']`
   (solo redefine variables). `tests/unit/tema.test.js` impide grises fijos en las reglas y variables de color sin
   valor en claro; `tests/e2e/tema.js` prueba el cambio, el arranque sin destello, «Como el sistema» y el contraste.
+- `tools/version.js` mantiene la versión y las novedades de la portada en español (desde el CHANGELOG); las de la
+  portada en inglés se traducen a mano y `npm run version:check` avisa si son de otra versión. Estilos y script de la
+  portada, compartidos por los dos idiomas (`sitio/portada.css` y `sitio/portada.js`).
 - La comprobación de contraste con axe no comprobaba nada: el contenedor fijo de la app no le dejaba calcular los
   fondos y lo daba todo por «incompleto». `axePrep()` (en `tests/e2e/_util.js`) lo resuelve y ahora sí detecta los
   fallos (encontró el del calendario).

@@ -244,3 +244,47 @@ test('los errores se explican sin tecnicismos', () => {
   assert.match(UPD.errorText(new Error('HTTP 403: API rate limit exceeded')), /GitHub no responde/);
   assert.match(UPD.errorText(new Error('sha512 checksum mismatch')), /comprobación de seguridad/);
 });
+
+test('portada: la versión menor y las novedades sacadas del CHANGELOG', () => {
+  assert.equal(V.minor('1.1.3'), '1.1');
+  assert.equal(V.minor('1.2.0-beta.1'), '1.2');
+  assert.equal(V.mdInline('**Tema** `x` [y](https://z) <b>&'), '<b>Tema</b> <code>x</code> y &lt;b&gt;&amp;');
+  const r = {
+    groups: [
+      { t: 'Novedades', items: ['**Uno**: primera frase. Segunda frase.', 'Dos sin punto'] },
+      { t: 'Mejoras', items: ['M1.', 'M2.', 'M3.'] },
+      { t: 'Para desarrolladores', items: ['Nunca en la portada.'] }
+    ]
+  };
+  const html = V.newsHtml(/** @type {any} */ (r));
+  const items = html.split('\n');
+  // Con menos de 4 novedades se completa con mejoras; cada una, en su primera frase
+  assert.deepEqual(items, [
+    '        <li class="rv"><b>Uno</b>: primera frase.</li>',
+    '        <li class="rv">Dos sin punto</li>',
+    '        <li class="rv">M1.</li>',
+    '        <li class="rv">M2.</li>'
+  ]);
+  // Con 6 o más novedades, solo las 6 primeras
+  const many = {
+    groups: [
+      { t: 'Novedades', items: ['a.', 'b.', 'c.', 'd.', 'e.', 'f.', 'g.'] },
+      { t: 'Mejoras', items: ['m.'] }
+    ]
+  };
+  assert.equal(V.newsHtml(/** @type {any} */ (many)).split('\n').length, 6);
+});
+
+test('portada: las dos páginas anuncian la misma versión que sitio/descargas.js', () => {
+  const v = /version: '([^']+)'/.exec(fs.readFileSync(path.join(RAIZ, 'sitio/descargas.js'), 'utf8'))[1];
+  for (const f of ['sitio/index.html', 'sitio/en/index.html']) {
+    const html = fs.readFileSync(path.join(RAIZ, f), 'utf8');
+    const shown = [...html.matchAll(/<span data-version>([^<]*)<\/span>/g)].map((m) => m[1]);
+    assert.ok(shown.length >= 3, f);
+    for (const s of shown) assert.equal(s, 'WHIDER ' + V.minor(v), f);
+  }
+  assert.match(
+    fs.readFileSync(path.join(RAIZ, 'sitio/en/index.html'), 'utf8'),
+    new RegExp('data-news-version="' + V.minor(v).replace('.', '\\.') + '"')
+  );
+});

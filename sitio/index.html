@@ -10,7 +10,7 @@
       try {
         var s = location.search, h = location.hash;
         var invite = /[?&](c|s)=/.test(s) || /^#i=/.test(h);
-        if (!invite && (/[?&]inicio\b/.test(s) || /^#(descargar|funciones|movil|top)$/.test(h))) return;
+        if (!invite && (/[?&]inicio\b/.test(s) || /^#(descargar|funciones|movil|novedades|ayuda|top)$/.test(h))) return;
         var back = invite;
         for (var i = 0; !back && i < localStorage.length; i++) if (/^whider\./.test(localStorage.key(i) || '')) back = true;
         if (back) location.replace('/app' + s + h);
@@ -23,9 +23,13 @@
   <meta name="theme-color" content="#070708">
   <meta name="color-scheme" content="dark">
   <link rel="canonical" href="https://whider-red.vercel.app/">
+  <link rel="alternate" hreflang="es" href="https://whider-red.vercel.app/">
+  <link rel="alternate" hreflang="en" href="https://whider-red.vercel.app/en/">
+  <link rel="alternate" hreflang="x-default" href="https://whider-red.vercel.app/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="WHIDER">
   <meta property="og:locale" content="es_ES">
+  <meta property="og:locale:alternate" content="en_US">
   <meta property="og:url" content="https://whider-red.vercel.app/">
   <meta property="og:title" content="WHIDER · Tu día, bajo control">
   <meta property="og:description" content="Tareas, calendario, hábitos, enfoque y un Cuaderno. Gratis, sin anuncios y en todos tus dispositivos.">
@@ -39,236 +43,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="preload" href="/fonts/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <style>
-    @font-face { font-family: 'Outfit'; src: url('/fonts/outfit-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
-    @font-face { font-family: 'Onest'; src: url('/fonts/onest-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
-
-    /* Los mismos tonos, letras y formas que la app («Índice», en blanco y negro) */
-    :root {
-      color-scheme: dark;
-      --bg: #070708; --bg-2: #0B0B0D; --s1: #111113; --s2: #18181B; --s3: #222226;
-      --t1: #F2F2F2; --t2: #A3A3A3; --t3: #8A8A8A;
-      --rule: rgba(255, 255, 255, .11); --line: rgba(255, 255, 255, .08); --line-2: rgba(255, 255, 255, .14);
-      --r-card: 14px; --r-btn: 11px; --r-big: 22px;
-      --display: 'Outfit', 'Onest', system-ui, sans-serif;
-      --font: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-      --pad: clamp(18px, 4.5vw, 44px);
-      --ease: cubic-bezier(.2, .7, .2, 1);
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
-    body { margin: 0; background: var(--bg); color: var(--t2); font: 400 17px/1.6 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-    /* Grano muy fino: da textura al negro sin ensuciarlo */
-    body::after { content: ''; position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .04;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-    a { color: inherit; }
-    img { display: block; max-width: 100%; height: auto; }
-    h1, h2, h3 { color: var(--t1); font-family: var(--display); margin: 0; }
-    .wrap { width: min(1200px, 100% - 2 * var(--pad)); margin-inline: auto; }
-    .ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-    :focus-visible { outline: 2px solid var(--t1); outline-offset: 3px; }
-    .skip { position: absolute; left: 12px; top: -64px; z-index: 100; padding: 10px 16px; border-radius: var(--r-btn); background: var(--t1); color: #000; font-weight: 600; text-decoration: none; }
-    .skip:focus { top: 12px; }
-    [hidden] { display: none !important; }
-
-    /* ---------- Botones ---------- */
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border-radius: var(--r-btn);
-      font: 600 16px/1.1 var(--font); text-decoration: none; cursor: pointer; transition: transform .15s var(--ease), background-color .2s, box-shadow .2s; }
-    .btn:active { transform: scale(.98); }
-    .btn.primary { background: #FFF; color: #000; box-shadow: 0 0 0 1px rgba(255, 255, 255, .25), 0 12px 34px -12px rgba(255, 255, 255, .4); }
-    .btn.primary:hover { background: #EBEBEB; }
-    .btn.ghost { background: rgba(255, 255, 255, .04); color: var(--t1); box-shadow: inset 0 0 0 1px var(--line-2); }
-    .btn.ghost:hover { background: rgba(255, 255, 255, .08); }
-    .btn.sm { min-height: 40px; padding: 0 16px; font-size: 15px; }
-    .btn .ic { width: 19px; height: 19px; }
-    .store { display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px 0 20px; border-radius: var(--r-btn);
-      background: rgba(255, 255, 255, .025); box-shadow: inset 0 0 0 1px var(--line); color: var(--t2); }
-    .store b { color: var(--t1); font: 600 16px/1 var(--display); letter-spacing: .01em; }
-    .soon { padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, .08); color: var(--t2); font-size: 12.5px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
-    a.store { text-decoration: none; transition: background-color .2s; }
-    a.store:hover { background: rgba(255, 255, 255, .07); }
-
-    /* ---------- Cabecera ---------- */
-    .top { position: sticky; top: 0; z-index: 60; background: rgba(7, 7, 8, .74); -webkit-backdrop-filter: saturate(140%) blur(16px); backdrop-filter: saturate(140%) blur(16px);
-      border-bottom: 1px solid transparent; transition: border-color .3s; }
-    .top.scrolled { border-bottom-color: var(--line); }
-    .top .wrap { display: flex; align-items: center; gap: 8px; height: 68px; }
-    .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--t1); text-decoration: none; font: 600 15px/1 var(--display); letter-spacing: .3em; }
-    .brand svg { width: 26px; height: 26px; filter: drop-shadow(0 0 8px rgba(255, 255, 255, .45)); }
-    .nav { display: flex; gap: 2px; margin-left: auto; }
-    .nav a { padding: 9px 14px; border-radius: 9px; color: var(--t2); text-decoration: none; font-size: 15px; font-weight: 500; transition: color .2s, background-color .2s; }
-    .nav a:hover { color: var(--t1); background: rgba(255, 255, 255, .05); }
-    .top .btn { margin-left: 10px; }
-    .top .btn .short { display: none; }
-    @media (max-width: 720px) {
-      .nav { display: none; }
-      .top .btn { margin-left: auto; }
-    }
-    @media (max-width: 380px) { .top .btn .long { display: none; } .top .btn .short { display: inline; } }
-
-    /* ---------- Héroe ---------- */
-    .hero { position: relative; padding-top: clamp(44px, 8vw, 104px); overflow-x: clip; }
-    .hero::before { content: ''; position: absolute; inset: -160px 0 auto 0; height: 760px; pointer-events: none;
-      background: radial-gradient(ellipse 50% 46% at 68% 40%, rgba(255, 255, 255, .085), transparent 70%); }
-    .hero .wrap { position: relative; }
-    .eyebrow, .label { display: flex; align-items: center; gap: 14px; margin: 0 0 24px; color: var(--t2); font-size: 12.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
-    .eyebrow::after, .label::after { content: ''; width: 56px; height: 1px; background: var(--rule); }
-    h1 { position: relative; z-index: 2; font-weight: 650; font-size: clamp(3.1rem, 8.4vw, 6.4rem); line-height: .95; letter-spacing: -.038em; }
-    h1 .l { display: block; }
-    .lead { position: relative; z-index: 2; max-width: 35rem; margin: 28px 0 0; font-size: clamp(1.06rem, 1.5vw, 1.24rem); line-height: 1.55; }
-    .cta { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 34px; }
-    .cta-note { position: relative; z-index: 2; margin: 16px 0 0; color: var(--t3); font-size: 14.5px; }
-    .cta-note a { color: var(--t2); text-underline-offset: 3px; }
-    .cta-note a:hover { color: var(--t1); }
-
-    /* La W de WHIDER, dibujada como una gráfica que sube */
-    .chart { position: absolute; z-index: 1; right: -1%; top: -6px; width: min(540px, calc(100% - 36rem)); pointer-events: none; }
-    .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-    .chart .grid { stroke: rgba(255, 255, 255, .07); stroke-width: .12; }
-    .chart .w { fill: none; stroke: #FFF; stroke-width: .34; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1;
-      filter: drop-shadow(0 0 .6px rgba(255, 255, 255, .9)) drop-shadow(0 0 2.4px rgba(255, 255, 255, .45)); }
-    .chart .dot { fill: var(--bg); stroke: #FFF; stroke-width: .26; }
-    .chart .tag { fill: var(--t3); font: 600 1.25px/1 var(--font); letter-spacing: .12px; }
-
-    .shots { position: relative; margin-top: clamp(52px, 8vw, 92px); padding-bottom: clamp(56px, 8vw, 96px); }
-    .shots::before { content: ''; position: absolute; z-index: 0; left: 8%; right: 4%; top: 6%; height: 74%; pointer-events: none;
-      background: radial-gradient(closest-side, rgba(255, 255, 255, .13), transparent); filter: blur(24px); }
-    .pc { position: relative; z-index: 1; width: min(100%, 1060px); margin-left: auto; border-radius: 16px; overflow: hidden; background: var(--bg-2);
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, .13), 0 60px 120px -50px #000, 0 30px 90px -60px rgba(255, 255, 255, .3); }
-    .pc img { width: 100%; }
-    .phone { position: relative; padding: 7px; border-radius: 36px; background: #000;
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, .17), 0 40px 80px -28px #000, 0 0 70px -26px rgba(255, 255, 255, .35); }
-    .phone img { width: 100%; border-radius: 29px; }
-    .shots .phone { position: absolute; z-index: 2; left: 0; bottom: 0; width: clamp(150px, 21%, 248px); }
-
-    /* ---------- Lo esencial ---------- */
-    .facts { list-style: none; margin: 0 auto; padding: 26px 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
-    .facts li { display: flex; align-items: flex-start; gap: 14px; padding: 4px 26px; font-size: 15.5px; line-height: 1.5; }
-    .facts li + li { border-left: 1px solid var(--line); }
-    .facts li:first-child { padding-left: 0; }
-    .facts .ic { width: 22px; height: 22px; margin-top: 1px; color: var(--t1); }
-    .facts b { color: var(--t1); font-weight: 600; }
-
-    /* ---------- Secciones ---------- */
-    .sec { padding: clamp(84px, 11vw, 140px) 0 0; }
-    h2 { font-weight: 600; font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.02; letter-spacing: -.03em; }
-    .sub { max-width: 36rem; margin: 22px 0 0; font-size: clamp(1.02rem, 1.4vw, 1.14rem); }
-
-    /* Funciones como un índice: número, icono, título y una línea */
-    .index { list-style: none; margin: clamp(40px, 6vw, 64px) 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: clamp(32px, 6vw, 88px); }
-    .index li { display: grid; grid-template-columns: 52px 1fr; column-gap: 8px; padding: 28px 0 30px; border-top: 1px solid var(--rule); }
-    .num { grid-row: span 2; font: 500 15px/1.6 var(--display); color: var(--t3); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
-    .index h3 { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.42rem; line-height: 1.25; letter-spacing: -.012em; }
-    .index h3 .ic { width: 22px; height: 22px; color: var(--t1); }
-    .index p { margin: 10px 0 0; font-size: 16px; max-width: 30rem; }
-
-    /* En el móvil: tres pantallas */
-    .phones { list-style: none; margin: clamp(40px, 6vw, 64px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 4vw, 56px); }
-    .phones li:nth-child(2) { padding-top: 42px; }
-    .phones figure { margin: 0; }
-    .phones .phone { max-width: 300px; margin-inline: auto; }
-    .phones figcaption { max-width: 300px; margin: 20px auto 0; font-size: 15px; text-align: center; }
-    .phones figcaption b { display: block; color: var(--t1); font: 600 17px/1.4 var(--display); }
-
-    /* ---------- Descarga ---------- */
-    .dl-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; margin-top: clamp(36px, 5vw, 56px); align-items: start; }
-    .card { position: relative; padding: clamp(22px, 3vw, 32px); border-radius: var(--r-big); background: var(--s1);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 0 0 1px var(--line), 0 30px 70px -40px #000; }
-    .card-h { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
-    .card-h .ic { width: 24px; height: 24px; color: var(--t1); }
-    .card-h h3 { font-weight: 600; font-size: 1.5rem; letter-spacing: -.012em; }
-    .chip { margin-left: auto; padding: 5px 11px; border-radius: 999px; background: rgba(255, 255, 255, .08); color: var(--t1); font-size: 12.5px; font-weight: 600; }
-    .dl-main { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
-    .dl-main .btn { width: 100%; min-height: 58px; font-size: 17px; }
-    .dl-main small { color: var(--t3); font-size: 14px; text-align: center; }
-    .others { margin: 0 0 10px; color: var(--t3); font-size: 12.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
-    .dl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-    .dl-item { display: flex; align-items: center; gap: 14px; padding: 15px 16px; border-radius: var(--r-card); background: rgba(255, 255, 255, .03);
-      box-shadow: inset 0 0 0 1px var(--line); text-decoration: none; transition: background-color .2s, box-shadow .2s; }
-    .dl-item:hover { background: rgba(255, 255, 255, .07); box-shadow: inset 0 0 0 1px var(--line-2); }
-    .dl-item span { flex: 1; min-width: 0; }
-    .dl-item b { display: block; color: var(--t1); font: 600 16.5px/1.3 var(--display); }
-    .dl-item small { display: block; color: var(--t3); font-size: 14px; line-height: 1.45; }
-    .dl-item .ic { color: var(--t1); }
-    .dl-item i, .dl-main i { font-style: normal; }
-    .help { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
-    .help summary { cursor: pointer; color: var(--t2); font-size: 15px; font-weight: 500; list-style: none; display: flex; align-items: center; gap: 8px; padding: 4px 0; }
-    .help summary::-webkit-details-marker { display: none; }
-    .help summary::before { content: ''; width: 7px; height: 7px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: rotate(-45deg); transition: transform .2s; margin-right: 4px; }
-    .help[open] summary::before { transform: rotate(45deg); }
-    .help summary:hover { color: var(--t1); }
-    .help dl { margin: 10px 0 0; font-size: 15px; line-height: 1.55; }
-    .help dt { color: var(--t1); font-weight: 600; margin-top: 12px; }
-    .help dd { margin: 2px 0 0; }
-    .card p { margin: 0; font-size: 15.5px; }
-    .mob .store { width: 100%; margin-bottom: 18px; }
-    .mob .store .soon { margin-left: auto; }
-    .mob .btn { width: 100%; margin-top: 20px; }
-    .fine { margin: 22px 0 0; color: var(--t3); font-size: 14px; }
-
-    /* ---------- Pie ---------- */
-    .foot { margin-top: clamp(96px, 12vw, 150px); border-top: 1px solid var(--rule); }
-    .foot .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 28px; padding: 34px 0 calc(40px + env(safe-area-inset-bottom)); }
-    .foot p { margin: 0; color: var(--t3); font-size: 14.5px; }
-    .foot nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-left: auto; }
-    .foot nav a { color: var(--t2); font-size: 14.5px; text-decoration: none; }
-    .foot nav a:hover { color: var(--t1); text-decoration: underline; text-underline-offset: 3px; }
-
-    /* ---------- Movimiento (una entrada orquestada y apariciones suaves) ---------- */
-    @media (prefers-reduced-motion: no-preference) {
-      .rise { opacity: 0; transform: translateY(16px); animation: rise .9s var(--ease) forwards; }
-      .d1 { animation-delay: .06s; } .d2 { animation-delay: .14s; } .d3 { animation-delay: .22s; } .d4 { animation-delay: .32s; } .d5 { animation-delay: .44s; } .d6 { animation-delay: .6s; }
-      .chart .w { animation: draw 2s .45s var(--ease) forwards; }
-      .chart .dot, .chart .tag { opacity: 0; animation: pop .5s var(--ease) forwards; }
-      .chart .dot:nth-of-type(1) { animation-delay: .5s; } .chart .dot:nth-of-type(2) { animation-delay: .95s; } .chart .dot:nth-of-type(3) { animation-delay: 1.35s; }
-      .chart .dot:nth-of-type(4) { animation-delay: 1.75s; } .chart .dot:nth-of-type(5) { animation-delay: 2.25s; } .chart .tag { animation-delay: 2.4s; }
-      .js .rv { opacity: 0; transform: translateY(22px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
-      .js .rv.in { opacity: 1; transform: none; }
-      .shots .phone { animation-delay: .75s; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      .chart .w { stroke-dashoffset: 0; }
-    }
-    @keyframes rise { to { opacity: 1; transform: none; } }
-    @keyframes draw { to { stroke-dashoffset: 0; } }
-    @keyframes pop { to { opacity: 1; } }
-
-    /* ---------- Tamaños ---------- */
-    @media (max-width: 1000px) {
-      .dl-grid { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 900px) {
-      .chart { position: relative; right: auto; top: auto; width: min(66%, 420px); margin: 46px 0 -34px auto; }
-      .chart + .shots { margin-top: 0; }
-    }
-    @media (max-width: 860px) {
-      .index { grid-template-columns: 1fr; }
-      .facts { grid-template-columns: 1fr; gap: 16px; padding: 24px 0; }
-      .facts li, .facts li:first-child { padding: 0; }
-      .facts li + li { border-left: 0; }
-    }
-    @media (max-width: 640px) {
-      body { font-size: 16px; }
-      .eyebrow { letter-spacing: .16em; }
-      .eyebrow::after { display: none; }
-      .cta { flex-direction: column; align-items: stretch; }
-      .cta .btn, .cta .store { width: 100%; }
-      .cta .store .soon { margin-left: auto; }
-      .pc { width: 94%; border-radius: 12px; }
-      .shots .phone { width: 40%; bottom: -4%; padding: 5px; border-radius: 26px; }
-      .shots .phone img { border-radius: 21px; }
-      .phones { grid-template-columns: repeat(3, 72%); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; margin-inline: calc(-1 * var(--pad)); padding-inline: var(--pad); scrollbar-width: none; }
-      .phones::-webkit-scrollbar { display: none; }
-      .phones li { scroll-snap-align: center; }
-      .phones li:nth-child(2) { padding-top: 0; }
-      .index li { grid-template-columns: 40px 1fr; padding: 22px 0 24px; }
-      .index h3 { font-size: 1.28rem; }
-      .foot nav { margin-left: 0; width: 100%; }
-    }
-    /* En el móvil, primero lo del móvil */
-    html[data-movil] .dl-grid .mob { order: -1; }
-  </style>
+  <link rel="stylesheet" href="/sitio/portada.css">
 </head>
 <body id="top">
 <a class="skip" href="#contenido">Saltar al contenido</a>
@@ -290,6 +65,9 @@
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.75 12.75 9.5 17.25 19.25 7.25"/></symbol>
     <symbol id="i-external" viewBox="0 0 24 24"><path d="M13.5 4.5H19.5V10.5M19.25 4.75 11 13"/><path d="M17.5 13.75V17.5A2 2 0 0 1 15.5 19.5H6.5A2 2 0 0 1 4.5 17.5V8.5A2 2 0 0 1 6.5 6.5H10.25"/></symbol>
     <symbol id="i-qr" viewBox="0 0 24 24"><path d="M5.4 4H8.6A1.4 1.4 0 0 1 10 5.4V8.6A1.4 1.4 0 0 1 8.6 10H5.4A1.4 1.4 0 0 1 4 8.6V5.4A1.4 1.4 0 0 1 5.4 4Z"/><path d="M15.4 4H18.6A1.4 1.4 0 0 1 20 5.4V8.6A1.4 1.4 0 0 1 18.6 10H15.4A1.4 1.4 0 0 1 14 8.6V5.4A1.4 1.4 0 0 1 15.4 4Z"/><path d="M5.4 14H8.6A1.4 1.4 0 0 1 10 15.4V18.6A1.4 1.4 0 0 1 8.6 20H5.4A1.4 1.4 0 0 1 4 18.6V15.4A1.4 1.4 0 0 1 5.4 14Z"/><path d="M14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.75"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.85.85c0 1.65-2.45 2.2-2.45 3.75"/><circle cx="12" cy="16.9" r=".9" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M6.4 4.75H17.6A2.65 2.65 0 0 1 20.25 7.4V14.1A2.65 2.65 0 0 1 17.6 16.75H11L7 19.75V16.75H6.4A2.65 2.65 0 0 1 3.75 14.1V7.4A2.65 2.65 0 0 1 6.4 4.75Z"/><path d="M8 9.25H16M8 12.25H13"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.5 13.9 10.1 20.5 12 13.9 13.9 12 20.5 10.1 13.9 3.5 12 10.1 10.1Z"/></symbol>
   </defs>
 </svg>
 
@@ -298,9 +76,11 @@
     <a class="brand" href="#top" aria-label="WHIDER, inicio"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F2F2F2" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</a>
     <nav class="nav" aria-label="Portada">
       <a href="#funciones">Funciones</a>
-      <a href="#movil">En el móvil</a>
+      <a href="#novedades">Novedades</a>
       <a href="#descargar">Descargar</a>
+      <a href="#ayuda">Ayuda</a>
     </nav>
+    <a class="lang" href="en/" hreflang="en" lang="en" title="Read this page in English">EN</a>
     <a class="btn primary sm" href="/app"><span class="long">Abrir WHIDER</span><span class="short">Abrir</span></a>
   </div>
 </header>
@@ -308,7 +88,7 @@
 <main id="contenido">
   <section class="hero" aria-labelledby="t-hero">
     <div class="wrap">
-      <p class="eyebrow rise d1">WHIDER 1.0 · Gratis y sin anuncios</p>
+      <p class="eyebrow rise d1"><span data-version>WHIDER 1.0</span> · Gratis y sin anuncios</p>
       <h1 id="t-hero"><span class="l rise d2">Tu día,</span><span class="l rise d3">bajo control.</span></h1>
       <p class="lead rise d4">Tareas, calendario, hábitos, enfoque y un Cuaderno para tus ideas. Todo en un sitio y sincronizado entre el ordenador, el móvil y la web.</p>
       <div class="cta rise d5">
@@ -374,6 +154,22 @@
     </div>
   </section>
 
+  <section class="sec" id="novedades" aria-labelledby="t-new">
+    <div class="wrap">
+      <p class="label rv">Novedades</p>
+      <h2 id="t-new" class="rv">Lo nuevo en<br><span data-version>WHIDER 1.0</span>.</h2>
+      <!-- novedades:inicio · las escribe tools/version.js desde CHANGELOG.md (la versión que anuncia la portada): no las edites a mano -->
+      <ul class="news">
+        <li class="rv">Todas las funciones para todos: desaparecen Premium, los planes y los pagos.</li>
+        <li class="rv">Identidad nueva: tipografías Onest y Outfit, iconos propios y esquinas curvadas.</li>
+        <li class="rv">Portada web con la descarga para cada dispositivo; la app en el navegador pasa a /app.</li>
+        <li class="rv">Eliminar la cuenta desde la app o desde la web, sin instalar nada.</li>
+      </ul>
+      <!-- novedades:fin -->
+      <p class="more rv"><a href="https://github.com/McTn4/whider-2.0-PREMIUM/blob/main/CHANGELOG.md">Todas las versiones y sus cambios</a></p>
+    </div>
+  </section>
+
   <section class="sec" id="descargar" aria-labelledby="t-dl">
     <div class="wrap">
       <p class="label rv">Descargar</p>
@@ -405,12 +201,45 @@
 
         <article class="card mob rv" aria-labelledby="t-mob">
           <div class="card-h"><svg class="ic"><use href="#i-phone"/></svg><h3 id="t-mob">Móvil</h3><span class="chip" id="mob-chip" hidden>Tu dispositivo</span></div>
-          <div class="store" id="play"><b>Google Play</b><span class="soon">Próximamente</span></div>
-          <p>WHIDER para Android llegará pronto a Google Play. Mientras tanto, úsala en el navegador del móvil: añádela a la pantalla de inicio desde el menú del navegador y se abrirá como una app.</p>
+          <div class="store" id="play" data-pl="android"><b>Google Play</b><span class="soon">Próximamente</span></div>
+          <p data-pl="android"><b>Android.</b> WHIDER llegará pronto a Google Play. Mientras tanto, ábrela en Chrome y, en el menú ⋮, elige «Añadir a pantalla de inicio» (o «Instalar aplicación»): se abrirá como una app.</p>
+          <p data-pl="ios"><b>iPhone y iPad.</b> Ábrela en Safari, pulsa Compartir y después «Añadir a pantalla de inicio»: se abrirá como una app, a pantalla completa.</p>
           <a class="btn ghost" href="/app">Abrir en el navegador</a>
         </article>
       </div>
-      <p class="fine rv">Los instaladores para ordenador se descargan de GitHub, donde se publica cada versión.</p>
+      <p class="fine rv">Los instaladores para ordenador se descargan de GitHub, donde se publica cada versión con sus cambios.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="ayuda" aria-labelledby="t-faq">
+    <div class="wrap">
+      <p class="label rv">Ayuda</p>
+      <h2 id="t-faq" class="rv">Preguntas<br>frecuentes.</h2>
+      <div class="faq rv">
+        <details><summary>¿WHIDER es gratis?</summary><p>Sí. Todas las funciones, sin anuncios ni compras dentro de la app.</p></details>
+        <details><summary>¿Necesito una cuenta?</summary><p>No. Sin cuenta, todo se guarda en tu dispositivo y nadie más lo ve. Crea una cuando quieras (con tu correo o con Google) para tener lo mismo en el ordenador, el móvil y la web: se sincroniza solo.</p></details>
+        <details><summary>¿Dónde se guardan mis datos?</summary><p>En tu dispositivo y, si inicias sesión, también en tu cuenta en la nube (Google Firebase), donde solo tú puedes leerlos. Sin cuenta no se recuperan si pierdes el dispositivo, así que guarda copias: en el ordenador y en Android, WHIDER hace además una copia automática cada día. Todos los detalles, en la <a href="/privacidad/">política de privacidad</a>.</p></details>
+        <details><summary>¿Funciona sin conexión?</summary><p>Sí. Puedes seguir usándola sin internet y, con cuenta, los cambios se sincronizan cuando vuelve la conexión.</p></details>
+        <details><summary>¿Hay app para el iPhone?</summary><p>Todavía no en la App Store, pero WHIDER funciona en el iPhone y el iPad desde el navegador: en Safari, pulsa Compartir y «Añadir a pantalla de inicio», y se abrirá como una app. Con tu cuenta tienes lo mismo que en el ordenador.</p></details>
+        <details><summary>¿Y en Android?</summary><p>Llegará pronto a Google Play. Mientras tanto, ábrela en Chrome y, en el menú ⋮, elige «Añadir a pantalla de inicio» (o «Instalar aplicación»).</p></details>
+        <details><summary>¿Puedo traer mis tareas de otra app?</summary><p>Sí: de Todoist, Google Tasks, Notion, calendarios (.ics) o cualquier hoja de cálculo (CSV), en Ajustes → Datos → Importar desde otras apps. Verás una vista previa y podrás deshacerlo durante un día.</p></details>
+        <details><summary>¿Por qué Windows dice que «protegió mi PC»?</summary><p>Porque el instalador todavía no está firmado con un certificado de pago. Pulsa «Más información» y después «Ejecutar de todas formas». Cada versión se publica en GitHub con su suma SHA-256, para comprobar que el archivo no se ha alterado.</p></details>
+        <details><summary>¿Los chats están cifrados?</summary><p>Los mensajes viajan cifrados y se guardan cifrados en los servidores de Google, donde solo los miembros del chat pueden leerlos. No tienen cifrado de extremo a extremo.</p></details>
+      </div>
+
+      <div class="support">
+        <article class="card rv">
+          <h3><svg class="ic"><use href="#i-help"/></svg>Dentro de la app</h3>
+          <p>En Ajustes → Ayuda tienes las preguntas frecuentes, las novedades de cada versión y «Enviar comentarios», para contarnos una idea o algo que no funciona.</p>
+          <a class="btn ghost" href="/app">Abrir WHIDER</a>
+        </article>
+        <article class="card rv">
+          <h3><svg class="ic"><use href="#i-message"/></svg>Sin instalar nada</h3>
+          <p>Escríbenos en GitHub, donde también puedes ver qué se está preparando.</p>
+          <a class="btn ghost" href="https://github.com/McTn4/whider-2.0-PREMIUM/issues/new"><svg class="ic"><use href="#i-external"/></svg><span>Escribir en GitHub</span></a>
+          <small>Lo que escribas allí es público: no incluyas datos personales.</small>
+        </article>
+      </div>
     </div>
   </section>
 </main>
@@ -418,86 +247,19 @@
 <footer class="foot">
   <div class="wrap">
     <a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F2F2F2" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</a>
-    <p>Tu día, bajo control · Versión 1.0 · © <span id="year">2026</span></p>
+    <p>Tu día, bajo control · <span data-version>WHIDER 1.0</span> · © <span id="year">2026</span></p>
     <nav aria-label="Pie de página">
       <a href="/app">Abrir WHIDER</a>
       <a href="#descargar">Descargar</a>
+      <a href="#novedades">Novedades</a>
+      <a href="#ayuda">Ayuda</a>
       <a href="/privacidad/">Privacidad</a>
+      <a href="en/" hreflang="en" lang="en">English</a>
     </nav>
   </div>
 </footer>
 
 <script src="/sitio/descargas.js"></script>
-<script>
-  (function () {
-    'use strict';
-    var $ = function (s) { return document.querySelector(s); };
-    var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
-    $('#year').textContent = new Date().getFullYear();
-
-    // Cabecera: una regla fina al bajar
-    var top = $('#cabecera'), onScroll = function () { top.classList.toggle('scrolled', window.scrollY > 8); };
-    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
-
-    // La tira de capturas, cuando se desplaza de lado (móvil), también se recorre con el teclado
-    var strip = $('.phones'), fitStrip = function () { if (strip.scrollWidth > strip.clientWidth + 2) strip.setAttribute('tabindex', '0'); else strip.removeAttribute('tabindex'); };
-    fitStrip(); window.addEventListener('resize', fitStrip);
-
-    // Apariciones al llegar a cada parte
-    var rv = $$('.rv');
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
-      rv.forEach(function (el) { io.observe(el); });
-    } else rv.forEach(function (el) { el.classList.add('in'); });
-
-    // Descarga según el dispositivo (las direcciones están en sitio/descargas.js)
-    var D = window.WhiderDescargas; if (!D) return;
-    var OS = D.ordenador, pl = D.plataforma(), movil = D.esMovil(pl), mine = OS[pl] || null, root = document.documentElement;
-    root.setAttribute('data-plataforma', pl);
-    if (movil) root.setAttribute('data-movil', '');
-    $$('[data-os]').forEach(function (a) { var o = OS[a.getAttribute('data-os')]; if (o) a.href = o.url; });
-    var keys = ['windows', 'mac', 'linux'];
-    var names = function (ks) { return ks.map(function (k) { return OS[k].nombre; }); };
-    var joinY = function (a) { return a.length > 1 ? a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1] : a.join(''); };
-
-    if (mine) {
-      // Héroe: descarga directa para este ordenador
-      $('#cta-dl').href = mine.url; $('#cta-dl span').textContent = 'Descargar para ' + mine.nombre;
-      $('#cta-note').innerHTML = 'Versión ' + D.version + ' para ' + mine.nombre + ' · También para <a href="#descargar">' + joinY(names(keys.filter(function (k) { return k !== pl; }))) + '</a>';
-      // Tarjeta: el suyo destacado y el resto debajo
-      $('#pc-main').hidden = false; $('#pc-main-btn').href = mine.url;
-      $('#pc-main-btn span').textContent = 'Descargar para ' + mine.nombre;
-      var item = $('.dl-item[data-os="' + pl + '"]');
-      $('#pc-main-meta').innerHTML = item.querySelector('small').innerHTML;
-      item.parentNode.hidden = true;
-      $('#pc-others').hidden = false;
-      $('#pc-chip').hidden = false; $('#pc-chip').textContent = 'Tu sistema: ' + mine.nombre;
-      // Ayuda: primero la de su sistema
-      var dl = $('.help dl'); $$('[data-help="' + pl + '"]').reverse().forEach(function (n) { dl.insertBefore(n, dl.firstChild); });
-    } else if (movil) {
-      $('#cta-dl').hidden = true;
-      $('#cta-play').hidden = false;
-      $('#mob-chip').hidden = false;
-      $('#cta-note').innerHTML = 'En el ordenador: <a href="#descargar">Windows, macOS y Linux</a>';
-    }
-
-    // Google Play, cuando esté publicada: el aviso «Próximamente» pasa a ser el enlace
-    if (D.play) {
-      ['play', 'cta-play'].forEach(function (id) {
-        var el = document.getElementById(id); if (!el) return;
-        var a = document.createElement('a'); a.id = id; a.className = 'store'; a.href = D.play; a.hidden = el.hidden;
-        a.innerHTML = '<b>Google Play</b><span class="soon">Descargar</span>';
-        el.parentNode.replaceChild(a, el);
-      });
-    }
-
-    // Tamaño de cada instalador
-    D.tamanos().then(function (m) {
-      if (!m) return;
-      $$('[data-size]').forEach(function (el) { var v = m[el.getAttribute('data-size')]; if (v) el.textContent = ' · ' + v; });
-      if (mine && m[mine.archivo]) $('#pc-main-meta').innerHTML = $('.dl-item[data-os="' + pl + '"] small').innerHTML;
-    });
-  })();
-</script>
+<script src="/sitio/portada.js"></script>
 </body>
 </html>

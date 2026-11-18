@@ -1,5 +1,6 @@
-// Portada: capturas y comprobaciones por dispositivo
-// uso: node portada-ver.js <url> <carpeta> [completo]
+// Portada: capturas y comprobaciones por dispositivo, sus secciones (novedades, preguntas frecuentes, soporte) y la
+// versión en inglés (/en/)
+// uso: node web-portada.js <url> <carpeta> [completo]
 const { chromium, devices } = require('playwright');
 const { WEB, OUT } = require('./_util');
 const path = require('path'), fs = require('fs');
@@ -45,8 +46,11 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
     if (['windows', 'mac', 'linux'].includes(name)) {
       ok(/Descargar para (Windows|macOS|Linux)/.test(info.cta) && info.main === info.cta, name + ': botón «' + info.cta + '»');
       ok(/releases\/download\/desktop-latest\//.test(info.mainHref), name + ': enlace al instalador');
-    } else {
+    } else if (name === 'android') {
       ok(info.play && !info.cta, name + ': Google Play · Próximamente en lugar de descarga');
+    } else {
+      ok(!info.play && !info.cta && /Safari/.test(info.note), name + ': sin Google Play; cómo añadirla desde Safari («' + info.note + '»)');
+      ok(await p.evaluate(() => !document.querySelector('#play') || document.querySelector('#play').hidden), name + ': la tarjeta del móvil no ofrece Google Play');
     }
     ok(!info.apk, name + ': sin APK');
     ok(/^"?Outfit/.test(info.h1), name + ': titular en Outfit');
@@ -56,6 +60,45 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
     if (FULL) { await p.evaluate(() => document.querySelectorAll('.rv').forEach(e => e.classList.add('in'))); await sleep(900); await p.screenshot({ path: path.join(OUTD, name + '-completa.png'), fullPage: true }); }
     await ctx.close();
   }
+
+  // Las secciones nuevas y lo que dice qué versión se descarga (lo mantiene tools/version.js)
+  const D = (await (async () => { const c = await b.newContext(); const p = await c.newPage(); await p.goto(URL0); const d = await p.evaluate(() => ({ v: window.WhiderDescargas.version })); await c.close(); return d; })());
+  const minor = D.v.split(/[.-]/).slice(0, 2).join('.');
+  for (const [lang, url] of [['es', URL0], ['en', URL0.replace(/\/?$/, '/') + 'en/']]) {
+    const ctx = await b.newContext({ viewport: { width: 1280, height: 800 }, userAgent: WIN, deviceScaleFactor: 1 });
+    await ctx.route('https://api.github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{"assets":[]}' }));
+    const p = await ctx.newPage(); const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(url); await sleep(1500);
+    const s = await p.evaluate(() => ({
+      lang: document.documentElement.lang,
+      versions: [...document.querySelectorAll('[data-version]')].map((e) => e.textContent),
+      news: document.querySelectorAll('.news li').length,
+      newsVersion: (document.querySelector('.news') || {}).dataset ? document.querySelector('.news').dataset.newsVersion || null : null,
+      faq: document.querySelectorAll('.faq details').length,
+      support: document.querySelectorAll('.support .card').length,
+      other: (document.querySelector('a.lang') || {}).href || '',
+      alt: [...document.querySelectorAll('link[rel="alternate"]')].map((l) => l.hreflang).sort().join(','),
+      cta: document.querySelector('#cta-dl span').textContent,
+      text: document.body.innerText
+    }));
+    ok(s.lang === lang, lang + ': idioma de la página «' + s.lang + '»');
+    ok(s.versions.length >= 3 && s.versions.every((t) => t === 'WHIDER ' + minor), lang + ': anuncia WHIDER ' + minor + ' en todas partes (' + s.versions.join(', ') + ')');
+    ok(s.news >= 3, lang + ': novedades de la ' + minor + ' (' + s.news + ')');
+    ok(s.faq >= 9 && s.support === 2, lang + ': preguntas frecuentes (' + s.faq + ') y soporte (' + s.support + ')');
+    ok(s.alt === 'en,es,x-default', lang + ': enlaces a la otra versión para buscadores (' + s.alt + ')');
+    if (lang === 'es') {
+      ok(/\/en\/$/.test(s.other) && /Descargar para Windows/.test(s.cta), 'es: enlace «EN» a la versión en inglés');
+    } else {
+      ok(s.newsVersion === minor, 'en: las novedades traducidas son de la ' + minor + ' (' + s.newsVersion + ')');
+      ok(/\/$/.test(s.other) && !/\/en\/$/.test(s.other) && /Download for Windows/.test(s.cta), 'en: enlace «ES» y descarga en inglés («' + s.cta + '»)');
+      ok(/the app is in Spanish for now/i.test(s.text), 'en: avisa de que la app está en español');
+      ok(!/Descargar|Próximamente|Preguntas/.test(s.text), 'en: sin textos en español sueltos');
+    }
+    ok(!errs.length, lang + ': sin errores ' + JSON.stringify(errs));
+    await ctx.close();
+  }
+
   await b.close();
   console.log(fails ? 'FALLOS: ' + fails : 'TODO OK');
   process.exit(fails ? 1 : 0);

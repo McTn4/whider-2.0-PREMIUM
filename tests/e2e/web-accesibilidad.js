@@ -1,10 +1,11 @@
-// axe-core (WCAG 2.1 A/AA) en la portada, la invitación y la privacidad, en ordenador y móvil
+// axe-core (WCAG 2.1 A/AA) en la portada (español e inglés), la invitación y la privacidad (en los dos idiomas), en
+// ordenador y móvil
 const { chromium, devices } = require('playwright');
 const { WEB, AXE: AXE_RUTA } = require('./_util');
 const fs = require('fs');
 const AXE = fs.readFileSync(AXE_RUTA, 'utf8');
 const BASE = process.argv[2] || WEB;
-const PAGES = [['portada', process.argv[3] || '/'], ['invitacion', '/i/?c=WH-ABC123&k=x&t=f&n=Ana'], ['privacidad', '/privacidad/']];
+const PAGES = [['portada', process.argv[3] || '/'], ['portada-en', '/en/'], ['invitacion', '/i/?c=WH-ABC123&k=x&t=f&n=Ana'], ['privacidad', '/privacidad/'], ['privacy', '/privacy/']];
 (async () => {
   const b = await chromium.launch(); let total = 0;
   for (const [dev, opts] of [['pc', { viewport: { width: 1366, height: 900 } }], ['movil', devices['Pixel 7']]]) {

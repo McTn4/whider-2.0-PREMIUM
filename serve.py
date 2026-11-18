@@ -71,7 +71,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         # En la web publicada la portada está en / y la app en /app (ver vercel.json).
-        # Aquí la app se sirve en / y también en /app; la portada, en /sitio/.
+        # Aquí la app se sirve en / y también en /app; la portada, en /sitio/ (y en inglés en /sitio/en/ y /en/).
         path, sep, query = self.path.partition('?')
         if path == '/app/':
             self.send_response(302)
@@ -80,6 +80,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             return
         if path == '/app':
             self.path = '/index.html' + sep + query
+        elif path in ('/en', '/en/'):
+            self.path = '/sitio/en/index.html' + sep + query
         return super().do_GET()
 
     def end_headers(self):
