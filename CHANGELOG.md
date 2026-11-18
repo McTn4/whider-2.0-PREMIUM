@@ -10,9 +10,21 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-La web abre antes y el código del Cuaderno y de los datos queda ordenado en piezas más pequeñas.
+Copias automáticas sin cuenta, ayuda dentro de la app, instalar en el iPhone y una web que abre antes.
+
+### Novedades
+
+- **Copias automáticas** para quien no tiene cuenta: en el ordenador, una al día en la carpeta de datos de WHIDER
+  (las 10 últimas, con la lista para recuperarlas); en Android, en Descargas › WHIDER › Copias (las 7 últimas, que
+  siguen ahí aunque desinstales la app). En el navegador, un aviso en Hoy si pasa una semana sin copia.
+- **Instalar en el iPhone**: WHIDER explica cómo añadirla a la pantalla de inicio (así funciona como una app y te
+  avisa); en Chrome y Edge, un botón «Instalar».
+- **Ayuda**: preguntas frecuentes y «Enviar comentarios» (una idea, algo que no funciona u otra cosa) en Ajustes → Ayuda.
 
 ### Mejoras
+
+- **Informes de errores, solo si quieres**: los errores se guardan en el dispositivo (Ajustes → Ayuda → Errores
+  recientes) y, si activas «Enviar informes de errores» en Ajustes → Privacidad, se envían sin tu nombre ni tu cuenta.
 
 - La web abre antes: en un móvil de gama media, la primera visita tarda un 38 % menos hasta poder usarla
   (6 archivos en lugar de 73), y el navegador guarda la app hasta que cambia.

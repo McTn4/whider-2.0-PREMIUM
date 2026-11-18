@@ -49,6 +49,30 @@
 .wn-all { margin: 0 0 6px; }
 .wn-foot { margin: 8px 0 0; }
 
+/* ---------- Instalar la web como app (iPhone) ---------- */
+.in-steps { display: flex; flex-direction: column; gap: 16px; margin: 4px 0 18px; padding: 0; list-style: none; counter-reset: paso; }
+.in-step { display: flex; align-items: flex-start; gap: 14px; }
+.in-ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--fill-2); color: var(--t1); }
+.in-t { display: flex; flex-direction: column; gap: 3px; padding-top: 2px; }
+.in-t b { font-weight: 600; }
+.in-t small { color: var(--t3); font-size: var(--fs-foot); line-height: 1.4; }
+
+/* ---------- Ayuda: preguntas frecuentes y comentarios ---------- */
+.hp-faq { display: flex; flex-direction: column; margin: 0 0 14px; border-radius: var(--r-card); background: var(--s1); border: 1px solid var(--line); overflow: hidden; }
+.hp-q { border-top: 1px solid var(--line); }
+.hp-q:first-child { border-top: 0; }
+.hp-q summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 12px 16px; font-weight: 600; cursor: pointer; list-style: none; }
+.hp-q summary::-webkit-details-marker { display: none; }
+.hp-q summary::after { content: ''; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--t3); border-bottom: 2px solid var(--t3); transform: rotate(45deg) translateY(-2px); transition: transform .2s; }
+.hp-q[open] summary::after { transform: rotate(-135deg) translateY(-2px); }
+.hp-q p { margin: 0; padding: 0 16px 14px; color: var(--t2); line-height: 1.5; }
+.hp-kinds { display: flex; gap: 6px; padding: 4px; margin: 0 0 12px; border-radius: 12px; background: var(--fill-3); }
+.hp-kind { flex: 1; min-height: 38px; padding: 0 8px; border-radius: 9px; color: var(--t2); font-weight: 600; font-size: var(--fs-sub); }
+.hp-kind.on { background: var(--fill-2); color: var(--t1); box-shadow: var(--sh-card); }
+.hp-text { width: 100%; min-height: 140px; resize: vertical; }
+.hp-check { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0 4px; color: var(--t2); font-size: var(--fs-foot); line-height: 1.4; cursor: pointer; }
+.hp-check input { flex: none; width: 18px; height: 18px; margin: 1px 0 0; accent-color: #FFFFFF; }
+
 /* ---------- Asistente de importación ---------- */
 .imp { display: flex; flex-direction: column; gap: 14px; }
 .imp-lead, .imp-how { color: var(--t2); line-height: 1.5; }

@@ -35,6 +35,13 @@ contextBridge.exposeInMainWorld('WhiderDesktop', {
   saveBinary: function (name, bytes) { return ipcRenderer.invoke('whider:save-binary', String(name), bytes instanceof Uint8Array ? bytes : new Uint8Array(0)); },
   /** Órdenes del menú y de la bandeja: 'new-task', 'search', 'settings', 'shortcuts', 'focus-toggle', 'report-pdf', 'data', 'updates', 'go:home'… */
   onCommand: function (fn) { if (typeof fn === 'function') listeners.push(fn); },
+  /** Copias automáticas: una al día en la carpeta de datos de la app (las 10 últimas) */
+  backup: {
+    write: function (name, json) { return ipcRenderer.invoke('whider:backup-write', String(name), String(json)); },
+    list: function () { return ipcRenderer.invoke('whider:backup-list'); },
+    read: function (name) { return ipcRenderer.invoke('whider:backup-read', String(name)); },
+    open: function () { ipcRenderer.send('whider:backup-open'); }
+  },
   /** Versiones nuevas: estado { mode, state, current, version, percent, error, url }, buscar, instalar y descargar */
   updates: {
     state: function () { return ipcRenderer.invoke('whider:update-state'); },

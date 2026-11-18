@@ -273,3 +273,26 @@ Se actualiza al cerrar cada bloque.
   más grande, 11 KB con brotli), así que el ahorro exigiría que el enrutador cargase pantallas bajo demanda.
 - **Pruebas**: las 26 suites de app, escritorio y nube y las 3 de la web publicada (empaquetada) en verde; la de la
   portada ya no depende de la API de GitHub (que limita las peticiones por IP).
+
+### Bloque 8 · Complementos — en curso
+
+- **Copias automáticas sin cuenta** (`js/core/backup.js`): en el ordenador, una al día en la carpeta de datos de la
+  app (`desktop/lib/backups.js`, las 10 últimas; desde la app web solo se pueden escribir y leer esos nombres), con la
+  lista para recuperarlas y «Abrir la carpeta»; en Android 10 o posterior, en Descargas › WHIDER › Copias por
+  MediaStore (sin permisos, las 7 últimas, sobreviven a desinstalar la app). En el navegador no se puede guardar sin
+  preguntar: aviso en Hoy si pasa una semana sin copia. Con cuenta viene apagada (la nube ya lo guarda) y se puede
+  encender en Ajustes → Datos. Recuperar una copia la junta con lo que haya (gana lo más reciente), como siempre.
+- **Instalar en el iPhone** (`js/ui/install.js`): Safari no tiene botón de instalar, así que WHIDER enseña los pasos
+  (Compartir → Añadir a pantalla de inicio) en una tarjeta en Hoy (solo a quien ya tiene tareas; se cierra para
+  siempre) y en Ajustes; en iOS es además la única forma de recibir avisos. En Chrome y Edge, el botón «Instalar»
+  usa el ofrecimiento del navegador. Nunca dentro de las apps ni si ya está instalada.
+- **Ayuda** (`js/ui/help.js`): diez preguntas frecuentes comprobadas con la app y «Enviar comentarios» (idea, fallo u
+  otra cosa, con datos técnicos opcionales). Con cuenta van a Firestore (`feedback/`, solo se leen en la consola, sin
+  nombre ni cuenta); sin cuenta, a un aviso nuevo de GitHub (se advierte de que es público) o se copian.
+- **Informes de errores con consentimiento** (`js/core/errors.js`): los errores de la app se apuntan en el dispositivo
+  (los 20 últimos, sin correos ni textos largos entre comillas) y se ven, copian y borran en Ajustes → Ayuda. Solo si
+  se activa «Enviar informes de errores» (apagado de serie) y hay cuenta, van a Firestore (`errors/`): como mucho 10 al
+  día, sin repetir y sin nombre ni cuenta. Reglas nuevas para `errors` y `feedback` (solo crear, tamaños limitados,
+  sin campos de más) y política de privacidad al día.
+- **Pruebas**: `instalar.js` (15), `copias.js` (15), `escritorio-copias.js` (13, con archivos de verdad y la
+  recuperación tras perder los datos) y `ayuda.js` (18, contra los emuladores con las reglas reales).

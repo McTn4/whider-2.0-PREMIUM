@@ -6,12 +6,14 @@ import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -682,6 +684,51 @@ public class MainActivity extends AppCompatActivity {
                 send.putExtra(Intent.EXTRA_TEXT, text);
                 try { startActivity(Intent.createChooser(send, "Compartir invitación")); } catch (ActivityNotFoundException ignored) { }
             });
+        }
+
+        /**
+         * Copia automática del día (Android 10 o posterior): Descargas › WHIDER › Copias, sin preguntar y sin
+         * permisos. Se guardan las 7 últimas y siguen ahí aunque se desinstale la app.
+         */
+        @JavascriptInterface
+        public boolean backupWrite(String name, String json) {
+            if (Build.VERSION.SDK_INT < 29 || name == null || json == null) return false;
+            if (!name.matches("whider-copia-auto-\\d{4}-\\d{2}-\\d{2}\\.json")) return false;
+            ContentResolver cr = getContentResolver();
+            Uri base = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+            String dir = Environment.DIRECTORY_DOWNLOADS + "/WHIDER/Copias/";
+            String where = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME;
+            Uri item = null;
+            try {
+                // La del mismo día se sustituye
+                cr.delete(base, where + "=?", new String[] { dir, name });
+                ContentValues v = new ContentValues();
+                v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                v.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                v.put(MediaStore.MediaColumns.RELATIVE_PATH, dir);
+                v.put(MediaStore.MediaColumns.IS_PENDING, 1);
+                item = cr.insert(base, v);
+                if (item == null) return false;
+                try (OutputStream out = cr.openOutputStream(item)) {
+                    if (out == null) throw new IllegalStateException("sin destino");
+                    out.write(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                }
+                v.clear();
+                v.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                cr.update(item, v, null, null);
+                // Solo las 7 más recientes (los nombres llevan la fecha)
+                try (Cursor c = cr.query(base, new String[] { MediaStore.MediaColumns._ID }, where + " LIKE ?",
+                        new String[] { dir, "whider-copia-auto-%" }, MediaStore.MediaColumns.DISPLAY_NAME + " DESC")) {
+                    int n = 0;
+                    while (c != null && c.moveToNext()) {
+                        if (++n > 7) cr.delete(ContentUris.withAppendedId(base, c.getLong(0)), null, null);
+                    }
+                }
+                return true;
+            } catch (Exception e) {
+                if (item != null) { try { cr.delete(item, null, null); } catch (Exception ignored) { } }
+                return false;
+            }
         }
 
         /** Abrir un enlace web en el navegador del sistema (p. ej. la política de privacidad) */

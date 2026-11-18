@@ -17,6 +17,7 @@ rules_version = '2';
 //  - blocks/{yo_otro}     Bloqueos: solo los ve y los cambia quien bloquea. Quien está bloqueado no puede escribir en
 //                         tu buzón (solicitudes, ánimos, avisos) ni mandarte mensajes en un chat de dos.
 //  - reports/{id}         Denuncias: se crean desde la app y solo se leen desde la consola de Firebase (moderación).
+//  - errors/, feedback/   Informes de errores (con permiso) y comentarios: sin nombre ni cuenta; solo la consola los lee.
 // Límites de tamaño en lo que otros escriben en tu buzón y en tu perfil, para que nadie pueda llenarlo.
 // Todo exige un correo verificado (las cuentas de Google ya vienen verificadas).
 service cloud.firestore {
@@ -87,6 +88,31 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['by', 'who', 'at'])
         && request.resource.data.who is string && request.resource.data.who != request.auth.uid
         && id == request.auth.uid + '_' + request.resource.data.who;
+    }
+
+    // Informes de errores (solo con permiso, Ajustes → Privacidad) y comentarios (Ajustes → Ayuda): sin nombre ni
+    // cuenta, se crean desde la app (con una cuenta verificada, para frenar el spam) y solo se leen en la consola
+    match /errors/{id} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['msg', 'stack', 'where', 'v', 'p', 'at'])
+        && request.resource.data.msg is string && request.resource.data.msg.size() > 0 && request.resource.data.msg.size() <= 300
+        && request.resource.data.get('stack', '').size() <= 1500
+        && request.resource.data.get('where', '').size() <= 160
+        && request.resource.data.get('v', '').size() <= 40
+        && request.resource.data.get('p', '').size() <= 120
+        && request.resource.data.at is number;
+      allow read, update, delete: if false;
+    }
+    match /feedback/{id} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['kind', 'text', 'v', 'p', 'errors', 'at'])
+        && request.resource.data.kind in ['idea', 'fallo', 'otro']
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+        && request.resource.data.get('v', '').size() <= 40
+        && request.resource.data.get('p', '').size() <= 120
+        && request.resource.data.get('errors', '').size() <= 2000
+        && request.resource.data.at is number;
+      allow read, update, delete: if false;
     }
 
     // Denuncias: se crean desde la app y solo se leen en la consola de Firebase

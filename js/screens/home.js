@@ -182,6 +182,12 @@ window.Whider.Screens = window.Whider.Screens || {};
       // Tras una actualización: aviso discreto con las novedades (se cierra o se abre con un toque)
       var news = W.WhatsNew ? W.WhatsNew.card() : null;
       if (news) main.push(news);
+      // En el navegador del iPhone (o con el «Instalar» del navegador): cómo tenerla como app; nunca dos avisos a la vez
+      var inst = !news && W.Install ? W.Install.card() : null;
+      if (inst) main.push(inst);
+      // En el navegador sin cuenta: una semana sin copia de seguridad
+      var bk = !news && !inst && W.Backup ? W.Backup.card() : null;
+      if (bk) main.push(bk);
 
       var perm = W.Notify.permission();
       if ((perm === 'default' || perm === 'denied') && st.tasks.some(function (t) { return t.warn && !t.done; })) {

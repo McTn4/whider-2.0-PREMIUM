@@ -19,6 +19,7 @@ const os = require('os');
 const prefs = require('./lib/prefs');
 const google = require('./lib/google');
 const updatesLib = require('./lib/updates');
+const backupsLib = require('./lib/backups');
 
 const SCHEME = 'app';
 const HOST = 'whider';
@@ -37,7 +38,9 @@ protocol.registerSchemesAsPrivileged([{
   privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
 }]);
 
-let win = null, tray = null, quitting = false, badge = null, updates = null;
+let win = null, tray = null, quitting = false, badge = null, updates = null, backups = null;
+/** Copias automáticas en la carpeta de datos de la app (se crea al pedirla) */
+function copias() { if (!backups) backups = backupsLib.create(path.join(app.getPath('userData'), 'Copias')); return backups; }
 
 /* ---------- Archivos de la app web ---------- */
 const MIME = {
@@ -278,6 +281,14 @@ ipcMain.handle('whider:google-sign-in', function () {
 ipcMain.handle('whider:google-cancel', function () { google.cancel(); });
 ipcMain.handle('whider:get-settings', function () {
   return { openAtLogin: getOpenAtLogin(), closeToTray: prefs.get('closeToTray') !== false, version: app.getVersion() };
+});
+ipcMain.handle('whider:backup-write', function (_e, name, json) { return copias().write(String(name), String(json)); });
+ipcMain.handle('whider:backup-list', function () { return copias().list(); });
+ipcMain.handle('whider:backup-read', function (_e, name) { return copias().read(String(name)); });
+ipcMain.on('whider:backup-open', function () {
+  if (E2E) { global.__whider.openedBackups = copias().dir; return; }
+  fs.mkdirSync(copias().dir, { recursive: true });
+  shell.openPath(copias().dir);
 });
 ipcMain.handle('whider:update-state', function () { return updates ? updates.state() : { mode: 'off', state: 'off' }; });
 ipcMain.handle('whider:update-check', function () { return updates ? updates.check() : null; });

@@ -93,15 +93,20 @@ window.Whider = window.Whider || {};
         ] }),
         // Solo en el navegador: la sección de descarga de la portada (en las apps ya la tienes)
         !W.Layout.app && !window.WhiderAndroid && /^https?:$/.test(location.protocol) ? W.UI.section({ items: [
-          W.UI.cell({ icon: 'download', title: 'Descargar la app', sub: desk ? 'Para Windows, macOS y Linux' : 'Para ordenador · Android, pronto en Google Play',
+          // Instalar esta web como app (iPhone: los pasos; Chrome o Edge: su botón)
+          W.Install ? W.Install.cell() : null,
+          W.UI.cell({ icon: 'monitor', title: 'Descargar la app', sub: desk ? 'Para Windows, macOS y Linux' : 'Para ordenador · Android, pronto en Google Play',
             onTap: function () { U.openExternal(location.origin + '/#descargar'); } })
-        ] }) : null,
+        ].filter(Boolean) }) : null,
         W.UI.section({ header: 'Ayuda', items: [
           W.UI.cell({ icon: 'info', title: 'Primeros pasos', sub: 'Lo esencial de WHIDER en cinco pasos', onTap: function () {
             W.FirstSteps.show();
             if (W.FirstSteps.visible()) { nav.close(); W.Router.go('home'); W.Router.refresh(); } else W.Toast.show({ text: 'Ya has completado los primeros pasos', icon: 'check' });
           } }),
           W.UI.cell({ icon: 'star', title: 'Novedades', sub: 'Qué ha cambiado en cada versión', onTap: function () { W.WhatsNew.open(); } }),
+          W.UI.cell({ icon: 'book', title: 'Preguntas frecuentes', onTap: function () { W.Help.faq(); } }),
+          W.UI.cell({ icon: 'send', title: 'Enviar comentarios', sub: 'Una idea, algo que no funciona u otra cosa', onTap: function () { W.Help.feedback(); } }),
+          W.Errors && W.Errors.list().length ? W.UI.cell({ icon: 'alert', title: 'Errores recientes', value: String(W.Errors.list().length), onTap: function () { nav.push(W.Help.errorsPage); } }) : null,
           // En el ordenador y en el APK de GitHub: la versión y si hay otra más nueva
           W.Updates && W.Updates.state().mode === 'android' ? W.Updates.cell(nav) : null
         ].filter(Boolean) }),
@@ -431,14 +436,7 @@ window.Whider = window.Whider || {};
     U.saveFile('whider-tareas-' + U.today(), rows.map(function (r) { return r.map(cell).join(';'); }).join('\r\n'), 'csv');
   }
   /** Copia completa: también el Cuaderno (fichas y contenido de cada página, salvo las de equipo) */
-  function exportBackup() {
-    var snap = S().snapshot();
-    if (W.Pages) {
-      var mine = W.Pages.all().concat(W.Pages.all({ trash: true })).filter(function (m) { return !m.team; });
-      snap.pages = mine.map(function (m) { return { meta: m, content: W.Pages.content(m.id) }; });
-    }
-    U.saveFile('whider-copia-' + U.today(), JSON.stringify(snap, null, 1), 'json');
-  }
+  function exportBackup() { W.Backup.download(); }
   /** Páginas de una copia: se añaden las que faltan y se actualizan las más recientes */
   function importPages(list) {
     var n = 0;
@@ -455,10 +453,13 @@ window.Whider = window.Whider || {};
     return n;
   }
   function importBackup() {
-    pickFile('.json,application/json').then(function (f) {
-      if (!f) return;
+    pickFile('.json,application/json').then(function (f) { if (f) restoreText(f.text); });
+  }
+  /** Recuperar una copia (de un archivo o de las copias automáticas del ordenador): se junta con lo que hay */
+  function restoreText(text) {
+    (function () {
       var data = null;
-      try { data = JSON.parse(f.text); } catch (e) { data = null; }
+      try { data = JSON.parse(text); } catch (e) { data = null; }
       if (!data || !Array.isArray(data.tasks)) { W.Toast.show({ text: 'No es una copia de WHIDER', type: 'danger' }); return; }
       W.Sheet.confirm({ title: '¿Recuperar la copia?', text: 'Se juntará con lo que ya tienes (' + U.plural(data.tasks.length, 'tarea', 'tareas') + (data.pages ? ', ' + U.plural(data.pages.length, 'página', 'páginas') : data.notes ? ', ' + U.plural(data.notes.length, 'apunte', 'apuntes') : '') + '). Gana siempre lo más reciente.', ok: 'Recuperar' }).then(function (ok) {
         if (!ok) return;
@@ -467,7 +468,23 @@ window.Whider = window.Whider || {};
         var np = W.Pages && data.pages ? importPages(data.pages) : 0;
         W.Toast.show({ text: 'Copia recuperada' + (np ? ' (' + U.plural(np, 'página', 'páginas') + ' del Cuaderno)' : ''), type: 'success', icon: 'upload' });
       });
-    });
+    })();
+  }
+  /** Ordenador: las copias automáticas guardadas, para recuperar una o abrir la carpeta */
+  function backupsPage(nav) {
+    var D = W.Backup.desktop(), host = U.el('div', [U.el('p.hint', { text: 'Cargando…' })]);
+    D.list().then(function (list) {
+      U.clear(host);
+      host.appendChild(list.length ? W.UI.section({ items: list.map(function (f) {
+        var day = /(\d{4}-\d{2}-\d{2})/.exec(f.name)[1];
+        return W.UI.cell({ icon: 'shield', title: U.cap(U.fmtDay(day)), sub: Math.max(1, Math.round(f.size / 1000)) + ' KB',
+          right: U.el('button.btn.xs.soft', { text: 'Recuperar', attrs: { type: 'button', 'aria-label': 'Recuperar la copia del ' + U.fmtDay(day) }, on: { click: function () {
+            D.read(f.name).then(function (text) { if (text) restoreText(text); else W.Toast.show({ text: 'No se pudo leer la copia', type: 'danger' }); });
+          } } }) });
+      }), footer: 'Se guardan las 10 últimas. Recuperar una copia la junta con lo que tienes: gana lo más reciente.' }) : U.el('p.hint', { text: 'Todavía no hay copias automáticas.' }));
+    }).catch(function () { U.clear(host); host.appendChild(U.el('p.hint', { text: 'No se pudieron leer las copias.' })); });
+    return { title: 'Copias automáticas', body: [host, U.el('div.cell-row', { style: { justifyContent: 'center', padding: '8px 0' } }, [
+      U.el('button.btn.sm.soft', { text: 'Abrir la carpeta', attrs: { type: 'button' }, on: { click: function () { D.open(); } } })])] };
   }
 
   /** Archivar a mano las completadas antiguas (elige desde cuándo) */
@@ -520,9 +537,13 @@ window.Whider = window.Whider || {};
           ? 'Tu copia en la nube se acerca al límite de 1 MB: WHIDER archiva sola las tareas completadas hace más de un año.'
           : 'Las tareas completadas hace más de un año se archivan solas si la copia en la nube se acerca a su límite.' }),
         W.UI.section({ header: 'Copia de seguridad', items: [
-          W.UI.cell({ icon: 'download', title: 'Guardar una copia', sub: 'Todo: tareas, Cuaderno, hábitos, sistemas y ajustes (JSON)', onTap: exportBackup }),
+          W.Backup.where() ? toggleCell({ icon: 'shield', title: 'Copia automática cada día', sub: W.Backup.status(), value: W.Backup.enabled(), onChange: function (v) { W.Backup.setEnabled(v); setTimeout(function () { nav.refresh(); }, 400); } }) : null,
+          W.Backup.where() === 'desktop' ? W.UI.cell({ icon: 'tray', title: 'Copias guardadas', sub: 'Recuperar una o abrir la carpeta', onTap: function () { nav.push(backupsPage); } }) : null,
+          W.UI.cell({ icon: 'download', title: 'Guardar una copia', sub: W.Backup.where() ? 'Todo: tareas, Cuaderno, hábitos, sistemas y ajustes (JSON)' : W.Backup.status(), onTap: function () { exportBackup(); setTimeout(function () { nav.refresh(); }, 300); } }),
           W.UI.cell({ icon: 'upload', title: 'Recuperar una copia', sub: 'Se junta con lo que ya tienes', onTap: importBackup })
-        ], footer: W.Auth && W.Auth.user ? 'Con tu cuenta, todo se guarda además en la nube.' : 'Sin cuenta, tus datos solo están en este dispositivo: guarda copias de vez en cuando.' }),
+        ].filter(Boolean), footer: W.Backup.where() === 'android' ? 'La copia automática va a Descargas › WHIDER › Copias (las 7 últimas) y sigue ahí aunque desinstales la app.'
+          : W.Backup.where() === 'desktop' ? 'La copia automática va a la carpeta de datos de WHIDER (las 10 últimas).'
+          : W.Auth && W.Auth.user ? 'Con tu cuenta, todo se guarda además en la nube.' : 'Sin cuenta, tus datos solo están en este navegador: guarda una copia de vez en cuando (te lo recordaremos cada semana).' }),
         W.UI.section({ header: 'Importar y exportar', items: [
           W.UI.cell({ icon: 'upload', title: 'Importar desde otras apps', sub: 'Todoist, Google Tasks, Notion, calendarios (.ics) u hojas de cálculo', onTap: function () { nav.close(); setTimeout(function () { W.ImportWizard.open(); }, 250); } }),
           W.ImportWizard.last() ? W.UI.cell({ icon: 'undo', title: 'Deshacer la última importación', sub: U.plural(W.ImportWizard.last().ids.length, 'tarea', 'tareas') + ' de ' + W.ImportWizard.last().from + ' · ' + U.fmtRel(W.ImportWizard.last().at - Date.now()),
@@ -576,6 +597,8 @@ window.Whider = window.Whider || {};
       title: 'Privacidad',
       body: [
         W.UI.group([W.UI.cell({ icon: 'hand', title: 'Personas bloqueadas', value: nBlocked ? String(nBlocked) : 'Nadie', onTap: function () { nav.push(blockedPage); } })]),
+        W.UI.section({ items: [toggleCell({ icon: 'alert', title: 'Enviar informes de errores', value: W.Errors.enabled(), onChange: function (v) { W.Errors.setEnabled(v); nav.refresh(); } })],
+          footer: 'Si algo falla, WHIDER envía qué falló, la versión y el sistema, sin tu nombre ni tu cuenta y nunca tus tareas ni tu Cuaderno. Necesita cuenta. Apagado, los errores solo se guardan en este dispositivo (Ajustes → Ayuda).' }),
         U.el('div.legal', { html: W.PRIVACY_HTML }),
         W.UI.group([W.UI.cell({ icon: 'external', title: 'Política de privacidad completa', sub: 'Qué datos se guardan, para qué y tus derechos', onTap: function () { U.openExternal(base + '/privacidad/'); } })])
       ]
@@ -587,6 +610,7 @@ window.Whider = window.Whider || {};
     '<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>' +
     '<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros. Los chats van cifrados en tránsito y en los servidores, pero no de extremo a extremo.</p>' +
     '<p><b>Bloquear y denunciar.</b> Quien bloqueas no puede escribirte ni mandarte mensajes en vuestro chat. Si denuncias, se guarda el motivo y, si es un mensaje, un extracto, para revisarlo.</p>' +
+    '<p><b>Comentarios e informes de errores.</b> Son opcionales y van sin tu nombre ni tu cuenta: el texto que escribas, la versión de WHIDER, el sistema y, si lo permites, los errores de la app. Nunca tus tareas ni tu Cuaderno.</p>' +
     '<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>' +
     '<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
     '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>';
