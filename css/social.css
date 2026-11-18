@@ -213,6 +213,14 @@ html[data-layout="mobile"] body.chat-open[data-screen="chats"] .dock { display: 
 .mo-me-main strong { font-family: var(--display); font-size: var(--fs-title3); }
 .mo-me-main small { color: var(--t3); }
 .mo-me-main .bar { margin-top: 5px; }
+/* Cuaderno y Chats, bien a la vista */
+.mo-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 6px; }
+.mo-tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 108px; padding: 14px; border-radius: var(--r-card); background: var(--s1); border: 1px solid var(--line); box-shadow: var(--sh-card); text-align: left; }
+.mo-tile:active { transform: scale(.98); }
+.mo-tile-ic { display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 6px; border-radius: 11px; background: var(--fill-2); }
+.mo-tile b { font-family: var(--display); font-size: var(--fs-body); font-weight: 600; }
+.mo-tile small { color: var(--t3); font-size: var(--fs-foot); line-height: 1.35; }
+.mo-tile .mo-badge { position: absolute; top: 12px; right: 12px; }
 .mo-badge { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: #FFF; color: #000; font-size: var(--fs-cap); font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* ---------- Hoy: lo más importante, mensajes y Cuaderno ---------- */

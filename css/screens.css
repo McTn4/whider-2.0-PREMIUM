@@ -3,6 +3,40 @@
    ========================================================================== */
 
 /* ---------- Hoy ---------- */
+/* ---------- Hoy (móvil): tu día en una sola tarjeta ---------- */
+.day-card { display: flex; flex-direction: column; gap: 12px; padding: 14px; margin: 2px 0 18px; border-radius: var(--r-card); background: var(--s1); border: 1px solid var(--line); box-shadow: var(--sh-card); }
+.day-row { display: flex; align-items: center; gap: 12px; }
+.day-row .buddy-edit { align-self: flex-start; }
+.day-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 8px; text-align: left; border-radius: 10px; }
+.day-info strong { font-family: var(--display); font-size: var(--fs-title3); font-weight: 600; }
+.day-info .bar { display: block; }
+.day-card .buddy-bubble { border-radius: 14px; }
+
+/* ---------- Primeros pasos ---------- */
+.fs-list { display: flex; flex-direction: column; }
+.fs-step { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 14px; text-align: left; border-top: 1px solid var(--line); }
+.fs-step:first-child { border-top: 0; }
+.fs-step:not(:disabled):hover { background: var(--fill-3); }
+.fs-check { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.75px var(--t3); }
+.fs-step.done .fs-check { background: #FFFFFF; box-shadow: none; color: #000000; }
+.fs-step.done .fs-check .ic { stroke-width: 3; }
+.fs-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fs-main b { font-weight: 600; }
+.fs-main small { color: var(--t3); font-size: var(--fs-foot); }
+.fs-step.done .fs-main b { color: var(--t3); font-weight: 500; text-decoration: line-through; text-decoration-color: var(--t4); }
+.fs-step .chev { color: var(--t3); }
+.sec.first-steps .sec-t .cell-row { gap: 12px; align-items: center; }
+
+/* ---------- Selector de color de categoría ---------- */
+.tint-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.tint-opt { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line-2); color: var(--t2); font-size: var(--fs-foot); }
+.tint-opt i { flex: none; width: 16px; height: 16px; border-radius: 50%; background: var(--tint); }
+.tint-opt.none i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--t3); }
+.tint-opt.active { border-color: rgba(255, 255, 255, .6); color: var(--t1); background: var(--fill-2); }
+.tint-opt:focus-visible { outline: 2px solid rgba(255, 255, 255, .6); outline-offset: 2px; }
+/* Icono de una categoría con color (lista de categorías y barra lateral) */
+.cell.tinted .cell-icon .ic, .sb-item.tinted > .ic { color: var(--tint); }
+
 .hero {
   position: relative; display: flex; align-items: center; gap: 16px; width: 100%; padding: 16px; text-align: left;
   border-radius: var(--r-card); background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 60%), var(--s1);
@@ -159,6 +193,9 @@
 .blk.p-star { --bc: rgba(255, 255, 255, .6); }
 .blk.p-purple { --bc: rgba(255, 255, 255, .85); }
 .blk.p-danger { --bc: #FFFFFF; box-shadow: 0 8px 18px -12px #000, -3px 0 12px -6px rgba(255, 255, 255, .7); }
+html[data-prio-color="on"] .blk.p-danger { --bc: var(--prio-urgent); box-shadow: 0 8px 18px -12px #000; }
+html[data-prio-color="on"] .blk.p-purple { --bc: var(--prio-important); }
+.blk b .tint-dot { margin-right: 6px; }
 .blk small { display: block; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 11px; font-weight: 400; color: var(--t2); }
 .blk b { font-weight: 500; }
 .blk.done { opacity: .45; }

@@ -28,7 +28,7 @@ window.Whider = window.Whider || {};
       { icon: 'timer', label: 'Ir a Enfoque', hint: '8', run: function () { W.Router.go('focus'); } },
       { icon: 'chart', label: 'Estadísticas', hint: '9', run: function () { W.Router.go('stats'); } },
       { icon: 'print', label: 'Informes', run: function () { W.Router.go('reports'); } },
-      { icon: 'system', label: 'Sistemas y automatizaciones', run: function () { W.Router.go('automations'); } },
+      { icon: 'system', label: 'Automatizaciones', run: function () { W.Router.go('automations'); } },
       { icon: 'plus', label: 'Nueva página del Cuaderno', hint: 'Alt N', run: function () { W.Notes.open(null); } },
       { icon: 'database', label: 'Nueva base de datos', run: function () { W.Notes.newPage({ kind: 'db' }); } },
       { icon: 'qr', label: 'Mi código QR para invitar', run: function () { W.Invite.qrSheet({}); } },

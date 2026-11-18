@@ -1,4 +1,4 @@
-// Sistemas y automatizaciones: plantillas sin límite, reglas al crear/completar/vencer/diarias y sistemas
+// Automatizaciones: plantillas sin límite, reglas al crear/completar/vencer/diarias y métodos listos para usar
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -17,7 +17,7 @@ const SHOTS = process.argv[3] || null;
   await p.goto(URL); await sleep(1900);
   await p.evaluate(() => { Whider.Notify.check = function () {}; });
   await p.evaluate(() => Whider.Router.go('automations')); await sleep(400);
-  ok('ir a Sistemas', await p.evaluate(() => Whider.State.activeScreen) === 'automations');
+  ok('ir a Automatizaciones', await p.evaluate(() => Whider.State.activeScreen) === 'automations');
   ok('7 sistemas en la galería', await p.evaluate(() => document.querySelectorAll('#screen-automations .sys-card').length) === 7);
   // Plantilla: lo nuevo sin fecha para hoy
   await p.click('#screen-automations .cell:has-text("Lo nuevo sin fecha") label.switch'); await sleep(300);

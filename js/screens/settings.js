@@ -95,6 +95,12 @@ window.Whider = window.Whider || {};
           W.UI.cell({ icon: 'download', title: 'Descargar la app', sub: desk ? 'Para Windows, macOS y Linux' : 'Para ordenador · Android, pronto en Google Play',
             onTap: function () { U.openExternal(location.origin + '/#descargar'); } })
         ] }) : null,
+        W.UI.section({ header: 'Ayuda', items: [
+          W.UI.cell({ icon: 'info', title: 'Primeros pasos', sub: 'Lo esencial de WHIDER en cinco pasos', onTap: function () {
+            W.FirstSteps.show();
+            if (W.FirstSteps.visible()) { nav.close(); W.Router.go('home'); W.Router.refresh(); } else W.Toast.show({ text: 'Ya has completado los primeros pasos', icon: 'check' });
+          } })
+        ] }),
         versionLine()
       ]
     };
@@ -142,7 +148,9 @@ window.Whider = window.Whider || {};
         W.UI.section({ items: [toggleCell({ title: 'Reducir movimiento', value: cfg.reduceMotion, onChange: function (v) { set('reduceMotion', v); } })],
           footer: 'Quita las transiciones y animaciones de la interfaz.' }),
         W.UI.section({ items: [toggleCell({ title: 'Alto contraste', value: cfg.contrast === 'high', onChange: function (v) { set('contrast', v ? 'high' : 'normal'); } })],
-          footer: 'Textos secundarios y líneas más claros, para leer mejor.' })
+          footer: 'Textos secundarios y líneas más claros, para leer mejor.' }),
+        W.UI.section({ items: [toggleCell({ title: 'Prioridad en color', value: !!cfg.prioColor, onChange: function (v) { set('prioColor', v); } })],
+          footer: 'Urgente en rojo e importante en ámbar. Sin color, la prioridad se sigue viendo por sus barras y su nombre.' })
       ]
     };
   }
@@ -292,7 +300,10 @@ window.Whider = window.Whider || {};
       toggleCell({ icon: 'target', title: 'Hábitos de hoy', value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })
     ] });
     // Móvil: solo lo que se decide aquí (Apariencia y Tu personaje ya están en la portada de Ajustes)
-    if (!desk) return { title: 'Personalización', body: [basic, U.el('p.hint', { text: 'En el ordenador también eliges la barra lateral, los bloques junto a Hoy y el calendario.' })] };
+    if (!desk) return { title: 'Personalización', body: [
+      W.UI.section({ items: [W.UI.cell({ icon: 'apps', title: 'Barra inferior', sub: W.Dock.summary(), onTap: function () { W.Dock.edit(function () { nav.refresh(); }); } })],
+        footer: 'Elige tres pestañas: por ejemplo, el Cuaderno o los chats a un toque.' }),
+      basic, U.el('p.hint', { text: 'En el ordenador también eliges la barra lateral, los bloques junto a Hoy y el calendario.' })] };
     var saveDesk = function () { st.saveSettings('settings:desk'); };
     var sb = dk.sidebar;
     var sbItem = function (key, label, icon) { return toggleCell({ icon: icon, title: label, value: sb[key] !== false, onChange: function (v) { sb[key] = v; saveDesk(); } }); };
@@ -317,7 +328,7 @@ window.Whider = window.Whider || {};
       body: [
         W.UI.section({ header: 'Barra lateral', items: [
           sbItem('notes', 'Cuaderno', 'notebook'), sbItem('chats', 'Chats', 'chat'), sbItem('friends', 'Personas', 'users'),
-          sbItem('habits', 'Hábitos', 'target'), sbItem('focus', 'Enfoque', 'timer'), sbItem('automations', 'Sistemas', 'system'),
+          sbItem('habits', 'Hábitos', 'target'), sbItem('focus', 'Enfoque', 'timer'), sbItem('automations', 'Automatizaciones', 'system'),
           sbItem('stats', 'Estadísticas', 'chart'), sbItem('reports', 'Informes', 'print'),
           sbItem('filters', 'Filtros', 'filter'),
           toggleCell({ icon: 'hash', title: 'Mostrar los contadores', value: sb.counts !== false, onChange: function (v) { sb.counts = v; saveDesk(); } }),

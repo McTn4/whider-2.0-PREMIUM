@@ -59,7 +59,7 @@
 Los instaladores se compilan solos en GitHub con cada cambio (pestaña **Releases → WHIDER para ordenador**) y la portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.vercel.app/descargar), destacando el de tu sistema. La app también funciona en el navegador del ordenador con el mismo diseño, en [`/app`](https://whider-red.vercel.app/app).
 
 **Pensada para pantalla grande, ratón y teclado**
-- **Barra lateral ordenada por importancia**: *Nueva tarea* y *Buscar*; **Hoy, Tareas, Calendario y Cuaderno**; **Equipo** (Chats y Personas, con los mensajes sin leer); **Rutinas** (Hábitos y Enfoque); **Análisis** (Estadísticas, Informes y Sistemas); tus **categorías** y **filtros**; y abajo, tu perfil, tu plan y los ajustes. Qué se ve, los contadores y el tamaño se eligen en *Personalización*.
+- **Barra lateral ordenada por importancia**: *Nueva tarea* y *Buscar*; **Hoy, Tareas, Calendario y Cuaderno**; **Equipo** (Chats y Personas, con los mensajes sin leer); **Rutinas** (Hábitos y Enfoque); **Análisis** (Estadísticas, Informes y Automatizaciones); tus **categorías** y **filtros**; y abajo, tu perfil, tu plan y los ajustes. Qué se ve, los contadores y el tamaño se eligen en *Personalización*.
 - **Hoy a dos columnas**: arriba, **lo más importante** (hasta 3 tareas: las que elijas o, si no, las más prioritarias, empezando por las vencidas) y después el resto; a la derecha, **quién te está esperando** (mensajes y solicitudes), **tu personaje**, el resumen del día, los hábitos, **los próximos 7 días**, tus páginas recientes y el enfoque (bloques y orden a tu gusto).
 - **Varias tareas a la vez**: `Ctrl`/`⌘` clic, `Mayús` clic o `Ctrl A` y una barra para cambiar fecha, hora, prioridad, categoría, repetición y avisos, duplicar, completar o eliminar (con Deshacer). Arrastra cualquiera de ellas y se mueven todas.
 - **Cuaderno** con el árbol de páginas a la izquierda y la página a lo ancho; **chats** con la lista y la conversación a la vez; **hábitos en cuadrícula** de 7, 14 o 30 días, **estadísticas** con gráficos y conclusiones e **informes** listos para imprimir o guardar en PDF.
@@ -105,15 +105,15 @@ Los instaladores se compilan solos en GitHub con cada cambio (pestaña **Release
 
 ## 🧭 Organización
 
-En el ordenador, las secciones están en la barra lateral, de lo más importante a lo menos. En el móvil, un dock flotante abajo con cuatro pestañas y el botón **+** en el centro:
+En el ordenador, las secciones están en la barra lateral, de lo más importante a lo menos. En el móvil, un dock flotante abajo con cuatro pestañas y el botón **+** en el centro. Las tres primeras se eligen en *Ajustes → Personalización → Barra inferior* (por ejemplo, el **Cuaderno** o los **Chats** a un toque); por defecto son estas:
 
 | Pestaña | Qué encontrarás |
 | --- | --- |
-| **Hoy** | Arriba, **lo más importante** del día (hasta 3 tareas, elegidas por ti o automáticas); después tu personaje, el progreso, **quién te está esperando** (mensajes y solicitudes), lo **vencido** (con *Posponer*), el resto de hoy, los hábitos y tus páginas recientes. |
+| **Hoy** | Arriba, **lo más importante** del día (hasta 3 tareas, elegidas por ti o automáticas); después **tu día en una tarjeta** (tu personaje, cuántas llevas, la racha y por dónde seguir), **quién te está esperando** (mensajes y solicitudes) y tus tareas **agrupadas por estado**: **en curso**, **vencidas** (con *Posponer*), **pendientes** y **hechas**; al final, los hábitos y tus páginas recientes. Los primeros días, **Primeros pasos** enseña lo esencial con tus propias tareas. |
 | **Tareas** | Buscador, **listas inteligentes** (Hoy · Programadas · Todas · Prioritarias) y **Mis listas** (Personal, Trabajo…). Cada lista abre su propia página. |
 | **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la lista y la prioridad. |
 | **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**, con filtro por lista y tus tareas que se repiten. |
-| **Más** | Todo lo demás, con los mismos grupos que la barra lateral del ordenador: **Cuaderno y equipo** (Cuaderno, Chats y Personas), **Rutinas** (Hábitos, Enfoque y Sistemas), **Análisis** (Estadísticas e Informes) y tu cuenta. La pestaña avisa de los mensajes sin leer. |
+| **Más** | El **Cuaderno** y los **Chats** en grande (con los mensajes sin leer) y, debajo, lo demás: **Personas**, **Rutinas** (Hábitos, Enfoque y Automatizaciones), **Análisis** (Estadísticas e Informes) y los ajustes. La pestaña avisa de los mensajes sin leer. |
 
 Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abre tu **Perfil y resumen** (actividad y marcas) y el **engranaje** (derecha) abre los **Ajustes**, con una página por apartado.
 
@@ -149,7 +149,9 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 
 **Tareas y listas**
 - **Creación rápida en lenguaje natural**: «mañana», «el lunes», «el 15», «20/11», «en 3 días», «a las 5 de la tarde», «cada semana», «#lista» y «!»/«!!»/«!!!» para la prioridad. Lo detectado aparece en etiquetas que puedes descartar; con Intro se añade y queda listo para la siguiente.
-- La prioridad se ve con **luz**: a la derecha de cada tarea se encienden una, dos o tres barras (destacada, importante y urgente) y el borde de la casilla brilla más cuanto más importante es.
+- La prioridad se ve de tres formas, nunca solo por el brillo: a la derecha se **rellenan** una, dos o tres barras (destacada, importante y urgente; las demás quedan con su contorno), lo urgente y lo importante **lo dicen con texto** junto a la tarea y, si lo activas en *Ajustes → Apariencia → Prioridad en color*, también se ve **en color** (rojo y ámbar).
+- **En curso**: marca una tarea como empezada (clic derecho, el editor o al enfocarte en ella) y sale aparte en Hoy, con media casilla rellena. Las que tienen alguna subtarea hecha también cuentan.
+- **Color de categoría** opcional (verde, azul, turquesa, violeta o rosa): un punto junto a su nombre en las tareas, el calendario y la barra lateral. Elegidos para leerse bien sobre fondo oscuro y distinguirse también con daltonismo; la app sigue en blanco y negro si no eliges ninguno.
 - **Listas** propias, más cuatro **listas automáticas** que se rellenan solas (Hoy, Programadas, Todas y Prioritarias).
 - Fecha con **calendario integrado**, hora, **subtareas**, **notas** y **repeticiones** (cada día, días laborables, cada semana, cada mes).
 - **Gestos**: desliza → para completar y ← para eliminar, con **Deshacer**.
@@ -287,7 +289,7 @@ npm start
 │   │                       #   filtros, personaje (character), avatares (avatar), gráficos (charts),
 │   │                       #   dispositivos/plantillas (devices) y, para el Cuaderno, blocks (editor) y dbview (bases de datos)
 │   ├── screens/            # home (Hoy), tasks, calendar, notes (Cuaderno), chats, friends (Personas), more (Más),
-│   │                       #   habits, focus, stats, reports, automations (Sistemas), progress (Perfil), settings…
+│   │                       #   habits, focus, stats, reports, automations (Automatizaciones), progress (Perfil), settings…
 │   ├── router.js
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable

@@ -11,14 +11,14 @@
 .lt { margin-bottom: 22px; }
 .lt + *, .lt + .sec, .lt + .sec.first { margin-top: 0; }
 /*
- * «Índice»: cada sección se abre con su nombre en versalitas y una regla fina que llega hasta
- * su contador o su acción, como las pestañas de un archivador. La jerarquía queda clara sin
- * títulos grandes repetidos: el título grande es solo el de la pantalla.
+ * «Índice»: cada sección se abre con su nombre y una regla fina que llega hasta su contador o su
+ * acción, como las pestañas de un archivador. Los nombres van en minúsculas y a 14-15 px (las
+ * versalitas pequeñas cuestan de leer); el título grande es solo el de la pantalla.
  */
-.sec-h { display: flex; align-items: center; gap: 8px; padding: 0 6px 10px; font-size: var(--eyebrow); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--t3); }
+.sec-h { display: flex; align-items: center; gap: 8px; padding: 0 6px 10px; font-size: var(--eyebrow); font-weight: 600; color: var(--t2); }
 .sec-t {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  min-height: 24px; padding: 0 2px 12px; font-size: var(--eyebrow); font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--t2);
+  min-height: 24px; padding: 0 2px 12px; font-family: var(--display); font-size: .9375rem; font-weight: 600; letter-spacing: -.005em; color: var(--t1);
 }
 .sec-t > span:first-child { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .sec-t > span:first-child::after { content: ''; flex: 1; min-width: 12px; height: 1px; background: var(--rule); }
@@ -32,6 +32,9 @@
 .sec-t .link-btn { font-size: var(--fs-foot); padding: 0; text-transform: none; letter-spacing: 0; }
 .sec-f { padding: 8px 8px 0; font-size: var(--fs-foot); color: var(--t3); line-height: 1.45; }
 .sec-f.center { text-align: center; }
+
+/* Texto solo para lectores de pantalla */
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
 
 /* ---------- Grupos y celdas ---------- */
 .group {
@@ -71,13 +74,16 @@ button.cell:active, .cell.tap:active { background: var(--cell-hl); }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
 /* ---------- Prioridad: tres barras, más luz cuanto más importante ---------- */
-.prio { display: inline-flex; align-items: flex-end; gap: 2px; flex: none; height: 12px; }
-.prio i { display: block; width: 3px; border-radius: 1px; background: var(--t4); }
+/* Prioridad: barras rellenas (1 destacada · 2 importante · 3 urgente); las demás, solo con su contorno */
+.prio { display: inline-flex; align-items: flex-end; gap: 2px; flex: none; height: 12px; color: var(--t1); }
+.prio i { display: block; width: 4px; border-radius: 1px; background: transparent; box-shadow: inset 0 0 0 1px var(--t3); }
 .prio i:nth-child(1) { height: 5px; }
 .prio i:nth-child(2) { height: 8.5px; }
 .prio i:nth-child(3) { height: 12px; }
-.prio.p1 i:nth-child(1), .prio.p2 i:nth-child(-n+2), .prio.p3 i { background: var(--t1); }
+.prio.p1 i:nth-child(1), .prio.p2 i:nth-child(-n+2), .prio.p3 i { background: currentColor; box-shadow: none; }
 .prio.p3 { filter: drop-shadow(0 0 4px rgba(255, 255, 255, .65)); }
+html[data-prio-color="on"] .prio.p3 { color: var(--prio-urgent); filter: none; }
+html[data-prio-color="on"] .prio.p2 { color: var(--prio-important); }
 
 /* ---------- Botones ---------- */
 .btn {
@@ -221,6 +227,11 @@ input[type="date"], input[type="time"] { color-scheme: dark; }
 .check.p-star { --pc: rgba(255, 255, 255, .55); }
 .check.p-purple { --pc: rgba(255, 255, 255, .8); }
 .check.p-danger { --pc: #FFFFFF; box-shadow: 0 0 10px -2px rgba(255, 255, 255, .6); }
+html[data-prio-color="on"] .check.p-danger { --pc: var(--prio-urgent); box-shadow: none; }
+html[data-prio-color="on"] .check.p-purple { --pc: var(--prio-important); }
+/* En curso: media casilla rellena */
+.check.doing::after { content: ''; position: absolute; inset: 3px; border-radius: 4px; background: linear-gradient(90deg, rgba(255, 255, 255, .85) 50%, transparent 50%); }
+.check.on.doing::after { display: none; }
 .check::before { content: ''; position: absolute; inset: -11px; }
 .check svg { width: 13px; height: 13px; fill: none; stroke: #000000; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset .3s var(--ease) .05s; }
 .check.on { background: #FFFFFF; border-color: #FFFFFF; box-shadow: 0 0 14px -3px rgba(255, 255, 255, .6); }
@@ -250,6 +261,17 @@ input[type="date"], input[type="time"] { color-scheme: dark; }
 .task-meta .m-num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: .92em; }
 .task-meta .m-icons { display: inline-flex; gap: 5px; align-items: center; color: var(--t3); }
 .task-meta .m-icons .ic { width: .85rem; height: .85rem; stroke-width: 2; }
+/* «Urgente» e «Importante» escritos (la prioridad no depende solo de la luz ni del color) */
+.task-meta .m-prio { font-weight: 650; color: var(--t1); }
+.task-meta .m-prio.p3::before { content: '!! '; letter-spacing: -.05em; }
+html[data-prio-color="on"] .task-meta .m-prio.p3 { color: var(--prio-urgent); }
+html[data-prio-color="on"] .task-meta .m-prio.p2 { color: var(--prio-important); }
+/* En curso: una tarea que ya empezaste */
+.task-meta .m-doing { display: inline-flex; align-items: center; gap: 5px; color: var(--t1); font-weight: 600; }
+.task-meta .m-doing::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: conic-gradient(currentColor 0 50%, transparent 0); box-shadow: inset 0 0 0 1.25px currentColor; }
+/* Categoría con su color (opcional) */
+.task-meta .m-list { display: inline-flex; align-items: center; gap: 5px; }
+.tint-dot { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--tint); box-shadow: 0 0 0 1px rgba(0, 0, 0, .35); vertical-align: .05em; }
 .task-trail { flex: none; display: flex; align-items: center; gap: 8px; align-self: center; }
 .task-swipe-bg {
   position: absolute; inset: 0; z-index: 0; display: flex; align-items: center; gap: 8px; padding: 0 22px;

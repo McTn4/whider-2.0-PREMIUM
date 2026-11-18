@@ -87,3 +87,44 @@ test('editar el plazo vuelve a armar los avisos', () => {
   S.updateTask(t.id, { text: 'Cita médica' });
   assert.equal(t.text, 'Cita médica');
 });
+
+test('«en curso»: se empieza, se ve también con subtareas a medias y se borra al completar', () => {
+  const S = nuevo();
+  const t = S.addTask({ text: 'Informe', date: '2026-11-20', repeat: 'daily' });
+  assert.equal(S.isDoing(t), false);
+  S.setStarted(t.id, true);
+  assert.ok(t.startedAt > 0);
+  assert.equal(S.isDoing(t), true);
+  S.setDone(t.id, true);
+  assert.equal(t.startedAt, null, 'al completarla deja de estar en curso');
+  assert.equal(S.find(t.spawnedId).startedAt, null, 'la siguiente repetición empieza pendiente');
+  const u = S.addTask({
+    text: 'Mudanza',
+    subtasks: [
+      { text: 'Cajas', done: true },
+      { text: 'Furgoneta', done: false }
+    ]
+  });
+  assert.equal(S.isDoing(u), true, 'con alguna subtarea hecha ya está en curso');
+  S.setStarted(u.id, false);
+  assert.equal(u.startedAt, null);
+});
+
+test('una tarea completada nunca llega «en curso» (ni desde la nube)', () => {
+  const S = nuevo();
+  const t = S.addTask({ text: 'Hecha', done: true, startedAt: 123 });
+  assert.equal(t.startedAt, null);
+});
+
+test('las categorías guardan su color opcional y lo pierden si no es válido', () => {
+  const S = nuevo();
+  const l = S.addList('Viajes', null, 'send', 'azul');
+  assert.equal(l.tint, 'azul');
+  S.updateList(l.id, { tint: 'fucsia' });
+  assert.equal(l.tint, undefined);
+  S.updateList(l.id, { tint: 'verde' });
+  assert.equal(S.getList(l.id).tint, 'verde');
+  S.updateList(l.id, { tint: null });
+  assert.equal(S.getList(l.id).tint, undefined);
+  for (const k of Object.keys(S.LIST_TINTS)) assert.match(S.LIST_TINTS[k].hex, /^#[0-9A-F]{6}$/);
+});

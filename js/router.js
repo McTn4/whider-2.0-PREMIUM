@@ -8,8 +8,9 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U;
-  var TABS = { home: 1, tasks: 1, calendar: 1, more: 1 };
-  // Pantallas que se abren desde «Más» en el móvil (la pestaña Más queda marcada)
+  // ¿Tiene pestaña propia en la barra inferior? (las tres elegidas y «Más»)
+  function isTab(id) { return W.Dock ? W.Dock.has(id) : { home: 1, tasks: 1, calendar: 1, more: 1 }[id] === 1; }
+  // Pantallas que se abren desde «Más» en el móvil (la pestaña Más queda marcada si no tienen pestaña propia)
   var UNDER_MORE = { notes: 1, chats: 1, friends: 1, habits: 1, focus: 1, stats: 1, reports: 1, automations: 1, progress: 1 };
   // Rutas antiguas o secundarias → pantalla (y apartado)
   var ALIASES = { records: ['progress', 'records'], achievements: ['progress'], alerts: ['home'], agenda: ['calendar'], profile: ['progress'] };
@@ -54,8 +55,11 @@ window.Whider = window.Whider || {};
 
   var Router = {
     init: function (initial) {
-      U.$$('.tab').forEach(function (b) {
-        b.addEventListener('click', function () { Router.go(b.getAttribute('data-go')); });
+      // Las pestañas se pueden cambiar (Ajustes → Personalización): un solo oyente para todas
+      var dock = document.querySelector('.dock');
+      if (dock) dock.addEventListener('click', function (e) {
+        var b = e.target.closest('.tab');
+        if (b) Router.go(b.getAttribute('data-go'));
       });
       U.$$('.screen').forEach(watchScroll);
       window.addEventListener('hashchange', function () {
@@ -89,7 +93,7 @@ window.Whider = window.Whider || {};
         if (root.scrollTop > 0) root.scrollTo({ top: 0, behavior: U.reducedMotion() ? 'auto' : 'smooth' });
         return;
       }
-      if (TABS[prev]) lastTab = prev;
+      if (isTab(prev)) lastTab = prev;
       // Un menú abierto pertenece a la pantalla anterior (p. ej. al cambiar desde la bandeja o un aviso)
       if (W.Menu && W.Menu.close) W.Menu.close();
       document.body.setAttribute('data-screen', id);
@@ -104,20 +108,26 @@ window.Whider = window.Whider || {};
       root.scrollTop = 0;
       root.classList.remove('scrolled');
 
-      U.$$('.tab').forEach(function (b) {
-        // Siempre un booleano: toggle(x, undefined) no fuerza, alterna (y encendía las demás pestañas)
-        var on = b.getAttribute('data-go') === id || (!!UNDER_MORE[id] && b.getAttribute('data-go') === 'more');
-        b.classList.toggle('active', on);
-        if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
-      });
+      Router.markTabs(id);
 
       if (history.replaceState && location.protocol !== 'file:') {
         try { history.replaceState(null, '', '#' + id); } catch (e) { /* sin historial */ }
       }
       setTitle(id === 'home' ? 'WHIDER' : W.Screens[id].title + ' · WHIDER');
       W.Screens[id].render(root, true);
-      if (!opts.initial) animate(root, TABS[id] ? 'enter' : 'push');
+      if (!opts.initial) animate(root, isTab(id) ? 'enter' : 'push');
       if (W.Sidebar) W.Sidebar.refresh();
+    },
+
+    /** Marca la pestaña de la pantalla abierta (o «Más» si la pantalla cuelga de ella) */
+    markTabs: function (id) {
+      var viaMore = !!UNDER_MORE[id] && !isTab(id);
+      U.$$('.tab').forEach(function (b) {
+        // Siempre un booleano: toggle(x, undefined) no fuerza, alterna (y encendía las demás pestañas)
+        var go = b.getAttribute('data-go'), on = go === id || (viaMore && go === 'more');
+        b.classList.toggle('active', on);
+        if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      });
     },
 
     /** Desde el Perfil, vuelve a la pestaña en la que estabas */

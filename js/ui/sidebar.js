@@ -32,7 +32,7 @@ window.Whider = window.Whider || {};
   var DAY = [
     { id: 'habits', label: 'Hábitos', icon: 'target', key: '7', opt: 'habits' },
     { id: 'focus', label: 'Enfoque', icon: 'timer', key: '8', opt: 'focus' },
-    { id: 'automations', label: 'Sistemas', icon: 'system', opt: 'automations' }
+    { id: 'automations', label: 'Automatizaciones', icon: 'system', opt: 'automations' }
   ];
   var TOOLS = [
     { id: 'stats', label: 'Estadísticas', icon: 'chart', key: '9', opt: 'stats' },
@@ -159,6 +159,7 @@ window.Whider = window.Whider || {};
           }
         }
       }, [U.icon(W.Lists.icon(l)), U.el('span.sb-label', { text: l.name }), count(n)]);
+      W.Lists.paint(b, l);
       dropTarget(b, function (id) {
         var t = st.find(id); if (!t || t.listId === l.id) return;
         st.updateTask(id, { listId: l.id });

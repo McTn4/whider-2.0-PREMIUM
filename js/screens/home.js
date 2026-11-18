@@ -1,7 +1,9 @@
 /**
- * WHIDER · Hoy: progreso del día, lo vencido (con Posponer) y las tareas de hoy.
- * En el ordenador, a dos columnas: las tareas a la izquierda y, a la derecha, el resumen
- * del día y lo que viene en los próximos días.
+ * WHIDER · Hoy: lo más importante, tu día de un vistazo y las tareas agrupadas por estado:
+ * en curso (las que ya empezaste), vencidas (con Posponer), pendientes y hechas.
+ * En el móvil, el personaje y el progreso van en una sola tarjeta (sin repetir el recuento).
+ * En el ordenador, a dos columnas: las tareas a la izquierda y, a la derecha, los bloques que
+ * elijas (resumen del día, próximos días, enfoque…).
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -44,14 +46,20 @@ window.Whider.Screens = window.Whider.Screens || {};
     draw();
     var s = W.Sheet.open({ title: 'Tus prioridades de hoy', body: [host], foot: [
       U.el('button.btn.ghost', { text: 'Automático', on: { click: function () { st.setMeta('top', null); s.close(); } } }),
-      U.el('button.btn.primary', { text: 'Guardar', on: { click: function () { st.setMeta('top', { d: td, ids: chosen.slice(0, TOP) }); s.close(); } } })
+      U.el('button.btn.primary', { text: 'Guardar', on: { click: function () {
+        st.setMeta('top', { d: td, ids: chosen.slice(0, TOP) });
+        if (W.FirstSteps) W.FirstSteps.mark('chose');
+        s.close();
+      } } })
     ] });
   }
   function prioritySection(st, desk) {
     var top = topTasks(st);
     if (!top.list.length) return null;
-    return W.UI.section({ cls: 'top3', title: 'Lo más importante', side: U.el('span.cell-row', [U.el('small', { text: top.total > TOP ? TOP + ' de ' + top.total : '' }),
-      U.el('button.link-btn', { text: top.pinned.length ? 'Cambiar' : 'Elegir', on: { click: function () { choosePriorities(st); } } })]),
+    // «Elegir cuáles»: decides tú las tres de arriba (si no, salen solas por prioridad y hora)
+    return W.UI.section({ cls: 'top3', title: 'Lo más importante',
+      side: U.el('button.link-btn', { text: top.pinned.length ? 'Cambiar' : 'Elegir cuáles', attrs: { title: 'Elegir las tareas más importantes de hoy' },
+        on: { click: function () { choosePriorities(st); } } }),
       items: W.TaskCard.list(top.list, { ctx: 'today' }) });
   }
   /** Mensajes sin leer y solicitudes: lo de otras personas que espera respuesta */
@@ -157,6 +165,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     title: 'Hoy',
     WIDGETS: WIDGETS,
     widgetOrder: widgetOrder,
+    topTasks: topTasks,
+    /** Hoja para elegir lo más importante (también desde «Primeros pasos») */
+    choose: function () { choosePriorities(S()); },
     /** Cada segundo con el enfoque en marcha: solo cambia el reloj de la tarjeta */
     tick: function () { if (focusTimeEl && focusTimeEl.isConnected) focusTimeEl.textContent = W.Screens.focus.status().text; },
     render: function (root) {
@@ -179,11 +190,24 @@ window.Whider.Screens = window.Whider.Screens || {};
       var topIds = topTasks(st).list.map(function (t) { return t.id; });
       var topSec = prioritySection(st, desk);
       if (topSec) main.push(topSec);
+      // Primeros pasos: arriba mientras no haya nada pendiente; con tareas, después de ellas
+      var steps = W.FirstSteps ? W.FirstSteps.card() : null;
+      var stepsFirst = !!steps && !st.tasks.some(function (t) { return !t.done; });
+      if (stepsFirst) main.push(steps);
       if (!desk) { var mc = messagesCard(st, false); if (mc) main.push(mc); }
-      var overdue = st.overdueAll().sort(st.compareDeadline).filter(function (t) { return topIds.indexOf(t.id) < 0; });
-      var today = st.tasks.filter(function (t) { return t.date === td && !t.done && !st.isOverdue(t) && topIds.indexOf(t.id) < 0; }).sort(st.compareDeadline);
+      var notTop = function (t) { return topIds.indexOf(t.id) < 0; };
+      // En curso: lo que ya empezaste, tenga la fecha que tenga (manda sobre «vencida»)
+      var doing = st.tasks.filter(function (t) { return st.isDoing(t) && notTop(t); }).sort(st.compareDeadline);
+      var doingIds = doing.map(function (t) { return t.id; });
+      var waiting = function (t) { return notTop(t) && doingIds.indexOf(t.id) < 0; };
+      var overdue = st.overdueAll().sort(st.compareDeadline).filter(waiting);
+      var today = st.tasks.filter(function (t) { return t.date === td && !t.done && !st.isOverdue(t) && waiting(t); }).sort(st.compareDeadline);
       var doneToday = st.tasks.filter(function (t) { return t.done && (t.doneOn === td || t.date === td); })
         .sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
+
+      if (doing.length) {
+        main.push(W.UI.section({ cls: 'doing-sec', title: 'En curso', side: U.el('small', { text: doing.length }), items: W.TaskCard.list(doing, { ctx: 'today' }) }));
+      }
 
       if (overdue.length) {
         // Las más recientes primero; si hay muchas, el resto en Tareas → Hoy
@@ -198,8 +222,9 @@ window.Whider.Screens = window.Whider.Screens || {};
         doneToday.length ? 'Todo hecho por hoy' : 'Nada pendiente',
         doneToday.length ? 'Has completado ' + U.plural(doneToday.length, 'tarea', 'tareas') + '.' : desk ? 'Escribe arriba para añadir algo a hoy.' : 'Añade lo que quieras hacer hoy.',
         doneToday.length || desk ? null : U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), 'Nueva tarea']), true)]);
-      var todayItems = today.length ? W.TaskCard.list(today, { ctx: 'today' }) : (topIds.length ? U.el('p.hint', { text: 'Nada más para hoy aparte de lo importante.' }) : empty);
-      main.push(W.UI.section({ title: topIds.length ? 'El resto de hoy' : 'Para hoy', side: today.length ? U.el('small', { text: today.length }) : null,
+      var others = topIds.length || doing.length || overdue.length;
+      var todayItems = today.length ? W.TaskCard.list(today, { ctx: 'today' }) : (others ? U.el('p.hint', { text: 'Nada más pendiente para hoy.' }) : empty);
+      main.push(W.UI.section({ cls: 'pending-sec', title: 'Pendientes', side: today.length ? U.el('small', { text: today.length }) : null,
         items: desk ? U.el('div', [W.QuickAdd.inline({ date: td }, 'Añadir una tarea para hoy…'), todayItems]) : todayItems }));
 
       if (doneToday.length) {
@@ -207,7 +232,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         var drawDone = function () {
           U.clear(host);
           host.appendChild(U.el('div.done-toggle', [
-            U.el('span', { text: U.plural(doneToday.length, 'completada', 'completadas') }),
+            U.el('span', { text: U.plural(doneToday.length, 'hecha hoy', 'hechas hoy') }),
             U.el('button.link-btn', { text: showDone ? 'Ocultar' : 'Mostrar', on: { click: function () { showDone = !showDone; drawDone(); } } })
           ]));
           if (showDone) host.appendChild(W.TaskCard.list(doneToday, { ctx: 'today' }));
@@ -215,6 +240,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         drawDone();
         main.push(host);
       }
+      if (steps && !stepsFirst) main.push(steps);
 
       if (!desk && st.settings.homeHabits) {
         var hb = W.HabitView.today();
@@ -242,9 +268,10 @@ window.Whider.Screens = window.Whider.Screens || {};
         });
         W.UI.mount(root, head, side.length ? [U.el('div.desk-cols', [U.el('div.desk-main', main), U.el('aside.desk-side', side)])] : [U.el('div.desk-solo', main)]);
       } else {
-        // Móvil: lo más importante, arriba del todo; después el personaje, el resumen y el resto
+        // Móvil: lo más importante, arriba del todo; después tu día (el personaje y el progreso en
+        // una sola tarjeta, o solo el progreso si ocultaste el personaje) y el resto
         var rest = main.filter(function (x) { return x !== topSec; });
-        W.UI.mount(root, head, (topSec ? [topSec] : []).concat(st.settings.homeBuddy ? [W.Character.companion(false)] : []).concat([summary(s)]).concat(rest));
+        W.UI.mount(root, head, (topSec ? [topSec] : []).concat([st.settings.homeBuddy ? W.Character.dayCard() : summary(s)]).concat(rest));
       }
     }
   };

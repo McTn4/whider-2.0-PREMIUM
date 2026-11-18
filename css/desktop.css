@@ -51,7 +51,7 @@ html[data-layout="desktop"] .sidebar {
 }
 .sb-timer { flex: none; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--t1); }
 .sb-sec { display: flex; flex-direction: column; gap: 2px; flex: none; }
-.sb-head { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 6px 12px; font-size: 10.5px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--t3); }
+.sb-head { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 6px 12px; font-size: var(--fs-foot); font-weight: 600; color: var(--t3); }
 .sb-add { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; color: var(--t3); transition: background-color .15s, color .15s; }
 .sb-add .ic { width: 13px; height: 13px; stroke-width: 2.2; }
 .sb-lists .sb-item { height: 34px; }
@@ -248,6 +248,9 @@ button.ct-title .ic { width: 1rem; height: 1rem; color: var(--t3); stroke-width:
 .mg-chip.p-star { border-left-color: rgba(255, 255, 255, .6); }
 .mg-chip.p-purple { border-left-color: rgba(255, 255, 255, .85); }
 .mg-chip.p-danger { border-left-color: #FFFFFF; box-shadow: -2px 0 8px -4px rgba(255, 255, 255, .8); }
+html[data-prio-color="on"] .mg-chip.p-danger { border-left-color: var(--prio-urgent); box-shadow: none; }
+html[data-prio-color="on"] .mg-chip.p-purple { border-left-color: var(--prio-important); }
+.mg-chip .tint-dot { margin-right: 1px; }
 .mg-chip.late { background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); }
 .mg-chip.done { background: transparent; border-left-color: var(--t4); }
 .mg-chip.done span, .mg-chip.done b { color: var(--t3); text-decoration: line-through; }

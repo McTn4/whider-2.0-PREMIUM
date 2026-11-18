@@ -292,21 +292,42 @@ window.Whider = window.Whider || {};
     return 'happy';
   }
 
-  /** Frases útiles según el momento: [{ text, action: { label, run } }] */
-  function lines() {
+  /** La siguiente tarea de hoy: la primera de «Lo más importante» */
+  function nextTask() {
+    var home = W.Screens && W.Screens.home;
+    return home && home.topTasks ? home.topTasks(S()).list[0] || null : null;
+  }
+
+  /**
+   * Frases útiles según el momento: [{ text, action: { label, run } }]
+   * Con { next: true } no repite cuántas tareas quedan (ya lo dice la tarjeta del día):
+   * propone por cuál seguir.
+   */
+  function lines(opts) {
+    opts = opts || {};
     var st = S(), s = st.stats(), out = [], td = U.today(), name = st.displayName().split(' ')[0];
     var overdue = st.overdueAll(), left = s.todayTotal - s.todayDone, h = new Date().getHours();
     var f = W.Screens.focus.status();
     if (f.running) out.push({ text: f.mode === 'work' ? 'Estoy concentrado contigo. Quedan ' + f.text + '.' : 'Pausa: respira y estírate. Quedan ' + f.text + '.' });
-    if (overdue.length) out.push({ text: overdue.length === 1 ? 'Tienes una tarea vencida. ¿La pasamos a hoy?' : 'Tienes ' + overdue.length + ' tareas vencidas. ¿Las pasamos a hoy?',
+    // De otros días: se pueden pasar a hoy. De hoy con la hora pasada: no tiene sentido «pasarlas a hoy»
+    var past = overdue.filter(function (t) { return t.date < td; });
+    if (past.length) out.push({ text: past.length === 1 ? 'Tienes una tarea de otro día sin hacer. ¿La pasamos a hoy?' : 'Tienes ' + past.length + ' tareas de otros días sin hacer. ¿Las pasamos a hoy?',
       action: { label: 'Pasar a hoy', run: function () {
-        var ids = overdue.map(function (t) { return t.id; });
-        st.bulkUpdate(ids, function (t) { return { date: td, time: t.date === td ? t.time : null }; });
+        var ids = past.map(function (t) { return t.id; });
+        st.bulkUpdate(ids, function () { return { date: td, time: null }; });
         W.Toast.show({ text: U.plural(ids.length, 'tarea pasa', 'tareas pasan') + ' a hoy', icon: 'sun' });
       } } });
+    else if (overdue.length) out.push(overdue.length === 1
+      ? { text: 'Se te pasó la hora de «' + overdue[0].text + '». ¿Le buscamos otro hueco?', action: { label: 'Posponer', run: function () { W.TaskCard.actions.postpone(overdue[0].id); } } }
+      : { text: 'Se te pasó la hora de ' + overdue.length + ' tareas de hoy. Ve a por la primera.' });
     if (s.todayTotal && !left) out.push({ text: '¡Todo hecho por hoy' + (name ? ', ' + name : '') + '! Me encanta este ritmo.' });
-    else if (left > 0) out.push({ text: left === 1 ? 'Te queda una tarea para hoy. ¡Vamos!' : 'Te quedan ' + left + ' tareas para hoy. Una a una.',
-      action: f.running ? null : { label: 'Enfoque de ' + st.settings.focus.work + ' min', run: function () { W.Screens.focus.toggle(); W.Router.refresh(); } } });
+    else if (left > 0) {
+      var nx = opts.next ? nextTask() : null;
+      if (nx) out.push({ text: 'Lo siguiente: «' + nx.text + '».',
+        action: f.running ? null : { label: 'Enfoque de ' + st.settings.focus.work + ' min', run: function () { W.Screens.focus.linkTask(nx.id); W.Screens.focus.toggle(); W.Router.refresh(); } } });
+      else out.push({ text: left === 1 ? 'Te queda una tarea para hoy. ¡Vamos!' : 'Te quedan ' + left + ' tareas para hoy. Una a una.',
+        action: f.running ? null : { label: 'Enfoque de ' + st.settings.focus.work + ' min', run: function () { W.Screens.focus.toggle(); W.Router.refresh(); } } });
+    }
     if (W.Habits) {
       var hp = W.Habits.list().filter(W.Habits.pendingToday);
       if (hp.length) out.push({ text: 'Aún te falta un hábito: «' + hp[0].name + '».', action: { label: hp[0].target > 1 ? 'Sumar uno' : 'Hecho', run: function () { W.Habits.tap(hp[0], td); } } });
@@ -359,12 +380,47 @@ window.Whider = window.Whider || {};
     fill(first);
     lineIndex = 1;
     b.addEventListener('click', function () { var l = lines(); fill(l[lineIndex++ % l.length]); });
+    // En el ordenador, si el bloque «Resumen del día» está a la vista, el recuento no se repite aquí
+    var widgets = (S().settings.desk || {}).widgets || {};
+    var showCount = !desk || widgets.summary === false;
     var meta = U.el('div.buddy-meta', [U.el('strong', { text: c.name || 'Tu personaje' }),
-      U.el('span', { text: s.todayTotal ? s.todayDone + ' de ' + U.plural(s.todayTotal, 'tarea hecha', 'tareas hechas') + ' hoy' : 'Nada programado para hoy' }),
-      U.el('div.bar', [U.el('i', { style: { width: s.todayPct + '%' } })])]);
+      showCount ? U.el('span', { text: s.todayTotal ? s.todayDone + ' de ' + U.plural(s.todayTotal, 'tarea hecha', 'tareas hechas') + ' hoy' : 'Nada programado para hoy' })
+        : U.el('span', { text: MOODS[m] }),
+      showCount ? U.el('div.bar', [U.el('i', { style: { width: s.todayPct + '%' } })]) : null]);
     var edit = U.el('button.circle-btn.buddy-edit', { attrs: { 'aria-label': 'Personalizar tu personaje', title: 'Personalizar' }, on: { click: function (e) { e.stopPropagation(); Character.edit(); } } }, [U.icon('palette')]);
     if (desk) return U.el('div.group.card.side-card.buddy-card', [U.el('div.buddy-row', [b, meta, edit]), bubble]);
     return U.el('div.buddy-strip', [b, U.el('div.buddy-say', [bubble]), edit]);
+  }
+
+  /**
+   * Móvil · tu día en una sola tarjeta: el personaje, cuántas llevas (con su barra), la racha y
+   * el enfoque de hoy, y una frase que propone por dónde seguir (sin repetir el recuento).
+   */
+  function dayCard() {
+    var st = S(), s = st.stats(), m = mood();
+    var bubble = U.el('div.buddy-bubble.static');
+    var b = node({ size: 58, mood: m, bubble: false });
+    var idx = 0;
+    var fill = function (l) {
+      U.clear(bubble);
+      bubble.appendChild(U.el('span', { text: l.text }));
+      if (l.action) bubble.appendChild(U.el('button.btn.xs.soft', { text: l.action.label, on: { click: function (e) { e.stopPropagation(); l.action.run(); } } }));
+      bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
+    };
+    fill(lines({ next: true })[0]);
+    b.addEventListener('click', function () { var l = lines({ next: true }); idx++; fill(l[idx % l.length]); });
+    var chips = [];
+    if (s.streak) chips.push(U.el('span.hero-chip', [U.icon('flame'), U.el('b', { text: String(s.streak) }), (s.streak === 1 ? ' día' : ' días') + ' de racha']));
+    if (s.focusToday) chips.push(U.el('span.hero-chip', [U.icon('timer'), U.el('b', { text: String(s.focusToday) }), ' min de enfoque']));
+    var pct = s.todayPct;
+    var info = U.el('button.day-info', { attrs: { type: 'button', title: 'Ver tu perfil y resumen' }, on: { click: function () { W.Router.go('progress'); } } }, [
+      U.el('strong', { text: s.todayTotal ? s.todayDone + ' de ' + s.todayTotal + ' hechas hoy' : 'Nada programado para hoy' }),
+      s.todayTotal ? U.el('span.bar', { attrs: { role: 'progressbar', 'aria-label': 'Progreso de hoy', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) } },
+        [U.el('i', { style: { width: pct + '%' } })]) : null,
+      chips.length ? U.el('span.hero-chips', chips) : null
+    ]);
+    var edit = U.el('button.circle-btn.buddy-edit', { attrs: { 'aria-label': 'Personalizar tu personaje', title: 'Personalizar' }, on: { click: function (e) { e.stopPropagation(); Character.edit(); } } }, [U.icon('palette')]);
+    return U.el('div.day-card', [U.el('div.day-row', [b, info, edit]), bubble]);
   }
 
   /** Ilustración para pantallas vacías: personaje con un objeto */
@@ -455,6 +511,7 @@ window.Whider = window.Whider || {};
     mood: mood,
     lines: lines,
     companion: companion,
+    dayCard: dayCard,
     illustration: illustration,
     edit: edit
   };

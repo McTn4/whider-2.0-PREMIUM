@@ -122,7 +122,8 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   W.Screens.focus = {
     title: 'Enfoque',
-    linkTask: function (id) { T.taskId = id; if (!T.running) setMode('work', true); share(); update(); },
+    // Enfocarse en una tarea la deja «en curso»
+    linkTask: function (id) { T.taskId = id; if (S().setStarted) S().setStarted(id, true); if (!T.running) setMode('work', true); share(); update(); },
     /** Llamado al sincronizar: adopta el enfoque de otro dispositivo si es más reciente */
     adoptRemote: adoptRemote,
     /** Estado para la barra lateral y la paleta de comandos */

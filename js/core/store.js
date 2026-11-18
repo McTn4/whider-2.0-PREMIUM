@@ -50,6 +50,20 @@ window.Whider = window.Whider || {};
     graphite: { name: 'Plata',    a: '#A3AAB9', on: '#101217' }
   };
 
+  /*
+   * Color opcional de cada categoría (por defecto, ninguno: la app sigue en blanco y negro).
+   * Cinco tonos comprobados sobre el fondo oscuro: contraste ≥ 3:1 y separados entre sí también
+   * para quien no distingue bien rojo y verde. El color nunca va solo: acompaña al nombre y al icono.
+   * El rojo y el ámbar quedan para la prioridad (urgente e importante).
+   */
+  var LIST_TINTS = {
+    verde:    { name: 'Verde',    hex: '#008300' },
+    azul:     { name: 'Azul',     hex: '#3987E5' },
+    turquesa: { name: 'Turquesa', hex: '#199E70' },
+    violeta:  { name: 'Violeta',  hex: '#9085E9' },
+    rosa:     { name: 'Rosa',     hex: '#D55181' }
+  };
+
   var PRIORITIES = {
     danger: { label: 'Urgente', short: 'Urgente', rank: 0 },
     purple: { label: 'Importante', short: 'Importante', rank: 1 },
@@ -91,6 +105,10 @@ window.Whider = window.Whider || {};
     homeHabits: true,
     homeBuddy: true,
     contrast: 'normal',
+    // Prioridad también en color (rojo urgente, ámbar importante); siempre con texto y barras
+    prioColor: false,
+    // Pestañas de la barra inferior del móvil (la cuarta es siempre «Más»)
+    dock: 'home,tasks,calendar',
     // Personalización avanzada del ordenador
     desk: {
       sidebar: { habits: true, notes: true, focus: true, stats: true, reports: true, automations: true, friends: true, chats: true, filters: true, counts: true, compact: false },
@@ -205,6 +223,8 @@ window.Whider = window.Whider || {};
       listId: typeof item.listId === 'string' && (!listIds || listIds[item.listId]) ? item.listId : null,
       repeat: REPEATS[item.repeat] ? item.repeat : 'none',
       spawnedId: typeof item.spawnedId === 'string' ? item.spawnedId : null,
+      // Empezada (en curso) desde este momento; se borra al completarla
+      startedAt: !item.done && typeof item.startedAt === 'number' && isFinite(item.startedAt) ? item.startedAt : null,
       subtasks: subs,
       focusMin: typeof item.focusMin === 'number' ? item.focusMin : 0,
       duration: typeof item.duration === 'number' && item.duration >= 5 && item.duration <= 720 ? Math.round(item.duration) : null,
@@ -226,7 +246,11 @@ window.Whider = window.Whider || {};
   function cleanLists(arr) {
     if (!Array.isArray(arr) || !arr.length) return clone(DEFAULT_LISTS);
     var out = arr.filter(function (l) { return l && typeof l.id === 'string' && typeof l.name === 'string' && l.name.trim(); })
-      .map(function (l) { return { id: l.id, name: l.name.trim().slice(0, 24), color: ACCENTS[l.color] ? l.color : 'iris', icon: cleanIcon(l.icon, l.id) }; });
+      .map(function (l) {
+        var out = { id: l.id, name: l.name.trim().slice(0, 24), color: ACCENTS[l.color] ? l.color : 'iris', icon: cleanIcon(l.icon, l.id) };
+        if (LIST_TINTS[l.tint]) out.tint = l.tint;
+        return out;
+      });
     return out.length ? out : clone(DEFAULT_LISTS);
   }
 
@@ -538,6 +562,7 @@ window.Whider = window.Whider || {};
     /** Lectura y escritura con el espejo nativo de Android (lo usa también el Cuaderno) */
     storage: { read: read, write: write, remove: remove, flush: function () { flushNative(); } },
     ACCENTS: ACCENTS,
+    LIST_TINTS: LIST_TINTS,
     PRIORITIES: PRIORITIES,
     REPEATS: REPEATS,
     DEFAULT_SETTINGS: DEFAULT_SETTINGS,
@@ -695,8 +720,9 @@ window.Whider = window.Whider || {};
       for (var i = 0; i < State.lists.length; i++) if (State.lists[i].id === id) return State.lists[i];
       return null;
     },
-    addList: function (name, color, icon) {
+    addList: function (name, color, icon, tint) {
       var l = { id: U.uid('l'), name: name.trim().slice(0, 24), color: ACCENTS[color] ? color : 'iris', icon: cleanIcon(icon) };
+      if (LIST_TINTS[tint]) l.tint = tint;
       State.lists.push(l);
       State.syncMeta.listsAt = Date.now();
       State.notify('lists');
@@ -708,6 +734,8 @@ window.Whider = window.Whider || {};
       if (fields.name && fields.name.trim()) l.name = fields.name.trim().slice(0, 24);
       if (fields.color && ACCENTS[fields.color]) l.color = fields.color;
       if (fields.icon) l.icon = cleanIcon(fields.icon, l.id);
+      // tint: nombre de un color de LIST_TINTS, o null para quitarlo
+      if (fields.tint !== undefined) { if (LIST_TINTS[fields.tint]) l.tint = fields.tint; else delete l.tint; }
       State.syncMeta.listsAt = Date.now();
       State.notify('lists');
     },
@@ -762,6 +790,7 @@ window.Whider = window.Whider || {};
       t.done = !!done;
       t.doneOn = t.done ? U.today() : null;
       t.doneAt = t.done ? Date.now() : null;
+      if (t.done) t.startedAt = null;
       if (t.done) doneLog[t.doneOn] = (doneLog[t.doneOn] || 0) + 1;
       t.updatedAt = Date.now();
       if (t.done && t.repeat !== 'none' && !t.spawnedId) {
@@ -769,7 +798,7 @@ window.Whider = window.Whider || {};
         if (nd) {
           var next = cleanTask(Object.assign({}, t, {
             id: U.uid(), date: nd, done: false, doneOn: null, doneAt: null, warnedAt: null, remindedAt: null,
-            spawnedId: null, focusMin: 0, createdAt: Date.now(), example: false,
+            spawnedId: null, startedAt: null, focusMin: 0, createdAt: Date.now(), example: false,
             subtasks: t.subtasks.map(function (s) { return { text: s.text, done: false }; })
           }));
           if (next) { State.tasks.push(next); t.spawnedId = next.id; }
@@ -781,6 +810,24 @@ window.Whider = window.Whider || {};
       }
       State.notify(t.done ? 'done' : 'undone');
       return t;
+    },
+    /** Marca una tarea como empezada (en curso) o la devuelve a pendiente */
+    setStarted: function (id, on) {
+      var t = State.find(id);
+      if (!t || t.done) return t;
+      var now = on ? (t.startedAt || Date.now()) : null;
+      if (now === t.startedAt) return t;
+      t.startedAt = now;
+      t.updatedAt = Date.now();
+      State.notify(on ? 'started' : 'update');
+      return t;
+    },
+    /** En curso: la empezaste o ya tiene alguna subtarea hecha (pero no todas) */
+    isDoing: function (t) {
+      if (!t || t.done) return false;
+      if (t.startedAt) return true;
+      var subs = t.subtasks || [], hechas = subs.filter(function (x) { return x.done; }).length;
+      return hechas > 0 && hechas < subs.length;
     },
     removeTask: function (id) {
       var idx = -1;

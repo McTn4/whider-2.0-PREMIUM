@@ -1,10 +1,9 @@
 /**
  * WHIDER · «Más» (móvil): el índice de todo WHIDER
  *
- * Arriba tu perfil con tu personaje. Después, en lista y con los mismos grupos que la barra
- * lateral del ordenador: Cuaderno y equipo (Cuaderno, Chats y Personas, con lo que tienes sin
- * leer), Rutinas (Hábitos, Enfoque y Sistemas), Análisis (Estadísticas e Informes) y Ajustes.
- * Una fila por sección con su estado al día: se recorre de un vistazo y sin huecos.
+ * Arriba tu perfil con tu personaje y, bien grandes, el Cuaderno y los Chats (con lo que tienes
+ * sin leer). Después, en lista: Personas, Rutinas (Hábitos, Enfoque y Automatizaciones), Análisis
+ * (Estadísticas e Informes) y Ajustes. Una fila por sección con su estado al día.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -19,6 +18,16 @@ window.Whider.Screens = window.Whider.Screens || {};
       value: o.badge ? U.el('span.mo-badge', { text: o.badge > 9 ? '9+' : String(o.badge), attrs: { 'aria-label': o.badge + ' sin ver' } }) : null,
       onTap: function () { if (o.run) o.run(); else W.Router.go(o.go); }
     });
+  }
+
+  /** Acceso grande (Cuaderno y Chats) */
+  function tile(o) {
+    return U.el('button.mo-tile', { attrs: { type: 'button', 'data-go': o.go }, on: { click: function () { W.Router.go(o.go); } } }, [
+      U.el('span.mo-tile-ic', [U.icon(o.icon)]),
+      U.el('b', { text: o.label }),
+      U.el('small', { text: o.sub }),
+      o.badge ? U.el('span.mo-badge', { text: o.badge > 9 ? '9+' : String(o.badge), attrs: { 'aria-label': o.badge + ' sin leer' } }) : null
+    ]);
   }
 
   W.Screens.more = {
@@ -37,16 +46,17 @@ window.Whider.Screens = window.Whider.Screens || {};
       var pages = W.Pages ? W.Pages.count() : 0;
       W.UI.mount(root, head, [
         me,
-        // Mismos grupos y mismo orden que la barra lateral del ordenador
-        W.UI.section({ header: 'Cuaderno y equipo', items: [
-          row({ go: 'notes', icon: 'notebook', label: 'Cuaderno', sub: pages ? U.plural(pages, 'página', 'páginas') : 'Páginas, archivos y bases de datos' }),
-          row({ go: 'chats', icon: 'chat', label: 'Chats', sub: unread ? U.plural(unread, 'mensaje sin leer', 'mensajes sin leer') : 'Con tus contactos y equipos', badge: unread }),
+        U.el('div.mo-tiles', [
+          tile({ go: 'notes', icon: 'notebook', label: 'Cuaderno', sub: pages ? U.plural(pages, 'página', 'páginas') : 'Notas, listas y archivos' }),
+          tile({ go: 'chats', icon: 'chat', label: 'Chats', sub: unread ? U.plural(unread, 'mensaje sin leer', 'mensajes sin leer') : 'Con tus contactos y equipos', badge: unread })
+        ]),
+        W.UI.section({ header: 'Equipo', items: [
           row({ go: 'friends', icon: 'users', label: 'Personas', sub: reqs ? U.plural(reqs, 'solicitud', 'solicitudes') + ' por responder' : 'Amigos, trabajo y equipos', badge: reqs })
         ] }),
         W.UI.section({ header: 'Rutinas', items: [
           row({ go: 'habits', icon: 'target', label: 'Hábitos', sub: habitsLeft ? 'Te ' + (habitsLeft === 1 ? 'queda 1' : 'quedan ' + habitsLeft) + ' hoy' : 'Rutinas y rachas' }),
           row({ go: 'focus', icon: 'timer', label: 'Enfoque', sub: f.running ? f.text + ' · en marcha' : 'Temporizador para concentrarte' }),
-          row({ go: 'automations', icon: 'system', label: 'Sistemas', sub: 'Métodos y automatizaciones' })
+          row({ go: 'automations', icon: 'system', label: 'Automatizaciones', sub: 'Reglas y métodos listos para usar' })
         ] }),
         W.UI.section({ header: 'Análisis', items: [
           row({ go: 'stats', icon: 'chart', label: 'Estadísticas', sub: 'Tu progreso' }),

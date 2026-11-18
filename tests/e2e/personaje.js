@@ -23,8 +23,8 @@ async function setup(b, viewport, mobile) {
   const b = await chromium.launch();
   {
     const { p, errs } = await setup(b, { width: 390, height: 844 }, true);
-    ok('Hoy (móvil): tira del personaje', await p.evaluate(() => !!document.querySelector('#screen-home .buddy-strip .ch-svg')));
-    await p.click('#screen-home .buddy-strip .buddy'); await sleep(400);
+    ok('Hoy (móvil): el personaje en la tarjeta del día', await p.evaluate(() => !!document.querySelector('#screen-home .day-card .ch-svg')));
+    await p.click('#screen-home .day-card .buddy'); await sleep(400);
     ok('tocar el personaje cambia la frase', await p.evaluate(() => document.querySelector('#screen-home .buddy-bubble').textContent.length > 5));
     if (SHOTS) await p.screenshot({ path: SHOTS + '/m-buddy-home.png' });
     await p.evaluate(() => Whider.Character.edit()); await sleep(500);

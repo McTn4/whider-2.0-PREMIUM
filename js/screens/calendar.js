@@ -309,7 +309,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         attrs: { role: 'button', tabindex: '0', 'aria-label': U.fmtTime(x.t.time) + ', ' + x.t.text + (x.proj ? ' (se repite)' : '') },
         style: { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(34, HOUR_H * 0.75 - 2) + 'px',
           left: 'calc(' + (x.col / x.cols * 100) + '% + ' + (x.col ? 3 : 0) + 'px)', width: 'calc(' + (100 / x.cols) + '% - ' + (x.cols > 1 ? 3 : 0) + 'px)' }
-      }, [U.el('b', { text: x.t.text }), U.el('small', { text: U.fmtTime(x.t.time) + (x.proj ? ' · se repite' : '') })]);
+      }, [U.el('b', [W.Lists.dot(x.t.listId), x.t.text]), U.el('small', { text: U.fmtTime(x.t.time) + (x.proj ? ' · se repite' : '') })]);
       if (x.proj || x.t.done) blk.addEventListener('click', function (e) { e.stopPropagation(); W.Editor.open(x.t.id); });
       else attachDrag(st, blk, x.t, startMin);
       hours.appendChild(blk);
@@ -426,7 +426,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var t = x.t, late = !x.proj && st.isOverdue(t);
     var chip = U.el('button.mg-chip' + (x.proj ? '.rep' : '') + (!x.proj && t.done ? '.done' : '') + (late ? '.late' : '') + (t.highlight !== 'none' && !t.done ? '.p-' + t.highlight : ''), {
       attrs: { type: 'button', title: (t.time ? U.fmtTime(t.time) + ' · ' : '') + t.text + (x.proj ? ' (se repite)' : '') }
-    }, [t.time ? U.el('b', { text: U.fmtTime(t.time) }) : null, U.el('span', { text: t.text })]);
+    }, [W.Lists.dot(t.listId), t.time ? U.el('b', { text: U.fmtTime(t.time) }) : null, U.el('span', { text: t.text })]);
     chip.addEventListener('click', function (e) { e.stopPropagation(); W.Editor.open(t.id); });
     chip.addEventListener('dblclick', function (e) { e.stopPropagation(); });
     if (!x.proj) {

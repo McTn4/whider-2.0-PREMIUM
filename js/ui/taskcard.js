@@ -4,8 +4,10 @@
  *  - Deslizar → completar · deslizar ← eliminar (con Deshacer)
  *  - En el ordenador: clic derecho para más opciones y arrastrar la tarea a una lista,
  *    a «Hoy» o a un día del calendario
- * La prioridad se ve en la luz: el borde de la casilla brilla más y a la derecha se encienden
- * una, dos o tres barras (destacada · importante · urgente).
+ * La prioridad se ve de tres formas a la vez: a la derecha se rellenan una, dos o tres barras
+ * (destacada · importante · urgente; las vacías quedan solo con su contorno), lo urgente y lo
+ * importante lo dicen también con texto, y quien lo active en Ajustes la ve además en color.
+ * Una tarea empezada («en curso») lleva media casilla rellena y lo dice en su línea.
  */
 window.Whider = window.Whider || {};
 
@@ -14,6 +16,8 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
   var PRIO_CLS = { danger: '.p-danger', purple: '.p-purple', star: '.p-star', none: '' };
   var PRIO_NAME = { danger: 'urgente', purple: 'importante', star: 'destacada' };
+  // Lo que se escribe junto a la tarea (lo destacado basta con su barra)
+  var PRIO_TEXT = { danger: { cls: '.p3', text: 'Urgente' }, purple: { cls: '.p2', text: 'Importante' } };
 
   var Actions = {
     toggle: function (id, animated) {
@@ -63,6 +67,7 @@ window.Whider = window.Whider || {};
         { value: 'edit', label: 'Editar…', icon: 'edit' }
       ];
       if (!t.done) {
+        items.push({ value: 'doing', label: t.startedAt ? 'Quitar de «En curso»' : 'Marcar «En curso»', icon: 'play' });
         items.push({ value: 'today', label: 'Para hoy', icon: 'sun', gap: true, on: t.date === td });
         items.push({ value: 'tomorrow', label: 'Para mañana', icon: 'calendar', on: t.date === U.addDays(td, 1) });
         items.push({ value: 'monday', label: 'Para el lunes', desc: U.fmtLong(next), icon: 'week', on: t.date === next });
@@ -76,6 +81,7 @@ window.Whider = window.Whider || {};
         if (!v) return;
         if (v === 'toggle') Actions.toggle(id, false);
         else if (v === 'edit') W.Editor.open(id);
+        else if (v === 'doing') st.setStarted(id, !t.startedAt);
         else if (v === 'today') st.updateTask(id, { date: td });
         else if (v === 'tomorrow') st.updateTask(id, { date: U.addDays(td, 1) });
         else if (v === 'monday') st.updateTask(id, { date: next });
@@ -137,14 +143,23 @@ window.Whider = window.Whider || {};
   }
 
   /** Línea de detalles: "Mañana, 10:30 · Trabajo · 1/3 · ↻" (lo que no aporta, no se muestra) */
+  /** Nombre de la categoría con su punto de color (si se le eligió uno) */
+  function listLabel(list) {
+    var tint = list.tint && S().LIST_TINTS[list.tint];
+    return U.el('span.m-list', [tint ? U.el('i.tint-dot', { style: { '--tint': tint.hex }, attrs: { 'aria-hidden': 'true' } }) : null, list.name]);
+  }
+
   function metaLine(t, ctx) {
     var parts = [], st = S(), late = st.isOverdue(t);
     var showDay = t.date && (ctx === 'alerts' || (!(ctx === 'today' && t.date === U.today()) && ctx !== 'day'));
     var day = showDay ? U.fmtDay(t.date) : '', time = t.time && ctx !== 'day' ? U.fmtTime(t.time) : '';
     if (t.done && t.doneOn && ctx === 'done') { day = 'Completada ' + U.fmtDay(t.doneOn).toLowerCase(); time = ''; }
+    var pt = !t.done && PRIO_TEXT[t.highlight];
+    if (pt) parts.push(U.el('span.m-prio' + pt.cls, { text: pt.text }));
+    if (st.isDoing(t)) parts.push(U.el('span.m-doing', { text: 'En curso' }));
     if (day || time) parts.push(U.el('span' + (late ? '.late' : ''), [day + (day && time ? ', ' : ''), time ? U.el('span.m-num', { text: time }) : null]));
     var list = t.listId ? st.getList(t.listId) : null;
-    if (list && ctx !== 'list') parts.push(U.el('span', { text: list.name }));
+    if (list && ctx !== 'list') parts.push(listLabel(list));
     if (t.subtasks.length) parts.push(U.el('span.m-num', { text: t.subtasks.filter(function (s) { return s.done; }).length + '/' + t.subtasks.length }));
     var icons = [];
     if (ctx === 'alerts') icons = null;   // en Vencidas basta con la fecha resaltada
@@ -218,8 +233,10 @@ window.Whider = window.Whider || {};
   /** create(tarea, { ctx: 'today'|'list'|'day'|'alerts'|'done', swipe, postpone, time }) */
   function create(t, opts) {
     opts = opts || {};
-    var check = U.el('button.check' + (PRIO_CLS[t.highlight] || '') + (t.done ? '.on' : ''), {
-      attrs: { 'aria-label': (t.done ? 'Marcar como pendiente: ' : 'Completar: ') + t.text + (PRIO_NAME[t.highlight] ? ' (' + PRIO_NAME[t.highlight] + ')' : ''), 'aria-pressed': t.done ? 'true' : 'false' }
+    var doing = S().isDoing(t);
+    var extra = [PRIO_NAME[t.highlight], doing ? 'en curso' : ''].filter(Boolean).join(', ');
+    var check = U.el('button.check' + (PRIO_CLS[t.highlight] || '') + (t.done ? '.on' : '') + (doing ? '.doing' : ''), {
+      attrs: { 'aria-label': (t.done ? 'Marcar como pendiente: ' : 'Completar: ') + t.text + (extra ? ' (' + extra + ')' : ''), 'aria-pressed': t.done ? 'true' : 'false' }
     });
     check.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
     var title = U.el('span.task-title', { text: t.text });
@@ -236,7 +253,7 @@ window.Whider = window.Whider || {};
       check, main,
       trail.length ? U.el('div.task-trail', trail) : null
     ]);
-    var node = U.el('li.task' + (t.done ? '.is-done' : '') + (S().isOverdue(t) ? '.overdue' : '') + (W.Select && W.Select.has(t.id) ? '.selected' : ''), { attrs: { 'data-id': t.id } }, [body]);
+    var node = U.el('li.task' + (t.done ? '.is-done' : '') + (doing ? '.doing' : '') + (S().isOverdue(t) ? '.overdue' : '') + (W.Select && W.Select.has(t.id) ? '.selected' : ''), { attrs: { 'data-id': t.id } }, [body]);
     body.setAttribute('tabindex', '-1');
     node.addEventListener('contextmenu', function (e) {
       e.preventDefault();
@@ -284,5 +301,5 @@ window.Whider = window.Whider || {};
     return ul;
   }
 
-  W.TaskCard = { create: create, list: list, actions: Actions, metaLine: metaLine };
+  W.TaskCard = { create: create, list: list, actions: Actions, metaLine: metaLine, listLabel: listLabel };
 })(window.Whider);

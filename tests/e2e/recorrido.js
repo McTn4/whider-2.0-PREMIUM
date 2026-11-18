@@ -52,9 +52,9 @@ async function setup(b, viewport, mobile) {
     ok('Hoy móvil con prioridades', await p.evaluate(() => document.querySelectorAll('#screen-home .sec.top3 .task').length === 3));
     if (OUT) await p.screenshot({ path: OUT + '/m-home.png' });
     await p.click('.dock .tab[data-go="more"]'); await sleep(450);
-    ok('pantalla Más', await p.evaluate(() => Whider.State.activeScreen === 'more' && document.querySelectorAll('#screen-more .mo-row').length >= 9));
+    ok('pantalla Más', await p.evaluate(() => Whider.State.activeScreen === 'more' && document.querySelectorAll('#screen-more .mo-row, #screen-more .mo-tile').length >= 9));
     if (OUT) await p.screenshot({ path: OUT + '/m-more.png' });
-    await p.click('#screen-more .mo-row[data-go="notes"]'); await sleep(450);
+    await p.click('#screen-more [data-go="notes"]'); await sleep(450);
     ok('Cuaderno desde Más (pestaña Más marcada)', await p.evaluate(() => Whider.State.activeScreen === 'notes' && document.querySelector('.dock .tab[data-go="more"]').classList.contains('active')));
     await p.evaluate(() => Whider.Notes.newPage({})); await sleep(500);
     await p.keyboard.type('Lista de la compra'); await p.keyboard.press('Enter'); await p.keyboard.type('[] Leche'); await p.keyboard.press('Enter'); await p.keyboard.type('Pan'); await sleep(400);

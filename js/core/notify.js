@@ -209,8 +209,13 @@ window.Whider = window.Whider || {};
         b.textContent = n > 9 ? '9+' : String(n);
         b.classList.toggle('show', n > 0);
       });
-      // Chats sin leer y solicitudes (pestaña «Más» del móvil)
-      var social = (W.Chat ? W.Chat.unreadCount() : 0) + (W.People ? W.People.pendingCount() : 0);
+      // Chats sin leer (en su pestaña, si la tiene) y solicitudes (pestaña «Más» del móvil)
+      var unread = W.Chat ? W.Chat.unreadCount() : 0, chatsTab = !!(W.Dock && W.Dock.slots().indexOf('chats') >= 0);
+      var social = (chatsTab ? 0 : unread) + (W.People ? W.People.pendingCount() : 0);
+      U.$$('[data-badge="chats"]').forEach(function (b) {
+        b.textContent = unread > 9 ? '9+' : String(unread);
+        b.classList.toggle('show', unread > 0);
+      });
       U.$$('[data-badge="social"]').forEach(function (b) {
         b.textContent = social > 9 ? '9+' : String(social);
         b.classList.toggle('show', social > 0);

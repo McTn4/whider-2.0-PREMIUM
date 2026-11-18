@@ -117,3 +117,33 @@ Se actualiza al cerrar cada bloque.
   publicado), `tools/capturas/` (portada, imagen para compartir y recorrido) y `tools/servir-web.py`.
 - **Vercel** instala solo lo necesario para compilar (`npm ci --omit=dev`).
 - **Guía** `docs/DESARROLLO.md`: instalar, ejecutar, probar, compilar, convenciones y problemas frecuentes.
+- Verificado en GitHub: los cinco trabajos de «Comprobaciones» (estilo y tipos, app, web, nube y escritorio)
+  pasan en la primera ejecución; Vercel publica con la instalación reducida.
+
+### Bloque 2 · Uso diario — hecho
+
+- **Prioridad legible sin depender de la luz**: barras rellenas frente a barras con solo su contorno (forma),
+  «Urgente» e «Importante» escritos junto a la tarea (texto) y, si se activa, en color (rojo y ámbar con
+  ≥ 5,8:1 de contraste, válidos también como texto). El lector de pantalla las anuncia.
+- **Colores de categoría opcionales**: campo nuevo `tint` (vacío por defecto, así nada cambia para quien no lo
+  use). Cinco tonos comprobados con el validador de paletas (contraste ≥ 3:1 sobre el fondo, separación
+  para daltonismo entre vecinos); el rojo y el ámbar quedan reservados a la prioridad. Siempre acompañan al
+  nombre y al icono. Una versión anterior que edite las categorías no conoce el campo y lo perdería.
+- **«En curso»**: campo nuevo `startedAt` en las tareas; se marca desde el menú, el editor o al enfocarse
+  en una tarea; también cuenta tener subtareas a medias. Se borra al completar y la siguiente repetición
+  empieza pendiente.
+- **Hoy rediseñado**: lo más importante → tu día (una sola tarjeta con el personaje, el progreso y la racha:
+  desaparece el recuento repetido; en el ordenador el personaje deja el recuento al bloque «Resumen del
+  día») → en curso → vencidas → pendientes → hechas. La frase del personaje propone la siguiente tarea y ya
+  no ofrece «pasar a hoy» tareas que ya son de hoy.
+- **Navegación móvil**: la barra inferior se elige (tres pestañas entre Hoy, Tareas, Calendario, Cuaderno,
+  Chats, Hábitos y Enfoque; «Más» siempre a la derecha). Por defecto no cambia nada. «Más» enseña el
+  Cuaderno y los Chats en grande. La pestaña de Chats lleva su propio aviso de mensajes sin leer.
+- **Etiquetas**: las cabeceras de sección dejan las versalitas de 10,5-12 px por texto normal de 13-15 px.
+- **Nombres claros**: «Sistemas» pasa a «Automatizaciones» («Métodos listos para usar» dentro); «3 de 5 ·
+  Elegir» pasa a «Elegir cuáles».
+- **Primeros pasos**: cinco pasos que se cumplen haciendo (primera tarea, día y hora escritos, elegir lo
+  importante, primera página, avisos), sin tareas de ejemplo; se marcan solos, se ocultan con un toque,
+  salen solo las primeras tres semanas y vuelven desde *Ajustes → Ayuda*.
+- **Pruebas**: `tests/e2e/uso-diario.js` (43 comprobaciones en móvil y ordenador) y 3 unitarias nuevas; la
+  auditoría de accesibilidad (axe) sigue sin incumplimientos: los botones nuevos se nombran con su texto visible.

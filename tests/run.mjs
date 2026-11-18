@@ -38,7 +38,8 @@ export const GRUPOS = {
     'qr',
     'menu-bloques',
     'adjuntos',
-    'accesibilidad'
+    'accesibilidad',
+    'uso-diario'
   ],
   // Cuentas, sincronización y comunidad contra los emuladores de Firebase
   nube: ['comunidad', 'eliminar-cuenta', 'adjuntos-nube', 'version-1'],

@@ -144,6 +144,11 @@ window.Whider = window.Whider || {};
       });
       var prioRow = U.el('div.cell.col', [U.el('span.cell-row', [W.UI.cellIcon('flag'), U.el('span.cell-title', { text: 'Prioridad' })]),
         U.el('div.prio-row', prioBtns)]);
+      /* ----- En curso: ya la empezaste (sale aparte en Hoy) ----- */
+      var doingTog = W.UI.toggle(!!d.startedAt, function (v) { d.startedAt = v ? (d.startedAt || Date.now()) : null; }, 'En curso');
+      var doingRow = U.el('div.cell.has-icon', [W.UI.cellIcon('play'),
+        U.el('span.cell-main', [U.el('span.cell-title', { text: 'En curso' }), U.el('span.cell-sub', { text: 'Ya la empezaste: en Hoy sale aparte' })]), doingTog]);
+      if (d.done) doingRow.style.display = 'none';
 
       var setValue = function (row, text) { var v = row.querySelector('.cell-value > span'); if (v) v.textContent = text; };
       var renderWhen = function (keepCal) {
@@ -220,7 +225,7 @@ window.Whider = window.Whider || {};
         U.el('div.group.editor-fields', [U.el('label.cell', [title]), U.el('label.cell', [notes])]),
         U.el('div.group', [dateRow, calRow, timeRow, durRow]),
         U.el('div.group', [warnRow, remindRow, repeatRow]),
-        U.el('div.group', [listRow, prioRow]),
+        U.el('div.group', [listRow, prioRow, doingRow]),
         W.UI.section({ header: 'Subtareas', items: subGroup })
       ];
       if (!isNew && src.focusMin) body.push(U.el('p.hint', { text: src.focusMin + ' min de enfoque dedicados a esta tarea' }));

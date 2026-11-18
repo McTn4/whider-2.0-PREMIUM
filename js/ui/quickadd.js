@@ -65,7 +65,7 @@ window.Whider = window.Whider || {};
       var ignore = {};          // detecciones descartadas
       var parsed = null, added = 0;
 
-      var input = U.el('textarea.qa-input', { attrs: { rows: 1, maxlength: 200, placeholder: 'Escribe una tarea', enterkeyhint: 'send', 'aria-label': 'Nueva tarea' } });
+      var input = U.el('textarea.qa-input', { attrs: { rows: 1, maxlength: 200, placeholder: preset.placeholder || 'Escribe una tarea', enterkeyhint: 'send', 'aria-label': 'Nueva tarea' } });
       var detected = U.el('div.qa-detected', { attrs: { 'aria-live': 'polite' } });
       var chips = U.el('div.chips');
       var help = U.el('p.qa-help', ['Ej.: ', U.el('code', { text: 'Llamar a Ana mañana a las 10 #trabajo !!' }), U.el('br'),

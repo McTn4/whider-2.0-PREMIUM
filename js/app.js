@@ -10,13 +10,15 @@ window.Whider = window.Whider || {};
   var U = W.U, S = W.State;
   var CFG = window.WHIDER_CONFIG || {};
 
-  /** Aplica tamaño de texto, densidad y animaciones (la app es en blanco y negro: no hay colores que elegir) */
+  /** Aplica tamaño de texto, densidad, animaciones, la prioridad en color (opcional) y la barra inferior */
   function applyAppearance() {
     var cfg = S.settings, html = document.documentElement;
     html.setAttribute('data-text', cfg.textSize);
     html.setAttribute('data-density', cfg.density);
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
     html.setAttribute('data-contrast', cfg.contrast === 'high' ? 'high' : 'normal');
+    html.setAttribute('data-prio-color', cfg.prioColor ? 'on' : 'off');
+    if (W.Dock) W.Dock.render();
     // Personalización del ordenador: contenido a todo el ancho
     html.setAttribute('data-wide', cfg.desk && cfg.desk.wide ? 'true' : 'false');
     // El tamaño de texto se aplica antes de pintar en el siguiente arranque

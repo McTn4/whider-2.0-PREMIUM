@@ -34,8 +34,23 @@ window.Whider.Screens = window.Whider.Screens || {};
   /* ---------- Categorías: crear, editar y eliminar ---------- */
   var CAT_ICONS = ['list', 'user', 'briefcase', 'heart', 'home', 'book', 'cart', 'wallet', 'dumbbell', 'send', 'music', 'code', 'paw', 'gift', 'leaf', 'star', 'target', 'coffee', 'camera', 'flag'];
   function listIcon(l) { return l && l.icon ? l.icon : 'list'; }
+  /** Color opcional de la categoría: { name, hex } o null */
+  function listTint(l) { return l && l.tint ? S().LIST_TINTS[l.tint] || null : null; }
+  /** Punto de color de la categoría de una tarea (o nada si no tiene color) */
+  function listDot(listId) {
+    var tint = listTint(listId ? S().getList(listId) : null);
+    return tint ? U.el('i.tint-dot', { style: { '--tint': tint.hex }, attrs: { 'aria-hidden': 'true' } }) : null;
+  }
+  /** Colorea el icono de un elemento que representa la categoría */
+  function paint(node, l) {
+    var tint = listTint(l);
+    if (!tint || !node) return node;
+    node.classList.add('tinted');
+    node.style.setProperty('--tint', tint.hex);
+    return node;
+  }
   function editList(list, after, afterRemove) {
-    var st = S(), icon = list ? listIcon(list) : 'list';
+    var st = S(), icon = list ? listIcon(list) : 'list', tint = list && list.tint ? list.tint : null;
     var name = U.el('input.list-name', { attrs: { type: 'text', maxlength: 24, placeholder: 'Nombre de la categoría', enterkeyhint: 'done', 'aria-label': 'Nombre de la categoría' } });
     name.value = list ? list.name : '';
     var picker = U.el('div.icon-pick.cat-pick', CAT_ICONS.map(function (ic) {
@@ -43,10 +58,24 @@ window.Whider.Screens = window.Whider.Screens || {};
       b.addEventListener('click', function () { icon = ic; U.$$('button', picker).forEach(function (x) { x.classList.toggle('active', x === b); }); W.Audio.select(); });
       return b;
     }));
+    // Color opcional: «Ninguno» deja la categoría en blanco y negro, como el resto de la app
+    var tints = [{ id: null, name: 'Ninguno', hex: null }].concat(Object.keys(st.LIST_TINTS).map(function (k) { return { id: k, name: st.LIST_TINTS[k].name, hex: st.LIST_TINTS[k].hex }; }));
+    var tintPick = U.el('div.tint-pick', { attrs: { role: 'radiogroup', 'aria-label': 'Color de la categoría' } }, tints.map(function (c) {
+      var b = U.el('button.tint-opt' + (c.id === tint ? '.active' : '') + (c.id ? '' : '.none'), {
+        attrs: { type: 'button', role: 'radio', 'aria-checked': c.id === tint ? 'true' : 'false', 'aria-label': c.name, title: c.name },
+        style: c.hex ? { '--tint': c.hex } : null
+      }, [U.el('i'), U.el('span', { text: c.name })]);
+      b.addEventListener('click', function () {
+        tint = c.id;
+        U.$$('button', tintPick).forEach(function (x) { var on = x === b; x.classList.toggle('active', on); x.setAttribute('aria-checked', on ? 'true' : 'false'); });
+        W.Audio.select();
+      });
+      return b;
+    }));
     var ok = function () {
       var v = name.value.trim();
       if (!v) { name.focus(); name.classList.add('shake'); setTimeout(function () { name.classList.remove('shake'); }, 450); return; }
-      var res = list ? (st.updateList(list.id, { name: v, icon: icon }), list) : st.addList(v, null, icon);
+      var res = list ? (st.updateList(list.id, { name: v, icon: icon, tint: tint }), list) : st.addList(v, null, icon, tint);
       s.close();
       if (after) after(res);
     };
@@ -58,6 +87,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       body: [
         name,
         W.UI.section({ header: 'Icono', items: U.el('div.group', [U.el('div.cell.col', [picker])]) }),
+        W.UI.section({ header: 'Color', items: U.el('div.group', [U.el('div.cell.col', [tintPick])]), footer: 'Opcional. Se ve como un punto junto al nombre de la categoría.' }),
         list && st.lists.length > 1 ? U.el('div.group', [W.UI.cell({ title: 'Eliminar la categoría', center: true, danger: true, onTap: function () {
           removeList(list, function () { s.close(); if (afterRemove) afterRemove(); });
         } })]) : null
@@ -71,7 +101,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     W.Sheet.confirm({ title: '¿Eliminar «' + list.name + '»?', text: 'Sus tareas no se borran: quedarán sin categoría.', ok: 'Eliminar', danger: true })
       .then(function (ok) { if (ok) { st.removeList(list.id); if (after) after(); } });
   }
-  W.Lists = { edit: editList, remove: removeList, icon: listIcon, ICONS: CAT_ICONS };
+  W.Lists = { edit: editList, remove: removeList, icon: listIcon, tint: listTint, dot: listDot, paint: paint, ICONS: CAT_ICONS };
 
   /* ---------- Filtrado, orden y agrupación ---------- */
   function matches(t, q) {
@@ -336,7 +366,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     }));
     var lists = st.lists.map(function (l) {
       var n = st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length;
-      return W.UI.cell({ icon: listIcon(l), title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () { Screen.open({ type: 'list', id: l.id }); } });
+      return paint(W.UI.cell({ icon: listIcon(l), title: l.name, value: U.el('span.list-count', { text: n }), onTap: function () { Screen.open({ type: 'list', id: l.id }); } }), l);
     });
     browse.appendChild(grid);
     lists.push(W.UI.cell({ icon: 'plus', title: 'Nueva categoría', accent: true,

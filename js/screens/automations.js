@@ -221,15 +221,15 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   W.Screens.automations = {
-    title: 'Sistemas',
+    title: 'Automatizaciones',
     edit: editRule,
     SYSTEMS: SYSTEMS,
     back: function () { if (W.Layout.desktop) return false; W.Router.back(); return true; },
     render: function (root) {
       var st = S(), desk = W.Layout.desktop;
       var custom = st.rules.filter(function (r) { return !r.template || r.template.indexOf('sys-') === 0; });
-      var head = W.UI.header({ title: 'Sistemas', back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } },
-        sub: 'Métodos y automatizaciones que trabajan por ti',
+      var head = W.UI.header({ title: 'Automatizaciones', back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } },
+        sub: 'Reglas que trabajan por ti y métodos listos para usar',
         actions: desk ? [{ text: 'Nueva regla', icon: 'plus', label: 'Nueva regla', onTap: function () { editRule(null); } }] : [] });
       var content = [];
       // Sistemas profesionales
@@ -241,7 +241,7 @@ window.Whider.Screens = window.Whider.Screens || {};
           U.el('button.btn.sm.' + (done ? 'ghost' : 'primary'), { on: { click: function () { install(sys); } } }, [done ? 'Instalado · reinstalar' : 'Instalar'])
         ]);
       }));
-      content.push(W.UI.section({ title: 'Sistemas profesionales', first: true, items: cards }));
+      content.push(W.UI.section({ title: 'Métodos listos para usar', first: true, items: cards }));
       // Plantillas rápidas
       content.push(W.UI.section({ title: 'Automatizaciones rápidas', items: A().TEMPLATES.map(templateCell),
         footer: 'Se ejecutan solas, también con la app en segundo plano mientras esté abierta.' }));
