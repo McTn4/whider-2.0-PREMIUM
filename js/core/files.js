@@ -7,6 +7,9 @@
  *    archivo se sube en trozos (…/files/{id}/parts/{n}) y su ficha (…/files/{id}) se escribe la
  *    última: si la ficha existe, el archivo está completo.
  *      · Páginas tuyas: users/{uid}/files        · Páginas de un equipo: spaces/{id}/files
+ *    Con Firebase Storage activado (WHIDER_CONFIG.storage), el archivo va entero a Storage, en la misma ruta
+ *    (users/{uid}/files/{id} o spaces/{id}/files/{id}), y su ficha lleva where: 's'. Lo que ya estaba en trozos
+ *    se sigue leyendo y borrando igual: cada ficha dice dónde está su archivo.
  *  - En otro dispositivo se descarga la primera vez que se abre la página y se queda guardado.
  *
  * Los bloques solo guardan la referencia ({ f, n, m, s }); el sitio en la nube es el de su página.
@@ -284,6 +287,30 @@ window.Whider = window.Whider || {};
     return !!(s && !s.left);
   }
   function path(sk) { return sk === 'me' ? ['users', uid(), 'files'] : ['spaces', sk.slice(2), 'files']; }
+  /** Firebase Storage, si está activado (si no, null: todo va a Firestore en trozos) */
+  function store() { return W.Auth && W.Auth.storage ? W.Auth.storage() : null; }
+  function objRef(sk, id) { return F().ref(store(), path(sk).concat([id]).join('/')); }
+  /** Lo que hay que borrar de un archivo en la nube según su ficha: sus trozos en Firestore, o -1 si está en Storage */
+  function partsOf(data) { return data && data.where === 's' ? -1 : (data && data.parts) | 0; }
+  /** Errores de Storage con el nombre de los de Firestore (así el resto los trata igual) */
+  function storageCode(e) {
+    var c = e && e.code;
+    if (c === 'storage/unauthorized' || c === 'storage/unauthenticated') return 'permission-denied';
+    if (c === 'storage/object-not-found') return 'missing';
+    if (c === 'storage/quota-exceeded') return 'resource-exhausted';
+    return c;
+  }
+  /** Tipos que un navegador ejecutaría si alguien abriera el archivo desde Storage: allí van como binario genérico
+   *  (su ficha conserva el tipo de verdad, que es el que usa la app) */
+  var RUNNABLE = /^(text\/html|application\/xhtml\+xml|image\/svg\+xml|text\/xml|application\/xml)$/i;
+  /** Sube el archivo entero a Storage (con su progreso) */
+  function putObject(sk, id, blob, type) {
+    return new Promise(function (resolve, reject) {
+      var task = F().uploadBytesResumable(objRef(sk, id), blob, { contentType: RUNNABLE.test(type) ? 'application/octet-stream' : type });
+      task.on('state_changed', function (s) { progress[id] = s.totalBytes ? s.bytesTransferred / s.totalBytes : 0; emit(id); },
+        function (e) { reject({ code: storageCode(e), message: e && e.message }); }, function () { resolve(); });
+    });
+  }
   function fileRef(sk, id) { return F().doc.apply(null, [DB()].concat(path(sk), [id])); }
   function partRef(sk, id, i) { return F().doc.apply(null, [DB()].concat(path(sk), [id, 'parts', String(i)])); }
   function colRef(sk) { return F().collection.apply(null, [DB()].concat(path(sk))); }
@@ -296,17 +323,18 @@ window.Whider = window.Whider || {};
       // Si ya está (lo subió otro dispositivo), no se sube otra vez
       return F().getDoc(fileRef(sk, id)).then(function (s) {
         if (s.exists() && (s.data() || {}).size === blob.size) return;
-        var n = Math.max(1, Math.ceil(blob.size / PART)), i = 0;
+        var card = { name: meta.name, type: meta.type, size: blob.size, parts: 0, at: meta.at || Date.now(), ar: meta.ar || null, by: uid() };
         progress[id] = 0; emit(id);
+        // Con Storage, entero; la ficha se escribe después (si existe, el archivo está completo)
+        if (store()) return putObject(sk, id, blob, cleanType(meta.type)).then(function () { card.where = 's'; return F().setDoc(fileRef(sk, id), card); });
+        var n = Math.max(1, Math.ceil(blob.size / PART)), i = 0;
         var next = function () {
           if (i >= n) return Promise.resolve();
           return b64(blob.slice(i * PART, Math.min(blob.size, (i + 1) * PART))).then(function (d) {
             return F().setDoc(partRef(sk, id, i), { d: d });
           }).then(function () { i++; progress[id] = i / n; emit(id); return next(); });
         };
-        return next().then(function () {
-          return F().setDoc(fileRef(sk, id), { name: meta.name, type: meta.type, size: blob.size, parts: n, at: meta.at || Date.now(), ar: meta.ar || null, by: uid() });
-        });
+        return next().then(function () { card.parts = n; return F().setDoc(fileRef(sk, id), card); });
       }).then(function () {
         var cur = recs[id]; if (!cur) return;
         cur.cloud[sk] = 'done';
@@ -322,13 +350,17 @@ window.Whider = window.Whider || {};
       var m = s.data() || {}, n = Math.max(1, Math.min(64, m.parts | 0)), got = 0, list = [];
       for (var i = 0; i < n; i++) list.push(i);
       progress[id] = 0; emit(id);
-      return pmap(list, 3, function (k) {
-        return F().getDoc(partRef(sk, id, k)).then(function (ps) {
-          if (!ps.exists()) throw { code: 'missing' };
-          got++; progress[id] = got / n; emit(id);
-          return unb64(String((ps.data() || {}).d || ''));
+      var bytes = m.where === 's'
+        // En Storage (si en este dispositivo no está activado, no se puede traer)
+        ? (store() ? F().getBytes(objRef(sk, id), MAX + 1024).then(function (buf) { return [buf]; }, function (e) { throw { code: storageCode(e) }; }) : Promise.reject({ code: 'missing' }))
+        : pmap(list, 3, function (k) {
+          return F().getDoc(partRef(sk, id, k)).then(function (ps) {
+            if (!ps.exists()) throw { code: 'missing' };
+            got++; progress[id] = got / n; emit(id);
+            return unb64(String((ps.data() || {}).d || ''));
+          });
         });
-      }).then(function (bufs) {
+      return bytes.then(function (bufs) {
         var type = cleanType(m.type), blob = new Blob(bufs, { type: type });
         if (m.size && blob.size !== m.size) throw { code: 'corrupt' };
         var meta = { id: id, name: cleanName(m.name), type: type, size: blob.size, at: +m.at || Date.now(), ar: +m.ar || null, cloud: {} };
@@ -356,13 +388,20 @@ window.Whider = window.Whider || {};
     });
     return inflight[id];
   }
+  /** parts: sus trozos en Firestore, -1 si está en Storage o 0 si no se sabe (entonces lo dice su ficha) */
   function removeRemote(sk, id, parts) {
-    var known = parts ? Promise.resolve(parts) : F().getDoc(fileRef(sk, id)).then(function (s) { return s.exists() ? ((s.data() || {}).parts | 0) : 0; });
+    var known = parts ? Promise.resolve(parts) : F().getDoc(fileRef(sk, id)).then(function (s) { return s.exists() ? partsOf(s.data() || {}) : 0; });
     return known.then(function (n) {
-      var b = F().writeBatch(DB());
-      for (var i = 0; i < Math.min(Math.max(n, 1), 64); i++) b.delete(partRef(sk, id, i));
-      b.delete(fileRef(sk, id));
-      return b.commit();
+      // En Storage (o sin ficha, por si quedó un archivo a medias): primero el objeto
+      var obj = (n < 0 || n === 0) && store()
+        ? F().deleteObject(objRef(sk, id)).catch(function (e) { if (storageCode(e) !== 'missing') throw { code: storageCode(e) }; })
+        : Promise.resolve();
+      return obj.then(function () {
+        var b = F().writeBatch(DB());
+        if (n >= 0) for (var i = 0; i < Math.min(Math.max(n, 1), 64); i++) b.delete(partRef(sk, id, i));
+        b.delete(fileRef(sk, id));
+        return b.commit();
+      });
     });
   }
   function queueDel(sk, id, parts) { (st.del[sk] = st.del[sk] || {})[id] = parts || 0; saveState(); }
@@ -442,7 +481,8 @@ window.Whider = window.Whider || {};
         if (!st.unref[id]) { st.unref[id] = now; changed = true; return; }
         if (now - st.unref[id] < GRACE) return;
         var r = recs[id];
-        Object.keys(r.cloud || {}).forEach(function (sk) { if (r.cloud[sk] === 'done') queueDel(sk, id, Math.ceil((r.size || 1) / PART)); });
+        // Con Storage no se sabe aquí dónde quedó cada copia: lo dirá su ficha al borrarla
+        Object.keys(r.cloud || {}).forEach(function (sk) { if (r.cloud[sk] === 'done') queueDel(sk, id, store() ? 0 : Math.ceil((r.size || 1) / PART)); });
         delete st.unref[id]; changed = true;
         writes.push(drop(id));
       });
@@ -473,7 +513,7 @@ window.Whider = window.Whider || {};
         if (refs[id]) { delete cu[id]; return; }
         if (!cu[id]) { cu[id] = now; return; }
         if (now - cu[id] < GRACE) return;
-        queueDel(sk, id, data.parts | 0);
+        queueDel(sk, id, partsOf(data));
         delete cu[id];
         if (recs[id] && recs[id].cloud[sk]) { delete recs[id].cloud[sk]; writes.push(write(recs[id])); }
       });
@@ -779,7 +819,7 @@ window.Whider = window.Whider || {};
       if (!online()) return Promise.resolve();
       return F().getDocs(colRef('me')).then(function (snap) {
         var list = [];
-        snap.forEach(function (d) { list.push([d.id, (d.data() || {}).parts | 0]); });
+        snap.forEach(function (d) { list.push([d.id, partsOf(d.data() || {})]); });
         return list.reduce(function (pr, x) { return pr.then(function () { return removeRemote('me', x[0], x[1]); }); }, Promise.resolve());
       }).then(function () { st.del = {}; saveState(); }).catch(function (e) { console.warn('Archivos:', e && (e.code || e.message)); });
     },
@@ -789,10 +829,12 @@ window.Whider = window.Whider || {};
       if (!online() || !/^t:[A-Za-z0-9_-]{4,40}$/.test(sk)) return Promise.resolve();
       return F().getDocs(colRef(sk)).then(function (snap) {
         var list = [];
-        snap.forEach(function (d) { list.push([d.id, (d.data() || {}).parts | 0]); });
+        snap.forEach(function (d) { list.push([d.id, partsOf(d.data() || {})]); });
         return list.reduce(function (pr, x) { return pr.then(function () { return removeRemote(sk, x[0], x[1]); }); }, Promise.resolve());
       }).catch(function (e) { console.warn('Archivos:', e && (e.code || e.message)); });
-    }
+    },
+    /** Dónde van los archivos nuevos: 'storage' (Firebase Storage) o 'firestore' (en trozos) */
+    backend: function () { return store() ? 'storage' : 'firestore'; }
   };
   W.Files = Files;
 

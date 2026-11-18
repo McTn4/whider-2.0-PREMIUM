@@ -10,54 +10,89 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-Tema claro, copias automáticas sin cuenta, ayuda dentro de la app, instalar en el iPhone, la web en inglés y una web
-que abre antes.
+La 1.1: tema claro, importar desde otras apps, un Hoy más claro, sincronización sin pérdidas, copias automáticas, más
+seguridad y un ordenador que se actualiza solo.
 
 ### Novedades
 
-- **Tema claro**: Ajustes → Apariencia → Tema (Oscuro, Claro o «Como el sistema», que cambia solo cuando el
-  dispositivo pasa de claro a oscuro). Toda la app, también el ordenador (ventana y barra de título) y Android
-  (barras del sistema), sin destellos al abrir. Contraste comprobado en todas las pantallas; el alto contraste
-  también funciona en claro. El oscuro sigue siendo el de siempre.
-- **Copias automáticas** para quien no tiene cuenta: en el ordenador, una al día en la carpeta de datos de WHIDER
-  (las 10 últimas, con la lista para recuperarlas); en Android, en Descargas › WHIDER › Copias (las 7 últimas, que
-  siguen ahí aunque desinstales la app). En el navegador, un aviso en Hoy si pasa una semana sin copia.
-- **Instalar en el iPhone**: WHIDER explica cómo añadirla a la pantalla de inicio (así funciona como una app y te
-  avisa); en Chrome y Edge, un botón «Instalar».
-- **Ayuda**: preguntas frecuentes y «Enviar comentarios» (una idea, algo que no funciona u otra cosa) en Ajustes → Ayuda.
-- **La web, también en inglés**: la portada (/en/) y la política de privacidad (/privacy/). La app sigue en español
-  por ahora, y la portada en inglés lo dice.
+- **Importar** desde Todoist, Google Tasks, Notion, calendarios (.ics) o cualquier CSV, con vista previa, categorías
+  nuevas, repetidas reconocidas y opción de deshacer durante un día (Ajustes → Datos → Importar desde otras apps).
+- **Tema claro**: Ajustes → Apariencia → Tema (Oscuro, Claro o «Como el sistema»). Toda la app, también la ventana del
+  ordenador y las barras del sistema en Android, sin destellos al abrir; el alto contraste también funciona en claro.
+- **Hoy, por estados**: lo más importante, en curso, vencidas, pendientes y hechas. Una tarea puede marcarse «En curso».
+- **Copias automáticas** sin cuenta: en el ordenador, una al día en la carpeta de datos de WHIDER (las 10 últimas, con
+  la lista para recuperarlas); en Android, en Descargas › WHIDER › Copias (las 7 últimas, que siguen ahí aunque
+  desinstales la app). En el navegador, un aviso en Hoy si pasa una semana sin copia.
+- **El ordenador se actualiza solo**: en Windows y en Linux (AppImage), WHIDER descarga la versión nueva y la instala
+  al cerrar; en macOS y en Linux (.deb) avisa con el enlace.
+- **Color por categoría** (opcional) y **prioridad legible**: «Urgente» e «Importante» se escriben junto a la tarea y
+  pueden ir en color.
+- **Android**: widget «Hoy», compartir texto con WHIDER desde otras apps y avisos a la hora exacta (permiso opcional).
+- **Barra inferior a tu gusto** en el móvil: tres pestañas entre Hoy, Tareas, Calendario, Cuaderno, Chats, Hábitos y
+  Enfoque.
+- **Ayuda** (Ajustes → Ayuda): preguntas frecuentes, las novedades de cada versión y «Enviar comentarios» (una idea,
+  algo que no funciona u otra cosa).
+- **Bloquear y denunciar** a personas, chats o mensajes. Las personas bloqueadas están en Ajustes → Privacidad.
+- **Instalar en el iPhone**: WHIDER explica cómo añadirla a la pantalla de inicio; en Chrome y Edge, un botón
+  «Instalar».
+- **Primeros pasos**: cinco pasos que se cumplen solos mientras usas la app.
+- **La web, también en inglés**: la portada (/en/) y la política de privacidad (/privacy/). La app sigue en español por
+  ahora.
 
 ### Mejoras
 
-- **Informes de errores, solo si quieres**: los errores se guardan en el dispositivo (Ajustes → Ayuda → Errores
-  recientes) y, si activas «Enviar informes de errores» en Ajustes → Privacidad, se envían sin tu nombre ni tu cuenta.
+- Sincronización sin sobrescrituras: si cambias la misma tarea en dos dispositivos a la vez, se conservan los dos
+  cambios; en el Cuaderno, las dos versiones de un bloque.
+- Errores de la nube claros, con lo que hay que hacer y reintentos de verdad; un punto en el engranaje avisa de cambios
+  sin subir.
+- La web abre antes: en un móvil de gama media, la primera visita tarda un 38 % menos hasta poder usarla, y el
+  navegador guarda la app hasta que cambia.
+- **Informes de errores, solo si quieres**: se guardan en el dispositivo (Ajustes → Ayuda → Errores recientes) y, si
+  activas «Enviar informes de errores» en Ajustes → Privacidad, se envían sin tu nombre ni tu cuenta.
+- Cuando la copia en la nube se acerca a su tamaño máximo, las tareas completadas hace más de un año pasan a un archivo
+  (se puede ver y exportar en Ajustes → Datos).
+- Menos consumo: la app consulta la nube menos a menudo cuando no la estás usando.
+- Descargas más ligeras para ordenador: un instalador para cada tipo de Mac (Apple Silicon o Intel) en lugar de uno
+  doble, y solo los idiomas que se usan. Nuevo paquete .deb para Debian, Ubuntu y Mint (no necesita libfuse2).
+- Títulos de sección más legibles; «Sistemas» pasa a llamarse «Automatizaciones».
+- En el calendario mensual del ordenador, los días del mes anterior y del siguiente se leen mejor (tenían poco
+  contraste).
+- Portada web: las novedades de cada versión, preguntas frecuentes y cómo pedir ayuda; en el iPhone, cómo añadirla
+  desde Safari.
 
-- La web abre antes: en un móvil de gama media, la primera visita tarda un 38 % menos hasta poder usarla
-  (6 archivos en lugar de 73), y el navegador guarda la app hasta que cambia.
-- En el calendario mensual del ordenador, los días del mes anterior y del siguiente se leen mejor (tenían
-  poco contraste).
-- Portada: las novedades de la versión que se descarga, preguntas frecuentes y cómo pedir ayuda. En el iPhone explica
-  cómo añadirla desde Safari en lugar de anunciar Google Play.
+### Correcciones
+
+- Al importar o crear muchas tareas de golpe, dos podían recibir el mismo identificador y una sustituía a la otra.
+
+### Seguridad
+
+- Nadie puede obtener la lista de perfiles ni de códigos de amigo; lo que otros dejan en tu buzón tiene un tamaño
+  limitado.
+- Las claves de las invitaciones y de los enlaces de equipo se generan con el generador criptográfico del sistema.
+- Política de privacidad al día: bloqueos, denuncias, archivo, alarmas exactas, quién ve el perfil público, informes de
+  errores y comentarios.
 
 ### Para desarrolladores
 
-- La web publicada va empaquetada y minimizada con esbuild (`tools/web-build.js`), con mapas de código, nombres
-  que cambian con el contenido (caché de un año) y un Service Worker cuya caché se llama como su contenido;
+- Pruebas en el repositorio: unitarias (`npm run test:unit`) y de extremo a extremo (`npm run test:todo`; las de la
+  nube, contra los emuladores de Firebase), ESLint, Prettier, TypeScript gradual e integración continua en cada cambio.
+- Versión única en `package.json`, propagada con `node tools/version.js` (también a la portada: la versión y sus
+  novedades); este CHANGELOG; publicaciones versionadas en GitHub (`.github/workflows/release.yml`) y actualizaciones
+  automáticas con electron-updater.
+- La web publicada va empaquetada y minimizada con esbuild (`tools/web-build.js`), con mapas de código, nombres que
+  cambian con el contenido (caché de un año) y un Service Worker cuya caché se llama como su contenido;
   `node tools/medir-carga.js` mide la carga con y sin empaquetar.
-- Ningún archivo pasa de 1.000 líneas: `js/core/store.js` se divide en `schema.js` (valores por defecto y limpieza
-  de los datos) y `js/ui/blocks.js` en `caret.js`, `blocks-kinds.js` y `blocks-menus.js`. El editor del Cuaderno
-  se sigue cargando solo al abrirlo, ahora con sus archivos descargados a la vez.
-- Comprobación de tipos en `schema.js` y `caret.js`; la prueba de la portada ya no depende de la API de GitHub.
-- Tema claro con variables: `css/tokens.css` define el oscuro en `:root` y el claro en `:root[data-theme='light']`
-  (solo redefine variables). `tests/unit/tema.test.js` impide grises fijos en las reglas y variables de color sin
-  valor en claro; `tests/e2e/tema.js` prueba el cambio, el arranque sin destello, «Como el sistema» y el contraste.
-- `tools/version.js` mantiene la versión y las novedades de la portada en español (desde el CHANGELOG); las de la
-  portada en inglés se traducen a mano y `npm run version:check` avisa si son de otra versión. Estilos y script de la
-  portada, compartidos por los dos idiomas (`sitio/portada.css` y `sitio/portada.js`).
-- La comprobación de contraste con axe no comprobaba nada: el contenedor fijo de la app no le dejaba calcular los
-  fondos y lo daba todo por «incompleto». `axePrep()` (en `tests/e2e/_util.js`) lo resuelve y ahora sí detecta los
-  fallos (encontró el del calendario).
+- Ningún archivo pasa de 1.000 líneas: `js/core/store.js` se divide en `schema.js` y `js/ui/blocks.js` en `caret.js`,
+  `blocks-kinds.js` y `blocks-menus.js`.
+- Tema claro con variables (`css/tokens.css`); `tests/unit/tema.test.js` impide grises fijos en las reglas y
+  `tests/e2e/tema.js` prueba el cambio, el arranque sin destello, «Como el sistema» y el contraste.
+- La comprobación de contraste con axe no comprobaba nada (el contenedor fijo de la app lo dejaba todo «incompleto»):
+  `axePrep()` en `tests/e2e/_util.js` lo resuelve.
+- Adjuntos del Cuaderno en Firebase Storage, preparados y apagados (`storage: true` en `js/config.js`, con
+  `storage.rules` y `storage-cors.json`; necesita el plan Blaze). `tests/e2e/adjuntos-storage.js` los prueba con el
+  emulador.
+- Decisiones documentadas en `docs/decisiones/` (edición simultánea, Electron o Tauri, idiomas) y análisis de costes
+  en `docs/COSTES.md`.
 
 ## [1.1.0-beta.1] · 2026-11-18
 

@@ -1,10 +1,10 @@
 # WHIDER
 
-**Tu día, bajo control.** WHIDER es una app de productividad **gratuita para ordenador (Windows, macOS y Linux), la web y Android** (pronto en Google Play) que reúne tareas por categorías, calendario profesional, un **Cuaderno** (páginas por bloques con **fotos y archivos adjuntos**, bases de datos y plantillas), hábitos, avisos, enfoque, sistemas y automatizaciones, estadísticas e informes. **Tu personaje** es tu foto de perfil, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión.
+**Tu día, bajo control.** WHIDER es una app de productividad **gratuita para ordenador (Windows, macOS y Linux), la web y Android** (pronto en Google Play) que reúne tareas por categorías, calendario profesional, un **Cuaderno** (páginas por bloques con **fotos y archivos adjuntos**, bases de datos y plantillas), hábitos, avisos, enfoque, sistemas y automatizaciones, estadísticas e informes. **Tu personaje** es tu foto de perfil, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión. Con **tema oscuro o claro** (o el del sistema), importa tus tareas de **Todoist, Google Tasks, Notion o un CSV**, y en el ordenador **se actualiza sola**.
 
 **Todo es gratis y para todos**: no hay planes de pago, anuncios ni compras dentro de la app.
 
-**Web: [whider-red.vercel.app](https://whider-red.vercel.app)** — la portada presenta WHIDER y ofrece la descarga para tu dispositivo (en el ordenador, Windows, macOS o Linux; en el móvil, Google Play, próximamente). La app en el navegador está en [`/app`](https://whider-red.vercel.app/app).
+**Web: [whider-red.vercel.app](https://whider-red.vercel.app)** — la portada presenta WHIDER, sus novedades y preguntas frecuentes, y ofrece la descarga para tu dispositivo (en el ordenador, Windows, macOS o Linux; en el iPhone, cómo añadirla desde Safari; en Android, Google Play, próximamente). También [en inglés](https://whider-red.vercel.app/en/) (la app, de momento, está en español). La app en el navegador está en [`/app`](https://whider-red.vercel.app/app).
 
 **Diseño «Índice»**, en blanco y negro: cabeceras cerradas por una regla fina, secciones en versalitas y **esquinas curvadas** y precisas en tarjetas, hojas, botones, campos y etiquetas, igual que en los iconos de la app, una colección propia en rejilla de 24. Dos tipografías: **Outfit**, geométrica y rotunda, en los títulos, las cabeceras y las cifras grandes, y **Onest**, una grotesca moderna de x alta y aperturas abiertas, muy legible en pantallas pequeñas, en el resto del texto, con cifras tabulares en horas y contadores.
 
@@ -228,6 +228,7 @@ Se abre `http://localhost:8080` y la consola muestra también la dirección para
 | `/descargar` | Lleva a la sección de descarga de la portada (también desde **Ajustes → Descargar la app** en la web). |
 | `/i/…` | Invitaciones: abren la app o la web y ofrecen las mismas descargas. |
 | `/privacidad/` | Política de privacidad; «Eliminar mi cuenta» abre `/app#cuenta`. |
+| `/en/` y `/privacy/` | La portada y la política de privacidad en inglés ([`sitio/en/index.html`](sitio/en/index.html), [`privacy/index.html`](privacy/index.html)). |
 
 Vercel ejecuta `node tools/web-build.js` (ver [`vercel.json`](vercel.json)), que deja en `dist/` la portada como `index.html` y la app como `app.html`, servida en `/app`. Para verla igual en local: `node tools/web-build.js` y sirve `dist/` con esas mismas reglas. Las direcciones de descarga están todas en [`sitio/descargas.js`](sitio/descargas.js): cuando WHIDER esté en Google Play, basta con poner su enlace en `play`.
 
@@ -324,7 +325,7 @@ Cómo instalar, ejecutar, probar y compilar todo desde cero: [docs/DESARROLLO.md
 - **Versiones**: la versión está en `package.json` y se cambia con `node tools/version.js 1.2.0`; al subirla a `main`, GitHub publica la versión con todos los instaladores y las notas de [`CHANGELOG.md`](CHANGELOG.md). Paso a paso: [`docs/PUBLICAR-UNA-VERSION.md`](docs/PUBLICAR-UNA-VERSION.md).
 - **Google Play**: la guía paso a paso (clave de subida, secretos de GitHub, Play Console, seguridad de los datos y las huellas de la firma de Google) está en [`docs/PUBLICAR-EN-GOOGLE-PLAY.md`](docs/PUBLICAR-EN-GOOGLE-PLAY.md).
 - **Cuentas y nube**: [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md). Publica las reglas de [`firestore.rules`](firestore.rules) en *Firebase → Firestore Database → Reglas* cada vez que cambien.
-- **Archivos del Cuaderno**: se guardan en Firestore en trozos de menos de 1 MB, sin Cloud Storage (que exige el plan de pago de Firebase); en el plan gratuito caben 1 GB de datos en total.
+- **Archivos del Cuaderno**: se guardan en Firestore en trozos de menos de 1 MB, sin Cloud Storage (que exige el plan de pago de Firebase); en el plan gratuito caben 1 GB de datos en total. Si crecen mucho, pueden ir a Firebase Storage con `storage: true` en `js/config.js` (preparado y probado; pasos en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md)).
 - **Sincronización**: con la app a la vista se mira la nube cada 15 segundos y los cambios se suben al momento; si algún día se queda corto el plan gratuito de Firebase (50 000 lecturas al día), basta con pasar al plan de pago por uso.
 
 ## 🔒 Privacidad
@@ -338,6 +339,19 @@ Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan ad
 ## 📝 Novedades
 
 Todas las versiones y lo que trae cada una: [`CHANGELOG.md`](CHANGELOG.md) (también en la app: Ajustes → Ayuda → Novedades).
+
+### 1.1
+
+- **Importar** desde Todoist, Google Tasks, Notion, calendarios (.ics) o un CSV, con vista previa y deshacer.
+- **Tema claro** (u «Como el sistema»), con contraste comprobado en todas las pantallas.
+- **Hoy por estados** y tareas «En curso»; **color por categoría** y **prioridad legible** (también sin color).
+- **Sincronización sin pérdidas** entre dispositivos y errores de la nube explicados.
+- **Copias automáticas** sin cuenta (ordenador y Android) y **actualizaciones automáticas** en el ordenador.
+- **Android**: widget «Hoy», compartir con WHIDER y avisos a la hora exacta.
+- **Seguridad**: bloquear y denunciar, reglas más estrictas e informes de errores solo con permiso.
+- **Ayuda** dentro de la app, instalar en el iPhone, la web en inglés y una web un 38 % más rápida.
+
+Detalle completo en [`CHANGELOG.md`](CHANGELOG.md) y el porqué de cada cambio en [`docs/EVOLUCION-1.1.md`](docs/EVOLUCION-1.1.md).
 
 ### 1.0
 

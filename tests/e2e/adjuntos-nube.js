@@ -1,14 +1,19 @@
 // Adjuntos en la nube (emuladores): otro dispositivo de la misma cuenta los descarga, un compañero los ve
-// en las páginas del equipo, lo que nadie usa se borra y al eliminar la cuenta no queda nada
+// en las páginas del equipo, lo que nadie usa se borra y al eliminar la cuenta no queda nada.
+// Dos modos: en trozos en Firestore (el de siempre) y, con WHIDER_ADJUNTOS=storage (adjuntos-storage.js), en
+// Firebase Storage con sus reglas (storage.rules).
 const { chromium } = require('playwright');
 const { APP, FX, fixtures } = require('./_util');
 const fs = require('fs'), path = require('path');
 const EMU = 'http://127.0.0.1:9099', FS = 'http://127.0.0.1:8085', PROJECT = 'demo-whider';
-const cfg = { firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' }, googleWebClientId: 'x', requireAccount: true, allowGuest: true, allowedEmailDomains: [], emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 }, links: { base: 'https://whider-red.vercel.app' } };
+const STORAGE = process.env.WHIDER_ADJUNTOS === 'storage', ST = 'http://127.0.0.1:9199', BUCKET = 'demo-whider.appspot.com';
+const cfg = { storage: STORAGE, firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1', storageBucket: BUCKET }, googleWebClientId: 'x', requireAccount: true, allowGuest: true, allowedEmailDomains: [], emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085, storageHost: '127.0.0.1', storagePort: 9199 }, links: { base: 'https://whider-red.vercel.app' } };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); if (!c) fails++; };
 const get = async p => { const r = await fetch(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/${p}`, { headers: { Authorization: 'Bearer owner' } }); return r.status === 200 ? r.json() : null; };
 const count = async p => { const r = await (await fetch(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/${p}?pageSize=300`, { headers: { Authorization: 'Bearer owner' } })).json(); return (r.documents || []).length; };
+const object = async (p) => (await fetch(`${ST}/v0/b/${BUCKET}/o/${encodeURIComponent(p)}`, { headers: { Authorization: 'Bearer owner' } })).status === 200;
+const objects = async (prefix) => { const r = await fetch(`${ST}/v0/b/${BUCKET}/o?prefix=${encodeURIComponent(prefix)}`, { headers: { Authorization: 'Bearer owner' } }); return r.status === 200 ? ((await r.json()).items || []).length : -1; };
 async function waitFor(p, fn, arg, ms) { const end = Date.now() + (ms || 20000); while (Date.now() < end) { try { if (await p.evaluate(fn, arg)) return true; } catch (e) { /* recargando */ } await sleep(400); } return false; }
 async function device(b, label) {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 860 }, acceptDownloads: true });
@@ -70,8 +75,14 @@ const allUp = (p, a) => waitFor(p, a => a.list.every(f => Whider.Files.status(f,
   ok(/Documento PDF · 3 KB/.test(card) && !/Pendiente|dispositivo/.test(card), 'A: la tarjeta ya no dice «pendiente»: ' + card.replace(/\n/g, ' | '));
   const meta = await get(`users/${uid}/files/${files[2].f}`);
   const parts = meta ? +meta.fields.parts.integerValue : 0;
-  ok(meta && meta.fields.name.stringValue === 'grande.jpg' && parts === Math.ceil(files[2].s / (600 * 1024)), 'nube: ficha del archivo grande con ' + parts + ' trozos de menos de 1 MB');
-  ok(await count(`users/${uid}/files/${files[2].f}/parts`) === parts, 'nube: están todos los trozos');
+  ok(await A.evaluate(() => Whider.Files.backend()) === (STORAGE ? 'storage' : 'firestore'), 'A: los archivos nuevos van a ' + (STORAGE ? 'Firebase Storage' : 'Firestore'));
+  if (STORAGE) {
+    ok(meta && meta.fields.name.stringValue === 'grande.jpg' && meta.fields.where && meta.fields.where.stringValue === 's' && parts === 0, 'nube: la ficha del archivo grande dice que está en Storage');
+    ok(await object(`users/${uid}/files/${files[2].f}`) && await objects(`users/${uid}/files/`) === 3 && await count(`users/${uid}/files/${files[2].f}/parts`) === 0, 'nube: los 3 archivos, enteros en Storage y sin trozos en Firestore');
+  } else {
+    ok(meta && meta.fields.name.stringValue === 'grande.jpg' && parts === Math.ceil(files[2].s / (600 * 1024)), 'nube: ficha del archivo grande con ' + parts + ' trozos de menos de 1 MB');
+    ok(await count(`users/${uid}/files/${files[2].f}/parts`) === parts, 'nube: están todos los trozos');
+  }
   await A.evaluate(() => Whider.PageSync.now()); await sleep(2500);
 
   const A2 = await device(b, 'A2');
@@ -99,7 +110,7 @@ const allUp = (p, a) => waitFor(p, a => a.list.every(f => Whider.Files.status(f,
   await A.evaluate(a => { Whider.Pages.update(a.pid, { team: a.sid }); }, { pid, sid });
   await A.evaluate(() => Whider.PageSync.now()); await sleep(1500);
   ok(await waitFor(A, a => a.list.every(f => Whider.Files.status(f, a.sk).s === 'ok'), { list: files.map(f => f.f), sk: 't:' + sid }, 30000), 'A: los adjuntos se copian al equipo al compartir la página');
-  ok(await count(`spaces/${sid}/files`) === 3, 'nube: 3 archivos en el equipo');
+  ok(await count(`spaces/${sid}/files`) === 3 && (!STORAGE || await objects(`spaces/${sid}/files/`) === 3), 'nube: 3 archivos en el equipo');
   await B.evaluate(() => Whider.PageSync.now()); await sleep(2500);
   await openPage(B, pid);
   const bSees = await waitFor(B, () => document.querySelectorAll('#screen-notes .bk-img-box.ready img').length === 2 && document.querySelectorAll('#screen-notes .bkf').length === 1, null, 20000);
@@ -122,6 +133,22 @@ const allUp = (p, a) => waitFor(p, a => a.list.every(f => Whider.Files.status(f,
   ok(denied === 'permission-denied', 'reglas: alguien de fuera del equipo no puede leerlos (' + denied + ')');
   const denied2 = await C.evaluate(a => { const F = Whider.Auth.sdk(), db = Whider.Auth.db(); return F.getDoc(F.doc(db, 'users', a.uid, 'files', a.f)).then(() => 'leído', e => e.code); }, { uid, f: files[0].f });
   ok(denied2 === 'permission-denied', 'reglas: nadie más puede leer los archivos personales de Ana (' + denied2 + ')');
+  if (STORAGE) {
+    const read = (a) => C.evaluate(a => { const F = Whider.Auth.sdk(); return F.getBytes(F.ref(Whider.Auth.storage(), a.p)).then(() => 'leído', e => e.code); }, a);
+    const s1 = await read({ p: `spaces/${sid}/files/${files[0].f}` }), s2 = await read({ p: `users/${uid}/files/${files[0].f}` });
+    ok(s1 === 'storage/unauthorized' && s2 === 'storage/unauthorized', 'reglas de Storage: alguien de fuera no puede leer ni los del equipo ni los personales (' + s1 + ', ' + s2 + ')');
+    const w = await C.evaluate(a => { const F = Whider.Auth.sdk(); return new Promise(res => { const t = F.uploadBytesResumable(F.ref(Whider.Auth.storage(), a.p), new Blob(['x'])); t.on('state_changed', null, e => res(e.code), () => res('escrito')); }); }, { p: `users/${uid}/files/fintruso1234` });
+    ok(w === 'storage/unauthorized', 'reglas de Storage: ni escribir en el espacio de otra persona (' + w + ')');
+    const html = await A.evaluate(a => { const F = Whider.Auth.sdk(); return new Promise(res => { const t = F.uploadBytesResumable(F.ref(Whider.Auth.storage(), a.p), new Blob(['<script>alert(1)</script>'], { type: 'text/html' }), { contentType: 'text/html' }); t.on('state_changed', null, e => res(e.code), () => res('escrito')); }); }, { p: `users/${uid}/files/fhtml123456` });
+    ok(html === 'storage/unauthorized', 'reglas de Storage: ni siquiera en tu espacio se sube HTML con su tipo (' + html + ')');
+    const svg = await A.evaluate(() => Whider.Files.add(new File(['<svg xmlns="http://www.w3.org/2000/svg"><circle r="4"/></svg>'], 'logo.svg', { type: 'image/svg+xml' }), { image: false }).then(r => r.f));
+    ok(await allUp(A, { list: [svg], sk: 'me' }), 'A: un SVG adjunto se sube a Storage');
+    const sm = await (await fetch(`${ST}/v0/b/${BUCKET}/o/${encodeURIComponent(`users/${uid}/files/${svg}`)}`, { headers: { Authorization: 'Bearer owner' } })).json();
+    const svgCard = await get(`users/${uid}/files/${svg}`);
+    ok(sm.contentType === 'application/octet-stream' && svgCard && svgCard.fields.type.stringValue === 'image/svg+xml', 'Storage: el SVG va como binario genérico y su ficha conserva el tipo (' + sm.contentType + ')');
+    const back = await A2.evaluate(f => Whider.Files.get(f, 'me').then(b => b.type + '|' + b.size), svg);
+    ok(/^image\/svg\+xml\|\d+$/.test(back), 'A2: lo recibe como SVG (' + back + ')');
+  }
 
   console.log('— Limpieza de lo que ya no se usa —');
   // Ana quita la foto grande de la página; pasados los días de margen se borra del dispositivo y de la nube
@@ -139,13 +166,13 @@ const allUp = (p, a) => waitFor(p, a => a.list.every(f => Whider.Files.status(f,
   await A.evaluate(() => Whider.Files.maintain(0)); await sleep(3000);
   await A.evaluate(() => Whider.Files.sync()); await sleep(2500);
   ok(!(await A.evaluate(f => Whider.Files.has(f), big)), 'A: pasado el margen, se borra del dispositivo');
-  ok(!(await get(`spaces/${sid}/files/${big}`)) && await count(`spaces/${sid}/files/${big}/parts`) === 0, 'nube: se borra del equipo con todos sus trozos');
+  ok(!(await get(`spaces/${sid}/files/${big}`)) && await count(`spaces/${sid}/files/${big}/parts`) === 0 && (!STORAGE || !(await object(`spaces/${sid}/files/${big}`))), 'nube: se borra del equipo (ficha y ' + (STORAGE ? 'archivo de Storage' : 'todos sus trozos') + ')');
   // La copia personal (de antes de compartir la página) tampoco la usa ya nadie
   await A.evaluate(() => { const s = JSON.parse(localStorage.getItem('whider.files.v1')); s.gcAt = {}; Object.keys(s.cloudUnref.me || {}).forEach(k => { s.cloudUnref.me[k] = Date.now() - 4 * 86400000; }); localStorage.setItem('whider.files.v1', JSON.stringify(s)); });
   await A.reload(); await sleep(2500); await A.evaluate(() => { Whider.Notify.check = function () {}; });
   await A.evaluate(() => Whider.PageSync.now()); await sleep(2000);
   await A.evaluate(() => Whider.Files.maintain(0)); await sleep(3000); await A.evaluate(() => Whider.Files.sync()); await sleep(2500);
-  ok(await count(`users/${uid}/files`) === 0, 'nube: las copias personales de antes de compartir se borran (quedan ' + await count(`users/${uid}/files`) + ')');
+  ok(await count(`users/${uid}/files`) === 0 && (!STORAGE || await objects(`users/${uid}/files/`) === 0), 'nube: las copias personales de antes de compartir se borran (quedan ' + await count(`users/${uid}/files`) + ')');
   ok(await count(`spaces/${sid}/files`) === 3, 'nube: en el equipo siguen los 3 que se usan (foto, PDF y el de B)');
 
   console.log('— Eliminar la cuenta —');
@@ -155,7 +182,7 @@ const allUp = (p, a) => waitFor(p, a => a.list.every(f => Whider.Files.status(f,
   const mine = (await refs(A, pid2))[0];
   ok(await allUp(A, { list: [mine.f], sk: 'me' }), 'A: un archivo personal subido');
   await A.evaluate(() => Whider.App.deleteAccount()); await sleep(4000);
-  ok(await count(`users/${uid}/files`) === 0 && await count(`users/${uid}/files/${mine.f}/parts`) === 0, 'al eliminar la cuenta no queda ningún archivo suyo en la nube');
+  ok(await count(`users/${uid}/files`) === 0 && await count(`users/${uid}/files/${mine.f}/parts`) === 0 && (!STORAGE || await objects(`users/${uid}/files/`) === 0), 'al eliminar la cuenta no queda ningún archivo suyo en la nube');
   ok(await A.evaluate(() => Whider.Files.ready().then(() => Whider.Files.pendingCount() === 0 && !Whider.Files.has('x'))), 'y nada pendiente en el dispositivo');
   const local = await A.evaluate(() => new Promise(res => { const r = indexedDB.open('whider-files'); r.onsuccess = () => { const c = r.result.transaction('data').objectStore('data').count(); c.onsuccess = () => res(c.result); }; }));
   ok(local === 0, 'el dispositivo queda sin archivos (' + local + ')');

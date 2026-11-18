@@ -2,6 +2,7 @@
 // La app funciona sin conexión: el SDK se sirve desde la propia app, no desde un CDN.
 // Se usa Firestore "lite" (sin caché propia ni escuchas en tiempo real): 3 veces más ligero.
 // Desde la 7.0 incluye consultas (chats, buzón) y escrituras agrupadas.
+// Desde la 1.1, Storage para los adjuntos (solo se usa si WHIDER_CONFIG.storage está activado; +7 KB comprimido).
 export { initializeApp } from 'firebase/app';
 export {
   initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, browserPopupRedirectResolver,
@@ -13,3 +14,4 @@ export {
   getFirestore, doc, getDoc, setDoc, deleteDoc, runTransaction, connectFirestoreEmulator,
   collection, query, where, orderBy, limit, getDocs, writeBatch, updateDoc, deleteField
 } from 'firebase/firestore/lite';
+export { getStorage, ref, uploadBytesResumable, getBytes, deleteObject, connectStorageEmulator } from 'firebase/storage';

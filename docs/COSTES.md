@@ -43,8 +43,10 @@ cambiaron, apuntes) y cada página editada 1-2 más. Una persona típica: 50-150
   avisa a partir de 700 KB y archiva sola las tareas completadas hace más de un año (en
   `users/{uid}/archive/{AAAA-MM-n}`), sin tocar las estadísticas. Ajustes → Datos enseña el espacio usado.
 - **Reintentos** espaciados (2 s, 4 s, 8 s… hasta 5 min) en lugar de repetir sin control.
-- **Archivos adjuntos**: siguen troceados en Firestore (sin coste de Storage). Pasarlos a Firebase Storage
-  necesita el plan Blaze; está preparado como opción en el bloque de complementos.
+- **Archivos adjuntos**: siguen troceados en Firestore (sin coste de Storage). Firebase Storage está preparado y
+  probado (con el emulador) detrás de `storage: true` en `js/config.js`: cada archivo, una lectura en lugar de una por
+  trozo de 600 KB, y ≈ 0,026 $/GB al mes frente a ≈ 0,18 $/GB en Firestore. Necesita el plan Blaze; pasos en
+  [CONFIGURAR-CUENTAS.md](CONFIGURAR-CUENTAS.md).
 
 ## Recomendaciones (necesitan la consola de Google Cloud o Firebase)
 

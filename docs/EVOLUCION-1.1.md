@@ -274,7 +274,7 @@ Se actualiza al cerrar cada bloque.
 - **Pruebas**: las 26 suites de app, escritorio y nube y las 3 de la web publicada (empaquetada) en verde; la de la
   portada ya no depende de la API de GitHub (que limita las peticiones por IP).
 
-### Bloque 8 · Complementos — en curso
+### Bloque 8 · Complementos — hecho (la app en inglés queda planificada: [decisiones/0003](decisiones/0003-idiomas.md))
 
 - **Tema claro** (Ajustes → Apariencia → Tema: Oscuro, Claro o «Como el sistema»). Todo con variables: el claro
   solo redefine las de `css/tokens.css`; los colores fijos de las hojas de estilo pasaron a variables con el mismo
@@ -284,6 +284,13 @@ Se actualiza al cerrar cada bloque.
   ordenador guarda el último (ventana y barra de título ya claras al abrir; con «Como el sistema», Electron sigue
   al sistema para que la página vea sus cambios) y Android también (barras del sistema y fondo detrás de ellas).
   Contraste AA comprobado con axe en todas las pantallas, Ajustes, nueva tarea y personaje, en móvil y ordenador.
+- **Adjuntos en Firebase Storage, listos para encender** (`storage: true` en `js/config.js`): los archivos nuevos van
+  enteros a Storage (`users/{uid}/files/{id}` o `spaces/{id}/files/{id}`) y su ficha en Firestore dice dónde están, así
+  que lo anterior sigue funcionando y se borra igual (limpieza, equipos y eliminar la cuenta). Reglas propias
+  (`storage.rules`: tuyos solo tú; de un equipo, sus miembros según Firestore; 15 MB) y CORS (`storage-cors.json`).
+  Firebase solo da Storage en el plan Blaze: no se enciende sin esa decisión. Probado con el emulador:
+  `adjuntos-storage.js` repite las 33 comprobaciones de adjuntos más las reglas de Storage. El SDK de Firebase
+  empaquetado crece 9,7 KB comprimido (solo se descarga con cuenta).
 - **Idiomas, con el inglés primero** ([decisiones/0003](decisiones/0003-idiomas.md)): la portada (`/en/`) y la política
   de privacidad (`/privacy/`) completas en inglés, con `hreflang`, y diciendo que la app de momento está en español.
   La app no se publica traducida a medias: tiene unos 1.660 textos distintos y un intérprete de fechas en español que

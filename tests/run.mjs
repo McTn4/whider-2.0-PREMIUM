@@ -47,7 +47,16 @@ export const GRUPOS = {
     'tema'
   ],
   // Cuentas, sincronización y comunidad contra los emuladores de Firebase
-  nube: ['comunidad', 'eliminar-cuenta', 'adjuntos-nube', 'version-1', 'sincronizacion', 'seguridad', 'ayuda'],
+  nube: [
+    'comunidad',
+    'eliminar-cuenta',
+    'adjuntos-nube',
+    'adjuntos-storage',
+    'version-1',
+    'sincronizacion',
+    'seguridad',
+    'ayuda'
+  ],
   // La web tal y como se publica en Vercel (dist/)
   web: ['web-recorrido', 'web-portada', 'web-accesibilidad'],
   // La app de escritorio (Electron); necesita «npm ci» dentro de desktop/
@@ -141,16 +150,22 @@ async function preparar(que) {
       lanzar('servidor-web', 'python3', ['-I', 'tools/servir-web.py', '.', '8650']);
       await esperarPuerto(8650, 20, 'servir-web.py');
     } else if (que === 'emuladores') {
-      if ((await puertoAbierto(9099)) && (await puertoAbierto(8085))) {
+      const [a, f, s] = [await puertoAbierto(9099), await puertoAbierto(8085), await puertoAbierto(9199)];
+      if (a && f && s) {
         console.log('· Firebase: uso los emuladores que ya están en marcha');
         return;
       }
+      if (a || f || s)
+        throw new Error(
+          'hay emuladores de Firebase a medias (hacen falta Auth, Firestore y Storage): páralos y vuelve a probar'
+        );
       const fb = path.join(RAIZ, 'node_modules', '.bin', process.platform === 'win32' ? 'firebase.cmd' : 'firebase');
       if (!fs.existsSync(fb)) throw new Error('faltan las herramientas de Firebase: ejecuta «npm ci» en la raíz');
-      console.log('· Firebase: arranco los emuladores de Auth y Firestore (necesita Java)');
-      lanzar('emuladores', fb, ['emulators:start', '--only', 'auth,firestore', '--project', 'demo-whider']);
+      console.log('· Firebase: arranco los emuladores de Auth, Firestore y Storage (necesita Java)');
+      lanzar('emuladores', fb, ['emulators:start', '--only', 'auth,firestore,storage', '--project', 'demo-whider']);
       await esperarPuerto(9099, 120, 'emulador de Auth');
       await esperarPuerto(8085, 120, 'emulador de Firestore');
+      await esperarPuerto(9199, 120, 'emulador de Storage');
     } else if (que === 'escritorio') {
       const el = path.join(
         RAIZ,

@@ -37,6 +37,11 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
   // Si la publicas en otro dominio, cámbialo aquí y en .well-known/assetlinks.json (Android).
   links: { base: 'https://whider-red.vercel.app' },
 
+  // Adjuntos del Cuaderno en Firebase Storage en lugar de en Firestore (en trozos). Más barato y rápido con archivos
+  // grandes, pero Storage exige el plan Blaze (de pago por uso), desplegar storage.rules y la configuración CORS del
+  // bucket: pasos en docs/CONFIGURAR-CUENTAS.md. Lo que ya esté en Firestore se sigue leyendo igual.
+  storage: false,
+
   // Solo para pruebas locales con Firebase Emulator Suite
   emulator: null
 };

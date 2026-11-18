@@ -1,12 +1,14 @@
 {
   "firestore": { "rules": "firestore.rules" },
+  "storage": { "rules": "storage.rules" },
   "hosting": {
     "public": ".",
-    "ignore": ["android/**", "tools/**", "docs/**", "desktop/**", "**/*.py", "firebase.json", "firestore.rules", "firestore-debug.log", ".git/**", ".github/**", "**/.gitignore", "**/.DS_Store", "**/node_modules/**"]
+    "ignore": ["android/**", "tools/**", "docs/**", "desktop/**", "**/*.py", "firebase.json", "firestore.rules", "storage.rules", "firestore-debug.log", ".git/**", ".github/**", "**/.gitignore", "**/.DS_Store", "**/node_modules/**"]
   },
   "emulators": {
     "auth": { "port": 9099 },
     "firestore": { "port": 8085 },
+    "storage": { "port": 9199 },
     "ui": { "enabled": false },
     "singleProjectMode": true
   }

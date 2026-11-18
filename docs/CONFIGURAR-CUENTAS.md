@@ -75,7 +75,33 @@ Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios dat
 
 > **Al actualizar a la 8.0, vuelve a copiar y publicar el archivo completo.** La 8.0 añade la regla de `spaces/{id}/files` (fotos y archivos adjuntos de las páginas de equipo); sin ella, los archivos de un equipo no se suben ni se descargan. Tus propios archivos (`users/{uid}/files`) ya los cubre la regla de tus datos. (Si vienes de una versión anterior a la 7.0, sin las reglas nuevas tampoco conectan *Personas*, *Chats* ni las páginas de equipo.)
 >
-> **Espacio**: los archivos se guardan en Firestore en trozos de menos de 1 MB (no hace falta Cloud Storage, que exige el plan de pago). Cada archivo puede pesar hasta 15 MB y en el plan gratuito de Firebase caben 1 GB de datos en total; lo que ya no usa ninguna página se borra solo a los 3 días.
+> **Espacio**: los archivos se guardan en Firestore en trozos de menos de 1 MB (no hace falta Cloud Storage, que exige el plan de pago). Cada archivo puede pesar hasta 15 MB y en el plan gratuito de Firebase caben 1 GB de datos en total; lo que ya no usa ninguna página se borra solo a los 3 días. Si crecen mucho, pueden ir a Firebase Storage (apartado siguiente).
+
+### Adjuntos en Firebase Storage (opcional, plan Blaze)
+
+Con muchos archivos, Storage sale más barato que Firestore (≈ 0,026 $/GB al mes frente a ≈ 0,18 $/GB, y una sola
+lectura por archivo en lugar de una por cada trozo de 600 KB) y descarga más rápido. Pero **Firebase solo ofrece
+Storage en el plan Blaze** (pago por uso; tiene una parte gratuita): actívalo solo si lo decides así, y pon antes una
+alerta de presupuesto ([COSTES.md](COSTES.md)). La app ya está preparada y probada con el emulador; para encenderlo:
+
+1. Firebase → **Storage** → *Comenzar* (pide pasar a Blaze). Apunta el nombre del bucket (`whider.firebasestorage.app`).
+2. Publica las reglas de [`storage.rules`](../storage.rules) (Storage → Reglas, o `npx firebase-tools deploy --only storage`).
+   La primera vez, Firebase pide permiso para que las reglas de Storage lean Firestore (las de los equipos miran
+   quién es miembro): acéptalo.
+3. Permite que la app lea los archivos desde el navegador (CORS), con [`storage-cors.json`](../storage-cors.json)
+   (añade tu dominio si publicas la web en otro):
+
+   ```bash
+   gcloud storage buckets update gs://whider.firebasestorage.app --cors-file=storage-cors.json
+   ```
+
+4. En `js/config.js`, `storage: true` (y que `firebase.storageBucket` sea el bucket). Publica una versión nueva.
+5. Añade «Cloud Storage» a los proveedores de la [política de privacidad](../privacidad/index.html) (y a la
+   [inglesa](../privacy/index.html)), junto a Authentication y Cloud Firestore.
+
+Lo que ya estaba en Firestore se sigue leyendo y se borra igual (cada ficha dice dónde está su archivo); los archivos
+nuevos van enteros a Storage, en `users/{uid}/files/{id}` o `spaces/{id}/files/{id}`. Apagarlo de nuevo (`false`) no
+borra nada, pero los dispositivos ya no podrán descargar lo que esté en Storage hasta volver a encenderlo.
 
 ## 5. Google en el APK de Android
 
@@ -143,14 +169,15 @@ cd android
 Puedes probar el registro y la sincronización en tu ordenador con los emuladores oficiales de Firebase:
 
 ```bash
-npx firebase-tools emulators:start --only auth,firestore --project demo-whider
+npx firebase-tools emulators:start --only auth,firestore,storage --project demo-whider
 ```
 
 Y en `js/config.js`, temporalmente:
 
 ```js
-firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: 'demo-whider', appId: '1:1:web:1' },
-emulator: { auth: 'http://127.0.0.1:9099', firestoreHost: '127.0.0.1', firestorePort: 8085 },
+firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: 'demo-whider', appId: '1:1:web:1', storageBucket: 'demo-whider.appspot.com' },
+emulator: { auth: 'http://127.0.0.1:9099', firestoreHost: '127.0.0.1', firestorePort: 8085, storageHost: '127.0.0.1', storagePort: 9199 },
+// storage: true,   // para probar los adjuntos en Storage
 ```
 
 Los correos de verificación no se envían de verdad: el emulador muestra los enlaces en su consola.

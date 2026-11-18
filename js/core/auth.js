@@ -11,7 +11,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var CFG = window.WHIDER_CONFIG || {};
-  var F = null, app = null, auth = null, db = null;
+  var F = null, app = null, auth = null, db = null, storage = null;
   var listeners = [], readyResolve, ready = new Promise(function (r) { readyResolve = r; });
   var loadPromise = null, initialized = false, nativeGoogle = null;
   var REDIRECT_FLAG = 'whider.googleRedirect';
@@ -105,6 +105,14 @@ window.Whider = window.Whider || {};
   var Auth = {
     user: null,
     db: function () { return db; },
+    /** Firebase Storage para los adjuntos: solo con WHIDER_CONFIG.storage y un storageBucket (si no, null) */
+    storage: function () {
+      if (storage) return storage;
+      if (!app || !F || !F.getStorage || !CFG.storage || !(CFG.firebase && CFG.firebase.storageBucket)) return null;
+      storage = F.getStorage(app);
+      if (CFG.emulator && CFG.emulator.storagePort) F.connectStorageEmulator(storage, CFG.emulator.storageHost || '127.0.0.1', CFG.emulator.storagePort);
+      return storage;
+    },
     sdk: function () { return F; },
     configured: function () { return !!(CFG.firebase && CFG.firebase.apiKey); },
     loaded: function () { return !!F; },

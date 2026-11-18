@@ -1,0 +1,30 @@
+rules_version = '2';
+// WHIDER · Reglas de Firebase Storage: adjuntos del Cuaderno, solo si la app tiene activado WHIDER_CONFIG.storage
+// (sin él, los archivos van a Firestore en trozos y aquí no se escribe nada).
+//  - users/{uid}/files/{id}    Los de tus páginas: solo tú.
+//  - spaces/{sid}/files/{id}   Los de las páginas de un equipo: sus miembros (según Firestore).
+// Como en firestore.rules, todo exige un correo verificado. Como mucho 15 MB por archivo (el límite de la app), y nada
+// que un navegador ejecute al abrirlo (HTML, SVG, XML): la app los sube como binario genérico.
+// Desplegar: firebase deploy --only storage (la primera vez, la consola pide permiso para leer Firestore desde aquí).
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function okUpload(id) {
+      return id.matches('[A-Za-z0-9_-]{3,60}') && request.resource.size <= 15 * 1024 * 1024 + 1024
+        && !request.resource.contentType.matches('(?i)(text/html|application/xhtml[+]xml|image/svg[+]xml|text/xml|application/xml).*');
+    }
+
+    match /users/{uid}/files/{id} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid && okUpload(id);
+    }
+
+    match /spaces/{sid}/files/{id} {
+      function member() {
+        return signedIn() && request.auth.uid in firestore.get(/databases/(default)/documents/spaces/$(sid)).data.members;
+      }
+      allow read, delete: if member();
+      allow create, update: if member() && okUpload(id);
+    }
+  }
+}

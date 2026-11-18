@@ -82,12 +82,13 @@ async function run(b, label, ctxOpts) {
   await ctx.clock.install({ time: new Date(new Date().toISOString().slice(0, 10) + 'T09:40:00') });
   await ctx.addInitScript(() => {
     window.WHIDER_CONFIG = { firebase: null };
-    // Sin el aviso de «WHIDER se ha actualizado» en las capturas
+    // Sin avisos de paso en las capturas: «WHIDER se ha actualizado», los primeros pasos y el de guardar una copia
     localStorage.setItem('whider.seenVersion', '999.0.0');
+    localStorage.setItem('whider.backup.v1', JSON.stringify({ manual: Date.now() }));
     if (!localStorage.getItem('whider.meta.v1'))
       localStorage.setItem(
         'whider.meta.v1',
-        JSON.stringify({ onboarded: true, createdAt: Date.now() - 20 * 86400000 })
+        JSON.stringify({ onboarded: true, createdAt: Date.now() - 20 * 86400000, firstSteps: { hidden: true } })
       );
   });
   const p = await ctx.newPage();

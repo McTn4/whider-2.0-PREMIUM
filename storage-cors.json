@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://whider-red.vercel.app", "app://whider", "https://appassets.androidplatform.net"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]
