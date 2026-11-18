@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget «Hoy»: cabecera con el recuento y el botón +, y hasta cinco tareas -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/widget_title"
+            android:textColor="#F2F2F2"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/w_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:textColor="#A3A3A3"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/w_add"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/widget_add_bg"
+            android:contentDescription="@string/widget_add"
+            android:padding="10dp"
+            android:src="@drawable/widget_add" />
+    </LinearLayout>
+
+    <TextView android:id="@+id/w_row1" style="@style/WidgetRow" />
+    <TextView android:id="@+id/w_row2" style="@style/WidgetRow" />
+    <TextView android:id="@+id/w_row3" style="@style/WidgetRow" />
+    <TextView android:id="@+id/w_row4" style="@style/WidgetRow" />
+    <TextView android:id="@+id/w_row5" style="@style/WidgetRow" />
+
+    <TextView
+        android:id="@+id/w_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/widget_empty"
+        android:textColor="#A3A3A3"
+        android:textSize="14sp" />
+</LinearLayout>

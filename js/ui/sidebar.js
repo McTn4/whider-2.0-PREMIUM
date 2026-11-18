@@ -219,7 +219,7 @@ window.Whider = window.Whider || {};
     el.appendChild(U.el('div.sb-foot', [
       U.el('button.sb-profile' + (active === 'progress' ? '.active' : ''), { attrs: { title: 'Perfil y resumen · P' }, on: { click: function () { W.Router.go('progress'); } } }, [
         W.Profile.avatar(),
-        U.el('span.sb-who', [U.el('strong', { text: name || 'Tu perfil' }), U.el('small', { text: sync })])
+        U.el('span.sb-who', [U.el('strong', { text: name || 'Tu perfil' }), U.el('small' + (W.Sync && W.Sync.unsaved && W.Sync.unsaved() ? '.sb-unsaved' : ''), { text: sync })])
       ]),
       U.el('button.nav-icon.sb-gear', { attrs: { 'aria-label': 'Ajustes', title: 'Ajustes · ' + W.Layout.keys(',') }, on: { click: function () { W.Settings.open(); } } }, [U.icon('gear')])
     ]));

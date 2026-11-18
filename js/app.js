@@ -40,6 +40,23 @@ window.Whider = window.Whider || {};
     }, Math.max(0, min - performance.now()));
   }
 
+  /** Widget «Hoy» de Android: hasta cinco tareas de hoy (lo más importante primero) y el recuento */
+  var widgetT = null;
+  function pushWidget() {
+    var b = window.WhiderAndroid;
+    if (!b || typeof b.updateWidget !== 'function') return;
+    clearTimeout(widgetT);
+    widgetT = setTimeout(function () {
+      var st = S, s = st.stats(), top = W.Screens.home && W.Screens.home.topTasks ? W.Screens.home.topTasks(st).list : [];
+      var td = U.today(), ids = top.map(function (t) { return t.id; });
+      var rest = st.tasks.filter(function (t) { return !t.done && (t.date === td || st.isOverdue(t)) && ids.indexOf(t.id) < 0; }).sort(st.compareDeadline);
+      var list = top.concat(rest).slice(0, 5).map(function (t) {
+        return { text: t.text, time: t.time ? U.fmtTime(t.time) : '', prio: t.highlight === 'danger' ? '!!' : t.highlight === 'purple' ? '!' : '' };
+      });
+      try { b.updateWidget(JSON.stringify({ tasks: list, total: s.todayTotal, done: s.todayDone })); } catch (e) { /* app antigua */ }
+    }, 800);
+  }
+
   /** Nueva tarea según dónde estás: el día del calendario, la lista abierta… */
   function newTaskFromContext() {
     var id = S.activeScreen, preset = {}, v = S.ui.taskView;
@@ -255,6 +272,15 @@ window.Whider = window.Whider || {};
       else if (reason !== 'sync') W.Sync.schedule();
     });
 
+    // Estado de la nube: el engranaje dice si hay cambios sin subir y la barra lateral se pone al día
+    W.Sync.onStatus(function () {
+      var unsaved = W.Sync.unsaved();
+      U.$$('.gear-btn').forEach(function (b) { b.setAttribute('aria-label', unsaved ? 'Ajustes (hay cambios sin guardar en la nube)' : 'Ajustes'); });
+      if (W.Sidebar) W.Sidebar.refresh();
+    });
+    // Android: el widget «Hoy» recibe las tareas de hoy cada vez que cambian
+    pushWidget();
+    S.subscribe(function () { pushWidget(); });
     W.Keys.init();
     W.Sidebar.init();
     W.Auto.init();
@@ -285,6 +311,15 @@ window.Whider = window.Whider || {};
     // Una invitación en la dirección (#i=… o ?c=…): se guarda y se abre cuando la app esté lista
     if (W.Invite) W.Invite.fromLocation();
     W.Router.init(S.settings.startScreen);
+    // Web instalada: «Compartir con WHIDER» llega como /app?title=…&text=…&url=…
+    try {
+      var qs = new URLSearchParams(location.search);
+      if (qs.get('text') || qs.get('url') || qs.get('title')) {
+        var shared = { title: qs.get('title') || '', text: [qs.get('text') || '', qs.get('url') || ''].filter(Boolean).join(' ') };
+        if (history.replaceState) history.replaceState(null, '', location.pathname + location.hash);
+        setTimeout(function () { W.App.receiveShare(shared); }, 700);
+      }
+    } catch (e) { /* sin parámetros */ }
 
     // Decisión inmediata (sin esperar a Firebase): quien ya tiene sesión entra directo
     var accounts = W.Auth.configured();
@@ -307,7 +342,21 @@ window.Whider = window.Whider || {};
     hideSplash();
   }
 
-  W.App = { handleBack: handleBack, applyAppearance: applyAppearance, afterAuth: afterAuth, logout: logout, deleteAccount: deleteAccount, newTask: newTaskFromContext, hideSplash: hideSplash };
+  /**
+   * Algo compartido desde otra app («Compartir con WHIDER» en Android o en la web instalada): se abre
+   * una tarea nueva con el asunto (o la primera línea) como título y el resto y el enlace en las notas.
+   */
+  function receiveShare(d) {
+    var text = String((d && d.text) || '').trim(), title = String((d && d.title) || '').trim();
+    if (!text && !title) return;
+    var url = (text.match(/https?:\/\/\S+/) || [])[0] || '';
+    var rest = text.replace(url, '').trim();
+    var name = title || rest.split('\n')[0] || url;
+    var notes = [title ? rest : rest.split('\n').slice(1).join('\n'), url].filter(Boolean).join('\n').trim();
+    W.Editor.open(null, { text: name.slice(0, 160), notes: notes.slice(0, 2000), date: null });
+  }
+
+  W.App = { handleBack: handleBack, applyAppearance: applyAppearance, afterAuth: afterAuth, logout: logout, deleteAccount: deleteAccount, newTask: newTaskFromContext, hideSplash: hideSplash, receiveShare: receiveShare };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })(window.Whider);

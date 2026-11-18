@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,17 +14,20 @@ import org.json.JSONObject;
 /**
  * Recordatorios con la app cerrada: programa alarmas del sistema para cada aviso
  * que calcula la web (window.WhiderAndroid.syncReminders) y las restaura tras reiniciar.
+ * Si la persona lo permite (Android 12+: «Alarmas y recordatorios»), suenan a la hora exacta;
+ * si no, Android puede retrasarlas unos minutos para ahorrar batería.
  */
 public class ReminderReceiver extends BroadcastReceiver {
 
     static final String ACTION_FIRE = "com.whider.app.REMINDER";
+    private static final String ACTION_EXACT_CHANGED = "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED";
     private static final String PREFS = "whider_reminders";
     private static final String KEY_LIST = "list";
 
     @Override
     public void onReceive(Context ctx, Intent intent) {
         String action = intent.getAction();
-        if (Intent.ACTION_BOOT_COMPLETED.equals(action) || Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)) {
+        if (Intent.ACTION_BOOT_COMPLETED.equals(action) || Intent.ACTION_MY_PACKAGE_REPLACED.equals(action) || ACTION_EXACT_CHANGED.equals(action)) {
             String saved = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LIST, "[]");
             schedule(ctx, saved);
             return;
@@ -42,6 +46,16 @@ public class ReminderReceiver extends BroadcastReceiver {
         if (body != null) i.putExtra("body", body);
         int flags = PendingIntent.FLAG_IMMUTABLE | (create ? PendingIntent.FLAG_UPDATE_CURRENT : PendingIntent.FLAG_NO_CREATE);
         return PendingIntent.getBroadcast(ctx, key.hashCode(), i, flags);
+    }
+
+    /** ¿Se pueden programar avisos a la hora exacta? (antes de Android 12, siempre) */
+    static boolean canExact(AlarmManager am) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true;
+        try {
+            return am.canScheduleExactAlarms();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /** Sustituye todas las alarmas programadas por la lista JSON [{key, at, title, body}] */
@@ -64,6 +78,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         // 2. Programar las nuevas (solo las futuras)
         JSONArray kept = new JSONArray();
         long now = System.currentTimeMillis();
+        boolean exact = canExact(am);
         try {
             JSONArray list = new JSONArray(json == null ? "[]" : json);
             for (int i = 0; i < list.length() && i < 200; i++) {
@@ -72,7 +87,15 @@ public class ReminderReceiver extends BroadcastReceiver {
                 String key = o.optString("key", "");
                 if (at <= now || key.isEmpty()) continue;
                 PendingIntent pi = pending(ctx, key, o.optString("title"), o.optString("body"), true);
-                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
+                if (exact) {
+                    try {
+                        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
+                    } catch (SecurityException e) {
+                        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
+                    }
+                } else {
+                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
+                }
                 kept.put(o);
             }
         } catch (Exception ignored) {

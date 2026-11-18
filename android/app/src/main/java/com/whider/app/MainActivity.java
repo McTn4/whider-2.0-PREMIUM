@@ -1,6 +1,7 @@
 package com.whider.app;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
@@ -104,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
     private PermissionRequest pendingCamera;
     /** Enlace de invitación que llegó al abrir la app (se entrega cuando la web está lista) */
     private String pendingLink;
+    /** Texto compartido desde otra app, pendiente de entregar a la web */
+    private JSONObject pendingShare;
 
     private WebView webView;
     private WebViewAssetLoader assetLoader;
@@ -347,11 +350,40 @@ public class MainActivity extends AppCompatActivity {
             boolean ours = "whider".equals(scheme) || ("https".equals(scheme) && "whider-red.vercel.app".equals(host) && path != null && path.startsWith("/i"));
             if (ours) { pendingLink = data.toString(); intent.setData(null); deliverPendingLink(0); }
         }
+        // «Compartir con WHIDER» desde otra app: el texto (y el asunto) pasan a una tarea nueva
+        if (Intent.ACTION_SEND.equals(intent.getAction()) && intent.getType() != null && intent.getType().startsWith("text/")) {
+            String text = intent.getStringExtra(Intent.EXTRA_TEXT), subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
+            if (text != null || subject != null) {
+                try {
+                    pendingShare = new JSONObject().put("text", text == null ? "" : text).put("title", subject == null ? "" : subject);
+                } catch (Exception ignored) {
+                    pendingShare = null;
+                }
+                intent.setAction(Intent.ACTION_MAIN);
+                intent.removeExtra(Intent.EXTRA_TEXT);
+                intent.removeExtra(Intent.EXTRA_SUBJECT);
+                deliverPendingShare(0);
+            }
+        }
         String screen = intent.getStringExtra(EXTRA_OPEN_SCREEN);
         if (screen == null || !screen.matches("[a-z]+")) return;
         intent.removeExtra(EXTRA_OPEN_SCREEN);
-        webView.postDelayed(() -> webView.evaluateJavascript(
-                "window.Whider&&Whider.Router&&Whider.Router.go('" + screen + "');", null), 450);
+        // Desde el widget: «newtask» abre la creación de una tarea; lo demás, esa pantalla
+        String js = "newtask".equals(screen)
+                ? "window.Whider&&Whider.App&&Whider.App.newTask&&Whider.App.newTask();"
+                : "window.Whider&&Whider.Router&&Whider.Router.go('" + screen + "');";
+        webView.postDelayed(() -> webView.evaluateJavascript(js, null), 450);
+    }
+
+    /** Entrega lo compartido a la web; si aún está cargando, lo vuelve a intentar */
+    private void deliverPendingShare(int attempt) {
+        if (pendingShare == null || webView == null || attempt > 20) return;
+        final JSONObject share = pendingShare;
+        webView.postDelayed(() -> {
+            if (webView == null) return;
+            webView.evaluateJavascript("(function(){if(window.Whider&&Whider.App&&Whider.App.receiveShare){Whider.App.receiveShare(" + share.toString() + ");return true;}return false;})()",
+                    value -> { if ("true".equals(value)) { if (share == pendingShare) pendingShare = null; } else deliverPendingShare(attempt + 1); });
+        }, attempt == 0 ? 900 : 600);
     }
 
     /** Entrega la invitación a la web; si aún está cargando, lo vuelve a intentar */
@@ -722,6 +754,33 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void syncReminders(String json) {
             ReminderReceiver.schedule(getApplicationContext(), json);
+        }
+
+        /** Avisos a la hora exacta: "granted", "denied" o "unneeded" (antes de Android 12 no hace falta permiso) */
+        @JavascriptInterface
+        public String exactAlarms() {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return "unneeded";
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            return am != null && ReminderReceiver.canExact(am) ? "granted" : "denied";
+        }
+
+        /** Abre el ajuste del sistema «Alarmas y recordatorios» de WHIDER */
+        @JavascriptInterface
+        public void requestExactAlarms() {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+            runOnUiThread(() -> {
+                try {
+                    startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getPackageName())));
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(MainActivity.this, "Ábrelo en Ajustes del sistema → Aplicaciones → WHIDER", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        /** Widget «Hoy»: la web le pasa las tareas de hoy (JSON) y se vuelve a pintar */
+        @JavascriptInterface
+        public void updateWidget(String json) {
+            TodayWidget.save(getApplicationContext(), json);
         }
 
         /** Vibración nativa: patrón JSON en milisegundos, p. ej. [20,40,20] */

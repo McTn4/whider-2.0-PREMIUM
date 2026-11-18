@@ -128,3 +128,33 @@ test('las categorías guardan su color opcional y lo pierden si no es válido', 
   assert.equal(S.getList(l.id).tint, undefined);
   for (const k of Object.keys(S.LIST_TINTS)) assert.match(S.LIST_TINTS[k].hex, /^#[0-9A-F]{6}$/);
 });
+
+test('cada campo editado guarda su hora para fusionar sin perder cambios', () => {
+  const S = nuevo();
+  const t = S.addTask({ text: 'Cita', date: '2026-11-20' });
+  assert.equal(t.ft, undefined, 'recién creada no hace falta');
+  S.updateTask(t.id, { time: '10:00' });
+  assert.ok(t.ft.time > 0);
+  assert.equal(t.ft.text, undefined, 'solo lo que cambió');
+  S.setDone(t.id, true);
+  assert.ok(t.ft.done > 0);
+  S.moveToTomorrow(t.id);
+  assert.ok(t.ft.date > 0);
+});
+
+test('archivar saca de la lista lo completado hace tiempo y lo guarda en el archivo', () => {
+  const S = nuevo();
+  const vieja = S.addTask({ text: 'Del año pasado' });
+  S.setDone(vieja.id, true);
+  vieja.doneAt = Date.now() - 500 * 86400000;
+  const nueva = S.addTask({ text: 'De ayer' });
+  S.setDone(nueva.id, true);
+  S.addTask({ text: 'Pendiente' });
+  const gone = S.archiveDone(Date.now() - 400 * 86400000);
+  assert.equal(gone.length, 1);
+  assert.deepEqual([...S.tasks.map((x) => x.text)].sort(), ['De ayer', 'Pendiente']);
+  assert.equal(S.archived().length, 1);
+  assert.equal(S.archived()[0].text, 'Del año pasado');
+  assert.ok(S.syncMeta.archivedBefore > 0);
+  assert.equal(S.addToArchive([vieja]), 0, 'no se duplica');
+});

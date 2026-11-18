@@ -5,7 +5,9 @@
  *  - Páginas de equipo: índice dentro de spaces/{id} (campo «pages») y cada página en
  *    spaces/{id}/pages/{pid}. Solo los miembros del equipo pueden leerlas y cambiarlas.
  *  - Se fusiona bloque a bloque: si dos personas cambian bloques distintos de la misma página,
- *    se conservan los dos cambios; si cambian el mismo, gana el último.
+ *    se conservan los dos cambios; si cambian el mismo a la vez (los dos después de la última vez
+ *    que este dispositivo vio la página en la nube), se queda el más reciente y, justo debajo, una
+ *    nota con la otra versión: no se pierde ninguna de las dos.
  *  - Una página abierta de equipo se consulta cada pocos segundos: se ve lo que escriben los demás.
  */
 window.Whider = window.Whider || {};
@@ -19,7 +21,8 @@ window.Whider = window.Whider || {};
   // Ámbitos ya al día en esta sesión (sin fallos al traer páginas): los adjuntos solo se limpian en ellos
   var settled = {};
   // Pendiente de subir: borrados por ámbito; y versión del contenido que ya está en la nube
-  var pend = (function () { try { var x = JSON.parse(localStorage.getItem(KEY) || 'null'); if (x && x.del) { x.cvs = x.cvs || {}; return x; } } catch (e) { /* vacío */ } return { del: {}, cvs: {} }; })();
+  // seen: cuándo vio este dispositivo por última vez cada página tal como está en la nube
+  var pend = (function () { try { var x = JSON.parse(localStorage.getItem(KEY) || 'null'); if (x && x.del) { x.cvs = x.cvs || {}; x.seen = x.seen || {}; return x; } } catch (e) { /* vacío */ } return { del: {}, cvs: {}, seen: {} }; })();
   var TOMB_DAYS = 45 * 86400000;
 
   function savePend() { try { localStorage.setItem(KEY, JSON.stringify(pend)); } catch (e) { /* sin espacio */ } }
@@ -39,19 +42,48 @@ window.Whider = window.Whider || {};
   }
 
   /* ---------- Fusiones ---------- */
-  function mergeContent(a, b) {
+  /** Nota con la versión que no ganó (id fijo: si los dos dispositivos la crean, es la misma) */
+  function conflictCopy(bl) {
+    var id = (String(bl.id) + '-v' + (bl.at || 0).toString(36)).slice(0, 60);
+    return { id: id, t: 'callout', ic: 'alert', x: 'Otra versión (se editó a la vez en otro sitio): ' + (bl.x || ''), at: bl.at || 0 };
+  }
+  /**
+   * mergeContent(a, b, since): fusión de dos versiones de una página. `since` es cuándo vio este
+   * dispositivo la página en la nube por última vez: un bloque cambiado en los dos lados después de
+   * ese momento es una edición a la vez, y se conservan las dos versiones.
+   */
+  function mergeContent(a, b, since) {
     a = a || { blocks: [], del: {}, cv: 0 }; b = b || { blocks: [], del: {}, cv: 0 };
     var del = {};
     [a.del || {}, b.del || {}].forEach(function (d) { Object.keys(d).forEach(function (k) { del[k] = Math.max(del[k] || 0, d[k]); }); });
     var map = {};
     [a.blocks || [], b.blocks || []].forEach(function (list) { list.forEach(function (bl) { var c = map[bl.id]; if (!c || (bl.at || 0) > (c.at || 0)) map[bl.id] = bl; }); });
     Object.keys(map).forEach(function (id) { if (del[id] && del[id] >= (map[id].at || 0)) delete map[id]; });
+    // Ediciones a la vez del mismo bloque de texto: además del ganador, una nota con la otra versión
+    var extra = {};
+    if (since) {
+      var ma = {}, mb = {};
+      (a.blocks || []).forEach(function (bl) { ma[bl.id] = bl; });
+      (b.blocks || []).forEach(function (bl) { mb[bl.id] = bl; });
+      Object.keys(map).forEach(function (id) {
+        var x = ma[id], y = mb[id];
+        if (!x || !y || typeof x.x !== 'string' || typeof y.x !== 'string' || x.x === y.x) return;
+        if ((x.at || 0) <= since || (y.at || 0) <= since) return;
+        var copy = conflictCopy(map[id] === x ? y : x);
+        if (!map[copy.id] && !del[copy.id]) extra[id] = copy;
+      });
+    }
     var primary = (a.cv || 0) >= (b.cv || 0) ? a : b, secondary = primary === a ? b : a;
     var order = (primary.blocks || []).map(function (x) { return x.id; }).filter(function (id) { return map[id]; });
     (secondary.blocks || []).forEach(function (bl, i) {
       if (!map[bl.id] || order.indexOf(bl.id) >= 0) return;
       var prev = i > 0 ? secondary.blocks[i - 1].id : null, pos = prev ? order.indexOf(prev) : -1;
       order.splice(pos + 1, 0, bl.id);
+    });
+    Object.keys(extra).forEach(function (id) {
+      var c = extra[id];
+      map[c.id] = c;
+      order.splice(order.indexOf(id) + 1, 0, c.id);
     });
     return { blocks: order.map(function (id) { return map[id]; }), del: prune(del), cv: Math.max(a.cv || 0, b.cv || 0) };
   }
@@ -101,7 +133,7 @@ window.Whider = window.Whider || {};
             if (!merged.items[m.id]) return;
             var remoteC = s.exists() ? s.data() : null;
             var mine = clone(P().content(m.id)); mine.cv = m.cv || 0;
-            var mc = mergeContent(mine, remoteC ? { blocks: remoteC.blocks || [], del: remoteC.del || {}, cv: remoteC.cv || 0 } : null);
+            var mc = mergeContent(mine, remoteC ? { blocks: remoteC.blocks || [], del: remoteC.del || {}, cv: remoteC.cv || 0 } : null, pend.seen[m.id] || 0);
             var out = { blocks: mc.blocks.map(P().cleanBlock).filter(Boolean), del: mc.del, cv: Math.max(mc.cv, m.cv || 0), updatedAt: Date.now() };
             var size = fp(out).length;
             if (size > 950000) {
@@ -143,6 +175,7 @@ window.Whider = window.Whider || {};
         var fin = (loc.cv || 0) > c.snapCv ? mergeContent(now, c) : c;
         P().applyContent(k, fin, Math.max(fin.cv || 0, loc.cv || 0));
         pend.cvs[k] = Math.max(c.cv || 0, c.snapCv);
+        pend.seen[k] = Date.now();
         if ((loc.cv || 0) <= c.snapCv) P().clean(k, 2);
       });
       local.forEach(function (m) { if (!((P().index().dirty[m.id] || 0) & 2)) P().clean(m.id, 1); });
@@ -166,9 +199,10 @@ window.Whider = window.Whider || {};
             var loc = P().get(id); if (!loc) return;
             if (!s.exists()) { pend.cvs[id] = loc.cv || 0; return; }
             var r = s.data(), mine = clone(P().content(id)); mine.cv = loc.cv || 0;
-            var mc = mergeContent(mine, { blocks: r.blocks || [], del: r.del || {}, cv: r.cv || 0 });
+            var mc = mergeContent(mine, { blocks: r.blocks || [], del: r.del || {}, cv: r.cv || 0 }, pend.seen[id] || 0);
             P().applyContent(id, mc, mc.cv);
             pend.cvs[id] = Math.max(mc.cv, r.cv || 0);
+            pend.seen[id] = Date.now();
             if (((P().index().dirty[id] || 0) & 2) === 0 && fp(mc.blocks) !== fp(r.blocks || [])) P().index().dirty[id] = (P().index().dirty[id] || 0) | 2;
           }).catch(function () { failed++; /* sin permiso o sin conexión */ });
         }));
@@ -209,9 +243,9 @@ window.Whider = window.Whider || {};
       var r = s.data(), loc = P().get(id); if (!loc) return;
       if ((r.cv || 0) <= (pend.cvs[id] || 0)) return;
       var mine = clone(P().content(id)); mine.cv = loc.cv || 0;
-      var mc = mergeContent(mine, { blocks: r.blocks || [], del: r.del || {}, cv: r.cv || 0 });
+      var mc = mergeContent(mine, { blocks: r.blocks || [], del: r.del || {}, cv: r.cv || 0 }, pend.seen[id] || 0);
       P().applyContent(id, mc, mc.cv);
-      pend.cvs[id] = r.cv || 0; savePend();
+      pend.cvs[id] = r.cv || 0; pend.seen[id] = Date.now(); savePend();
     }).catch(function () { /* sin conexión */ });
   }
 
@@ -225,6 +259,8 @@ window.Whider = window.Whider || {};
       poll = setInterval(function () {
         if (document.hidden || !active) return;
         var every = W.State.activeScreen === 'notes' ? 15000 : 30000;
+        // Sin tocar la app, cada vez menos a menudo (como la sincronización de tareas)
+        if (W.Sync && W.Sync.idleFor) every = Math.max(every, W.Sync.pollEvery(W.Sync.idleFor()));
         if (Date.now() - lastRun >= every) run();
       }, 5000);
       livePoll = setInterval(livePage, 4000);
@@ -251,7 +287,7 @@ window.Whider = window.Whider || {};
       var u = W.Auth && W.Auth.user ? W.Auth.user.uid : null;
       if (!u || !DB()) return Promise.resolve();
       PageSync.stop();
-      pend = { del: {}, cvs: {} }; savePend();
+      pend = { del: {}, cvs: {}, seen: {} }; savePend();
       return F().getDocs(F().collection(DB(), 'users', u, 'pages')).then(function (snap) {
         var refs = [];
         snap.forEach(function (d) { refs.push(d.ref); });

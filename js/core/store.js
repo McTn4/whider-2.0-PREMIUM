@@ -24,7 +24,8 @@ window.Whider = window.Whider || {};
     templates: 'whider.templates.v1', // Plantillas de un toque (acciones rápidas)
     rules: 'whider.rules.v1',       // Automatizaciones
     filters: 'whider.filters.v1',   // Listas personalizadas (filtros guardados)
-    sync: 'whider.sync.v1'          // Marcas de tiempo y borrados para la sincronización
+    sync: 'whider.sync.v1',         // Marcas de tiempo y borrados para la sincronización
+    archive: 'whider.archive.v1'    // Tareas completadas hace tiempo, fuera de la lista (y de la copia principal)
   };
   var ALL_KEYS = Object.keys(KEYS).map(function (k) { return KEYS[k]; });
   // Claves de versiones anteriores que ya no se usan (planes y pagos): se borran al arrancar
@@ -199,6 +200,34 @@ window.Whider = window.Whider || {};
   var isDate = function (s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s); };
   var isTime = function (s) { return typeof s === 'string' && /^\d{2}:\d{2}$/.test(s); };
 
+  /*
+   * Hora de la última edición de cada campo de una tarea («ft»). Con ella, si dos dispositivos
+   * cambian a la vez campos distintos de la misma tarea (uno la fecha y otro la completa), la
+   * sincronización conserva los dos cambios en lugar de quedarse solo con la versión más reciente.
+   * Se guarda solo lo editado en los últimos 30 días: pasado ese tiempo ya no puede haber choque.
+   */
+  var FT_KEYS = { text: 1, notes: 1, date: 1, time: 1, done: 1, highlight: 1, warn: 1, remindBefore: 1, listId: 1, repeat: 1, subtasks: 1, duration: 1, startedAt: 1 };
+  var FT_DAYS = 30 * 86400000;
+  function cleanFt(ft) {
+    if (!ft || typeof ft !== 'object') return undefined;
+    var out = {}, old = Date.now() - FT_DAYS, n = 0;
+    Object.keys(ft).forEach(function (k) {
+      var v = ft[k];
+      if (FT_KEYS[k] && typeof v === 'number' && isFinite(v) && v > old) { out[k] = v; n++; }
+    });
+    return n ? out : undefined;
+  }
+  /** Campos con hora propia que cambian de una versión a otra de la tarea */
+  function changedFields(before, after) {
+    return Object.keys(FT_KEYS).filter(function (k) { return JSON.stringify(before[k]) !== JSON.stringify(after[k]); });
+  }
+  function stampFields(t, keys) {
+    if (!keys.length) return;
+    var now = Date.now();
+    t.ft = Object.assign({}, t.ft || {});
+    keys.forEach(function (k) { t.ft[k] = now; });
+  }
+
   function cleanTask(item, listIds) {
     if (!item || typeof item.text !== 'string' || !item.text.trim()) return null;
     var subs = Array.isArray(item.subtasks) ? item.subtasks.filter(function (s) {
@@ -231,7 +260,8 @@ window.Whider = window.Whider || {};
       createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
       updatedAt: typeof item.updatedAt === 'number' ? item.updatedAt : (typeof item.createdAt === 'number' ? item.createdAt : Date.now()),
       example: !!item.example,
-      mine: !!item.mine
+      mine: !!item.mine,
+      ft: cleanFt(item.ft)
     };
   }
 
@@ -772,7 +802,9 @@ window.Whider = window.Whider || {};
       var listIds = {}; State.lists.forEach(function (l) { listIds[l.id] = true; });
       var c = cleanTask(merged, listIds);
       if (!c) return null;
+      var changed = changedFields(t, c);
       Object.keys(c).forEach(function (k) { t[k] = c[k]; });
+      stampFields(t, changed);
       // Un nuevo plazo rearma los avisos
       if ((t.date || '') + ' ' + (t.time || '') !== oldDeadline) { t.warnedAt = null; t.remindedAt = null; }
       t.updatedAt = Date.now();
@@ -791,6 +823,7 @@ window.Whider = window.Whider || {};
       t.doneOn = t.done ? U.today() : null;
       t.doneAt = t.done ? Date.now() : null;
       if (t.done) t.startedAt = null;
+      stampFields(t, ['done', 'startedAt']);
       if (t.done) doneLog[t.doneOn] = (doneLog[t.doneOn] || 0) + 1;
       t.updatedAt = Date.now();
       if (t.done && t.repeat !== 'none' && !t.spawnedId) {
@@ -811,6 +844,35 @@ window.Whider = window.Whider || {};
       State.notify(t.done ? 'done' : 'undone');
       return t;
     },
+    /* ---------- Archivo: completadas hace tiempo, fuera de la lista ---------- */
+    /** Tareas archivadas en este dispositivo (de la más antigua a la más reciente) */
+    archived: function () { var a = read(KEYS.archive); return Array.isArray(a) ? a : []; },
+    /** ¿Queda por debajo de la marca de archivo? (completada antes de esa fecha) */
+    isArchived: function (t, before) { return !!(t && t.done && before && (t.doneAt || 0) < before); },
+    /** Junta tareas al archivo de este dispositivo, sin repetir (como mucho las 5000 más recientes) */
+    addToArchive: function (list) {
+      if (!list || !list.length) return 0;
+      var byId = {}, n = 0;
+      State.archived().forEach(function (t) { if (t && t.id) byId[t.id] = t; });
+      list.forEach(function (t) { if (t && t.id && !byId[t.id]) { byId[t.id] = t; n++; } });
+      var out = Object.keys(byId).map(function (k) { return byId[k]; }).sort(function (x, y) { return (x.doneAt || 0) - (y.doneAt || 0); });
+      write(KEYS.archive, out.slice(-5000));
+      return n;
+    },
+    /**
+     * Archiva las completadas antes de `before`: salen de la lista y de la copia principal de la nube
+     * (que admite como mucho 1 MB) y quedan en el archivo. Las estadísticas por día no cambian: van en
+     * su propio registro. Devuelve las tareas archivadas.
+     */
+    archiveDone: function (before) {
+      var gone = State.tasks.filter(function (t) { return State.isArchived(t, before); });
+      if (!gone.length) return [];
+      State.addToArchive(gone);
+      State.tasks = State.tasks.filter(function (t) { return !State.isArchived(t, before); });
+      State.syncMeta.archivedBefore = Math.max(State.syncMeta.archivedBefore || 0, before);
+      State.notify('archive');
+      return gone;
+    },
     /** Marca una tarea como empezada (en curso) o la devuelve a pendiente */
     setStarted: function (id, on) {
       var t = State.find(id);
@@ -818,6 +880,7 @@ window.Whider = window.Whider || {};
       var now = on ? (t.startedAt || Date.now()) : null;
       if (now === t.startedAt) return t;
       t.startedAt = now;
+      stampFields(t, ['startedAt']);
       t.updatedAt = Date.now();
       State.notify(on ? 'started' : 'update');
       return t;
@@ -851,6 +914,7 @@ window.Whider = window.Whider || {};
       var d = new Date(Date.now() + minutes * 60000);
       t.date = U.ymd(d);
       t.time = U.pad(d.getHours()) + ':' + U.pad(d.getMinutes());
+      stampFields(t, ['date', 'time']);
       t.warnedAt = null; t.remindedAt = null; t.updatedAt = Date.now();
       State.notify('update');
     },
@@ -858,6 +922,7 @@ window.Whider = window.Whider || {};
       var t = State.find(id);
       if (!t) return;
       t.date = U.addDays(U.today(), 1);
+      stampFields(t, ['date']);
       t.warnedAt = null; t.remindedAt = null; t.updatedAt = Date.now();
       State.notify('update');
     },
@@ -1215,7 +1280,9 @@ window.Whider = window.Whider || {};
         var old = (t.date || '') + ' ' + (t.time || '');
         var c = cleanTask(Object.assign({}, t, typeof fields === 'function' ? fields(t) : fields), listIds);
         if (!c) return;
+        var changed = changedFields(t, c);
         Object.keys(c).forEach(function (k) { t[k] = c[k]; });
+        stampFields(t, changed);
         if ((t.date || '') + ' ' + (t.time || '') !== old) { t.warnedAt = null; t.remindedAt = null; }
         t.updatedAt = Date.now();
         n++;

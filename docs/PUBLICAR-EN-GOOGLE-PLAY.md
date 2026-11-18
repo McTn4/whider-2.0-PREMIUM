@@ -1,6 +1,6 @@
 # Publicar WHIDER en Google Play
 
-La versión 1.0 ya cumple lo técnico que pide Google Play hoy: apunta a **Android 16 (API 36)**, se dibuja de borde a borde, usa el botón Atrás moderno (gesto predictivo), no pide permisos especiales de alarmas y GitHub genera el **paquete AAB** que se sube a Play Console. Lo que queda son pasos de tu cuenta, que solo puedes dar tú.
+La versión 1.0 ya cumple lo técnico que pide Google Play hoy: apunta a **Android 16 (API 36)**, se dibuja de borde a borde, usa el botón Atrás moderno (gesto predictivo), pide el permiso de alarmas exactas solo como opción (ver más abajo) y GitHub genera el **paquete AAB** que se sube a Play Console. Lo que queda son pasos de tu cuenta, que solo puedes dar tú.
 
 ## 1. Crear tu clave de subida (una sola vez)
 
@@ -73,7 +73,13 @@ Cada nueva versión necesita un `versionCode` mayor en [`android/app/build.gradl
 - `targetSdk` y `compileSdk` 36 (Android 16), plugin de Android 8.13 y Gradle 8.14.
 - De borde a borde: la app aparta su contenido de la barra de estado, la de navegación, el recorte de la cámara y el teclado.
 - Botón Atrás con `OnBackPressedDispatcher` (compatible con el gesto predictivo).
-- Recordatorios con alarmas inexactas (`setAndAllowWhileIdle`): no hace falta el permiso de alarmas exactas, que Google restringe.
-- Permisos mínimos: Internet, notificaciones, vibración, reprogramar al reiniciar y cámara (solo al escanear un QR).
+- Recordatorios: desde la 1.1 la app declara `SCHEDULE_EXACT_ALARM` (no `USE_EXACT_ALARM`, que Google reserva a despertadores
+  y calendarios). En Android 14+ viene desactivado: quien quiera los avisos a la hora exacta lo activa en
+  *Ajustes → Avisos → Avisos a la hora exacta*; sin él, los recordatorios siguen llegando con `setAndAllowWhileIdle`
+  (Android puede retrasarlos unos minutos). Si Play Console pide justificarlo, el motivo es que la función principal
+  son los recordatorios de tareas a la hora que eliges.
+- Widget «Hoy» para la pantalla de inicio y «Compartir con WHIDER» (texto y enlaces desde otras apps): no necesitan
+  permisos.
+- Permisos mínimos: Internet, notificaciones, vibración, reprogramar al reiniciar, alarmas exactas (opcional, ver arriba) y cámara (solo al escanear un QR).
 - Sin anuncios, sin análisis ni seguimiento, sin compras dentro de la app.
 - Acceso a archivos del WebView cerrado en las instalaciones nuevas.

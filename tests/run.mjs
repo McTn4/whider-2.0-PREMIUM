@@ -39,10 +39,11 @@ export const GRUPOS = {
     'menu-bloques',
     'adjuntos',
     'accesibilidad',
-    'uso-diario'
+    'uso-diario',
+    'importar'
   ],
   // Cuentas, sincronización y comunidad contra los emuladores de Firebase
-  nube: ['comunidad', 'eliminar-cuenta', 'adjuntos-nube', 'version-1'],
+  nube: ['comunidad', 'eliminar-cuenta', 'adjuntos-nube', 'version-1', 'sincronizacion', 'seguridad'],
   // La web tal y como se publica en Vercel (dist/)
   web: ['web-recorrido', 'web-portada', 'web-accesibilidad'],
   // La app de escritorio (Electron); necesita «npm ci» dentro de desktop/

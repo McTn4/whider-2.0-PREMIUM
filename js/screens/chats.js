@@ -66,8 +66,13 @@ window.Whider.Screens = window.Whider.Screens || {};
       { value: 'pin', label: p.pinned ? 'Dejar de fijar' : 'Fijar arriba', icon: 'pin' },
       { value: 'mute', label: p.muted ? 'Activar avisos' : 'Silenciar avisos', icon: 'sound' },
       { value: 'read', label: 'Marcar como leído', icon: 'check' },
-      c.type === 'dm' ? { value: 'hide', label: 'Ocultar el chat', icon: 'eye', gap: true } : null
+      c.type === 'dm' ? { value: 'hide', label: 'Ocultar el chat', icon: 'eye', gap: true } : null,
+      c.type === 'dm' ? { value: 'report', label: 'Denunciar…', icon: 'flag' } : null,
+      c.type === 'dm' ? { value: 'block', label: 'Bloquear', icon: 'hand', destructive: true } : null
     ].filter(Boolean), { title: C().title(c) }).then(function (v) {
+      var who = C().other(c);
+      if (v === 'report') { W.People.reportSheet({ who: who, name: C().title(c), where: 'chat ' + c.id }); return; }
+      if (v === 'block') { W.People.blockConfirm(who, C().title(c)).then(function (ok) { if (ok && openId() === c.id) openChat(null); drawList(); }); return; }
       if (v === 'pin') C().setPrefs(c.id, { pinned: !p.pinned });
       else if (v === 'mute') C().setPrefs(c.id, { muted: !p.muted });
       else if (v === 'read') C().markRead(c.id);
@@ -154,6 +159,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (m.text) items.push({ value: 'task', label: 'Crear una tarea', icon: 'tasks' });
     if (mine && m.kind === 'text') items.push({ value: 'edit', label: 'Editar', icon: 'edit' });
     if (mine) items.push({ value: 'del', label: 'Eliminar', icon: 'trash', destructive: true });
+    if (!mine) items.push({ value: 'report', label: 'Denunciar el mensaje…', icon: 'flag', gap: true });
     W.Menu.open(anchor, items).then(function (v) {
       if (!v) return;
       if (v === 'reply') { replyTo = m; editing = null; drawComposer(c); }
@@ -162,6 +168,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       else if (v === 'task') W.Editor.open(null, { text: String(m.text).slice(0, 200) });
       else if (v === 'edit') { editing = m; replyTo = null; drawComposer(c); }
       else if (v === 'del') W.Sheet.confirm({ title: '¿Eliminar el mensaje?', text: 'Se borra para todos.', ok: 'Eliminar', danger: true }).then(function (ok) { if (ok) C().remove(c.id, m.id); });
+      else if (v === 'report') W.People.reportSheet({ who: m.by, name: m.name || '', where: 'chat ' + c.id + ' · mensaje ' + m.id, excerpt: m.text || '' });
     });
   }
   var composerHost = null, msgsHost = null;

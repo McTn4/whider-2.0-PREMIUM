@@ -2,4 +2,10 @@
     <string name="app_name">WHIDER</string>
     <string name="channel_warnings">Avisos de tareas</string>
     <string name="channel_warnings_desc">Recordatorios antes del plazo y alertas cuando una tarea no se cumple</string>
+    <string name="widget_label">WHIDER · Hoy</string>
+    <string name="widget_description">Tus tareas de hoy y un botón para añadir</string>
+    <string name="widget_title">Hoy</string>
+    <string name="widget_add">Nueva tarea</string>
+    <string name="widget_empty">Nada pendiente para hoy</string>
+    <string name="widget_count">%1$d de %2$d hechas</string>
 </resources>

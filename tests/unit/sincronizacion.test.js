@@ -88,3 +88,100 @@ test('la huella no cambia por el orden de las claves', () => {
   y.settings = { b: 2, a: 1 };
   assert.equal(W.Sync.fingerprint(x), W.Sync.fingerprint(y));
 });
+
+test('dos dispositivos cambian campos distintos de la misma tarea: se conservan los dos cambios', () => {
+  // A cambia la fecha (más tarde en general); B la completa antes pero su campo «done» es más nuevo que el de A
+  const base = { id: 't1', text: 'Informe', createdAt: 1000 };
+  const a = snap({
+    tasks: [Object.assign({}, base, { date: '2026-11-20', done: false, updatedAt: 300, ft: { date: 300 } })]
+  });
+  const b = snap({
+    tasks: [
+      Object.assign({}, base, {
+        date: '2026-11-18',
+        done: true,
+        doneOn: '2026-11-18',
+        doneAt: 250,
+        updatedAt: 250,
+        ft: { done: 250 }
+      })
+    ]
+  });
+  for (const m of [merge(a, b), merge(b, a)]) {
+    const t = m.tasks[0];
+    assert.equal(t.date, '2026-11-20', 'la fecha nueva de A');
+    assert.equal(t.done, true, 'y la tarea completada en B');
+    assert.equal(t.doneOn, '2026-11-18');
+    assert.equal(t.ft.date, 300);
+    assert.equal(t.ft.done, 250);
+  }
+});
+
+test('si los dos cambian el mismo campo, gana la edición más reciente de ese campo', () => {
+  const a = snap({ tasks: [t('t1', 'Texto de A', 500, { ft: { text: 200 } })] });
+  const b = snap({ tasks: [t('t1', 'Texto de B', 400, { ft: { text: 400 } })] });
+  assert.equal(merge(a, b).tasks[0].text, 'Texto de B');
+  assert.equal(merge(b, a).tasks[0].text, 'Texto de B');
+});
+
+test('versiones sin hora por campo (de una app anterior): gana la más reciente, como antes', () => {
+  const a = snap({ tasks: [t('t1', 'Vieja', 100)] });
+  const b = snap({ tasks: [t('t1', 'Nueva', 200)] });
+  assert.equal(merge(a, b).tasks[0].text, 'Nueva');
+  assert.equal(merge(a, b).tasks[0].ft, undefined);
+});
+
+test('el tiempo de enfoque dedicado se queda con el mayor', () => {
+  const a = snap({ tasks: [t('t1', 'X', 500, { focusMin: 25 })] });
+  const b = snap({ tasks: [t('t1', 'X', 400, { focusMin: 50 })] });
+  assert.equal(merge(a, b).tasks[0].focusMin, 50);
+});
+
+test('la marca de archivo saca de la copia lo completado antes de ella (y no lo que sigue pendiente)', () => {
+  const a = snap({
+    tasks: [
+      t('t1', 'Vieja hecha', 10, { done: true, doneAt: 100 }),
+      t('t2', 'Reciente hecha', 10, { done: true, doneAt: 900 }),
+      t('t3', 'Pendiente', 10, { done: false })
+    ],
+    sync: { deleted: {}, archivedBefore: 500 }
+  });
+  const b = snap({ tasks: [t('t1', 'Vieja hecha', 10, { done: true, doneAt: 100 })] });
+  const m = merge(b, a);
+  assert.deepEqual(m.tasks.map((x) => x.id).sort(), ['t2', 't3']);
+  assert.equal(m.sync.archivedBefore, 500);
+});
+
+test('los fallos de la nube se explican y solo se reintentan cuando tiene sentido', () => {
+  const c = (code, ctx, message) => W.Sync.classify({ code, message }, ctx);
+  assert.equal(c('unavailable').kind, 'connection');
+  assert.equal(c('unavailable').retry, true);
+  assert.equal(c(undefined, { offline: true }).kind, 'connection');
+  assert.equal(c('unauthenticated').kind, 'auth');
+  assert.equal(c('unauthenticated').retry, false);
+  assert.equal(c('permission-denied', { verified: false }).kind, 'unverified');
+  assert.equal(c('permission-denied', { verified: true }).kind, 'permissions');
+  assert.equal(c('aborted').kind, 'conflict');
+  assert.equal(c('resource-exhausted').slow, true);
+  assert.equal(c('size').kind, 'size');
+  assert.equal(c('invalid-argument', {}, 'Document exceeds the maximum allowed size').kind, 'size');
+  assert.equal(c('internal').kind, 'server');
+  for (const k of ['unavailable', 'unauthenticated', 'aborted', 'internal', 'size'])
+    assert.ok(c(k).text.length > 20, k);
+});
+
+test('reintentos cada vez más espaciados, con tope de 5 minutos', () => {
+  const b = (n, slow) => W.Sync.backoff(n, slow, 0.5);
+  assert.equal(b(0), 2000);
+  assert.equal(b(1), 4000);
+  assert.equal(b(3), 16000);
+  assert.equal(b(20), 300000);
+  assert.equal(b(0, true), 60000);
+  assert.ok(W.Sync.backoff(0, false, 0) >= 1600 && W.Sync.backoff(0, false, 1) <= 2400, 'con ±20 % de azar');
+});
+
+test('sin tocar la app se mira la nube cada vez menos', () => {
+  assert.equal(W.Sync.pollEvery(10000), 15000);
+  assert.equal(W.Sync.pollEvery(5 * 60000), 60000);
+  assert.equal(W.Sync.pollEvery(60 * 60000), 300000);
+});

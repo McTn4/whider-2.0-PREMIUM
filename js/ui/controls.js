@@ -38,7 +38,11 @@ window.Whider = window.Whider || {};
     return U.el('button.avatar-btn', { attrs: { 'aria-label': 'Tu perfil y resumen', title: 'Perfil' }, on: { click: function () { W.Router.go('progress'); } } }, [W.Profile.avatar()]);
   }
   function gearBtn() {
-    return navBtn({ icon: 'gear', label: 'Ajustes', onTap: function () { W.Settings.open(); } });
+    // Con cambios sin subir por un fallo, el engranaje lleva un punto (y lo dice al lector de pantalla)
+    var unsaved = !!(W.Sync && W.Sync.unsaved && W.Sync.unsaved());
+    var b = navBtn({ icon: 'gear', label: unsaved ? 'Ajustes (hay cambios sin guardar en la nube)' : 'Ajustes', onTap: function () { W.Settings.open(); } });
+    b.classList.add('gear-btn');
+    return b;
   }
 
   var UI = {

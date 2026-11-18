@@ -363,20 +363,94 @@ window.Whider = window.Whider || {};
     if (document.hidden || !ready()) return;
     var active = S().activeScreen === 'friends' || S().activeScreen === 'chats';
     var every = active ? 7000 : 30000;
+    // Sin tocar la app durante un rato, el buzón se mira con menos frecuencia
+    if (W.Sync && W.Sync.idleFor && W.Sync.idleFor() > 120000) every = Math.max(every, W.Sync.pollEvery(W.Sync.idleFor()));
     if (failures) every = Math.min(120000, every * Math.pow(2, Math.min(failures, 4)));
     if (Date.now() - lastPoll >= every) poll();
   }
 
+  /* ---------- Bloquear y denunciar ---------- */
+  var BKEY = 'whider.blocked.v1';
+  /** Personas bloqueadas en esta cuenta: { uid: { name, at } } (copia local; la que manda está en la nube) */
+  function blockedMap() { try { return JSON.parse(localStorage.getItem(BKEY) || '{}') || {}; } catch (e) { return {}; } }
+  function saveBlocked(m) { try { localStorage.setItem(BKEY, JSON.stringify(m)); } catch (e) { /* sin espacio */ } }
+  /**
+   * Bloquear: ya no puede escribirte (ni solicitudes, ni ánimos, ni mensajes en vuestro chat de dos) y
+   * deja de estar en tus contactos. Lo comprueban las reglas de la nube, no solo la app.
+   */
+  function block(who, name) {
+    if (!who || who === uid()) return Promise.resolve(false);
+    var m = blockedMap(); m[who] = { name: name || '', at: Date.now() }; saveBlocked(m);
+    S().setFriend(who, { removed: true });
+    if (inbox.requests && inbox.requests[who]) { delete inbox.requests[who]; emit('requests'); }
+    emit('blocked');
+    if (!canUse()) return Promise.resolve(true);
+    return F().setDoc(ref('blocks', uid() + '_' + who), { by: uid(), who: who, at: Date.now() }).then(function () { return true; });
+  }
+  function unblock(who) {
+    var m = blockedMap(); delete m[who]; saveBlocked(m);
+    emit('blocked');
+    if (!canUse()) return Promise.resolve(true);
+    return F().deleteDoc(ref('blocks', uid() + '_' + who)).then(function () { return true; });
+  }
+  /** Al entrar en otro dispositivo: trae la lista de bloqueos de la nube */
+  function loadBlocked() {
+    if (!canUse() || !F().query) return Promise.resolve();
+    return F().getDocs(F().query(F().collection(DB(), 'blocks'), F().where('by', '==', uid()))).then(function (snap) {
+      var m = blockedMap();
+      snap.forEach(function (d) { var x = d.data(); if (x && x.who && !m[x.who]) m[x.who] = { name: (profiles[x.who] || {}).name || '', at: x.at || Date.now() }; });
+      saveBlocked(m); emit('blocked');
+    }).catch(function () { /* sin conexión */ });
+  }
+  /**
+   * Denunciar a alguien o algo que escribió. Queda guardado para revisarlo (consola de Firebase) y,
+   * si quieres, se prepara un correo al equipo de WHIDER con los detalles.
+   */
+  function report(o) {
+    var data = { by: uid(), who: String(o.who || '').slice(0, 128), reason: String(o.reason || 'otro').slice(0, 40), where: String(o.where || '').slice(0, 160), excerpt: String(o.excerpt || '').slice(0, 600), at: Date.now() };
+    if (!canUse()) return Promise.reject({ code: 'unavailable' });
+    return F().setDoc(ref('reports', U.uid('r')), data).then(function () { return true; });
+  }
+
+  var REASONS = [
+    { value: 'spam', label: 'Spam o publicidad' }, { value: 'acoso', label: 'Acoso o insultos' },
+    { value: 'inapropiado', label: 'Contenido inapropiado' }, { value: 'suplantacion', label: 'Se hace pasar por otra persona' },
+    { value: 'otro', label: 'Otro motivo' }
+  ];
+  /** Hoja para denunciar: el motivo y, si quieres, bloquear a la vez */
+  function reportSheet(o) {
+    return W.Sheet.choose({ title: 'Denunciar' + (o.name ? ' a ' + o.name : ''), options: REASONS }).then(function (reason) {
+      if (!reason) return false;
+      return report({ who: o.who, reason: reason, where: o.where || '', excerpt: o.excerpt || '' }).then(function () {
+        W.Toast.show({ text: 'Gracias. La denuncia queda registrada para revisarla.', icon: 'shield', type: 'success', duration: 6000,
+          action: blockedMap()[o.who] ? null : { label: 'Bloquear', fn: function () { blockConfirm(o.who, o.name); } } });
+        return true;
+      }).catch(function () { W.Toast.show({ text: 'No se pudo enviar la denuncia. Inténtalo con conexión.', type: 'danger' }); return false; });
+    });
+  }
+  function blockConfirm(who, name) {
+    return W.Sheet.confirm({ title: '¿Bloquear' + (name ? ' a ' + name : '') + '?', text: 'No podrá enviarte solicitudes, ánimos ni mensajes en vuestro chat, y sale de tus contactos. No se le avisa. Puedes desbloquearlo en Ajustes → Privacidad.', ok: 'Bloquear', danger: true })
+      .then(function (ok) {
+        if (!ok) return false;
+        return block(who, name).then(function () { W.Toast.show({ text: (name || 'La persona') + ' está bloqueada', icon: 'hand' }); return true; })
+          .catch(function () { W.Toast.show({ text: 'Bloqueada en este dispositivo; se guardará en la nube al volver la conexión', icon: 'hand' }); return true; });
+      });
+  }
+
   var People = {
     CHEERS: CHEERS,
+    REASONS: REASONS,
+    block: block, unblock: unblock, report: report, loadBlocked: loadBlocked, reportSheet: reportSheet, blockConfirm: blockConfirm,
+    blocked: function () { return blockedMap(); },
+    isBlocked: function (who) { return !!blockedMap()[who]; },
     subscribe: function (fn) { subs.push(fn); return function () { subs = subs.filter(function (x) { return x !== fn; }); }; },
     uid: uid, ready: ready, canUse: canUse, blocker: blocker, error: function () { return errorState; },
     enable: enable, ensureEnabled: ensureEnabled, poll: poll, publish: publish, schedulePublish: schedulePublish, loadProfiles: loadProfiles, weekStats: weekStats, myName: myName, send: send,
     profile: function (id) { return profiles[id] || null; },
     profiles: function () { return profiles; },
-    requests: function () { return inbox.requests || {}; },
-    pendingCount: function () { return Object.keys(inbox.requests || {}).length; },
-    contacts: function (kind) { return S().friends().filter(function (f) { return !kind || (f.kind || 'friend') === kind; }); },
+    requests: function () { var bl = blockedMap(), out = {}; Object.keys(inbox.requests || {}).forEach(function (k) { if (!bl[k]) out[k] = inbox.requests[k]; }); return out; },
+    pendingCount: function () { return Object.keys(People.requests()).length; },
+    contacts: function (kind) { var bl = blockedMap(); return S().friends().filter(function (f) { return !bl[f.uid] && (!kind || (f.kind || 'friend') === kind); }); },
     addByCode: addByCode, answer: answer, cheer: cheer,
     setKind: function (id, kind) { S().setFriend(id, { kind: kind === 'work' ? 'work' : 'friend' }); },
     remove: function (id) { S().setFriend(id, { removed: true }); },
@@ -388,6 +462,9 @@ window.Whider = window.Whider || {};
     init: function () {
       clearInterval(ticker);
       ticker = setInterval(tick, 3000);
+      // En otro dispositivo, los bloqueos se traen de la nube una vez por sesión
+      var blocksLoaded = false;
+      if (W.Sync) W.Sync.onStatus(function (s) { if (s === 'synced' && canUse() && !blocksLoaded) { blocksLoaded = true; loadBlocked(); } });
       S().subscribe(function (reason) { if (ready() && (reason === 'done' || reason === 'focus' || reason === 'character' || reason === 'profile' || reason === 'habit')) schedulePublish(); });
       if (W.Sync) W.Sync.onStatus(function (s) { if (s === 'synced' && ready() && !lastPoll) { publish(); poll(true); } });
       document.addEventListener('visibilitychange', function () { if (!document.hidden && ready() && Date.now() - lastPoll > 5000) poll(true); });

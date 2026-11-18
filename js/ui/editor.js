@@ -59,7 +59,7 @@ window.Whider = window.Whider || {};
       if (taskId && !src) return null;
       var isNew = !src;
       var d = isNew ? {
-        text: (preset && preset.text) || '', notes: '', date: preset && preset.date !== undefined ? preset.date : U.today(), time: (preset && preset.time) || null,
+        text: (preset && preset.text) || '', notes: (preset && preset.notes) || '', date: preset && preset.date !== undefined ? preset.date : U.today(), time: (preset && preset.time) || null,
         highlight: (preset && preset.highlight) || 'none', warn: st.settings.defaultWarn, listId: (preset && preset.listId) || st.ui.listFilter || st.settings.defaultList,
         repeat: (preset && preset.repeat) || 'none', subtasks: [], remindBefore: null
       } : JSON.parse(JSON.stringify(src));

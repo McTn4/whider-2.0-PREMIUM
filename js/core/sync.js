@@ -13,27 +13,104 @@
  *  - Borrados: se recuerdan para que no "resuciten" desde otro dispositivo.
  *  - Historial diario, enfoque y récords: se conserva el valor más alto.
  *  - Personaje y enfoque compartido: gana el cambio más reciente.
- * Se sincroniza al abrir, al volver a la app, tras cada cambio y, mientras está a la vista, cada
- * 15 segundos («sincronización al instante»).
+ * Se sincroniza al abrir, al volver a la app y tras cada cambio. Mientras está a la vista se
+ * mira la nube cada 15 s si la estás usando, cada minuto tras 2 min sin tocarla y cada 5 min tras
+ * 15 min (así un ordenador con WHIDER abierto todo el día no gasta lecturas sin necesidad).
  * Sin conexión no pasa nada: los datos ya están guardados y se suben al volver la red.
+ * Si algo falla, el error se clasifica (conexión, sesión, permisos, choque con otro dispositivo,
+ * límite de uso, tamaño o servidor), se explica en Ajustes y se reintenta solo cuando tiene sentido,
+ * cada vez más espaciado (2 s, 4 s, 8 s… hasta 5 min).
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
-  var F = function () { return W.Auth.sdk(); }, S = function () { return W.State; };
+  var F = function () { return W.Auth.sdk(); }, S = function () { return W.State; }, U2 = function () { return W.U; };
   var ref = null, notesRef = null, timer = null, poll = null, applying = false, active = false, uid = null, lastPush = 0;
   var dirty = false, inFlight = null, queued = false, firstSyncPromise = null;
   var listeners = [];
   // Con la app a la vista se mira la nube cada 15 s; un cambio se sube a los 0,6 s
   var POLL_EVERY = 15000, PUSH_DELAY = 600;
+  // Firestore admite hasta 1 MiB por documento: se avisa a partir de 700 KB y no se intenta pasar de 1 MB
+  var SIZE_WARN = 700 * 1024, SIZE_MAX = 1000 * 1000;
+  var retryTimer = null, retryN = 0, lastInput = Date.now();
+
+  function utf8Size(str) { return new TextEncoder().encode(str).length; }
+  /** Espera antes de reintentar: 2, 4, 8… s (o desde 1 min si la nube está al límite), hasta 5 min, ±20 % */
+  function backoff(n, slow, rnd) {
+    var base = Math.min(300000, (slow ? 60000 : 2000) * Math.pow(2, Math.max(0, n)));
+    return Math.round(base * (0.8 + (rnd === undefined ? Math.random() : rnd) * 0.4));
+  }
+  /** Cada cuánto mirar la nube según el tiempo que llevas sin tocar la app */
+  function pollEvery(idle) { return idle < 120000 ? POLL_EVERY : idle < 900000 ? 60000 : 300000; }
+
+  /* Fusión de dos versiones de la misma tarea: gana la editada más tarde, pero los campos que la
+     otra cambió después (según su hora, «ft») se conservan. Algunos campos van juntos. */
+  var FIELD_GROUPS = { done: ['done', 'doneOn', 'doneAt', 'spawnedId'], date: ['date', 'warnedAt', 'remindedAt'] };
+  function stampOf(x) { return x.updatedAt || x.createdAt || 0; }
+  function mergeTask(x, y) {
+    var sx = stampOf(x), sy = stampOf(y);
+    var win = sy > sx ? y : x, lose = win === x ? y : x;
+    var fw = win.ft || {}, fl = lose.ft || {};
+    var keys = Object.keys(fl).filter(function (k) { return (fl[k] || 0) > (fw[k] || 0); });
+    if (!keys.length && (lose.focusMin || 0) <= (win.focusMin || 0)) return win;
+    var out = Object.assign({}, win, { ft: Object.assign({}, fw) });
+    keys.forEach(function (k) {
+      (FIELD_GROUPS[k] || [k]).forEach(function (f) { out[f] = lose[f]; });
+      out.ft[k] = fl[k];
+    });
+    // El tiempo de enfoque dedicado solo suma: se queda el mayor
+    out.focusMin = Math.max(win.focusMin || 0, lose.focusMin || 0);
+    out.updatedAt = Math.max(sx, sy);
+    return out;
+  }
 
   var Sync = {
     status: 'off',       // off · connecting · synced · pending · offline · unverified · error
     lastAt: null,
+    /** Último error: { kind, text, retry, code, at } (kind: connection, auth, unverified, permissions, conflict, quota, size, server) */
+    lastError: null,
+    /** Primer cambio de este dispositivo que aún no está en la nube */
+    pendingSince: null,
+    /** Próximo reintento programado (marca de tiempo) */
+    retryAt: null,
+    /** Tamaño del documento principal en la última subida (bytes) y sus límites */
+    size: 0,
+    SIZE_WARN: SIZE_WARN,
+    SIZE_MAX: SIZE_MAX,
+    mergeTask: mergeTask,
+    backoff: backoff,
+    pollEvery: pollEvery,
+    /** Milisegundos desde la última vez que se tocó la app (lo usan también el Cuaderno y Personas) */
+    idleFor: function () { return Date.now() - lastInput; },
     onStatus: function (fn) { listeners.push(fn); },
 
+    /**
+     * Traduce un fallo de la nube a algo que se entiende y dice si tiene sentido reintentar.
+     * ctx: { offline, verified }
+     */
+    classify: function (e, ctx) {
+      ctx = ctx || {};
+      var code = String((e && e.code) || '').replace(/^firestore\//, ''), msg = String((e && e.message) || '');
+      if (code === 'size' || (code === 'invalid-argument' && /size|bytes|too large|exceed/i.test(msg))) {
+        return { kind: 'size', retry: false, text: 'Tus datos ya no caben en la copia de la nube (máximo 1 MB). Siguen a salvo en este dispositivo: archiva las tareas completadas antiguas en Ajustes → Datos.' };
+      }
+      if (ctx.offline || code === 'unavailable' || code === 'deadline-exceeded' || /network|failed to fetch|offline|load failed/i.test(msg)) {
+        return { kind: 'connection', retry: true, text: 'Sin conexión con la nube. Tus cambios están guardados aquí y se subirán solos.' };
+      }
+      if (code === 'unauthenticated') return { kind: 'auth', retry: false, text: 'La sesión ha caducado. Vuelve a iniciar sesión para seguir guardando en la nube.' };
+      if (code === 'permission-denied') {
+        return ctx.verified === false
+          ? { kind: 'unverified', retry: false, text: 'Verifica tu correo para activar la copia en la nube.' }
+          : { kind: 'permissions', retry: false, text: 'La nube no ha aceptado los cambios. Cierra sesión y vuelve a entrar; si sigue pasando, escríbenos.' };
+      }
+      if (code === 'aborted' || code === 'failed-precondition') return { kind: 'conflict', retry: true, text: 'Otro dispositivo estaba guardando a la vez. Se vuelve a intentar enseguida.' };
+      if (code === 'resource-exhausted') return { kind: 'quota', retry: true, slow: true, text: 'La nube está al límite de uso. Se volverá a intentar en unos minutos.' };
+      return { kind: 'server', retry: true, text: 'La nube no responde bien ahora mismo. Se volverá a intentar.' };
+    },
+
     setStatus: function (s) {
+      try { document.documentElement.setAttribute('data-sync', s); } catch (e) { /* sin documento (pruebas) */ }
       if (Sync.status === s && s !== 'synced') return;
       Sync.status = s;
       if (s === 'synced') Sync.lastAt = Date.now();
@@ -51,14 +128,17 @@ window.Whider = window.Whider || {};
       });
       var stamp = function (x) { return x.updatedAt || x.createdAt || 0; };
 
-      // Tareas
+      // Tareas: por tarea gana la más reciente, campo a campo si las dos traen la hora de sus campos
       var byId = {};
       (a.tasks || []).concat(b.tasks || []).forEach(function (t) {
         if (!t || !t.id) return;
-        if (!byId[t.id] || stamp(t) > stamp(byId[t.id])) byId[t.id] = t;
+        byId[t.id] = byId[t.id] ? mergeTask(byId[t.id], t) : t;
       });
+      // Lo completado antes de la marca de archivo vive en el archivo, no en la copia principal
+      var archivedBefore = Math.max(sa.archivedBefore || 0, sb.archivedBefore || 0);
       var tasks = Object.keys(byId).map(function (k) { return byId[k]; })
         .filter(function (t) { return !(deleted[t.id] && deleted[t.id] >= stamp(t)); })
+        .filter(function (t) { return !(archivedBefore && t.done && (t.doneAt || 0) < archivedBefore); })
         .sort(function (x, y) { return (x.createdAt || 0) - (y.createdAt || 0); });
 
       var newer = function (key, field) { return (sa[key] || 0) >= (sb[key] || 0) ? a[field] : b[field]; };
@@ -190,7 +270,8 @@ window.Whider = window.Whider || {};
           settingsAt: Math.max(sa.settingsAt || 0, sb.settingsAt || 0),
           listsAt: Math.max(sa.listsAt || 0, sb.listsAt || 0),
           profileAt: Math.max(sa.profileAt || 0, sb.profileAt || 0),
-          resetAt: Math.max(resetA, resetB)
+          resetAt: Math.max(resetA, resetB),
+          archivedBefore: archivedBefore || undefined
         }
       };
     },
@@ -232,14 +313,15 @@ window.Whider = window.Whider || {};
       Sync.push(true).then(resolveFirst, resolveFirst);
       clearInterval(poll);
       poll = setInterval(function () {
-        if (!document.hidden && active && !dirty && Date.now() - lastPush >= POLL_EVERY) Sync.push();
+        if (!document.hidden && active && !dirty && Date.now() - lastPush >= pollEvery(Date.now() - lastInput)) Sync.push();
       }, 5000);
       return firstSyncPromise;
     },
     stop: function () {
       active = false;
       ref = null; notesRef = null; uid = null; dirty = false;
-      clearTimeout(timer); clearInterval(poll);
+      clearTimeout(timer); clearInterval(poll); clearTimeout(retryTimer);
+      retryN = 0; Sync.retryAt = null; Sync.lastError = null; Sync.pendingSince = null;
       Sync.setStatus('off');
     },
     restart: function () { if (W.Auth.user) return Sync.start(W.Auth.user); return Promise.resolve(); },
@@ -248,6 +330,7 @@ window.Whider = window.Whider || {};
     schedule: function () {
       if (!active || applying) return;
       dirty = true;
+      if (!Sync.pendingSince) Sync.pendingSince = Date.now();
       clearTimeout(timer);
       Sync.setStatus('pending');
       timer = setTimeout(function () { Sync.push(); }, PUSH_DELAY);
@@ -259,6 +342,7 @@ window.Whider = window.Whider || {};
      */
     push: function (initial) {
       clearTimeout(timer);
+      clearTimeout(retryTimer); Sync.retryAt = null;
       if (!active || !ref) return Promise.resolve();
       if (inFlight) { queued = true; return inFlight; }
       var myRef = ref, myNotes = notesRef;
@@ -274,12 +358,19 @@ window.Whider = window.Whider || {};
             var remote = main || noteDoc ? Object.assign({}, main || {}, { notes: remoteNotes }) : null;
             var local = S().snapshot();
             var merged = Sync.merge(local, remote);
+            // Lo que la marca de archivo deja fuera (de aquí o de la nube) se guarda en el archivo, no se pierde
+            var cut = (merged.sync && merged.sync.archivedBefore) || 0;
+            var toArchive = cut ? (local.tasks || []).concat((remote && remote.tasks) || []).filter(function (t) { return t && t.done && (t.doneAt || 0) < cut; }) : [];
             var mergedFp = Sync.fingerprint(merged);
             // Documento principal (sin los apuntes)
             var mainOut = JSON.parse(JSON.stringify(merged));
             delete mainOut.notes;
             var mainPrev = main ? Object.assign({}, main) : null;
             if (mainPrev) delete mainPrev.notes;
+            // Antes de escribir: ¿cabe? (un documento de más de 1 MiB lo rechaza la nube)
+            var bytes = utf8Size(JSON.stringify(mainOut));
+            Sync.size = bytes;
+            if (bytes > SIZE_MAX) throw { code: 'size', bytes: bytes };
             if (!mainPrev || Sync.fingerprint(mainOut) !== Sync.fingerprint(mainPrev)) {
               mainOut.updatedAt = Date.now();
               mainOut.device = /Android/i.test(navigator.userAgent) ? 'android' : window.WhiderDesktop ? 'desktop' : 'web';
@@ -291,11 +382,12 @@ window.Whider = window.Whider || {};
               notesOut.updatedAt = Date.now();
               tx.set(myNotes, notesOut);
             }
-            return { merged: merged, changedLocal: mergedFp !== Sync.fingerprint(local) };
+            return { merged: merged, changedLocal: mergedFp !== Sync.fingerprint(local), toArchive: toArchive };
           });
         });
       }).then(function (r) {
         if (myRef !== ref) return;
+        if (r.toArchive && r.toArchive.length && S().addToArchive(r.toArchive)) Sync.archiveRemote(r.toArchive);
         if (r.changedLocal) {
           // Se vuelve a fusionar con el estado actual por si hubo cambios durante la subida
           var cur = S().snapshot();
@@ -305,13 +397,29 @@ window.Whider = window.Whider || {};
             try { S().applySnapshot(finalMerged, 'sync'); } finally { applying = false; }
           }
         }
+        retryN = 0; Sync.lastError = null;
+        if (!dirty) Sync.pendingSince = null;
         Sync.setStatus(dirty ? 'pending' : 'synced');
+        // Cerca del límite de 1 MB: se archivan solas las completadas de hace más de un año
+        if (Sync.size > SIZE_WARN) Sync.autoArchive();
+        // Un archivo que no llegó a subirse se vuelve a intentar (juntar por id no duplica nada)
+        else if (S().meta.archivePending) Sync.archiveRemote(S().archived());
       }).catch(function (e) {
         dirty = true;
-        var code = e && e.code;
-        if (code === 'permission-denied') Sync.setStatus(W.Auth.isVerified() ? 'error' : 'unverified');
-        else if (code === 'unavailable' || navigator.onLine === false) Sync.setStatus('offline');
-        else { console.warn('Sincronización:', code || e); Sync.setStatus('error'); }
+        if (!Sync.pendingSince) Sync.pendingSince = Date.now();
+        var c = Sync.classify(e, { offline: navigator.onLine === false, verified: W.Auth.isVerified() });
+        Sync.lastError = Object.assign({ code: (e && e.code) || '', at: Date.now() }, c);
+        // Demasiado grande: se archiva lo completado hace tiempo y se vuelve a intentar una vez
+        if (c.kind === 'size' && Sync.autoArchive()) { c = Object.assign({}, c, { retry: true }); Sync.lastError.retry = true; }
+        if (c.kind === 'connection') Sync.setStatus('offline');
+        else if (c.kind === 'unverified') Sync.setStatus('unverified');
+        else { console.warn('Sincronización:', (e && e.code) || e); Sync.setStatus('error'); }
+        // Reintentos espaciados (sin red se espera a que vuelva: lo avisa el navegador)
+        if (c.retry && navigator.onLine !== false && active) {
+          var wait = backoff(retryN++, c.slow);
+          Sync.retryAt = Date.now() + wait;
+          retryTimer = setTimeout(function () { retryTimer = null; Sync.retryAt = null; if (active) Sync.push(); }, wait);
+        }
       }).then(function () {
         inFlight = null;
         if (queued) { queued = false; return Sync.push(); }
@@ -332,19 +440,72 @@ window.Whider = window.Whider || {};
     /** Identificador de la cuenta conectada (o null) */
     uid: function () { return uid; },
     statusText: function () {
+      var since = Sync.pendingSince && Date.now() - Sync.pendingSince > 60000 ? ' · cambios sin subir desde ' + W.U.fmtRel(Sync.pendingSince - Date.now()) : '';
+      var next = Sync.retryAt ? ' · nuevo intento ' + W.U.fmtRel(Sync.retryAt - Date.now()) : '';
       switch (Sync.status) {
         case 'synced': return 'Sincronizado' + (Sync.lastAt ? ' · ' + W.U.fmtRel(Sync.lastAt - Date.now()) : '');
         case 'pending': return 'Guardando en la nube…';
         case 'connecting': return 'Conectando…';
-        case 'offline': return 'Sin conexión · se sincronizará al volver';
+        case 'offline': return 'Sin conexión · tus cambios se subirán al volver' + since;
         case 'unverified': return 'Verifica tu correo para activar la copia en la nube';
-        case 'error': return 'No se pudo sincronizar · reintentando';
+        case 'error': return (Sync.lastError ? Sync.lastError.text : 'No se pudo sincronizar') + next + since;
         default: return 'Solo en este dispositivo';
       }
-    }
+    },
+    /**
+     * Archivo en la nube: users/{uid}/archive/{AAAA-MM-n}, cuatro documentos por mes (n = 0…3, fijo para
+     * cada tarea según su id) para que ninguno se acerque al límite de 1 MB. Se juntan por id: subir dos
+     * veces lo mismo no duplica nada.
+     */
+    archiveRemote: function (list) {
+      if (!active || !uid || !list || !list.length) return Promise.resolve(false);
+      var groups = {}, u = uid;
+      list.forEach(function (t) {
+        var h = 0;
+        for (var i = 0; i < String(t.id).length; i++) h = (h + String(t.id).charCodeAt(i)) % 4;
+        var d = new Date(t.doneAt || t.createdAt || Date.now()), k = d.getFullYear() + '-' + W.U.pad(d.getMonth() + 1) + '-' + h;
+        (groups[k] = groups[k] || []).push(t);
+      });
+      return Object.keys(groups).reduce(function (pr, k) {
+        return pr.then(function () {
+          var r = F().doc(W.Auth.db(), 'users', u, 'archive', k);
+          return F().runTransaction(W.Auth.db(), function (tx) {
+            return tx.get(r).then(function (s) {
+              var byId = {};
+              // Copia limpia (Firestore no admite campos «undefined»)
+              ((s.exists() && s.data().tasks) || []).concat(JSON.parse(JSON.stringify(groups[k]))).forEach(function (t) { if (t && t.id) byId[t.id] = t; });
+              tx.set(r, { tasks: Object.keys(byId).map(function (id) { return byId[id]; }), updatedAt: Date.now() });
+            });
+          });
+        });
+      }, Promise.resolve()).then(function () { if (S().meta.archivePending) S().setMeta('archivePending', false); return true; }, function (e) {
+        console.warn('Archivo:', (e && e.code) || e);
+        S().setMeta('archivePending', true);
+        return false;
+      });
+    },
+    /** Archiva lo completado hace más de un año (y, si no basta, hace más de 6 meses) → ¿archivó algo? */
+    autoArchive: function () {
+      var st = S(), day = 86400000, gone = st.archiveDone(Date.now() - 400 * day);
+      if (!gone.length && Sync.size > SIZE_MAX) gone = st.archiveDone(Date.now() - 180 * day);
+      if (!gone.length) return false;
+      Sync.archiveRemote(gone);
+      if (W.Toast) W.Toast.show({ text: U2().plural(gone.length, 'tarea completada hace tiempo pasa', 'tareas completadas hace tiempo pasan') + ' al archivo (Ajustes → Datos)', icon: 'inbox', duration: 6000 });
+      return true;
+    },
+    /** ¿Hay cambios de este dispositivo que no han llegado a la nube por un fallo? */
+    unsaved: function () { return !!Sync.pendingSince && (Sync.status === 'offline' || Sync.status === 'error' || Sync.status === 'unverified'); }
   };
 
   window.addEventListener('online', function () { if (active) Sync.push(); });
+  // Actividad: al volver a usar la app tras un rato sin tocarla, se trae lo último enseguida
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (ev) {
+    window.addEventListener(ev, function () {
+      var was = lastInput;
+      lastInput = Date.now();
+      if (active && !dirty && !inFlight && lastInput - was > 120000 && lastInput - lastPush > POLL_EVERY) Sync.push();
+    }, { passive: true, capture: true });
+  });
   // Al volver a la app se traen los cambios hechos en otros dispositivos
   document.addEventListener('visibilitychange', function () {
     if (!active) return;

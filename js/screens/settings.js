@@ -110,8 +110,12 @@ window.Whider = window.Whider || {};
     var A = W.Auth, u = A.user, st = S();
     if (!u) return rootPage(nav);
     var verified = A.isVerified();
-    var syncCell = W.UI.cell({ icon: 'cloud', title: 'Copia en la nube', sub: W.Sync.statusText(), onTap: function () {
+    var err = W.Sync.lastError;
+    var syncCell = W.UI.cell({ icon: 'cloud', title: 'Copia en la nube', sub: W.Sync.statusText(), subCls: W.Sync.unsaved() ? 'warn' : null, onTap: function () {
       if (!verified) { nav.close(); W.AuthScreen.showVerify(); return; }
+      // Cada fallo, con lo que hay que hacer
+      if (err && err.kind === 'auth') { nav.close(); W.App.logout(); return; }
+      if (err && err.kind === 'size') { nav.push(dataPage); return; }
       W.Sync.push().then(function () { nav.refresh(); });
     } });
     var rows = [syncCell];
@@ -215,6 +219,19 @@ window.Whider = window.Whider || {};
     return { title: 'Categorías', body: [W.UI.section({ items: rows, footer: 'Toca una categoría para cambiarle el nombre, el icono o eliminarla.' })] };
   }
 
+  /** Android 12+: avisos a la hora exacta (permiso «Alarmas y recordatorios») */
+  function exactCell(nav) {
+    var b = window.WhiderAndroid;
+    if (!b || typeof b.exactAlarms !== 'function') return null;
+    var state;
+    try { state = b.exactAlarms(); } catch (e) { return null; }
+    if (state === 'unneeded') return null;
+    var on = state === 'granted';
+    return W.UI.section({ items: [W.UI.cell({ icon: 'alarm', title: 'Avisos a la hora exacta', value: on ? 'Permitidos' : 'Sin permiso',
+      onTap: on ? null : function () { b.requestExactAlarms(); setTimeout(function () { nav.refresh(); }, 2500); } })],
+      footer: on ? 'Los recordatorios suenan a su hora aunque el teléfono esté ahorrando batería.' : 'Sin este permiso, Android puede retrasar los avisos unos minutos. Tócalo y activa «Permitir alarmas y recordatorios».' });
+  }
+
   function alertsPage(nav) {
     var st = S(), cfg = st.settings, set = st.setSetting, q = cfg.quietHours;
     var perm = W.Notify.permission();
@@ -230,6 +247,7 @@ window.Whider = window.Whider || {};
         W.UI.section({ items: [W.UI.cell({ icon: 'bell', title: 'Notificaciones', value: permText,
           onTap: perm === 'default' ? function () { W.Notify.request(); setTimeout(function () { nav.refresh(); }, 1500); } : null })],
           footer: perm === 'denied' ? 'Están bloqueadas: actívalas en los ajustes del teléfono para recibir los avisos.' : null }),
+        exactCell(nav),
         W.UI.group([
           toggleCell({ icon: 'alert', title: 'Avisar en las tareas nuevas', value: cfg.defaultWarn, onChange: function (v) { set('defaultWarn', v); } }),
           menuCell({ icon: 'alarm', title: 'Recordatorio previo', value: cfg.remindBefore, options: W.Editor.REMIND_OPTS, onChange: function (v) { set('remindBefore', v); } }, nav),
@@ -398,48 +416,7 @@ window.Whider = window.Whider || {};
       document.body.appendChild(input); input.click();
     });
   }
-  function csvParse(text) {
-    var rows = [], row = [], cell = '', q = false, sep = (text.split('\n')[0].match(/;/g) || []).length >= (text.split('\n')[0].match(/,/g) || []).length ? ';' : ',';
-    text = text.replace(/^\ufeff/, '');
-    for (var i = 0; i < text.length; i++) {
-      var ch = text[i];
-      if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
-      else if (ch === '"') q = true;
-      else if (ch === sep) { row.push(cell); cell = ''; }
-      else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
-      else cell += ch;
-    }
-    if (cell || row.length) { row.push(cell); rows.push(row); }
-    return rows.filter(function (r) { return r.some(function (c) { return c.trim(); }); });
-  }
-  function importCsv() {
-    var st = S();
-    pickFile('.csv,text/csv').then(function (f) {
-      if (!f) return;
-      var rows = csvParse(f.text);
-      if (rows.length < 2) { W.Toast.show({ text: 'El archivo no tiene tareas', type: 'danger' }); return; }
-      var head = rows[0].map(function (h) { return (W.Parse.fold ? W.Parse.fold(h) : h.toLowerCase()).trim(); });
-      var col = function (names) { for (var i = 0; i < head.length; i++) if (names.indexOf(head[i]) >= 0) return i; return -1; };
-      var cText = col(['tarea', 'titulo', 'title', 'text', 'texto', 'nombre']), cDate = col(['fecha', 'date', 'dia']), cTime = col(['hora', 'time']),
-        cList = col(['categoria', 'lista', 'list', 'category']), cPrio = col(['prioridad', 'priority']), cNotes = col(['notas', 'notes', 'nota']), cState = col(['estado', 'status']);
-      if (cText < 0) cText = 0;
-      var prio = function (v) { v = (W.Parse.fold ? W.Parse.fold(v) : String(v).toLowerCase()); return /urgent/.test(v) ? 'danger' : /importan/.test(v) ? 'purple' : /destac/.test(v) ? 'star' : 'none'; };
-      var date = function (v) { v = String(v || '').trim(); var m = v.match(/^(\d{4})-(\d{2})-(\d{2})/) || v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m) return null; return m[1].length === 4 ? m[1] + '-' + m[2] + '-' + m[3] : m[3] + '-' + U.pad(+m[2]) + '-' + U.pad(+m[1]); };
-      var made = {}, items = rows.slice(1).map(function (r) {
-        var name = cList >= 0 ? String(r[cList] || '').trim() : '', l = null;
-        if (name) { l = st.lists.filter(function (x) { return x.name.toLowerCase() === name.toLowerCase(); })[0] || made[name.toLowerCase()]; if (!l) { l = st.addList(name); made[name.toLowerCase()] = l; } }
-        var done = cState >= 0 && /complet|hecha|done/i.test(r[cState] || '');
-        var t = cTime >= 0 && /^\d{1,2}:\d{2}/.test(r[cTime] || '') ? U.pad(+r[cTime].split(':')[0]) + ':' + r[cTime].split(':')[1].slice(0, 2) : null;
-        return { text: String(r[cText] || '').trim(), date: cDate >= 0 ? date(r[cDate]) : null, time: t, listId: l ? l.id : st.settings.defaultList,
-          highlight: cPrio >= 0 ? prio(r[cPrio]) : 'none', notes: cNotes >= 0 ? String(r[cNotes] || '') : '', done: done, doneOn: done ? U.today() : null, doneAt: done ? Date.now() : null, warn: false, subtasks: [] };
-      }).filter(function (x) { return x.text; });
-      W.Sheet.confirm({ title: '¿Importar ' + U.plural(items.length, 'tarea', 'tareas') + '?', text: 'Desde «' + f.name + '». No se borra nada de lo que ya tienes.', ok: 'Importar' }).then(function (ok) {
-        if (!ok) return;
-        var n = st.importTasks(items);
-        W.Toast.show({ text: U.plural(n, 'tarea importada', 'tareas importadas'), type: 'success', icon: 'upload' });
-      });
-    });
-  }
+
   function exportCsv() {
     var st = S(), cell = function (v) { var s = v == null ? '' : String(v); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
     var rows = [['Tarea', 'Categoría', 'Prioridad', 'Fecha', 'Hora', 'Duración (min)', 'Repetición', 'Estado', 'Completada el', 'Notas']];
@@ -489,19 +466,65 @@ window.Whider = window.Whider || {};
     });
   }
 
+  /** Archivar a mano las completadas antiguas (elige desde cuándo) */
+  function archiveNow(nav) {
+    var day = 86400000;
+    W.Sheet.choose({ title: 'Archivar las tareas completadas…', options: [
+      { value: 365, label: 'Hace más de un año' }, { value: 180, label: 'Hace más de 6 meses' }, { value: 90, label: 'Hace más de 3 meses' }
+    ] }).then(function (days) {
+      if (!days) return;
+      var gone = S().archiveDone(Date.now() - days * day);
+      if (!gone.length) { W.Toast.show({ text: 'No hay tareas completadas tan antiguas', icon: 'info' }); return; }
+      if (W.Sync) W.Sync.archiveRemote(gone);
+      W.Toast.show({ text: U.plural(gone.length, 'tarea archivada', 'tareas archivadas'), icon: 'inbox' });
+      nav.refresh();
+    });
+  }
+  /** Ver el archivo: por meses, de lo más reciente a lo más antiguo, y exportarlo */
+  function archiveView() {
+    var list = S().archived().slice().reverse(), groups = {}, order = [];
+    list.forEach(function (t) {
+      var d = new Date(t.doneAt || t.createdAt || 0), k = U.cap(U.MONTHS[d.getMonth()]) + ' de ' + d.getFullYear();
+      if (!groups[k]) { groups[k] = []; order.push(k); }
+      groups[k].push(t);
+    });
+    var body = order.slice(0, 24).map(function (k) {
+      return W.UI.section({ header: k + ' · ' + groups[k].length, items: groups[k].slice(0, 60).map(function (t) { return W.UI.cell({ title: t.text, sub: t.doneOn ? 'Completada ' + U.fmtDay(t.doneOn).toLowerCase() : null }); }) });
+    });
+    if (order.length > 24) body.push(U.el('p.hint', { text: 'Y más meses: exporta el archivo para verlo entero.' }));
+    var csv = function () {
+      var esc = function (v) { v = String(v == null ? '' : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+      var rows = [['Tarea', 'Completada', 'Fecha', 'Hora', 'Notas']].concat(S().archived().map(function (t) { return [t.text, t.doneOn || '', t.date || '', t.time || '', t.notes || '']; }));
+      U.saveFile('whider-archivo.csv', '\ufeff' + rows.map(function (r) { return r.map(esc).join(','); }).join('\r\n'), 'text/csv');
+    };
+    W.Sheet.open({ title: 'Archivo · ' + U.plural(list.length, 'tarea', 'tareas'), body: body.length ? body : [U.el('p.hint', { text: 'Todavía no hay nada archivado.' })],
+      foot: [U.el('button.btn.primary', { text: 'Exportar (CSV)', on: { click: csv } })] });
+  }
+
   function dataPage(nav) {
     var st = S(), desk = W.Layout.desktop;
+    var signed = !!(W.Auth && W.Auth.user), size = W.Sync ? W.Sync.size : 0, archived = st.archived().length;
+    var kb = function (b) { return b >= 1000 * 1000 ? (b / 1000000).toFixed(2).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1000)) + ' KB'; };
     return {
       title: 'Datos',
       body: [
+        W.UI.section({ header: 'Espacio y archivo', items: [
+          signed ? W.UI.cell({ icon: 'cloud', title: 'Copia en la nube', value: size ? kb(size) + ' de 1 MB' : 'Se mide al sincronizar' }) : null,
+          W.UI.cell({ icon: 'inbox', title: 'Archivar completadas antiguas', sub: 'Salen de las listas; las estadísticas no cambian', onTap: function () { archiveNow(nav); } }),
+          W.UI.cell({ icon: 'tray', title: 'Archivo', value: archived ? String(archived) : 'Vacío', onTap: archiveView })
+        ].filter(Boolean), footer: signed && size > (W.Sync.SIZE_WARN || 0)
+          ? 'Tu copia en la nube se acerca al límite de 1 MB: WHIDER archiva sola las tareas completadas hace más de un año.'
+          : 'Las tareas completadas hace más de un año se archivan solas si la copia en la nube se acerca a su límite.' }),
         W.UI.section({ header: 'Copia de seguridad', items: [
           W.UI.cell({ icon: 'download', title: 'Guardar una copia', sub: 'Todo: tareas, Cuaderno, hábitos, sistemas y ajustes (JSON)', onTap: exportBackup }),
           W.UI.cell({ icon: 'upload', title: 'Recuperar una copia', sub: 'Se junta con lo que ya tienes', onTap: importBackup })
         ], footer: W.Auth && W.Auth.user ? 'Con tu cuenta, todo se guarda además en la nube.' : 'Sin cuenta, tus datos solo están en este dispositivo: guarda copias de vez en cuando.' }),
-        desk ? W.UI.section({ header: 'Hoja de cálculo', items: [
-          W.UI.cell({ icon: 'download', title: 'Exportar las tareas (CSV)', sub: 'Para Excel, Numbers o Google Sheets', onTap: exportCsv }),
-          W.UI.cell({ icon: 'upload', title: 'Importar tareas (CSV)', sub: 'Columnas: Tarea, Fecha, Hora, Categoría, Prioridad, Notas', onTap: importCsv })
-        ] }) : null,
+        W.UI.section({ header: 'Importar y exportar', items: [
+          W.UI.cell({ icon: 'upload', title: 'Importar desde otras apps', sub: 'Todoist, Google Tasks, Notion, calendarios (.ics) u hojas de cálculo', onTap: function () { nav.close(); setTimeout(function () { W.ImportWizard.open(); }, 250); } }),
+          W.ImportWizard.last() ? W.UI.cell({ icon: 'undo', title: 'Deshacer la última importación', sub: U.plural(W.ImportWizard.last().ids.length, 'tarea', 'tareas') + ' de ' + W.ImportWizard.last().from + ' · ' + U.fmtRel(W.ImportWizard.last().at - Date.now()),
+            onTap: function () { W.ImportWizard.undo(); nav.refresh(); } }) : null,
+          desk ? W.UI.cell({ icon: 'download', title: 'Exportar las tareas (CSV)', sub: 'Para Excel, Numbers o Google Sheets', onTap: exportCsv }) : null
+        ].filter(Boolean) }),
         W.UI.section({ items: [W.UI.cell({ title: 'Ver la presentación', onTap: function () { nav.close(); setTimeout(function () { W.Onboarding.start(); }, 300); } })] }),
         W.UI.section({ items: [W.UI.cell({ title: 'Restablecer todo', center: true, danger: true, onTap: function () {
           W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán tus tareas, tu Cuaderno, tus hábitos, sesiones de enfoque y marcas. No se puede deshacer.', ok: 'Restablecer', danger: true })
@@ -531,11 +554,25 @@ window.Whider = window.Whider || {};
     };
   }
 
-  function privacyPage() {
+  /** Personas bloqueadas, con «Desbloquear» */
+  function blockedPage(nav) {
+    var m = W.People ? W.People.blocked() : {}, ids = Object.keys(m);
+    return {
+      title: 'Personas bloqueadas',
+      body: [ids.length ? W.UI.section({ items: ids.map(function (id) {
+        return W.UI.cell({ icon: 'hand', title: m[id].name || 'Persona bloqueada', sub: 'Desde ' + U.fmtRel(m[id].at - Date.now()),
+          right: U.el('button.btn.xs.soft', { text: 'Desbloquear', on: { click: function () { W.People.unblock(id).catch(function () {}).then(function () { nav.refresh(); }); } } }) });
+      }), footer: 'Quien está bloqueado no puede enviarte solicitudes, ánimos ni mensajes en un chat de dos.' }) : U.el('p.hint', { text: 'No has bloqueado a nadie.' })]
+    };
+  }
+
+  function privacyPage(nav) {
     var base = ((window.WHIDER_CONFIG || {}).links || {}).base || 'https://whider-red.vercel.app';
+    var nBlocked = W.People ? Object.keys(W.People.blocked()).length : 0;
     return {
       title: 'Privacidad',
       body: [
+        W.UI.group([W.UI.cell({ icon: 'hand', title: 'Personas bloqueadas', value: nBlocked ? String(nBlocked) : 'Nadie', onTap: function () { nav.push(blockedPage); } })]),
         U.el('div.legal', { html: W.PRIVACY_HTML }),
         W.UI.group([W.UI.cell({ icon: 'external', title: 'Política de privacidad completa', sub: 'Qué datos se guardan, para qué y tus derechos', onTap: function () { U.openExternal(base + '/privacidad/'); } })])
       ]
@@ -545,7 +582,8 @@ window.Whider = window.Whider || {};
   W.PRIVACY_HTML =
     '<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas, categorías, tu Cuaderno, hábitos, enfoque, marcas, tu personaje, tus chats y ajustes.</p>' +
     '<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>' +
-    '<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros.</p>' +
+    '<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros. Los chats van cifrados en tránsito y en los servidores, pero no de extremo a extremo.</p>' +
+    '<p><b>Bloquear y denunciar.</b> Quien bloqueas no puede escribirte ni mandarte mensajes en vuestro chat. Si denuncias, se guarda el motivo y, si es un mensaje, un extracto, para revisarlo.</p>' +
     '<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>' +
     '<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
     '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>';

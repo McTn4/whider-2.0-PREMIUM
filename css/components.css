@@ -63,6 +63,14 @@ button.cell:active, .cell.tap:active { background: var(--cell-hl); }
 .cell-sub { font-size: var(--fs-sub); color: var(--t2); line-height: 1.35; }
 .cell-sub.accent { color: var(--t1); }
 .cell-sub.red { color: var(--t1); font-weight: 500; }
+.cell-sub.warn { color: var(--t1); font-weight: 600; }
+/* Cambios que no han llegado a la nube (sin conexión, un error o el correo sin verificar): un punto
+   en el engranaje de Ajustes; el detalle y qué hacer, en Ajustes → Cuenta */
+.gear-btn { position: relative; }
+html[data-sync="offline"] .gear-btn::after, html[data-sync="error"] .gear-btn::after, html[data-sync="unverified"] .gear-btn::after {
+  content: ''; position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%;
+  background: #FFFFFF; box-shadow: 0 0 0 2px var(--bg), 0 0 8px rgba(255, 255, 255, .7);
+}
 .cell-value { flex: none; display: inline-flex; align-items: center; gap: 6px; max-width: 58%; color: var(--t2); font-size: var(--fs-sub); }
 .cell-value > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chev { width: .55rem; height: .95rem; flex: none; color: var(--t3); stroke-width: 2.4; }

@@ -147,3 +147,71 @@ Se actualiza al cerrar cada bloque.
   salen solo las primeras tres semanas y vuelven desde *Ajustes → Ayuda*.
 - **Pruebas**: `tests/e2e/uso-diario.js` (43 comprobaciones en móvil y ordenador) y 3 unitarias nuevas; la
   auditoría de accesibilidad (axe) sigue sin incumplimientos: los botones nuevos se nombran con su texto visible.
+
+### Bloque 3 · Datos — hecho (las escuchas en tiempo real quedan como siguiente paso)
+
+- **Sin sobrescrituras silenciosas**: las tareas guardan la hora de cada campo editado (`ft`) y se
+  fusionan campo a campo; en el Cuaderno, un mismo bloque editado a la vez conserva las dos versiones
+  (la otra queda debajo como nota). Evaluado Yjs/CRDT y descartado por ahora:
+  [decisiones/0001](decisiones/0001-edicion-simultanea.md).
+- **Errores de sincronización claros**: conexión, sesión caducada, correo sin verificar, permisos, choque
+  con otro dispositivo, límite de uso, tamaño o servidor, cada uno con su explicación y lo que hay que
+  hacer (Ajustes → Cuenta). Antes decía «reintentando» pero no reintentaba hasta el siguiente cambio:
+  ahora reintenta solo lo que tiene sentido, cada vez más espaciado (2 s … 5 min).
+- **Cambios sin subir a la vista**: punto en el engranaje (móvil) y en la barra lateral (ordenador),
+  con «cambios sin subir desde…» en el estado.
+- **Tamaño**: se mide la copia antes de escribirla (límite de Firestore: 1 MiB por documento). Cerca
+  del límite se archivan solas las tareas completadas hace más de un año; también a mano desde
+  Ajustes → Datos, donde se ve el espacio usado y el archivo (exportable a CSV). El archivo va también a
+  la nube, repartido por meses. Las estadísticas no cambian.
+- **Coste**: el sondeo se espacia cuando no se usa la app (15 s → 1 min → 5 min): un ordenador con
+  WHIDER abierto todo el día pasa de ~6.700 a ~1.600 lecturas diarias. Análisis completo y
+  recomendaciones (alertas de presupuesto, App Check): [COSTES.md](COSTES.md).
+- **Pendiente**: pasar del sondeo a escuchas en tiempo real (SDK completo de Firestore, +130 KB) y los
+  adjuntos a Firebase Storage (necesita el plan Blaze).
+- **Pruebas**: `tests/e2e/sincronizacion.js` (dos dispositivos contra los emuladores: cambios a la vez,
+  sin conexión, tamaño y archivo, Cuaderno) y 15 unitarias nuevas (fusión campo a campo, archivo,
+  clasificación de errores, reintentos, fusión de páginas).
+
+### Bloque 4 · Integraciones — hecho en parte
+
+- **Importar** (`js/core/importer.js`, lógica pura con comprobación de tipos, y `js/ui/importwiz.js`):
+  Todoist (CSV por proyecto, varios a la vez; subtareas, comentarios, secciones, prioridad P1-P4 y
+  repeticiones escritas), Google Tasks (Takeout: listas, subtareas, completadas, fecha sin desplazar el
+  día), Notion (CSV con columnas adivinadas, estado, etiquetas, fechas en inglés o español e intervalos),
+  calendarios `.ics` (eventos y tareas, zonas horarias con `TZID`, UTC, líneas partidas, duración,
+  repetición y prioridad; lo pasado solo si se pide) y cualquier CSV eligiendo las columnas. Vista
+  previa, categorías nuevas, repetidas reconocidas (mismo texto y fecha), avisos de lo que no se
+  entendió, «deshacer» durante un día. Sustituye al importador CSV anterior (sin vista previa).
+- **Compartir con WHIDER**: Android (`ACTION_SEND` de texto) y la web instalada (`share_target`): se abre
+  una tarea nueva con el título, las notas y el enlace.
+- **Android**: widget «Hoy» (hasta cinco tareas, lo urgente primero, recuento y botón +), avisos a la
+  hora exacta con el permiso `SCHEDULE_EXACT_ALARM` (opcional, desde Ajustes → Avisos; sin él, como
+  antes) y reprogramación al conceder el permiso. Compila en la integración continua (no hay SDK de
+  Android en el entorno de trabajo); falta probarlo en un teléfono real.
+- **No hecho**: sincronización bidireccional con Google Calendar u Outlook (necesita una app de OAuth
+  verificada por Google y Microsoft) y suscripción a un calendario `.ics` por URL (necesita un servidor
+  con una cuenta de servicio). Sigue disponible exportar a `.ics` desde el calendario.
+- **Pruebas**: `tests/e2e/importar.js` (21 comprobaciones: Todoist, repetidas, deshacer, calendario,
+  hoja de cálculo, archivo de otro tipo, compartir, widget y alarmas simulados) y 9 unitarias.
+
+### Bloque 5 · Seguridad — hecho en parte
+
+- **Reglas de Firestore (1.1)**: los perfiles y los códigos de amigo ya no se pueden listar (solo leer
+  uno concreto); lo que otros escriben en tu buzón tiene tamaño limitado (nadie puede llenarlo); el
+  nombre del perfil, como mucho 80 caracteres.
+- **Bloquear** (contactos, chats de dos y Ajustes → Privacidad → Personas bloqueadas): lo hacen cumplir las
+  reglas de la nube (quien está bloqueado no puede escribir en tu buzón ni mandarte mensajes), no solo la
+  app; quien bloquea no avisa a la otra persona. **Denunciar** a alguien, un chat o un mensaje: queda en
+  `reports/` (solo legible desde la consola de Firebase) con el motivo y un extracto. Es lo que pide Google
+  Play a las apps con contenido de otras personas.
+- **Límites de uso**: Firestore no permite contar peticiones por persona en las reglas; los límites que sí
+  se aplican son de tamaño y de quién puede escribir dónde. El freno a abusos con scripts es **App Check**,
+  que necesita la consola (y no funciona aún en la app de Android, que es una WebView, ni en la de escritorio,
+  que no carga desde un dominio web): ver [SEGURIDAD.md](SEGURIDAD.md).
+- **Verificación en dos pasos**: estudiada y documentada en [SEGURIDAD.md](SEGURIDAD.md); necesita Identity
+  Platform (plan de pago) y no se ha implementado.
+- **Privacidad**: la política explica las denuncias, los bloqueos, el archivo, el permiso de alarmas exactas
+  y, corrigiendo lo anterior, quién puede ver el perfil público y que los chats no van cifrados de extremo a
+  extremo.
+- **Pruebas**: `tests/e2e/seguridad.js` (19 comprobaciones contra los emuladores con las reglas reales).

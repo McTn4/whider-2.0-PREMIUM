@@ -1,10 +1,11 @@
 rules_version = '2';
 
-// WHIDER · Reglas de seguridad de Cloud Firestore (1.0)
-//  - users/{uid}/...      Tus datos (tareas, Cuaderno y sus archivos adjuntos, hábitos…): solo tú.
-//  - profiles/{uid}       Perfil público (nombre, personaje, racha…): lo leen las cuentas verificadas; solo lo escribe su dueño.
+// WHIDER · Reglas de seguridad de Cloud Firestore (1.1)
+//  - users/{uid}/...      Tus datos (tareas, Cuaderno y sus archivos adjuntos, hábitos, archivo…): solo tú.
+//  - profiles/{uid}       Perfil público (nombre, personaje, racha…): una cuenta verificada puede leer el de alguien
+//                         concreto (un contacto, un compañero); nadie puede listarlos todos. Solo lo escribe su dueño.
 //                         (level, title y xp siguen permitidos solo para que las versiones anteriores no fallen al guardar.)
-//  - codes/{código}       Código de amigo → cuenta. Cada uno solo crea o borra el suyo.
+//  - codes/{código}       Código de amigo → cuenta. Se consulta uno concreto; no se pueden listar. Cada uno crea o borra el suyo.
 //  - inbox/{uid}          Buzón: solicitudes, aceptaciones, ánimos, equipos, avisos de chat e invitaciones por enlace.
 //                         El dueño lo lee y lo vacía; los demás solo pueden escribir SU propia entrada (la clave es su uid).
 //  - spaces/{id}          Equipos: solo sus miembros. Los miembros solo los cambia el creador (cada uno puede salir),
@@ -13,6 +14,10 @@ rules_version = '2';
 //  - spaces/{id}/files    Archivos adjuntos de esas páginas (ficha y trozos de menos de 1 MB): solo sus miembros.
 //  - chats/{id}           Chats de dos y de equipo: solo sus miembros.
 //  - chats/{id}/msgs      Mensajes: los escriben los miembros; cada uno edita o borra los suyos y solo su reacción.
+//  - blocks/{yo_otro}     Bloqueos: solo los ve y los cambia quien bloquea. Quien está bloqueado no puede escribir en
+//                         tu buzón (solicitudes, ánimos, avisos) ni mandarte mensajes en un chat de dos.
+//  - reports/{id}         Denuncias: se crean desde la app y solo se leen desde la consola de Firebase (moderación).
+// Límites de tamaño en lo que otros escriben en tu buzón y en tu perfil, para que nadie pueda llenarlo.
 // Todo exige un correo verificado (las cuentas de Google ya vienen verificadas).
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -26,16 +31,19 @@ service cloud.firestore {
     }
 
     match /profiles/{uid} {
-      allow read: if signedIn();
+      allow get: if signedIn();
+      allow list: if false;
       allow create, update: if isMe(uid)
         && request.resource.data.keys().hasOnly(['uid', 'name', 'code', 'buddy', 'avatar', 'photo', 'level', 'title', 'xp', 'streak', 'bestStreak', 'weekDone', 'weekFocus', 'week', 'status', 'updatedAt'])
         && request.resource.data.uid == uid
+        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 80))
         && (!('photo' in request.resource.data) || (request.resource.data.photo is string && request.resource.data.photo.size() < 100000));
       allow delete: if isMe(uid);
     }
 
     match /codes/{code} {
-      allow read: if signedIn();
+      allow get: if signedIn();
+      allow list: if false;
       allow create: if signedIn() && request.resource.data.uid == request.auth.uid && request.resource.data.keys().hasOnly(['uid', 'at']);
       allow delete: if signedIn() && resource.data.uid == request.auth.uid;
     }
@@ -50,10 +58,46 @@ service cloud.firestore {
         && after.get('pings', {}).diff(before.get('pings', {})).affectedKeys().hasOnly([request.auth.uid])
         && after.get('links', {}).diff(before.get('links', {})).affectedKeys().hasOnly([request.auth.uid]);
     }
+    // Lo que alguien deja en un buzón ajeno: un objeto pequeño (sin textos largos)
+    function okEntry(e) {
+      return e == null || (e is map && e.size() <= 20
+        && e.get('name', '').size() <= 80 && e.get('text', '').size() <= 300 && e.get('from', '').size() <= 80);
+    }
+    function entriesOk(after) {
+      return okEntry(after.get('requests', {}).get(request.auth.uid, null))
+        && okEntry(after.get('accepted', {}).get(request.auth.uid, null))
+        && okEntry(after.get('cheers', {}).get(request.auth.uid, null))
+        && okEntry(after.get('spaces', {}).get(request.auth.uid, null))
+        && okEntry(after.get('pings', {}).get(request.auth.uid, null))
+        && okEntry(after.get('links', {}).get(request.auth.uid, null));
+    }
+    // ¿Me ha bloqueado esta persona?
+    function blockedBy(owner) { return exists(/databases/$(database)/documents/blocks/$(owner + '_' + request.auth.uid)); }
     match /inbox/{uid} {
       allow read, write: if isMe(uid);
-      allow create: if signedIn() && request.auth.uid != uid && onlyMine(request.resource.data, {});
-      allow update: if signedIn() && request.auth.uid != uid && onlyMine(request.resource.data, resource.data);
+      allow create: if signedIn() && request.auth.uid != uid && !blockedBy(uid) && onlyMine(request.resource.data, {}) && entriesOk(request.resource.data);
+      allow update: if signedIn() && request.auth.uid != uid && !blockedBy(uid) && onlyMine(request.resource.data, resource.data) && entriesOk(request.resource.data);
+    }
+
+    // Bloqueos: el id es «quien bloquea_bloqueado»; solo los ve y los cambia quien bloquea
+    match /blocks/{id} {
+      allow get, delete: if signedIn() && resource.data.by == request.auth.uid;
+      allow list: if signedIn() && resource.data.by == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.by == request.auth.uid
+        && request.resource.data.keys().hasOnly(['by', 'who', 'at'])
+        && request.resource.data.who is string && request.resource.data.who != request.auth.uid
+        && id == request.auth.uid + '_' + request.resource.data.who;
+    }
+
+    // Denuncias: se crean desde la app y solo se leen en la consola de Firebase
+    match /reports/{id} {
+      allow create: if signedIn() && request.resource.data.by == request.auth.uid
+        && request.resource.data.keys().hasOnly(['by', 'who', 'reason', 'where', 'excerpt', 'at'])
+        && request.resource.data.who is string && request.resource.data.who.size() <= 128
+        && request.resource.data.reason is string && request.resource.data.reason.size() <= 40
+        && request.resource.data.get('where', '').size() <= 160
+        && request.resource.data.get('excerpt', '').size() <= 600;
+      allow read, update, delete: if false;
     }
 
     match /spaces/{sid} {
@@ -102,7 +146,10 @@ service cloud.firestore {
       match /msgs/{mid} {
         function chat() { return get(/databases/$(database)/documents/chats/$(cid)).data; }
         allow read: if signedIn() && request.auth.uid in chat().memberIds;
+        // En un chat de dos, si la otra persona te ha bloqueado, no puedes escribirle
+        function otherOf(ids) { return ids[0] == request.auth.uid ? ids[1] : ids[0]; }
         allow create: if signedIn() && request.auth.uid in chat().memberIds
+          && !(chat().type == 'dm' && blockedBy(otherOf(chat().memberIds)))
           && request.resource.data.by == request.auth.uid
           && request.resource.data.text is string && request.resource.data.text.size() <= 4000;
         // El autor edita o borra lo suyo; cualquiera de los miembros solo cambia su reacción

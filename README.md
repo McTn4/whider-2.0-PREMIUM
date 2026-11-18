@@ -153,6 +153,8 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 - **En curso**: marca una tarea como empezada (clic derecho, el editor o al enfocarte en ella) y sale aparte en Hoy, con media casilla rellena. Las que tienen alguna subtarea hecha también cuentan.
 - **Color de categoría** opcional (verde, azul, turquesa, violeta o rosa): un punto junto a su nombre en las tareas, el calendario y la barra lateral. Elegidos para leerse bien sobre fondo oscuro y distinguirse también con daltonismo; la app sigue en blanco y negro si no eliges ninguno.
 - **Listas** propias, más cuatro **listas automáticas** que se rellenan solas (Hoy, Programadas, Todas y Prioritarias).
+- **Importar desde otras apps** (*Ajustes → Datos* o la paleta de comandos): **Todoist** (CSV de cada proyecto), **Google Tasks** (Google Takeout), **Notion** (CSV de una base de datos), **calendarios** `.ics` de Google, Outlook o Apple (con su hora y zona horaria, duración y repetición) y cualquier **hoja de cálculo** CSV eligiendo qué columna es cada cosa. Antes de importar se ve una vista previa con las categorías nuevas, las tareas que ya tienes (no se duplican) y lo que no se entendió; durante un día se puede **deshacer**.
+- **Compartir con WHIDER**: desde otra app (Android) o desde el menú *Compartir* del sistema (web instalada), un texto o un enlace se convierte en una tarea nueva.
 - Fecha con **calendario integrado**, hora, **subtareas**, **notas** y **repeticiones** (cada día, días laborables, cada semana, cada mes).
 - **Gestos**: desliza → para completar y ← para eliminar, con **Deshacer**.
 - Búsqueda en títulos, notas y subtareas; orden por fecha, prioridad, recientes o título.
@@ -190,6 +192,9 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 ---
 
 ## 📱 Pantalla y Android
+
+- **Widget «Hoy»** para la pantalla de inicio: las tareas de hoy (lo urgente primero), cuántas llevas y un botón para añadir.
+- **Avisos a la hora exacta** (Android 12+), si lo permites en *Ajustes → Avisos*; sin el permiso, los recordatorios llegan igualmente, con unos minutos de margen.
 
 > **Descarga el APK de pruebas**: [app-debug.apk](https://github.com/McTn4/whider-2.0-PREMIUM/releases/download/apk-latest/app-debug.apk) (pestaña **Releases → WHIDER (última versión)**). Se recompila solo con cada cambio de la app, junto con el **paquete para Google Play (AAB)**, que queda en los artefactos de cada compilación (**Actions → Compilar APK**). Cómo publicarla: [`docs/PUBLICAR-EN-GOOGLE-PLAY.md`](docs/PUBLICAR-EN-GOOGLE-PLAY.md).
 

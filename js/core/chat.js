@@ -85,7 +85,7 @@ window.Whider = window.Whider || {};
   function list() {
     if (!me()) return [];
     return Object.keys(chats).map(function (k) { return chats[k]; })
-      .filter(function (c) { return !prefs(c.id).hidden && (c.type !== 'team' || (S().social.spaces[c.sid] && !S().social.spaces[c.sid].left)); })
+      .filter(function (c) { return !prefs(c.id).hidden && (c.type !== 'team' || (S().social.spaces[c.sid] && !S().social.spaces[c.sid].left)) && !(c.type === 'dm' && W.People && W.People.isBlocked(other(c))); })
       .sort(function (a, b) { return (prefs(b.id).pinned - prefs(a.id).pinned) || ((b.lastAt || b.createdAt || 0) - (a.lastAt || a.createdAt || 0)); });
   }
 

@@ -48,8 +48,12 @@ window.Whider.Screens = window.Whider.Screens || {};
     W.Menu.open(anchor, [
       { value: 'move', label: work ? 'Pasar a Amigos' : 'Pasar a Trabajo', icon: work ? 'heart' : 'briefcase' },
       { value: 'team', label: 'Añadir a un equipo…', icon: 'team' },
-      { value: 'remove', label: 'Quitar de contactos', icon: 'trash', destructive: true, gap: true }
+      { value: 'remove', label: 'Quitar de contactos', icon: 'trash', destructive: true, gap: true },
+      { value: 'report', label: 'Denunciar…', icon: 'flag' },
+      { value: 'block', label: 'Bloquear', icon: 'hand', destructive: true }
     ], { title: name }).then(function (v) {
+      if (v === 'report') { PE().reportSheet({ who: f.uid, name: name, where: 'contacto' }); return; }
+      if (v === 'block') { PE().blockConfirm(f.uid, name); return; }
       if (v === 'move') { PE().setKind(f.uid, work ? 'friend' : 'work'); W.Toast.show({ text: name + ' ahora está en ' + (work ? 'Amigos' : 'Trabajo'), icon: 'users' }); }
       else if (v === 'team') {
         var mine = PE().teams().filter(function (t) { var d = PE().team(t.id); return d && d.owner === PE().uid(); });
