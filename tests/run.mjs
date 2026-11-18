@@ -43,7 +43,8 @@ export const GRUPOS = {
     'importar',
     'novedades',
     'instalar',
-    'copias'
+    'copias',
+    'tema'
   ],
   // Cuentas, sincronización y comunidad contra los emuladores de Firebase
   nube: ['comunidad', 'eliminar-cuenta', 'adjuntos-nube', 'version-1', 'sincronizacion', 'seguridad', 'ayuda'],

@@ -33,6 +33,9 @@
       try {
         var ui = JSON.parse(localStorage.getItem('whider.ui') || 'null');
         if (ui && ui.t) html.setAttribute('data-text', ui.t);
+        var light = ui && (ui.sys ? window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches : ui.th === 'light');
+        html.setAttribute('data-theme', light ? 'light' : 'dark');
+        if (light) { var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', '#F4F4F6'); }
       } catch (e) { /* valores por defecto */ }
       html.setAttribute('data-layout', window.matchMedia && window.matchMedia('(min-width: 1000px)').matches ? 'desktop' : 'mobile');
       if (window.WhiderDesktop) html.className += ' desktop-app os-' + window.WhiderDesktop.platform;
@@ -49,7 +52,7 @@
 <!-- ========== ICONOS «Índice» (colección propia: rejilla de 24, contenedores de esquinas curvadas) ========== -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <symbol id="logo" viewBox="0 0 64 64"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#F2F2F2" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="logo" viewBox="0 0 64 64"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs>
   <symbol id="i-chev" viewBox="0 0 8 14"><path d="m1.75 1.75 4.6 5.25-4.6 5.25"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.1"/><path d="M12 5L12 2.8M16.95 7.05L18.51 5.49M19 12L21.2 12M16.95 16.95L18.51 18.51M12 19L12 21.2M7.05 16.95L5.49 18.51M5 12L2.8 12M7.05 7.05L5.49 5.49"/></symbol>

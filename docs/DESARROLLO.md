@@ -94,7 +94,8 @@ algo falla, los registros y las capturas quedan como artefacto de esa ejecución
   repetidas, fusión de la sincronización, detección del dispositivo para las descargas). `_cargar.js` carga
   los scripts de la app en un contexto aislado con el reloj fijo y una zona horaria con cambio de hora.
 - `tests/e2e/`: recorridos reales con Playwright. `_util.js` reúne las direcciones, los archivos de ejemplo
-  (se generan en la carpeta temporal del sistema) y la carpeta de capturas.
+  (se generan en la carpeta temporal del sistema), la carpeta de capturas y `axePrep()`, que hay que llamar
+  antes de pasar axe (sin ella, axe no puede calcular el contraste dentro de la app y no comprueba nada).
 - `tests/run.mjs`: el lanzador y los grupos (`app`, `nube`, `web`, `escritorio`).
 
 ## 5. Cómo está hecho el código
@@ -118,7 +119,12 @@ algo falla, los registros y las capturas quedan como artefacto de esa ejecución
   en `assets/app.<huella>.css` (con mapas de código), y el Service Worker publicado guarda esos archivos con
   una caché que cambia con su contenido. En desarrollo, Android y el escritorio se usan los archivos sueltos.
   `node tools/medir-carga.js` compara cuánto tarda en abrirse con y sin empaquetar.
-- **Estilos.** Variables de diseño en `css/tokens.css` (colores, radios, tipografías Onest y Outfit).
+- **Estilos.** Variables de diseño en `css/tokens.css` (colores, radios, tipografías Onest y Outfit). El tema
+  oscuro está en `:root` y el claro en `:root[data-theme='light']`, que solo redefine variables; el atributo
+  `data-theme` de `<html>` lo pone un script del `<head>` antes de pintar y después `applyTheme()` (`js/app.js`).
+  Las reglas no llevan grises, blancos ni negros fijos, salvo en sombras y en lo que se ve igual en los dos temas
+  (QR, visor de archivos, informe, portadas, avatares, icono): un color nuevo es una variable con su valor en los
+  dos temas. `tests/unit/tema.test.js` lo comprueba.
 - **Iconos.** La colección «Índice» se genera con `python3 tools/iconos/generar.py --escribir` (actualiza
   el sprite de `index.html`) y se revisa con `node tools/iconos/muestrario.js`.
 - **Capturas de la web.** `node tools/capturas/portada.js --guardar` rehace las imágenes de `sitio/img/`,
@@ -133,8 +139,8 @@ algo falla, los registros y las capturas quedan como artefacto de esa ejecución
   `.prettierignore`). `.editorconfig` fija UTF‑8, LF y dos espacios.
 - **Tipos.** TypeScript se adopta poco a poco: un archivo que empieza por `// @ts-check` se comprueba con
   `npm run typecheck`, usando los tipos comunes de `types/whider.d.ts`. Los módulos nuevos nacen con él.
-- **Archivos grandes.** Los módulos de más de 1000 líneas (`js/ui/blocks.js`, `js/core/store.js`…) se
-  dividen cuando se tocan en profundidad, no de golpe.
+- **Archivos grandes.** Ninguno pasa de 1.000 líneas; si uno crece, se divide por responsabilidades (ver el
+  apartado 5).
 - **Pruebas.** Un fallo corregido o una función nueva llevan su prueba (unitaria si es lógica, de extremo
   a extremo si es un recorrido). Nunca se desactiva una prueba para que pase.
 - **Commits.** Un cambio por commit, con un título que diga qué cambia para quien usa la app.

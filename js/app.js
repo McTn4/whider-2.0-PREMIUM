@@ -11,8 +11,34 @@ window.Whider = window.Whider || {};
   var CFG = window.WHIDER_CONFIG || {};
 
   /** Aplica tamaño de texto, densidad, animaciones, la prioridad en color (opcional) y la barra inferior */
+  /** El tema que toca ahora: el elegido o, con «Como el sistema», el del dispositivo */
+  var themeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+  function resolvedTheme() {
+    var t = S.settings.theme;
+    if (t === 'system') return themeQuery && themeQuery.matches ? 'light' : 'dark';
+    return t === 'light' ? 'light' : 'dark';
+  }
+  if (themeQuery && themeQuery.addEventListener) themeQuery.addEventListener('change', function () { if (S.settings.theme === 'system') applyAppearance(); });
+  function applyTheme() {
+    var th = resolvedTheme(), html = document.documentElement, sys = S.settings.theme === 'system';
+    // Cuenta también si sigue al sistema: de «Claro» a «Como el sistema» (con el sistema en claro) no cambia el
+    // tema, pero el ordenador tiene que pasar a seguir al sistema
+    var key = th + (sys ? ':sys' : '');
+    if (applyTheme.last === key && html.getAttribute('data-theme') === th) return th;
+    applyTheme.last = key;
+    html.setAttribute('data-theme', th);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', th === 'light' ? '#F4F4F6' : '#070708');
+    // La barra de título del ordenador y las barras del sistema en Android, a juego
+    var D = window.WhiderDesktop, A = window.WhiderAndroid;
+    try { if (D && D.setTheme) D.setTheme(th, sys); } catch (e) { /* sin puente */ }
+    try { if (A && typeof A.setLightBars === 'function') A.setLightBars(th === 'light'); } catch (e) { /* sin puente */ }
+    return th;
+  }
+
   function applyAppearance() {
     var cfg = S.settings, html = document.documentElement;
+    var th = applyTheme();
     html.setAttribute('data-text', cfg.textSize);
     html.setAttribute('data-density', cfg.density);
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
@@ -22,7 +48,8 @@ window.Whider = window.Whider || {};
     // Personalización del ordenador: contenido a todo el ancho
     html.setAttribute('data-wide', cfg.desk && cfg.desk.wide ? 'true' : 'false');
     // El tamaño de texto se aplica antes de pintar en el siguiente arranque
-    try { localStorage.setItem('whider.ui', JSON.stringify({ t: cfg.textSize })); } catch (e) { /* opcional */ }
+    // (y el tema: «sys» si sigue al del dispositivo)
+    try { localStorage.setItem('whider.ui', JSON.stringify({ t: cfg.textSize, th: th, sys: cfg.theme === 'system' })); } catch (e) { /* opcional */ }
     W.Profile.refreshAll();
   }
 

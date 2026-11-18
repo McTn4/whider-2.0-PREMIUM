@@ -24,17 +24,17 @@ window.Whider = window.Whider || {};
         var a = (112 + i * 21) * Math.PI / 180, b = (68 - i * 21) * Math.PI / 180;
         [a, b].forEach(function (ang, k) {
           var x = 50 + 47 * Math.cos(ang), y = 50 + 47 * Math.sin(ang), rot = ang * 180 / Math.PI + (k ? -60 : 60);
-          leaves += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="6" ry="2.6" transform="rotate(' + rot.toFixed(0) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ')" fill="' + (i % 2 ? '#BDBDBD' : '#EDEDED') + '"/>';
+          leaves += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="6" ry="2.6" transform="rotate(' + rot.toFixed(0) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ')" class="' + (i % 2 ? 'avf-2' : 'avf-1') + '"/>';
         });
       }
       return '<svg viewBox="0 0 100 100" class="av-ov">' + leaves + '</svg>';
     }
     if (frame === 'diamante') {
       var gems = '';
-      for (var j = 0; j < 8; j++) { var an = j * 45 * Math.PI / 180, gx = 50 + 48 * Math.cos(an), gy = 50 + 48 * Math.sin(an); gems += '<path d="M' + gx.toFixed(1) + ' ' + (gy - 4.5).toFixed(1) + 'l4 4.5-4 4.5-4-4.5z" fill="#FFF" stroke="#9A9A9A" stroke-width=".8"/>'; }
-      return '<svg viewBox="0 0 100 100" class="av-ov"><circle cx="50" cy="50" r="48" fill="none" stroke="url(#avd)" stroke-width="3"/><defs><linearGradient id="avd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF"/><stop offset=".5" stop-color="#8A8A8A"/><stop offset="1" stop-color="#FFF"/></linearGradient></defs>' + gems + '</svg>';
+      for (var j = 0; j < 8; j++) { var an = j * 45 * Math.PI / 180, gx = 50 + 48 * Math.cos(an), gy = 50 + 48 * Math.sin(an); gems += '<path d="M' + gx.toFixed(1) + ' ' + (gy - 4.5).toFixed(1) + 'l4 4.5-4 4.5-4-4.5z" class="avf-0" stroke="#9A9A9A" stroke-width=".8"/>'; }
+      return '<svg viewBox="0 0 100 100" class="av-ov"><circle cx="50" cy="50" r="48" fill="none" stroke="url(#avd)" stroke-width="3"/><defs><linearGradient id="avd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="avf-stop"/><stop offset=".5" stop-color="#8A8A8A"/><stop offset="1" class="avf-stop"/></linearGradient></defs>' + gems + '</svg>';
     }
-    if (frame === 'corona') return '<svg viewBox="0 0 100 100" class="av-ov crown"><path d="M33 9l5 11 12-11 12 11 5-11 3 16H30z" fill="#FFF" stroke="#8A8A8A" stroke-width="1.2" stroke-linejoin="round"/><circle cx="50" cy="16" r="2" fill="#1E1E1E"/></svg>';
+    if (frame === 'corona') return '<svg viewBox="0 0 100 100" class="av-ov crown"><path d="M33 9l5 11 12-11 12 11 5-11 3 16H30z" class="avf-0" stroke="#8A8A8A" stroke-width="1.2" stroke-linejoin="round"/><circle cx="50" cy="16" r="2" class="avf-dot"/></svg>';
     return '';
   }
   /** Avatar a partir de un personaje: busto con su fondo y su marco */

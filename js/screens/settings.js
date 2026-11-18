@@ -156,12 +156,14 @@ window.Whider = window.Whider || {};
     return {
       title: 'Apariencia',
       body: [
+        W.UI.section({ header: 'Tema', items: U.el('div', [W.UI.segmented([{ value: 'dark', label: 'Oscuro' }, { value: 'light', label: 'Claro' }, { value: 'system', label: 'Como el sistema' }], cfg.theme || 'dark', function (v) { set('theme', v); })]),
+          footer: '«Como el sistema» cambia solo cuando el dispositivo pasa de modo claro a oscuro.' }),
         W.UI.section({ header: 'Tamaño del texto', items: U.el('div', [W.UI.segmented(TEXT, cfg.textSize, function (v) { set('textSize', v); })]) }),
         W.UI.section({ header: 'Densidad', items: U.el('div', [W.UI.segmented([{ value: 'comfortable', label: 'Cómoda' }, { value: 'compact', label: 'Compacta' }], cfg.density, function (v) { set('density', v); })]) }),
         W.UI.section({ items: [toggleCell({ title: 'Reducir movimiento', value: cfg.reduceMotion, onChange: function (v) { set('reduceMotion', v); } })],
           footer: 'Quita las transiciones y animaciones de la interfaz.' }),
         W.UI.section({ items: [toggleCell({ title: 'Alto contraste', value: cfg.contrast === 'high', onChange: function (v) { set('contrast', v ? 'high' : 'normal'); } })],
-          footer: 'Textos secundarios y líneas más claros, para leer mejor.' }),
+          footer: 'Textos secundarios y líneas más marcados, para leer mejor.' }),
         W.UI.section({ items: [toggleCell({ title: 'Prioridad en color', value: !!cfg.prioColor, onChange: function (v) { set('prioColor', v); } })],
           footer: 'Urgente en rojo e importante en ámbar. Sin color, la prioridad se sigue viendo por sus barras y su nombre.' })
       ]

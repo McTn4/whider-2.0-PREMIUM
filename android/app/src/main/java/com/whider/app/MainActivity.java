@@ -101,6 +101,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_ASKED_NOTIF = "asked_notifications";
     /** Fondo de la app (el mismo que --bg en css/tokens.css): se ve detrás de las barras del sistema */
     private static final int APP_BG = 0xFF070708;
+    /** El mismo fondo con el tema claro (--bg del tema claro) */
+    private static final int APP_BG_LIGHT = 0xFFF4F4F6;
+    /** Último tema que pidió la web: al abrir, las barras y el fondo ya salen a juego */
+    private static final String PREF_LIGHT = "light_theme";
+    private FrameLayout rootView;
     private static final int REQ_NOTIFICATIONS = 4021;
     private static final int REQ_CAMERA = 4022;
     /** Petición de cámara de la web (escáner de QR) esperando el permiso de Android */
@@ -186,17 +191,19 @@ public class MainActivity extends AppCompatActivity {
         // y aparta el contenido con sus márgenes; el teclado encoge la vista como antes adjustResize.
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         WindowInsetsControllerCompat bars = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        bars.setAppearanceLightStatusBars(false);
-        bars.setAppearanceLightNavigationBars(false);
+        boolean light = getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(PREF_LIGHT, false);
+        bars.setAppearanceLightStatusBars(light);
+        bars.setAppearanceLightNavigationBars(light);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) getWindow().setNavigationBarContrastEnforced(false);
 
         webView = new WebView(this);
-        webView.setBackgroundColor(APP_BG);
+        webView.setBackgroundColor(light ? APP_BG_LIGHT : APP_BG);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setVerticalScrollBarEnabled(false);
         webView.setHorizontalScrollBarEnabled(false);
         FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(APP_BG);
+        rootView = root;
+        root.setBackgroundColor(light ? APP_BG_LIGHT : APP_BG);
         root.addView(webView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(root);
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
@@ -605,6 +612,22 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 return "";
             }
+        }
+
+        /** Tema claro u oscuro de la app: los iconos de las barras del sistema y el fondo, a juego */
+        @JavascriptInterface
+        public void setLightBars(boolean light) {
+            runOnUiThread(() -> {
+                WindowInsetsControllerCompat bars = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+                bars.setAppearanceLightStatusBars(light);
+                bars.setAppearanceLightNavigationBars(light);
+                int bg = light ? APP_BG_LIGHT : APP_BG;
+                if (webView != null) webView.setBackgroundColor(bg);
+                // Detrás de las barras del sistema se ve el contenedor (la web va dentro de sus márgenes)
+                if (rootView != null) rootView.setBackgroundColor(bg);
+                SharedPreferences p = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+                if (p.getBoolean(PREF_LIGHT, false) != light) p.edit().putBoolean(PREF_LIGHT, light).apply();
+            });
         }
 
         /** Tamaño de letra del sistema (1 = normal): la app adapta su tamaño de texto la primera vez */

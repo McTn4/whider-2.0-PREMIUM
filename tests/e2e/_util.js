@@ -22,6 +22,22 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * Antes de pasar axe: axe-core no sabe calcular el fondo de lo que hay dentro de un contenedor fijo (#app ocupa la
+ * ventana con position: fixed) ni a través de un pseudo-elemento con fondo. Sin esto marca el contraste de casi
+ * todo como «incompleto» y no comprueba nada. #app pasa a absolute (la misma caja y los mismos colores) y se oculta
+ * el brillo decorativo de arriba de cada pantalla (un velo del 4 %).
+ */
+async function axePrep(p) {
+  await p.evaluate(() => {
+    if (document.getElementById('axe-prep')) return;
+    const s = document.createElement('style');
+    s.id = 'axe-prep';
+    s.textContent = '#app { position: absolute !important; } .screen::before { display: none !important; }';
+    document.head.appendChild(s);
+  });
+}
+
 /** Crea (una vez) las fotos y archivos que usan las pruebas de adjuntos */
 async function fixtures(browser) {
   if (fs.existsSync(path.join(FX, 'grande.jpg')) && fs.existsSync(path.join(FX, 'enorme.zip'))) return;
@@ -68,4 +84,4 @@ async function fixtures(browser) {
   await ctx.close();
 }
 
-module.exports = { BASE, APP, WEB, FX, OUT, AXE, DESK, sleep, fixtures };
+module.exports = { BASE, APP, WEB, FX, OUT, AXE, DESK, sleep, fixtures, axePrep };

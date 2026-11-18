@@ -87,6 +87,8 @@ window.Whider = window.Whider || {};
     homeHabits: true,
     homeBuddy: true,
     contrast: 'normal',
+    // Tema: 'dark' (de siempre), 'light' o 'system' (el del dispositivo)
+    theme: 'dark',
     // Prioridad también en color (rojo urgente, ámbar importante); siempre con texto y barras
     prioColor: false,
     // Pestañas de la barra inferior del móvil (la cuarta es siempre «Más»)

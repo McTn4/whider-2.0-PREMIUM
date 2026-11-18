@@ -1,4 +1,5 @@
-// App de escritorio: versión (la de package.json), tipografías (Onest y Outfit), esquinas curvadas, sin Premium y todas las secciones sin errores
+// App de escritorio: versión (la de package.json), tipografías (Onest y Outfit), esquinas curvadas, sin Premium, todas
+// las secciones sin errores y el tema claro (ventana, barra de título y lo nativo a juego, y recordado al abrir)
 const { _electron: electron } = require('playwright');
 const { OUT, DESK } = require('./_util');
 const fs = require('fs'), os = require('os'), path = require('path');
@@ -7,8 +8,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); if (!c) fails++; };
 (async () => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'whider100-'));
-  const app = await electron.launch({ executablePath: path.join(DESK, 'node_modules', '.bin', 'electron'), args: [DESK, '--no-sandbox'], cwd: DESK,
-    env: Object.assign({}, process.env, { WHIDER_E2E: '1', WHIDER_USER_DATA: userData, WHIDER_E2E_CONFIG: 'window.WHIDER_CONFIG = { firebase: null };', NODE_OPTIONS: '' }) });
+  const LAUNCH = { executablePath: path.join(DESK, 'node_modules', '.bin', 'electron'), args: [DESK, '--no-sandbox'], cwd: DESK,
+    env: Object.assign({}, process.env, { WHIDER_E2E: '1', WHIDER_USER_DATA: userData, WHIDER_E2E_CONFIG: 'window.WHIDER_CONFIG = { firebase: null };', NODE_OPTIONS: '' }) };
+  const app = await electron.launch(LAUNCH);
   const win = await app.firstWindow(); const errs = []; win.on('pageerror', e => errs.push(e.message));
   await win.waitForLoadState('domcontentloaded'); await sleep(3000);
   await win.evaluate(() => { localStorage.setItem('whider.meta.v1', JSON.stringify({ onboarded: true, createdAt: Date.now() })); });
@@ -34,7 +36,30 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   ok((await win.evaluate(() => document.querySelector('.sheet-root').innerText)).includes('WHIDER ' + LABEL), 'Ajustes muestra «WHIDER ' + LABEL + '»');
   await win.evaluate(() => { while (Whider.Sheet.closeTop()); Whider.Router.go('home'); }); await sleep(500);
   await win.screenshot({ path: path.join(OUT, 'electron-hoy-1.0.png') });
+
+  // Tema claro: la ventana (fondo y barra de título) y lo nativo (menús y diálogos) lo siguen
+  const nat = () => app.evaluate(({ nativeTheme, BrowserWindow }) => ({ src: nativeTheme.themeSource, th: global.__whider.theme, bg: BrowserWindow.getAllWindows()[0].getBackgroundColor() }));
+  const page = () => win.evaluate(() => ({ th: document.documentElement.getAttribute('data-theme'), bg: getComputedStyle(document.body).backgroundColor }));
+  let n = await nat();
+  ok(n.src === 'dark' && n.th === 'dark' && /^#070708$/i.test(n.bg), 'empieza con el tema oscuro (ventana ' + n.bg + ', nativo ' + n.src + ')');
+  await win.evaluate(() => Whider.State.setSetting('theme', 'light')); await sleep(500);
+  n = await nat(); const pg = await page();
+  ok(pg.th === 'light' && pg.bg === 'rgb(244, 244, 246)' && n.th === 'light' && n.src === 'light' && /^#F4F4F6$/i.test(n.bg),
+    'tema claro: la página (' + pg.bg + '), la ventana (' + n.bg + ') y lo nativo (' + n.src + ')');
+  await win.evaluate(() => Whider.State.setSetting('theme', 'system')); await sleep(500);
+  n = await nat();
+  ok(n.src === 'system', '«Como el sistema»: lo nativo sigue al sistema, así la página ve sus cambios (' + n.src + ')');
+  await win.evaluate(() => Whider.State.setSetting('theme', 'light')); await sleep(500);
+  await win.screenshot({ path: path.join(OUT, 'electron-hoy-claro.png') });
   ok(!errs.length, 'sin errores ' + JSON.stringify(errs.slice(0, 3)));
   await app.close();
+  // Se recuerda: al abrir de nuevo, la ventana nace ya clara (sin destello oscuro antes de cargar la página)
+  const saved = JSON.parse(fs.readFileSync(path.join(userData, 'whider-desktop.json'), 'utf8'));
+  ok(saved.theme === 'light' && saved.themeSystem === false, 'guarda el tema para la próxima vez ' + JSON.stringify({ theme: saved.theme, themeSystem: saved.themeSystem }));
+  const app2 = await electron.launch(LAUNCH);
+  await app2.firstWindow();
+  const n2 = await app2.evaluate(({ nativeTheme, BrowserWindow }) => ({ src: nativeTheme.themeSource, bg: BrowserWindow.getAllWindows()[0].getBackgroundColor() }));
+  ok(n2.src === 'light' && /^#F4F4F6$/i.test(n2.bg), 'al abrir otra vez, la ventana ya sale clara (' + n2.bg + ', nativo ' + n2.src + ')');
+  await app2.close();
   console.log(fails ? fails + ' FALLOS' : 'TODO OK'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });

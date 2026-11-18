@@ -108,8 +108,8 @@ window.Whider = window.Whider || {};
       var f = o.fmt || fmt;
       var pts = data.map(function (d, i) { return [n > 1 ? i / (n - 1) * 1000 : 500, 1000 - d.value / max * 1000]; });
       var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join('');
-      var svg = '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><path d="' + line + 'L1000 1000L0 1000Z" fill="#FFFFFF" fill-opacity=".1"/>' +
-        '<path d="' + line + '" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>';
+      var svg = '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><path d="' + line + 'L1000 1000L0 1000Z" fill="currentColor" fill-opacity=".1"/>' +
+        '<path d="' + line + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>';
       var plot = U.el('div.ac-plot', { html: svg });
       var last = data[n - 1] || { value: 0 };
       var end = U.el('i.ac-dot', { style: { left: '100%', top: (100 - last.value / max * 100) + '%' } });

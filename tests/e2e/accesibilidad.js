@@ -1,11 +1,12 @@
 // Accesibilidad (axe-core, WCAG 2.1 A/AA) en todas las pantallas, Ajustes y hojas, en móvil y ordenador
 const { chromium, devices } = require('playwright');
-const { APP, AXE: AXE_RUTA } = require('./_util');
+const { APP, AXE: AXE_RUTA, axePrep } = require('./_util');
 const fs = require('fs');
 const AXE = fs.readFileSync(AXE_RUTA, 'utf8');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const summary = {};
 async function audit(p, label) {
+  await axePrep(p);
   await p.evaluate(AXE);
   const r = await p.evaluate(async () => {
     const res = await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, resultTypes: ['violations'] });

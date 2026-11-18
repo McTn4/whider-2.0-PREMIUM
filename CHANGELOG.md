@@ -10,10 +10,14 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-Copias automáticas sin cuenta, ayuda dentro de la app, instalar en el iPhone y una web que abre antes.
+Tema claro, copias automáticas sin cuenta, ayuda dentro de la app, instalar en el iPhone y una web que abre antes.
 
 ### Novedades
 
+- **Tema claro**: Ajustes → Apariencia → Tema (Oscuro, Claro o «Como el sistema», que cambia solo cuando el
+  dispositivo pasa de claro a oscuro). Toda la app, también el ordenador (ventana y barra de título) y Android
+  (barras del sistema), sin destellos al abrir. Contraste comprobado en todas las pantallas; el alto contraste
+  también funciona en claro. El oscuro sigue siendo el de siempre.
 - **Copias automáticas** para quien no tiene cuenta: en el ordenador, una al día en la carpeta de datos de WHIDER
   (las 10 últimas, con la lista para recuperarlas); en Android, en Descargas › WHIDER › Copias (las 7 últimas, que
   siguen ahí aunque desinstales la app). En el navegador, un aviso en Hoy si pasa una semana sin copia.
@@ -28,6 +32,8 @@ Copias automáticas sin cuenta, ayuda dentro de la app, instalar en el iPhone y 
 
 - La web abre antes: en un móvil de gama media, la primera visita tarda un 38 % menos hasta poder usarla
   (6 archivos en lugar de 73), y el navegador guarda la app hasta que cambia.
+- En el calendario mensual del ordenador, los días del mes anterior y del siguiente se leen mejor (tenían
+  poco contraste).
 
 ### Para desarrolladores
 
@@ -38,6 +44,12 @@ Copias automáticas sin cuenta, ayuda dentro de la app, instalar en el iPhone y 
   de los datos) y `js/ui/blocks.js` en `caret.js`, `blocks-kinds.js` y `blocks-menus.js`. El editor del Cuaderno
   se sigue cargando solo al abrirlo, ahora con sus archivos descargados a la vez.
 - Comprobación de tipos en `schema.js` y `caret.js`; la prueba de la portada ya no depende de la API de GitHub.
+- Tema claro con variables: `css/tokens.css` define el oscuro en `:root` y el claro en `:root[data-theme='light']`
+  (solo redefine variables). `tests/unit/tema.test.js` impide grises fijos en las reglas y variables de color sin
+  valor en claro; `tests/e2e/tema.js` prueba el cambio, el arranque sin destello, «Como el sistema» y el contraste.
+- La comprobación de contraste con axe no comprobaba nada: el contenedor fijo de la app no le dejaba calcular los
+  fondos y lo daba todo por «incompleto». `axePrep()` (en `tests/e2e/_util.js`) lo resuelve y ahora sí detecta los
+  fallos (encontró el del calendario).
 
 ## [1.1.0-beta.1] · 2026-11-18
 

@@ -29,6 +29,8 @@
 
 :root {
   color-scheme: dark;
+  /* «Tinta»: el color de los velos, bordes y brillos (blanco en el tema oscuro, casi negro en el claro) */
+  --ink-rgb: 255, 255, 255;
 
   /* Fondos y superficies (escala de grises, un punto más fría que el negro puro) */
   --bg: #070708;
@@ -104,6 +106,51 @@
   --glow: 0 0 18px -8px rgba(255, 255, 255, .4);
   --glow-soft: 0 0 14px -8px rgba(255, 255, 255, .3);
 
+  /* Componentes con su propio gris: aquí, en el tema oscuro, el valor de siempre; el claro les da su equivalente */
+  --pop-bg: #1A1A1A;              /* menús contextuales y avisos */
+  --dock-bg: #121212;             /* barra inferior del móvil */
+  --seg-thumb: #262626;           /* opción elegida de los controles segmentados */
+  --chip-bg: #1C1C1C;             /* chips del calendario mensual */
+  --block-bg: #1C1C1C;            /* bloques de la agenda por horas */
+  --block-hover: #222222;
+  --hover-bg: #141414;            /* filas y opciones al pasar el ratón */
+  --active-bg: #222222;           /* opción elegida con el teclado (paleta de órdenes) */
+  --sheet-cell: #1C1C1C;          /* celdas, pulsado y campos dentro de las hojas */
+  --sheet-cell-hl: #242424;
+  --sheet-s3: #262626;
+  --avatar-from: #2C2C2C;         /* avatar con iniciales */
+  --avatar-to: #141414;
+  --accent-hover: #EDEDED;        /* botón principal al pasar el ratón y al pulsarlo */
+  --accent-press: #E2E2E2;
+  --on-accent-rgb: 0, 0, 0;       /* velos y textos suaves sobre lo resaltado */
+  --knob-on: #050505;             /* bola del interruptor encendido */
+  --swipe-strong: #EDEDED;        /* al deslizar una tarea: completar… */
+  --swipe-soft: #2A2A2A;          /* …y la otra acción */
+  --inv-bg: #F2F2F2;              /* superficies invertidas: tus mensajes y los avisos de las gráficas */
+  --inv-t1: #0A0A0A;
+  --inv-t2: #555555;
+  --inv-t3: #666666;
+  --heat-1: #4D4D4D;              /* mapa del año, de menos a más (el máximo es --accent) */
+  --heat-2: #7A7A7A;
+  --heat-3: #B3B3B3;
+  --code-bg: #0C0C0C;             /* bloques de código del Cuaderno */
+  --code-t: #E6E6E6;
+  --tag-t1: #D0D0D0;              /* etiquetas de las bases de datos (de la más suave a la más marcada) */
+  --tag-t2: #E8E8E8;
+  --scrim: rgba(0, 0, 0, .68);    /* velo detrás de hojas y avisos */
+  --scrim-soft: rgba(0, 0, 0, .38);
+  --glass-rgb: 5, 5, 5;           /* barras translúcidas sobre el contenido */
+  --float-bar: rgba(23, 23, 23, .97);   /* barra de acciones con varias tareas elegidas */
+  --kb-bar: rgba(17, 17, 17, .96);      /* barra sobre el teclado (Cuaderno) */
+  --scroll-thumb: #2A2A2A;
+  --scroll-thumb-hover: #343434;
+  --logo-glow: drop-shadow(0 0 6px rgba(255, 255, 255, .35));
+  --mark-glow: drop-shadow(0 0 14px rgba(255, 255, 255, .35));
+  --avf-0: #FFFFFF;               /* marcos del avatar: corona, diamantes y laurel */
+  --avf-1: #EDEDED;
+  --avf-2: #BDBDBD;
+  --avf-dot: #1E1E1E;
+
   /* Tipografía */
   --font: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --mono: var(--font);   /* cada regla que la usa añade font-variant-numeric: tabular-nums */
@@ -155,4 +202,105 @@ html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* ==========================================================================
+   Tema claro (Ajustes → Apariencia → Tema). Las mismas reglas con la luz al revés: fondo claro, tinta casi negra y
+   lo resaltado en negro. Contraste comprobado (WCAG AA): texto secundario ≥ 5,1:1 en todas las superficies,
+   prioridad en color ≥ 4,5:1. Las sombras se quedan negras, más suaves; los brillos blancos no tienen sentido aquí.
+   ========================================================================== */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --ink-rgb: 17, 17, 19;
+  --bg: #F4F4F6;
+  --bg-2: #EEEEF1;
+  --s1: #FFFFFF;
+  --s2: #FFFFFF;
+  --s3: #E9E9EC;
+  --cell-hl: #F2F2F4;
+  --bar: #FFFFFF;
+  --fill: rgba(17, 17, 19, .1);
+  --fill-2: rgba(17, 17, 19, .06);
+  --fill-3: rgba(17, 17, 19, .035);
+  --line: rgba(17, 17, 19, .09);
+  --line-2: rgba(17, 17, 19, .16);
+  --sep: rgba(17, 17, 19, .08);
+  --rule: rgba(17, 17, 19, .12);
+  --rule-strong: rgba(17, 17, 19, .85);
+  --t1: #111113;
+  --t2: #45454B;
+  --t3: #606067;
+  --t4: #B6B6BC;
+  --accent: #111113;
+  --accent-rgb: 17, 17, 19;
+  --accent-2: #111113;
+  --on-accent: #FFFFFF;
+  --red: #111113;
+  --orange: #36363B;
+  --yellow: #4F4F55;
+  --green: #111113;
+  --teal: #404046;
+  --blue: #2A2A2F;
+  --indigo: #2A2A2F;
+  --purple: #404046;
+  --pink: #404046;
+  --gray: #606067;
+  --gray-2: #8E8E95;
+  --danger: #111113;  --danger-rgb: 17, 17, 19;
+  --warn: #36363B;    --warn-rgb: 54, 54, 59;
+  --success: #111113; --success-rgb: 17, 17, 19;
+  --p-danger: #111113;
+  --p-purple: #5C5C62;
+  --p-star: #8E8E95;
+  --prio-urgent: #C0392B;
+  --prio-important: #8A5A00;
+  --sh-card: 0 1px 2px rgba(0, 0, 0, .05), 0 10px 26px -20px rgba(0, 0, 0, .35);
+  --sh-float: 0 1px 2px rgba(0, 0, 0, .06), 0 18px 40px -16px rgba(0, 0, 0, .3);
+  --sh-pop: 0 26px 60px -20px rgba(0, 0, 0, .35), 0 0 0 1px rgba(17, 17, 19, .08);
+  --glow: 0 0 0 0 transparent;
+  --glow-soft: 0 0 0 0 transparent;
+
+  --pop-bg: #FFFFFF;
+  --dock-bg: #FFFFFF;
+  --seg-thumb: #FFFFFF;
+  --chip-bg: #ECECEF;
+  --block-bg: #FFFFFF;
+  --block-hover: #F4F4F6;
+  --hover-bg: #F0F0F2;
+  --active-bg: #EAEAED;
+  --sheet-cell: #F2F2F4;
+  --sheet-cell-hl: #E9E9EC;
+  --sheet-s3: #E9E9EC;
+  --avatar-from: #F7F7F9;
+  --avatar-to: #DEDEE3;
+  --accent-hover: #2C2C31;
+  --accent-press: #3A3A40;
+  --on-accent-rgb: 255, 255, 255;
+  --knob-on: #FFFFFF;
+  --swipe-strong: #26262B;
+  --swipe-soft: #DCDCE0;
+  --inv-bg: #26262B;
+  --inv-t1: #F4F4F6;
+  --inv-t2: #C2C2C8;
+  --inv-t3: #A6A6AD;
+  --heat-1: #CDCDD2;
+  --heat-2: #9A9AA1;
+  --heat-3: #5C5C62;
+  --code-bg: #EEEEF1;
+  --code-t: #26262B;
+  --tag-t1: #3E3E44;
+  --tag-t2: #26262B;
+  --scrim: rgba(17, 17, 19, .38);
+  --scrim-soft: rgba(17, 17, 19, .18);
+  --glass-rgb: 244, 244, 246;
+  --float-bar: rgba(255, 255, 255, .97);
+  --kb-bar: rgba(255, 255, 255, .96);
+  --scroll-thumb: #C6C6CC;
+  --scroll-thumb-hover: #A9A9B0;
+  --logo-glow: none;
+  --mark-glow: none;
+  --avf-0: #2C2C31;
+  --avf-1: #4A4A50;
+  --avf-2: #8E8E95;
+  --avf-dot: #F4F4F6;
 }

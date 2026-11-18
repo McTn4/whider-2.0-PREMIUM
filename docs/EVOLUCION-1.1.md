@@ -276,6 +276,17 @@ Se actualiza al cerrar cada bloque.
 
 ### Bloque 8 · Complementos — en curso
 
+- **Tema claro** (Ajustes → Apariencia → Tema: Oscuro, Claro o «Como el sistema»). Todo con variables: el claro
+  solo redefine las de `css/tokens.css`; los colores fijos de las hojas de estilo pasaron a variables con el mismo
+  valor en oscuro (comparado píxel a píxel antes y después: idéntico salvo el personaje animado). Lo que es como
+  una imagen o un papel se ve igual en los dos (portadas, fondos de avatar, informe, QR, icono); el botón de Google
+  usa su versión clara oficial. Sin destello al abrir: un script del `<head>` pone el tema antes de pintar; el
+  ordenador guarda el último (ventana y barra de título ya claras al abrir; con «Como el sistema», Electron sigue
+  al sistema para que la página vea sus cambios) y Android también (barras del sistema y fondo detrás de ellas).
+  Contraste AA comprobado con axe en todas las pantallas, Ajustes, nueva tarea y personaje, en móvil y ordenador.
+- **La comprobación de contraste no comprobaba nada**: axe 4.14 no sabe calcular fondos dentro de un contenedor
+  `position: fixed` (todo `#app`) y lo marcaba «incompleto» (0 comprobados). Con `axePrep()` ya comprueba, y salió
+  un fallo real, también en el tema oscuro: los días de otro mes en el calendario mensual (1,99:1; ahora ≥ 4,5:1).
 - **Copias automáticas sin cuenta** (`js/core/backup.js`): en el ordenador, una al día en la carpeta de datos de la
   app (`desktop/lib/backups.js`, las 10 últimas; desde la app web solo se pueden escribir y leer esos nombres), con la
   lista para recuperarlas y «Abrir la carpeta»; en Android 10 o posterior, en Descargas › WHIDER › Copias por
