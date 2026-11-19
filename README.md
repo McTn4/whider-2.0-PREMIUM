@@ -328,7 +328,7 @@ Cómo instalar, ejecutar, probar y compilar todo desde cero: [docs/DESARROLLO.md
 - **Google Play**: la guía paso a paso (clave de subida, secretos de GitHub, Play Console, seguridad de los datos y las huellas de la firma de Google) está en [`docs/PUBLICAR-EN-GOOGLE-PLAY.md`](docs/PUBLICAR-EN-GOOGLE-PLAY.md).
 - **Cuentas y nube**: [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md). Publica las reglas de [`firestore.rules`](firestore.rules) en *Firebase → Firestore Database → Reglas* cada vez que cambien.
 - **Archivos del Cuaderno**: se guardan en Firestore en trozos de menos de 1 MB, sin Cloud Storage (que exige el plan de pago de Firebase); en el plan gratuito caben 1 GB de datos en total. Si crecen mucho, pueden ir a Firebase Storage con `storage: true` en `js/config.js` (preparado y probado; pasos en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md)).
-- **Sincronización**: con la app a la vista se mira la nube cada 15 segundos y los cambios se suben al momento; si algún día se queda corto el plan gratuito de Firebase (50 000 lecturas al día), basta con pasar al plan de pago por uso.
+- **Sincronización**: los cambios se suben al momento y lo que cambia en otro dispositivo llega en un par de segundos (la app escucha la nube en lugar de consultarla cada poco; sin escuchas, la consulta cada 15 segundos); si algún día se queda corto el plan gratuito de Firebase (50 000 lecturas al día), basta con pasar al plan de pago por uso. Cifras en [docs/COSTES.md](docs/COSTES.md).
 
 ## 🔒 Privacidad
 

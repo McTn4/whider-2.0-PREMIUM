@@ -3,7 +3,7 @@
   "private": true,
   "description": "Genera js/vendor/firebase.js (SDK de Firebase empaquetado para uso sin conexión)",
   "scripts": {
-    "build": "esbuild entry.js --bundle --minify --format=iife --global-name=WFB --target=es2019 --legal-comments=none --outfile=../../js/vendor/firebase.js"
+    "build": "esbuild entry.js --bundle --minify --format=iife --global-name=WFB --target=es2019 --legal-comments=none --alias:re2js=./re2js-stub.js --outfile=../../js/vendor/firebase.js"
   },
   "dependencies": { "firebase": "12.19.0" },
   "devDependencies": { "esbuild": "0.25.12" }

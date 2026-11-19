@@ -11,7 +11,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var CFG = window.WHIDER_CONFIG || {};
-  var F = null, app = null, auth = null, db = null, storage = null;
+  var F = null, app = null, auth = null, db = null, storage = null, liveDb = null;
   var listeners = [], readyResolve, ready = new Promise(function (r) { readyResolve = r; });
   var loadPromise = null, initialized = false, nativeGoogle = null;
   var REDIRECT_FLAG = 'whider.googleRedirect';
@@ -112,6 +112,18 @@ window.Whider = window.Whider || {};
       storage = F.getStorage(app);
       if (CFG.emulator && CFG.emulator.storagePort) F.connectStorageEmulator(storage, CFG.emulator.storageHost || '127.0.0.1', CFG.emulator.storagePort);
       return storage;
+    },
+    /**
+     * Firestore completo, solo para escuchar en tiempo real (W.Live). Leer una vez, escribir y las transacciones
+     * siguen con «lite» (Auth.db()). null si no hay sesión de Firebase, si el paquete no lo trae o si
+     * WHIDER_CONFIG.live es false: entonces cada módulo consulta la nube cada cierto tiempo, como antes.
+     */
+    liveDb: function () {
+      if (liveDb) return liveDb;
+      if (!app || !F || !F.getFirestoreLive || !F.onSnapshot || CFG.live === false) return null;
+      liveDb = F.getFirestoreLive(app);
+      if (CFG.emulator) F.connectFirestoreEmulatorLive(liveDb, CFG.emulator.firestoreHost, CFG.emulator.firestorePort);
+      return liveDb;
     },
     sdk: function () { return F; },
     configured: function () { return !!(CFG.firebase && CFG.firebase.apiKey); },

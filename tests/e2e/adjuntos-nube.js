@@ -68,6 +68,8 @@ const allUp = (p, a) => waitFor(p, a => a.list.every(f => Whider.Files.status(f,
   const pid = await A.evaluate(() => { const P = Whider.Pages; return P.create({ title: 'Contrato del piso', blocks: [P.block('p', 'Documentos firmados:'), P.block('p', '')] }).id; });
   await openPage(A, pid);
   await attach(A, ['foto.png', 'Factura marzo.pdf', 'grande.jpg']);
+  // Se añaden uno detrás de otro (la foto grande se reduce antes): se espera a los tres, no un tiempo fijo
+  await waitFor(A, id => Whider.Pages.content(id).blocks.filter(b => b.f).length >= 3, pid, 10000);
   const files = await refs(A, pid);
   ok(files.length === 3, 'A: tres adjuntos en la página');
   ok(await allUp(A, { list: files.map(f => f.f), sk: 'me' }), 'A: los tres terminan de subirse (estado «en la nube»)');

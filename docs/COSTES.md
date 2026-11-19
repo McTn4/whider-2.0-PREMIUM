@@ -2,7 +2,8 @@
 
 WHIDER usa Firebase (Authentication y Cloud Firestore). La app funciona sin cuenta y sin red; la nube
 solo guarda la copia y sincroniza dispositivos. Este documento estima cuánto gasta cada persona y qué
-se ha hecho en la 1.1 para que el proyecto siga siendo gratuito el mayor tiempo posible.
+se ha hecho en la 1.1 y después (escuchas en tiempo real) para que el proyecto siga siendo gratuito el mayor tiempo
+posible.
 
 ## Límites que importan
 
@@ -13,7 +14,56 @@ se ha hecho en la 1.1 para que el proyecto siga siendo gratuito el mayor tiempo 
 
 Precios orientativos de la región europea; consulta la página de precios de Firebase antes de decidir.
 
-## De dónde salen las lecturas
+## Desde la 1.2: escuchas en tiempo real
+
+La app ya no consulta la nube cada pocos segundos: **escucha** los documentos que le importan (`js/core/live.js`) y
+Firestore le manda cada cambio. Escuchar cuesta **una lectura por documento al empezar y una por cada documento que
+cambia** (también cuando lo cambias tú: tu cambio vuelve a la escucha). Si nada cambia, no cuesta nada.
+
+| Qué se escucha | Cuándo |
+| --- | --- |
+| `users/{uid}/state/app` y `state/notes` (tareas, hábitos, ajustes, apuntes) | Siempre, con sesión iniciada |
+| El índice del Cuaderno: `users/{uid}/state/pages` y `spaces/{id}` de cada equipo | Siempre; solo se sincroniza el ámbito que cambia |
+| Tu buzón `inbox/{uid}` | Con la comunidad activada |
+| La lista de tus chats (`chats` donde estás) | Con sesión iniciada |
+| Los mensajes del chat abierto (desde 2 min antes del último que ya tienes) | Con ese chat abierto en Chats |
+
+- **En segundo plano** más de 2 minutos (el navegador o el móvil con otra app delante) se deja de escuchar: no se
+  gastan lecturas con lo que cambian otros dispositivos. Al volver, cada escucha vuelve a costar una lectura por
+  documento y trae lo último. En el ordenador, con la ventana cerrada a la bandeja, WHIDER no pasa a segundo plano:
+  sigue escuchando (y avisando).
+- **Sin escuchas** (sin conexión, un fallo o `live: false` en `js/config.js`), cada parte vuelve a consultar como en la
+  1.1 (tabla de abajo) hasta que la escucha vuelve a estar al día.
+- **Subir tus cambios cuesta lo mismo que antes**: cada subida es una transacción que lee los dos documentos y escribe
+  1-2.
+- Los perfiles de tus contactos se refrescan cada minuto **solo con Personas abierta** (antes, en cualquier pantalla), y
+  los avisos de mensajes que llegan al buzón no se leen mientras se escucha la lista de chats (ya trae cada mensaje).
+
+### Estimación: un ordenador con WHIDER abierto 8 horas (1 hora de uso real)
+
+Lecturas solo por estar al día (sin las de subir tus cambios, que son las mismas). Suposiciones: 30 subidas propias, 20
+cambios hechos en el móvil, 10 guardados en el Cuaderno, 3 contactos (Personas abierta 5 minutos), 5 chats con 30
+mensajes recibidos y 20 enviados.
+
+| | 1.1 (consultando) | 1.2 (escuchando) |
+| --- | --- | --- |
+| Tareas, hábitos, ajustes y apuntes | ~650 | ~60 (2 al empezar + 1 por cambio, tuyo o del móvil, y por cada chat leído) |
+| Cuaderno | ~450 | ~15 (1 por ámbito al empezar + 1 por guardado) |
+| Buzón de Personas | ~500 | ~35 (1 al empezar + 1 por aviso de mensaje + 3 por solicitud o ánimo) |
+| Perfiles de 3 contactos | ~450 * | ~20 (al empezar y cada minuto con Personas abierta) |
+| Lista de 5 chats | ~1.200 * (los 5 cada 2 min) | ~55 (5 al empezar + 1 por mensaje enviado o recibido) |
+| **Total** | **~3.250** | **~185 (-94 %)** |
+
+\* La estimación que se hizo para la 1.1 (más abajo) no contaba la lista de chats ni los perfiles.
+
+Sumando las de subir tus cambios (~80 lecturas en este ejemplo), una persona muy activa pasa de unas 3.300 lecturas al
+día a unas 270: con el plan gratuito, de unas **15** personas así al día a unas **185**. Con uso normal en el móvil, muchas
+más.
+
+El paquete de Firebase crece de 75 a 157 KB comprimido (el Firestore completo, sin `re2js`, que solo usan las
+consultas «pipeline»); se carga después de mostrar la app, como antes.
+
+## De dónde salen las lecturas (1.1)
 
 | Qué | Hasta la 1.0 | Desde la 1.1 |
 | --- | --- | --- |
@@ -22,7 +72,7 @@ Precios orientativos de la región europea; consulta la página de precios de Fi
 | Personas (buzón) | Cada 7-30 s | Igual mientras la usas; luego como las tareas |
 | Chat abierto | Cada 3 s | Igual (solo con un chat abierto y a la vista) |
 
-### Estimación: un ordenador con WHIDER abierto 8 horas (1 hora de uso real)
+### Estimación de la 1.1: un ordenador con WHIDER abierto 8 horas (1 hora de uso real)
 
 | | 1.0 | 1.1 |
 | --- | --- | --- |
@@ -55,6 +105,5 @@ cambiaron, apuntes) y cada página editada 1-2 más. Una persona típica: 50-150
 2. **App Check** (reCAPTCHA Enterprise en la web, Play Integrity en Android) para que nadie pueda gastar
    lecturas con scripts en nombre de la app (preparado en la app; se activa en la consola).
 3. **Panel de uso**: Firebase → Firestore → Uso, para comparar con estas estimaciones.
-4. **Siguiente paso de ahorro**: cambiar el sondeo por escuchas en tiempo real (SDK completo de
-   Firestore). Con la app a la vista y sin cambios, el coste sería casi cero (ver
-   [decisiones/0001](decisiones/0001-edicion-simultanea.md)).
+4. ~~**Siguiente paso de ahorro**: cambiar el sondeo por escuchas en tiempo real~~ Hecho después de la 1.1 (arriba).
+   Lo siguiente sería juntar en un solo documento lo que hoy se escucha por separado, pero con estas cifras no compensa.

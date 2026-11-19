@@ -54,6 +54,7 @@ export const GRUPOS = {
     'adjuntos-storage',
     'version-1',
     'sincronizacion',
+    'tiempo-real',
     'seguridad',
     'ayuda'
   ],

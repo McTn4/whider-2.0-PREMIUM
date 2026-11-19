@@ -168,7 +168,7 @@ Se actualiza al cerrar cada bloque.
   WHIDER abierto todo el día pasa de ~6.700 a ~1.600 lecturas diarias. Análisis completo y
   recomendaciones (alertas de presupuesto, App Check): [COSTES.md](COSTES.md).
 - **Pendiente**: pasar del sondeo a escuchas en tiempo real (SDK completo de Firestore, +130 KB) y los
-  adjuntos a Firebase Storage (necesita el plan Blaze).
+  adjuntos a Firebase Storage (necesita el plan Blaze). Las escuchas, hechas después de la 1.1 (+82 KB comprimido).
 - **Pruebas**: `tests/e2e/sincronizacion.js` (dos dispositivos contra los emuladores: cambios a la vez,
   sin conexión, tamaño y archivo, Cuaderno) y 15 unitarias nuevas (fusión campo a campo, archivo,
   clasificación de errores, reintentos, fusión de páginas).
@@ -369,7 +369,8 @@ Se actualiza al cerrar cada bloque.
 
 - **La app en inglés**: la web ya lo está; la app tiene ≈ 1.660 textos y un intérprete de fechas en español. Plan y
   método en [decisiones/0003](decisiones/0003-idiomas.md) (unas dos semanas).
-- **Escuchas en tiempo real** (SDK completo de Firestore) en lugar de consultar cada 15 segundos.
+- ~~**Escuchas en tiempo real** (SDK completo de Firestore) en lugar de consultar cada 15 segundos.~~ Hecho después de
+  la 1.1 (CHANGELOG, «Sin publicar»; cifras en [COSTES.md](COSTES.md)).
 - **Google Calendar y Outlook en las dos direcciones**: necesita apps OAuth verificadas por Google y Microsoft.
 - **Encender** App Check (consola), 2FA (Identity Platform) y Storage (plan Blaze): todo preparado y documentado.
 - **Dominio propio y correos con ese dominio** ([DOMINIO.md](DOMINIO.md)): decisión y pago.
@@ -391,4 +392,4 @@ Se actualiza al cerrar cada bloque.
 3. Publicar en Google Play con la ficha y las capturas ya hechas ([PUBLICAR-EN-GOOGLE-PLAY.md](PUBLICAR-EN-GOOGLE-PLAY.md)).
 4. Pasar a Blaze con una alerta de presupuesto antes de llegar al límite gratuito; entonces, encender Storage y
    App Check.
-5. Escuchas en tiempo real (ahorra lecturas y hace la sincronización instantánea) y, después, la app en inglés.
+5. ~~Escuchas en tiempo real~~ (hecho después de la 1.1) y, después, la app en inglés.

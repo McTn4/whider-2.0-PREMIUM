@@ -5,7 +5,9 @@
  *    contactos, chatear y crear equipos.
  *  - Los avisos dicen qué pasa de verdad (sin cuenta, correo sin verificar, servidor sin las
  *    reglas nuevas o sin conexión) en vez de «revisa tu conexión» para todo.
- *  - El buzón se mira cada pocos segundos con Personas o Chats abiertos (antes, cada minuto).
+ *  - El buzón llega al momento: se escucha (W.Live) y solo se lee y se vacía cuando trae algo nuevo. Si no se
+ *    puede escuchar, se mira cada pocos segundos con Personas o Chats abiertos y cada 30 s en lo demás.
+ *  - Los perfiles de tus contactos (racha, semana, enfoque) se actualizan cada minuto con Personas abierta.
  *  - Invitar con un enlace o un código QR: quien lo abre queda conectado al momento (sin
  *    esperar a que aceptes), y los enlaces de equipo meten directamente en el equipo.
  *
@@ -23,6 +25,8 @@ window.Whider = window.Whider || {};
   var profiles = (function () { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {}; } catch (e) { return {}; } })();
   var inbox = { requests: {} }, teamData = {};
   var lastPoll = 0, lastProfiles = 0, ticker = null, errorState = null, failures = 0, publishTimer = null, subs = [], polling = null;
+  // Escucha del buzón: de quién es y si hay que volver a leerlo al acabar la lectura en curso
+  var inboxFor = null, pollAgain = false;
   var CHEERS = ['¡Vamos, tú puedes!', '¡Qué racha llevas!', 'A por el día de hoy', 'Te reto a completar 3 tareas hoy', 'Gran semana, sigue así', '¡Buen trabajo en equipo!'];
 
   function uid() { return W.Auth && W.Auth.user ? W.Auth.user.uid : null; }
@@ -177,11 +181,39 @@ window.Whider = window.Whider || {};
       if (W.Chat && got.pings && Object.keys(got.pings).length) W.Chat.onPings(got.pings);
       if (Object.keys(inbox.requests).length) emit('requests');
       emit('poll');
-      if (Date.now() - lastProfiles > 60000) return loadProfiles();
+      // Los perfiles de todos: al empezar y, después, cada minuto solo con Personas abierta (fuera de ella basta la copia guardada)
+      if (Date.now() - lastProfiles > 60000 && (!lastProfiles || S().activeScreen === 'friends')) return loadProfiles();
       // Contactos nuevos: su personaje y su nombre, al momento
       if (fresh.length) return loadProfiles(fresh);
-    }).catch(function (e) { try { fail(e); } catch (x) { /* ya avisado */ } }).then(function () { polling = null; });
+    }).catch(function (e) { try { fail(e); } catch (x) { /* ya avisado */ } }).then(function () {
+      polling = null;
+      if (pollAgain) { pollAgain = false; poll(true); }
+    });
     return polling;
+  }
+
+  /* ---------- Escucha del buzón (W.Live) ---------- */
+  function inboxLive() { return !!(inboxFor && W.Live && W.Live.ok('inbox')); }
+  function reqFp(r) { return Object.keys(r || {}).sort().map(function (k) { return k + ':' + ((r[k] || {}).at || 0); }).join(','); }
+  /** Escucha tu buzón mientras la comunidad está activa (y deja de escucharlo si no) */
+  function watchInbox() {
+    var me = ready() ? uid() : null;
+    if (inboxFor === me) return;
+    if (inboxFor && W.Live) W.Live.stop('inbox');
+    inboxFor = null;
+    if (!me || !W.Live || !W.Live.available()) return;
+    inboxFor = me;
+    W.Live.watch('inbox', function (L, d) { return L.docLive(d, 'inbox', me); }, function (snap) {
+      if (uid() !== me) return;
+      var d = snap.exists() ? snap.data() || {} : {};
+      // Los avisos de mensajes sobran mientras se escucha la lista de chats (ya trae cada mensaje): se quedan en el
+      // buzón hasta la próxima vez que se vacíe y no cuestan otra lectura por mensaje
+      var chatsLive = !!(W.Chat && W.Chat.listLive && W.Chat.listLive());
+      var busy = BOXES.some(function (b) { return b !== 'requests' && !(b === 'pings' && chatsLive) && Object.keys(d[b] || {}).length; });
+      // Solo se lee y se vacía si trae algo nuevo (las solicitudes se quedan hasta que respondas)
+      if (!busy && reqFp(d.requests) === reqFp(inbox.requests)) return;
+      if (polling) pollAgain = true; else poll(true);
+    });
   }
   function loadProfiles(ids) {
     lastProfiles = Date.now();
@@ -361,7 +393,13 @@ window.Whider = window.Whider || {};
 
   /* ---------- Ritmo del buzón ---------- */
   function tick() {
+    watchInbox();
     if (document.hidden || !ready()) return;
+    if (inboxLive()) {
+      // Escuchando: el buzón llega solo. Los perfiles de tus contactos, cada minuto con Personas abierta
+      if (S().activeScreen === 'friends' && lastPoll && Date.now() - lastProfiles > 60000) loadProfiles();
+      return;
+    }
     var active = S().activeScreen === 'friends' || S().activeScreen === 'chats';
     var every = active ? 7000 : 30000;
     // Sin tocar la app durante un rato, el buzón se mira con menos frecuencia
@@ -446,6 +484,8 @@ window.Whider = window.Whider || {};
     isBlocked: function (who) { return !!blockedMap()[who]; },
     subscribe: function (fn) { subs.push(fn); return function () { subs = subs.filter(function (x) { return x !== fn; }); }; },
     uid: uid, ready: ready, canUse: canUse, blocker: blocker, error: function () { return errorState; },
+    /** ¿Se escucha el buzón? (las solicitudes, los ánimos y los avisos llegan al momento) */
+    live: inboxLive,
     enable: enable, ensureEnabled: ensureEnabled, poll: poll, publish: publish, schedulePublish: schedulePublish, loadProfiles: loadProfiles, weekStats: weekStats, myName: myName, send: send,
     profile: function (id) { return profiles[id] || null; },
     profiles: function () { return profiles; },
@@ -468,7 +508,7 @@ window.Whider = window.Whider || {};
       if (W.Sync) W.Sync.onStatus(function (s) { if (s === 'synced' && canUse() && !blocksLoaded) { blocksLoaded = true; loadBlocked(); } });
       S().subscribe(function (reason) { if (ready() && (reason === 'done' || reason === 'focus' || reason === 'character' || reason === 'profile' || reason === 'habit')) schedulePublish(); });
       if (W.Sync) W.Sync.onStatus(function (s) { if (s === 'synced' && ready() && !lastPoll) { publish(); poll(true); } });
-      document.addEventListener('visibilitychange', function () { if (!document.hidden && ready() && Date.now() - lastPoll > 5000) poll(true); });
+      document.addEventListener('visibilitychange', function () { if (!document.hidden && ready() && Date.now() - lastPoll > 5000 && !inboxLive()) poll(true); });
     }
   };
   W.People = People;

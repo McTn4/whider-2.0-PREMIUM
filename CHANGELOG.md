@@ -8,6 +8,39 @@ Este archivo es la fuente de las notas que enseña la app (Ajustes → Ayuda →
 Las secciones «Novedades», «Mejoras», «Correcciones» y «Seguridad» se ven en la app; «Para desarrolladores», solo aquí.
 Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VERSION.md).
 
+## [Sin publicar]
+
+Lo que cambias en un dispositivo llega a los demás al momento, y WHIDER consulta mucho menos la nube.
+
+### Mejoras
+
+- **Sincronización al momento**: las tareas, los hábitos, los ajustes y los apuntes que cambias en otro dispositivo
+  llegan en un par de segundos, sin esperar a la siguiente consulta (antes, hasta 15 segundos; tras un rato sin tocar la
+  app, hasta 5 minutos). En Ajustes, la copia en la nube dice «Sincronizado · al momento».
+- **Cuaderno**: las páginas nuevas y lo que escribes en ellas, tuyas o de tu equipo, llegan solas a tus otros
+  dispositivos y a tus compañeros.
+- **Personas y chats**: las solicitudes, los ánimos, los mensajes, las ediciones y las reacciones llegan al momento, y
+  el número de chats sin leer se pone al día solo. Cada mensaje avisa una sola vez.
+- Sin conexión todo sigue igual: los cambios se guardan en el dispositivo y se suben al volver la red.
+
+### Para desarrolladores
+
+- `js/core/live.js` (`W.Live`): escuchas con el Firestore completo (`onSnapshot`), solo para escuchar. Leer una vez,
+  escribir y las transacciones siguen con «lite», que sin conexión falla enseguida en lugar de quedarse esperando.
+  Cada escucha dice si está al día con el servidor (`ok`); mientras no lo está (sin conexión, un fallo o
+  `WHIDER_CONFIG.live = false`), cada módulo vuelve a consultar como antes. Con la app más de 2 minutos en segundo
+  plano se pausan y al volver se retoman.
+- Escuchan `Sync` (`state/app` y `state/notes`), `PageSync` (el índice de tus páginas y el de cada equipo: solo se
+  sincroniza el ámbito que cambia), `People` (el buzón) y `Chat` (la lista y el chat abierto). Las subidas siguen
+  siendo transacciones que fusionan.
+- Menos lecturas: solo por estar al día, un ordenador con WHIDER abierto 8 horas pasa de unas 3.250 a unas 185 al día
+  (estimación en [docs/COSTES.md](docs/COSTES.md)). Los perfiles de los contactos se refrescan cada minuto solo con
+  Personas abierta, y los avisos de mensajes del buzón no se leen mientras se escucha la lista de chats.
+- Paquete de Firebase: añade el Firestore completo sin `re2js` (solo lo usan las consultas «pipeline», que la app no
+  usa): 251 → 516 KB (75 → 157 KB comprimido). Se sigue cargando después de mostrar la app.
+- Prueba nueva `tests/e2e/tiempo-real.js` (grupo «nube»): tareas, Cuaderno, pausa, sin escuchas, solicitudes, chat y
+  reacciones entre dispositivos y cuentas.
+
 ## [1.1.0] · 2026-11-18
 
 La 1.1: tema claro, importar desde otras apps, un Hoy más claro, sincronización sin pérdidas, copias automáticas, más

@@ -42,6 +42,11 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
   // bucket: pasos en docs/CONFIGURAR-CUENTAS.md. Lo que ya esté en Firestore se sigue leyendo igual.
   storage: false,
 
+  // Escuchas en tiempo real: lo que cambia en otro dispositivo (o lo que escribe tu equipo) llega al momento y la app
+  // no consulta la nube cada pocos segundos. Con false, consulta la nube cada cierto tiempo, como hasta la 1.1 (por si
+  // una red bloqueara las conexiones que se quedan abiertas).
+  live: true,
+
   // Solo para pruebas locales con Firebase Emulator Suite
   emulator: null
 };

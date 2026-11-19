@@ -8,7 +8,9 @@
  *    se conservan los dos cambios; si cambian el mismo a la vez (los dos después de la última vez
  *    que este dispositivo vio la página en la nube), se queda el más reciente y, justo debajo, una
  *    nota con la otra versión: no se pierde ninguna de las dos.
- *  - Una página abierta de equipo se consulta cada pocos segundos: se ve lo que escriben los demás.
+ *  - Lo que cambia en la nube llega al momento: se escucha el índice de tus páginas y el de cada equipo (W.Live)
+ *    y, cuando cambia, se sincroniza solo ese ámbito y se traen las páginas que han cambiado. Si no se puede
+ *    escuchar, se vuelve a consultar como antes (cada 15-30 s y, la página de equipo abierta, cada 4 s).
  */
 window.Whider = window.Whider || {};
 
@@ -18,6 +20,8 @@ window.Whider = window.Whider || {};
   var F = function () { return W.Auth.sdk(); }, DB = function () { return W.Auth.db(); };
   var KEY = 'whider.pagesync.v1';
   var uid = null, active = false, timer = null, poll = null, livePoll = null, inFlight = null, queued = false, lastRun = 0, warnedBig = {};
+  // Escuchas: huella del índice de cada ámbito que llegó de la nube y la que ya está sincronizada aquí; ámbitos por sincronizar
+  var remoteIdx = {}, lastIdx = {}, queuedSome = {}, checkT = null, watching = {};
   // Ámbitos ya al día en esta sesión (sin fallos al traer páginas): los adjuntos solo se limpian en ellos
   var settled = {};
   // Pendiente de subir: borrados por ámbito; y versión del contenido que ya está en la nube
@@ -110,6 +114,14 @@ window.Whider = window.Whider || {};
     return { items: items, del: prune(del), moved: moved };
   }
   function fp(o) { return JSON.stringify(o); }
+  /** Huella estable: no depende del orden de las claves (el de la nube no tiene por qué ser el de aquí) */
+  function sfp(v) {
+    if (Array.isArray(v)) return '[' + v.map(function (x) { return x === undefined ? 'null' : sfp(x); }).join(',') + ']';
+    if (v && typeof v === 'object') return '{' + Object.keys(v).filter(function (k) { return v[k] !== undefined; }).sort().map(function (k) { return JSON.stringify(k) + ':' + sfp(v[k]); }).join(',') + '}';
+    return JSON.stringify(v);
+  }
+  /** Huella del índice de un ámbito tal y como está en la nube (users/{uid}/state/pages o spaces/{id}) */
+  function idxFp(team, d) { d = d || {}; return team ? sfp([d.pages || {}, d.pdel || {}]) : sfp([d.items || {}, d.del || {}]); }
   function strip(meta) { var m = clone(meta); delete m.team; return m; }
 
   /* ---------- Un ámbito ---------- */
@@ -147,20 +159,24 @@ window.Whider = window.Whider || {};
           });
           merged.moved.concat(deletes).forEach(function (k) { if (!contents[k]) tx.delete(pageRef(team, k)); });
           var idxOut = {}; Object.keys(merged.items).forEach(function (k) { idxOut[k] = strip(merged.items[k]); });
+          // Lo que quedará en la nube al terminar: con esa huella, la escucha sabe que no hay nada nuevo
+          var after = remoteDoc;
           if (team) {
             var before = remoteDoc || {};
-            if (fp(before.pages || {}) !== fp(idxOut) || fp(before.pdel || {}) !== fp(merged.del)) {
-              var d = Object.assign({}, before, { pages: idxOut, pdel: merged.del, updatedAt: Date.now() });
-              tx.set(iRef, d);
+            if (sfp(before.pages || {}) !== sfp(idxOut) || sfp(before.pdel || {}) !== sfp(merged.del)) {
+              after = Object.assign({}, before, { pages: idxOut, pdel: merged.del, updatedAt: Date.now() });
+              tx.set(iRef, after);
             }
-          } else if (!remoteDoc || fp(remoteDoc.items || {}) !== fp(idxOut) || fp(remoteDoc.del || {}) !== fp(merged.del)) {
-            tx.set(iRef, { v: 1, items: idxOut, del: merged.del, updatedAt: Date.now() });
+          } else if (!remoteDoc || sfp(remoteDoc.items || {}) !== sfp(idxOut) || sfp(remoteDoc.del || {}) !== sfp(merged.del)) {
+            after = { v: 1, items: idxOut, del: merged.del, updatedAt: Date.now() };
+            tx.set(iRef, after);
           }
-          result = { merged: merged, contents: contents, remote: remoteDoc };
+          result = { merged: merged, contents: contents, remote: remoteDoc, idx: idxFp(team, after) };
         });
       });
     }).then(function () {
       if (!result) return;
+      lastIdx[sk] = result.idx;
       var merged = result.merged;
       // Aplicar en local: fichas nuevas o más recientes, borrados y contenidos fusionados
       Object.keys(merged.items).forEach(function (k) {
@@ -203,7 +219,7 @@ window.Whider = window.Whider || {};
             P().applyContent(id, mc, mc.cv);
             pend.cvs[id] = Math.max(mc.cv, r.cv || 0);
             pend.seen[id] = Date.now();
-            if (((P().index().dirty[id] || 0) & 2) === 0 && fp(mc.blocks) !== fp(r.blocks || [])) P().index().dirty[id] = (P().index().dirty[id] || 0) | 2;
+            if (((P().index().dirty[id] || 0) & 2) === 0 && sfp(mc.blocks) !== sfp(r.blocks || [])) P().index().dirty[id] = (P().index().dirty[id] || 0) | 2;
           }).catch(function () { failed++; /* sin permiso o sin conexión */ });
         }));
       });
@@ -211,16 +227,26 @@ window.Whider = window.Whider || {};
   }
 
   /* ---------- Ciclo ---------- */
-  function run() {
+  /** Sincroniza todos los ámbitos o solo los de `list` (null = mis páginas, o el id de un equipo) */
+  function run(list) {
     if (!active || !uid || !DB()) return Promise.resolve();
-    if (inFlight) { queued = true; return inFlight; }
+    if (inFlight) {
+      if (Array.isArray(list)) list.forEach(function (t) { queuedSome[scopeKey(t)] = t; }); else queued = true;
+      return inFlight;
+    }
     if (navigator.onLine === false) return Promise.resolve();
-    lastRun = Date.now();
-    var scopes = [null].concat(teams());
+    var mine = teams(), all = !Array.isArray(list);
+    if (all) lastRun = Date.now();
+    var scopes = all ? [null].concat(mine) : list.filter(function (t) { return !t || mine.indexOf(t) >= 0; });
+    // Sin nada por subir aquí, los ámbitos que se escuchan y no han cambiado en la nube no hace falta leerlos
+    if (all && !localDirt()) scopes = scopes.filter(function (t) { return !upToDate(t); });
     inFlight = scopes.reduce(function (pr, team) {
       return pr.then(function () {
         return syncScope(team).catch(function (e) {
-          delete settled[scopeKey(team)];
+          var sk = scopeKey(team);
+          delete settled[sk];
+          // Lo que no se ha podido sincronizar no se vuelve a pedir por la escucha hasta que vuelva a cambiar
+          if (remoteIdx[sk] !== undefined) lastIdx[sk] = remoteIdx[sk];
           if (e && e.code === 'not-found-team') return;
           if (e && e.code === 'permission-denied' && team) { console.warn('Cuaderno: sin acceso al equipo', team); return; }
           console.warn('Cuaderno:', e && (e.code || e.message) || e);
@@ -228,16 +254,74 @@ window.Whider = window.Whider || {};
       });
     }, Promise.resolve()).then(function () {
       inFlight = null;
-      if (queued) { queued = false; return run(); }
+      if (queued) { queued = false; queuedSome = {}; return run(); }
+      var some = Object.keys(queuedSome);
+      if (some.length) { var next = some.map(function (k) { return queuedSome[k]; }); queuedSome = {}; return run(next); }
+      watchIndexes();
+      checkScopes();
       if (W.Files) W.Files.maintain(1500);
     });
     return inFlight;
+  }
+
+  /* ---------- Escuchas (W.Live) ---------- */
+  function liveKey(sk) { return 'pages:' + sk; }
+  /** Escucha el índice de mis páginas y el de cada equipo (y deja de escuchar los equipos de los que sales) */
+  function watchIndexes() {
+    if (!active || !uid || !W.Live || !W.Live.available()) return;
+    var want = { me: null }, u = uid;
+    teams().forEach(function (t) { want[scopeKey(t)] = t; });
+    Object.keys(watching).forEach(function (sk) { if (!(sk in want)) { W.Live.stop(liveKey(sk)); delete watching[sk]; delete remoteIdx[sk]; } });
+    Object.keys(want).forEach(function (sk) {
+      if (watching[sk]) return;
+      var team = want[sk];
+      watching[sk] = true;
+      W.Live.watch(liveKey(sk), function (L, d) { return team ? L.docLive(d, 'spaces', team) : L.docLive(d, 'users', u, 'state', 'pages'); }, function (snap) {
+        if (!active || uid !== u) return;
+        remoteIdx[sk] = idxFp(team, snap.exists() ? snap.data() : null);
+        clearTimeout(checkT);
+        checkT = setTimeout(checkScopes, 250);
+      });
+    });
+  }
+  function unwatchIndexes() {
+    Object.keys(watching).forEach(function (sk) { if (W.Live) W.Live.stop(liveKey(sk)); });
+    watching = {}; remoteIdx = {}; lastIdx = {}; queuedSome = {}; clearTimeout(checkT);
+  }
+  /** Ámbitos cuyo índice en la nube ha cambiado desde la última vez que se sincronizaron aquí */
+  function checkScopes() {
+    if (!active || inFlight) return;
+    var list = [];
+    Object.keys(remoteIdx).forEach(function (sk) {
+      if (remoteIdx[sk] === lastIdx[sk]) return;
+      list.push(sk === 'me' ? null : sk.slice(2));
+    });
+    if (list.length) run(list);
+  }
+  /** ¿Se escuchan todos los ámbitos? (entonces no hace falta consultar la nube cada cierto tiempo). Un equipo al
+   *  que ya no tienes acceso no cuenta: consultarlo tampoco serviría */
+  function liveAll() {
+    if (!W.Live || !W.Live.available()) return false;
+    return ['me'].concat(teams().map(scopeKey)).every(function (sk) { return watching[sk] && (W.Live.ok(liveKey(sk)) || W.Live.denied(liveKey(sk))); });
+  }
+  /** ¿Hay algo de este dispositivo por subir? (fichas o contenidos cambiados, o borrados pendientes) */
+  function localDirt() {
+    var d = P().index().dirty || {};
+    if (Object.keys(d).some(function (k) { return d[k]; })) return true;
+    return Object.keys(pend.del).some(function (sk) { return Object.keys(pend.del[sk] || {}).length > 0; });
+  }
+  /** Un ámbito al día: se escucha, la nube no ha cambiado desde la última vez y lo último se trajo entero */
+  function upToDate(team) {
+    var sk = scopeKey(team);
+    return !!(watching[sk] && W.Live && W.Live.ok(liveKey(sk)) && settled[sk] && lastIdx[sk] !== undefined && remoteIdx[sk] === lastIdx[sk]);
   }
   /** Página de equipo abierta: lo que escriben los demás llega en unos segundos */
   function livePage() {
     if (!active || document.hidden) return;
     var id = W.State.activeScreen === 'notes' ? W.State.ui.page : null, m = id ? P().get(id) : null;
     if (!m || !m.team) return;
+    // Escuchando el índice del equipo, los cambios de esta página llegan solos
+    if (watching[scopeKey(m.team)] && W.Live && W.Live.ok(liveKey(scopeKey(m.team)))) return;
     F().getDoc(pageRef(m.team, id)).then(function (s) {
       if (!s.exists()) return;
       var r = s.data(), loc = P().get(id); if (!loc) return;
@@ -255,9 +339,12 @@ window.Whider = window.Whider || {};
       PageSync.stop();
       if (!user || !DB()) return;
       uid = user.uid; active = true;
-      setTimeout(run, 1200);
+      setTimeout(function () { run(); }, 1200);
       poll = setInterval(function () {
         if (document.hidden || !active) return;
+        // Escuchando la nube (también los equipos nuevos): no hace falta consultarla cada cierto tiempo
+        watchIndexes();
+        if (liveAll()) return;
         var every = W.State.activeScreen === 'notes' ? 15000 : 30000;
         // Sin tocar la app, cada vez menos a menudo (como la sincronización de tareas)
         if (W.Sync && W.Sync.idleFor) every = Math.max(every, W.Sync.pollEvery(W.Sync.idleFor()));
@@ -265,15 +352,17 @@ window.Whider = window.Whider || {};
       }, 5000);
       livePoll = setInterval(livePage, 4000);
     },
-    stop: function () { active = false; uid = null; settled = {}; clearTimeout(timer); clearInterval(poll); clearInterval(livePoll); },
+    stop: function () { active = false; uid = null; settled = {}; clearTimeout(timer); clearInterval(poll); clearInterval(livePoll); unwatchIndexes(); },
+    /** ¿Se escucha la nube? (los cambios de otros dispositivos y del equipo llegan solos) */
+    live: liveAll,
     /** ¿Las páginas de este ámbito ('me' o 't:<equipo>') están al día en esta sesión? */
     settled: function (sk) { return !!settled[sk]; },
     schedule: function () {
       if (!active) return;
       clearTimeout(timer);
-      timer = setTimeout(run, 900);
+      timer = setTimeout(function () { run(); }, 900);
     },
-    now: run,
+    now: function () { return run(); },
     /** Borrado definitivo: también desaparece de la nube */
     removed: function (meta) {
       if (!meta) return;
@@ -315,5 +404,5 @@ window.Whider = window.Whider || {};
     });
   }
   window.addEventListener('online', function () { if (active) run(); });
-  document.addEventListener('visibilitychange', function () { if (!document.hidden && active && Date.now() - lastRun > 10000) run(); });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && active && Date.now() - lastRun > 10000 && !liveAll()) run(); });
 })(window.Whider);

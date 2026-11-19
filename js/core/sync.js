@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * WHIDER · Sincronización con la nube (Cloud Firestore, versión ligera)
+ * WHIDER · Sincronización con la nube (Cloud Firestore: «lite» para subir, el completo para escuchar)
  *
  * Modelo "local primero": todo se guarda al instante en el dispositivo y, con sesión
  * iniciada, se sincroniza con users/{uid}/state/app (los apuntes, que pueden ser largos,
@@ -13,9 +13,10 @@
  *  - Borrados: se recuerdan para que no "resuciten" desde otro dispositivo.
  *  - Historial diario, enfoque y récords: se conserva el valor más alto.
  *  - Personaje y enfoque compartido: gana el cambio más reciente.
- * Se sincroniza al abrir, al volver a la app y tras cada cambio. Mientras está a la vista se
- * mira la nube cada 15 s si la estás usando, cada minuto tras 2 min sin tocarla y cada 5 min tras
- * 15 min (así un ordenador con WHIDER abierto todo el día no gasta lecturas sin necesidad).
+ * Se sube al abrir y tras cada cambio. Lo que cambia en la nube llega al momento: se escuchan los dos
+ * documentos (W.Live) y lo que trae otro dispositivo se fusiona aquí igual que al subir. Si no se puede
+ * escuchar (sin conexión, un fallo o sin el SDK de escuchas), se vuelve a mirar la nube como antes: cada
+ * 15 s si estás usando la app, cada minuto tras 2 min sin tocarla y cada 5 min tras 15 min.
  * Sin conexión no pasa nada: los datos ya están guardados y se suben al volver la red.
  * Si algo falla, el error se clasifica (conexión, sesión, permisos, choque con otro dispositivo,
  * límite de uso, tamaño o servidor), se explica en Ajustes y se reintenta solo cuando tiene sentido,
@@ -34,6 +35,8 @@ window.Whider = window.Whider || {};
   // Firestore admite hasta 1 MiB por documento: se avisa a partir de 700 KB y no se intenta pasar de 1 MB
   var SIZE_WARN = 700 * 1024, SIZE_MAX = 1000 * 1000;
   var retryTimer = null, retryN = 0, lastInput = Date.now();
+  // Escuchas: lo último que ha llegado de cada documento, la versión ya fusionada aquí y si hay que mirarlo al acabar una subida
+  var remote = { app: undefined, notes: undefined }, seen = { app: -1, notes: -1 }, pullT = null, pullAfterPush = false;
 
   function utf8Size(str) { return new TextEncoder().encode(str).length; }
   /** Espera antes de reintentar: 2, 4, 8… s (o desde 1 min si la nube está al límite), hasta 5 min, ±20 % */
@@ -65,6 +68,53 @@ window.Whider = window.Whider || {};
     return out;
   }
 
+  /* ---------- Escuchas (W.Live) ---------- */
+  function liveOk() { return !!(W.Live && W.Live.ok('sync:app') && W.Live.ok('sync:notes')); }
+  function watch() {
+    if (!active || !uid || !W.Live || !W.Live.available()) return;
+    var u = uid;
+    remote = { app: undefined, notes: undefined };
+    ['app', 'notes'].forEach(function (k) {
+      W.Live.watch('sync:' + k, function (L, d) { return L.docLive(d, 'users', u, 'state', k); }, function (snap) {
+        if (!active || uid !== u) return;
+        remote[k] = snap.exists() ? snap.data() || null : null;
+        clearTimeout(pullT);
+        pullT = setTimeout(pull, 120);
+      });
+    });
+  }
+  function unwatch() {
+    clearTimeout(pullT); pullAfterPush = false;
+    remote = { app: undefined, notes: undefined }; seen = { app: -1, notes: -1 };
+    if (W.Live) { W.Live.stop('sync:app'); W.Live.stop('sync:notes'); }
+  }
+  /** Lo que ha llegado de la nube (de otro dispositivo) se fusiona con lo de aquí, como al subir */
+  function pull() {
+    if (!active || remote.app === undefined || remote.notes === undefined) return;
+    // Durante una subida se espera a que acabe: la transacción ya fusiona lo que haya en la nube
+    if (inFlight) { pullAfterPush = true; return; }
+    var main = remote.app, noteDoc = remote.notes;
+    var ua = main ? main.updatedAt || 0 : 0, un = noteDoc ? noteDoc.updatedAt || 0 : 0;
+    if (ua !== seen.app || un !== seen.notes) {
+      seen.app = ua; seen.notes = un;
+      var notes = noteDoc && Array.isArray(noteDoc.notes) ? noteDoc.notes : (main && main.notes) || [];
+      var rem = main || noteDoc ? Object.assign({}, main || {}, { notes: notes }) : null;
+      if (rem) {
+        var local = S().snapshot(), merged = Sync.merge(local, rem);
+        // Lo que la marca de archivo de otro dispositivo deja fuera se guarda en el archivo, no se pierde
+        var cut = (merged.sync && merged.sync.archivedBefore) || 0;
+        var toArchive = cut ? (local.tasks || []).concat(rem.tasks || []).filter(function (t) { return t && t.done && (t.doneAt || 0) < cut; }) : [];
+        if (toArchive.length && S().addToArchive(toArchive)) Sync.archiveRemote(toArchive);
+        if (Sync.fingerprint(merged) !== Sync.fingerprint(local)) {
+          applying = true;
+          try { S().applySnapshot(merged, 'sync'); } finally { applying = false; }
+        }
+      }
+    }
+    // Al día con la nube (también al recuperar la conexión, si no queda nada por subir)
+    if (!dirty && !inFlight && (Sync.status === 'synced' || Sync.status === 'connecting' || Sync.status === 'offline')) Sync.setStatus('synced');
+  }
+
   var Sync = {
     status: 'off',       // off · connecting · synced · pending · offline · unverified · error
     lastAt: null,
@@ -81,6 +131,8 @@ window.Whider = window.Whider || {};
     mergeTask: mergeTask,
     backoff: backoff,
     pollEvery: pollEvery,
+    /** ¿Se está escuchando la nube (los cambios de otros dispositivos llegan solos)? */
+    live: liveOk,
     /** Milisegundos desde la última vez que se tocó la app (lo usan también el Cuaderno y Personas) */
     idleFor: function () { return Date.now() - lastInput; },
     onStatus: function (fn) { listeners.push(fn); },
@@ -311,14 +363,17 @@ window.Whider = window.Whider || {};
       firstSyncPromise = new Promise(function (r) { resolveFirst = r; });
       setTimeout(function () { resolveFirst(); }, 5000);
       Sync.push(true).then(resolveFirst, resolveFirst);
+      watch();
       clearInterval(poll);
+      // Respaldo: solo se mira la nube cada cierto tiempo si no se está escuchando
       poll = setInterval(function () {
-        if (!document.hidden && active && !dirty && Date.now() - lastPush >= pollEvery(Date.now() - lastInput)) Sync.push();
+        if (!document.hidden && active && !dirty && !liveOk() && Date.now() - lastPush >= pollEvery(Date.now() - lastInput)) Sync.push();
       }, 5000);
       return firstSyncPromise;
     },
     stop: function () {
       active = false;
+      unwatch();
       ref = null; notesRef = null; uid = null; dirty = false;
       clearTimeout(timer); clearInterval(poll); clearTimeout(retryTimer);
       retryN = 0; Sync.retryAt = null; Sync.lastError = null; Sync.pendingSince = null;
@@ -354,6 +409,7 @@ window.Whider = window.Whider || {};
           return tx.get(myNotes).then(function (nsnap) {
             var main = snap.exists() ? snap.data() : null;
             var noteDoc = nsnap.exists() ? nsnap.data() : null;
+            var mainAt = main ? main.updatedAt || 0 : 0, notesAt = noteDoc ? noteDoc.updatedAt || 0 : 0;
             var remoteNotes = noteDoc && Array.isArray(noteDoc.notes) ? noteDoc.notes : (main && main.notes) || [];
             var remote = main || noteDoc ? Object.assign({}, main || {}, { notes: remoteNotes }) : null;
             var local = S().snapshot();
@@ -372,21 +428,25 @@ window.Whider = window.Whider || {};
             Sync.size = bytes;
             if (bytes > SIZE_MAX) throw { code: 'size', bytes: bytes };
             if (!mainPrev || Sync.fingerprint(mainOut) !== Sync.fingerprint(mainPrev)) {
-              mainOut.updatedAt = Date.now();
+              mainOut.updatedAt = Math.max(Date.now(), mainAt + 1);
               mainOut.device = /Android/i.test(navigator.userAgent) ? 'android' : window.WhiderDesktop ? 'desktop' : 'web';
+              mainAt = mainOut.updatedAt;
               tx.set(myRef, mainOut);
             }
             // Apuntes, en su propio documento
             var notesOut = { notes: JSON.parse(JSON.stringify(merged.notes || [])) };
             if ((notesOut.notes.length || noteDoc) && Sync.fingerprint(notesOut) !== Sync.fingerprint({ notes: remoteNotes })) {
-              notesOut.updatedAt = Date.now();
+              notesOut.updatedAt = Math.max(Date.now(), notesAt + 1);
+              notesAt = notesOut.updatedAt;
               tx.set(myNotes, notesOut);
             }
-            return { merged: merged, changedLocal: mergedFp !== Sync.fingerprint(local), toArchive: toArchive };
+            return { merged: merged, changedLocal: mergedFp !== Sync.fingerprint(local), toArchive: toArchive, mainAt: mainAt, notesAt: notesAt };
           });
         });
       }).then(function (r) {
         if (myRef !== ref) return;
+        // Esto es lo que hay ahora en la nube y ya está fusionado aquí: cuando lo traiga la escucha, no hay nada que hacer
+        seen.app = r.mainAt; seen.notes = r.notesAt;
         if (r.toArchive && r.toArchive.length && S().addToArchive(r.toArchive)) Sync.archiveRemote(r.toArchive);
         if (r.changedLocal) {
           // Se vuelve a fusionar con el estado actual por si hubo cambios durante la subida
@@ -423,6 +483,7 @@ window.Whider = window.Whider || {};
       }).then(function () {
         inFlight = null;
         if (queued) { queued = false; return Sync.push(); }
+        if (pullAfterPush) { pullAfterPush = false; clearTimeout(pullT); pullT = setTimeout(pull, 0); }
       });
       return inFlight;
     },
@@ -443,7 +504,7 @@ window.Whider = window.Whider || {};
       var since = Sync.pendingSince && Date.now() - Sync.pendingSince > 60000 ? ' · cambios sin subir desde ' + W.U.fmtRel(Sync.pendingSince - Date.now()) : '';
       var next = Sync.retryAt ? ' · nuevo intento ' + W.U.fmtRel(Sync.retryAt - Date.now()) : '';
       switch (Sync.status) {
-        case 'synced': return 'Sincronizado' + (Sync.lastAt ? ' · ' + W.U.fmtRel(Sync.lastAt - Date.now()) : '');
+        case 'synced': return 'Sincronizado' + (liveOk() ? ' · al momento' : Sync.lastAt ? ' · ' + W.U.fmtRel(Sync.lastAt - Date.now()) : '');
         case 'pending': return 'Guardando en la nube…';
         case 'connecting': return 'Conectando…';
         case 'offline': return 'Sin conexión · tus cambios se subirán al volver' + since;
@@ -503,13 +564,13 @@ window.Whider = window.Whider || {};
     window.addEventListener(ev, function () {
       var was = lastInput;
       lastInput = Date.now();
-      if (active && !dirty && !inFlight && lastInput - was > 120000 && lastInput - lastPush > POLL_EVERY) Sync.push();
+      if (active && !dirty && !inFlight && !liveOk() && lastInput - was > 120000 && lastInput - lastPush > POLL_EVERY) Sync.push();
     }, { passive: true, capture: true });
   });
-  // Al volver a la app se traen los cambios hechos en otros dispositivos
+  // Al volver a la app se traen los cambios hechos en otros dispositivos (si se está escuchando, ya llegan solos)
   document.addEventListener('visibilitychange', function () {
     if (!active) return;
-    if (document.hidden) { if (dirty) Sync.push(); } else Sync.push();
+    if (document.hidden) { if (dirty) Sync.push(); } else if (dirty || !liveOk()) Sync.push();
   });
   W.Sync = Sync;
 })(window.Whider);

@@ -4,8 +4,10 @@
  *  - Chats de dos (con cada contacto) y chat de cada equipo.
  *  - Mensajes de texto, tareas y páginas compartidas (se añaden a lo tuyo con un toque),
  *    respuestas, reacciones, editar y borrar lo tuyo, y leído hasta dónde.
- *  - Con un chat abierto, lo nuevo llega cada pocos segundos; con la app abierta en otra
- *    pantalla, el buzón avisa (un solo documento) y salta una notificación.
+ *  - Todo llega al momento: se escuchan la lista de tus chats y el chat abierto (W.Live). Con la app en otra
+ *    pantalla, un mensaje nuevo hace saltar un aviso y una notificación (una sola vez, llegue por la escucha
+ *    o por el buzón). Si no se puede escuchar, se consulta como antes: el chat abierto cada 3 s y la lista
+ *    cada 25 s con Chats abierta (cada 2 min fuera).
  *
  * Firestore: chats/{id} (miembros y último mensaje) y chats/{id}/msgs/{mid} (mensajes).
  * Solo los miembros pueden leer y escribir; cada uno solo cambia sus mensajes. Ver firestore.rules.
@@ -20,6 +22,8 @@ window.Whider = window.Whider || {};
   var REACTIONS = [{ id: 'like', icon: 'thumb', label: 'Me gusta' }, { id: 'heart', icon: 'heart', label: 'Me encanta' }, { id: 'star', icon: 'star', label: 'Genial' }, { id: 'check', icon: 'check', label: 'Hecho' }, { id: 'flame', icon: 'flame', label: '¡Fuego!' }, { id: 'smile', icon: 'smile', label: 'Jaja' }];
   var cache = (function () { try { var x = JSON.parse(localStorage.getItem(CACHE) || 'null'); return x && x.chats ? x : { chats: {}, msgs: {} }; } catch (e) { return { chats: {}, msgs: {} }; } })();
   var chats = cache.chats, msgs = cache.msgs, owner = cache.owner || null, openCid = null, listAt = 0, msgTimer = null, listTimer = null, subs = [], saveT = null, loading = {}, readT = null;
+  // Escuchas: de quién es la lista, qué chat se escucha, si aún no ha llegado la primera lista y hasta dónde se ha avisado de cada chat
+  var listFor = null, msgsFor = null, firstList = true, notified = {};
 
   function me() { return W.Auth && W.Auth.user ? W.Auth.user.uid : null; }
   function ready() { return W.People && W.People.canUse(); }
@@ -35,7 +39,9 @@ window.Whider = window.Whider || {};
   }
   /** Olvida los chats guardados en este dispositivo (otra cuenta o cuenta eliminada) */
   function forget() {
-    clearTimeout(saveT); chats = {}; msgs = {}; openCid = null;
+    clearTimeout(saveT); chats = {}; msgs = {}; openCid = null; notified = {};
+    if (W.Live) { W.Live.stop('chats'); W.Live.stop('msgs'); }
+    listFor = msgsFor = null;
     try { localStorage.removeItem(CACHE); } catch (e) { /* nada que borrar */ }
     emit('list');
   }
@@ -73,6 +79,8 @@ window.Whider = window.Whider || {};
   /* ---------- Lista de chats ---------- */
   function refreshList() {
     if (!ready()) return Promise.resolve();
+    // Escuchando la lista, ya está al día
+    if (listLive()) return Promise.resolve();
     listAt = Date.now();
     var q = F().query(F().collection(DB(), 'chats'), F().where('memberIds', 'array-contains', me()));
     return F().getDocs(q).then(function (snap) {
@@ -216,27 +224,86 @@ window.Whider = window.Whider || {};
     });
     var ids = Object.keys(news); if (!ids.length) return;
     Promise.all(ids.map(function (cid) {
+      // Escuchando la lista, el chat ya está al día
+      if (listLive() && chats[cid] && (chats[cid].lastAt || 0) >= news[cid]) return null;
       return F().getDoc(ref('chats', cid)).then(function (s) { if (s.exists()) { var x = s.data(); x.id = cid; chats[cid] = x; } }).catch(function () {});
     })).then(function () {
       persist(); emit('list');
-      ids.forEach(function (cid) {
-        var c = chats[cid]; if (!c || !c.last || c.last.by === me()) return;
-        if (cid === openCid && !document.hidden) { loadMsgs(cid).then(function () { markRead(cid); }); return; }
-        if (prefs(cid).muted) return;
-        var t = title(c), body = (c.type === 'team' ? (c.last.name || '') + ': ' : '') + (c.last.text || '');
-        W.Toast.show({ text: t + ': ' + body.slice(0, 90), icon: 'chat', duration: 5000, action: { label: 'Abrir', fn: function () { Chat.openChat(cid); } } });
-        W.Audio.chime();
-        if (document.hidden || S().activeScreen !== 'chats') W.Notify.system(t, body.slice(0, 140), 'chat-' + cid);
-      });
+      ids.forEach(announce);
       S().notify('chats');
     });
+  }
+  /** Aviso de un mensaje nuevo de otra persona: una sola vez, llegue por la escucha de la lista o por el buzón */
+  function announce(cid) {
+    var c = chats[cid]; if (!c || !c.last || c.last.by === me()) return;
+    var at = c.lastAt || 0;
+    if (at <= (notified[cid] || 0) || at <= (prefs(cid).read || 0)) return;
+    notified[cid] = at;
+    if (cid === openCid && !document.hidden && S().activeScreen === 'chats') { (msgsLive(cid) ? Promise.resolve() : loadMsgs(cid)).then(function () { markRead(cid); }); return; }
+    if (prefs(cid).muted) return;
+    var t = title(c), body = (c.type === 'team' ? (c.last.name || '') + ': ' : '') + (c.last.text || '');
+    W.Toast.show({ text: t + ': ' + body.slice(0, 90), icon: 'chat', duration: 5000, action: { label: 'Abrir', fn: function () { Chat.openChat(cid); } } });
+    W.Audio.chime();
+    if (document.hidden || S().activeScreen !== 'chats') W.Notify.system(t, body.slice(0, 140), 'chat-' + cid);
+  }
+
+  /* ---------- Escuchas (W.Live) ---------- */
+  function listLive() { return !!(listFor && W.Live && W.Live.ok('chats')); }
+  function msgsLive(cid) { return !!(cid && msgsFor === cid && W.Live && W.Live.ok('msgs')); }
+  /** La lista de tus chats, tal y como está en la nube */
+  function onList(snap) {
+    var seen = {}, fresh = [];
+    snap.forEach(function (d) {
+      var x = d.data(); x.id = d.id; seen[d.id] = 1;
+      var old = chats[d.id];
+      if (!firstList && x.last && x.last.by !== me() && (x.lastAt || 0) > ((old && old.lastAt) || 0)) fresh.push(d.id);
+      chats[d.id] = x;
+    });
+    Object.keys(chats).forEach(function (k) { if (!seen[k] && chats[k].local !== true) delete chats[k]; });
+    listAt = Date.now(); firstList = false;
+    persist(); emit('list');
+    fresh.forEach(announce);
+  }
+  /** El chat abierto: lo nuevo (y lo que se edita o se reacciona en los dos últimos minutos) llega al momento */
+  function watchMsgs(cid) {
+    W.Live.watch('msgs', function (L, d) {
+      // Se calcula cada vez que se empieza a escuchar (también al volver a la app): solo lo que falta aquí
+      var have = (msgs[cid] || []).filter(function (m) { return !m.pending && !m.failed; }), last = have[have.length - 1];
+      var col2 = L.collectionLive(d, 'chats', cid, 'msgs');
+      return last ? L.queryLive(col2, L.whereLive('at', '>=', last.at - 120000), L.orderByLive('at', 'asc'))
+        : L.queryLive(col2, L.orderByLive('at', 'desc'), L.limitLive(60));
+    }, function (snap) {
+      if (msgsFor !== cid) return;
+      var got = [];
+      // Los que salen de la consulta (los más antiguos, al llegar nuevos) se quedan aquí
+      snap.docChanges().forEach(function (ch) { if (ch.type === 'removed') return; var x = ch.doc.data(); x.id = ch.doc.id; got.push(x); });
+      if (got.length) { mergeMsgs(cid, got); persist(); emit('msgs', cid); }
+      if (openCid === cid && S().activeScreen === 'chats' && !document.hidden) markRead(cid);
+    });
+  }
+  /** Escucha lo que toca: la lista con sesión y la comunidad disponibles, y el chat abierto en la pantalla Chats */
+  function reconcile() {
+    var u = ready() && W.Live && W.Live.available() ? me() : null;
+    if (listFor !== u) {
+      if (listFor && W.Live) W.Live.stop('chats');
+      listFor = u; firstList = true;
+      if (u) W.Live.watch('chats', function (L, d) { return L.queryLive(L.collectionLive(d, 'chats'), L.whereLive('memberIds', 'array-contains', u)); }, onList);
+    }
+    var want = u && openCid && S().activeScreen === 'chats' ? openCid : null;
+    if (msgsFor !== want) {
+      if (msgsFor && W.Live) W.Live.stop('msgs');
+      msgsFor = want;
+      if (want) watchMsgs(want);
+    }
   }
 
   /* ---------- Ritmo ---------- */
   function tick() {
+    reconcile();
     if (!ready() || document.hidden) return;
-    if (S().activeScreen === 'chats' && Date.now() - listAt > 25000) refreshList();
-    if (openCid && S().activeScreen === 'chats') loadMsgs(openCid).then(function (n) { if (n) markRead(openCid); });
+    // Solo sin escuchas (o mientras no están al día): consultar cada pocos segundos
+    if (S().activeScreen === 'chats' && Date.now() - listAt > 25000 && !listLive()) refreshList();
+    if (openCid && S().activeScreen === 'chats' && !msgsLive(openCid)) loadMsgs(openCid).then(function (n) { if (n) markRead(openCid); });
   }
 
   var Chat = {
@@ -248,7 +315,16 @@ window.Whider = window.Whider || {};
     refreshList: refreshList, loadMsgs: loadMsgs, send: send, retry: retry, react: react, edit: edit, remove: remove, markRead: markRead, onPings: onPings,
     ensureDm: ensureDm, ensureTeam: ensureTeam,
     unreadCount: function () { return list().filter(unread).length; },
-    setOpen: function (cid) { openCid = cid; if (cid) { loadMsgs(cid).then(function () { markRead(cid); }); } },
+    setOpen: function (cid) {
+      openCid = cid;
+      reconcile();
+      if (cid && msgsLive(cid)) markRead(cid);
+      else if (cid) loadMsgs(cid).then(function () { markRead(cid); });
+    },
+    /** ¿Se escuchan la lista de chats y, si hay uno abierto, sus mensajes? */
+    live: function () { return listLive() && (!msgsFor || msgsLive(msgsFor)); },
+    /** ¿Se escucha la lista de chats? (entonces los avisos de mensajes del buzón sobran) */
+    listLive: listLive,
     open: function () { return openCid; },
     /** Abre (o crea) un chat: { uid } de un contacto, { team } de un equipo o el id de un chat */
     openChat: function (target) {
@@ -266,8 +342,8 @@ window.Whider = window.Whider || {};
     init: function () {
       clearInterval(msgTimer); clearInterval(listTimer);
       msgTimer = setInterval(tick, 3000);
-      listTimer = setInterval(function () { if (ready() && !document.hidden && Date.now() - listAt > 120000) refreshList(); }, 30000);
-      setTimeout(function () { if (ready()) refreshList(); }, 4000);
+      listTimer = setInterval(function () { if (ready() && !document.hidden && Date.now() - listAt > 120000 && !listLive()) refreshList(); }, 30000);
+      setTimeout(function () { reconcile(); if (ready()) refreshList(); }, 4000);
     }
   };
   W.Chat = Chat;

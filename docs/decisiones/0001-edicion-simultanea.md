@@ -44,3 +44,9 @@ Se pidió evaluar Yjs u otro CRDT y, en cualquier caso, que no haya sobrescritur
   choque (como antes, ganaría la más reciente).
 - Pruebas: `tests/unit/sincronizacion.test.js`, `tests/unit/cuaderno.test.js` y
   `tests/e2e/sincronizacion.js` (dos dispositivos contra los emuladores).
+
+## Actualización (después de la 1.1)
+
+La app ya escucha la nube en tiempo real (`js/core/live.js`, Firestore completo solo para escuchar; +82 KB comprimido):
+las páginas del Cuaderno, también las de equipo, llegan en un par de segundos. La fusión por bloques de esta decisión
+sigue igual; Yjs sigue sin hacer falta mientras la edición en vivo de varias personas no sea lo central.
