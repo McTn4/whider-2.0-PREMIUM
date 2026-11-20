@@ -28,11 +28,15 @@ window.Whider = window.Whider || {};
   // Contador de la sesión: dos identificadores creados en el mismo milisegundo (al importar cientos de
   // tareas, por ejemplo) nunca coinciden; el azar los separa de los de otros dispositivos.
   var uidSeq = Math.floor(Math.random() * 1296);
-  var MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-  var MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-  var WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-  var WEEKDAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-  var WEEKDAYS_LETTER = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+  // Idioma de la app (js/core/i18n.js): en inglés, nombres de meses y días y formatos de fecha propios
+  var EN = !!(W.I18n && W.I18n.lang === 'en');
+  var tr = function (/** @type {string} */ s, /** @type {any} */ v) { return W.t ? W.t(s, v) : s; };
+  var MONTHS = EN ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    : ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  var MONTHS_SHORT = EN ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] : ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  var WEEKDAYS = EN ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] : ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  var WEEKDAYS_SHORT = EN ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] : ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  var WEEKDAYS_LETTER = EN ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
@@ -136,39 +140,57 @@ window.Whider = window.Whider || {};
       if (!hm) return '';
       if (!W.State || W.State.settings.timeFormat !== '12') return hm;
       var p = hm.split(':'), h = +p[0];
-      return ((h % 12) || 12) + ':' + p[1] + (h < 12 ? ' a. m.' : ' p. m.');
+      return ((h % 12) || 12) + ':' + p[1] + (EN ? (h < 12 ? ' AM' : ' PM') : (h < 12 ? ' a. m.' : ' p. m.'));
     },
+    /** «Lunes, 3 de marzo» / «Monday, March 3» */
     fmtLong: function (s) {
       var d = U.parse(s);
+      if (EN) return WEEKDAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate();
       return cap(WEEKDAYS[d.getDay()]) + ', ' + d.getDate() + ' de ' + MONTHS[d.getMonth()];
     },
+    /** «lun 3 mar» / «Mon, Mar 3» */
     fmtShort: function (s) {
       var d = U.parse(s);
+      if (EN) return WEEKDAYS_SHORT[d.getDay()] + ', ' + MONTHS_SHORT[d.getMonth()] + ' ' + d.getDate();
       return WEEKDAYS_SHORT[d.getDay()].toLowerCase() + ' ' + d.getDate() + ' ' + MONTHS_SHORT[d.getMonth()];
     },
     fmtMonth: function (y, m) { return cap(MONTHS[m]) + ' ' + y; },
     fmtDay: function (s) {
-      if (!s) return 'Sin fecha';
+      if (!s) return tr('Sin fecha');
       var td = U.today(), diff = U.diffDays(td, s);
-      if (diff === 0) return 'Hoy';
-      if (diff === 1) return 'Mañana';
-      if (diff === -1) return 'Ayer';
+      if (diff === 0) return tr('Hoy');
+      if (diff === 1) return tr('Mañana');
+      if (diff === -1) return tr('Ayer');
       if (diff > 1 && diff < 7) return cap(WEEKDAYS[U.parse(s).getDay()]);
       return U.fmtShort(s);
     },
-    /** "en 2 h 15 min" / "hace 3 días" */
+    /** "en 2 h 15 min" / "hace 3 días" (en inglés, «in 2 h 15 min» / «3 days ago») */
     fmtRel: function (ms) {
       var past = ms < 0, a = Math.abs(ms), min = Math.round(a / 60000), txt;
-      if (min < 1) return past ? 'ahora mismo' : 'en un momento';
+      if (min < 1) return past ? tr('ahora mismo') : tr('en un momento');
       if (min < 60) txt = min + ' min';
       else if (min < 1440) { var h = Math.floor(min / 60), m = min % 60; txt = h + ' h' + (m && h < 10 ? ' ' + m + ' min' : ''); }
-      else { var d = Math.round(min / 1440); txt = d + (d === 1 ? ' día' : ' días'); }
+      else { var d = Math.round(min / 1440); txt = EN ? d + (d === 1 ? ' day' : ' days') : d + (d === 1 ? ' día' : ' días'); }
+      if (EN) return past ? txt + ' ago' : 'in ' + txt;
       return (past ? 'hace ' : 'en ') + txt;
     },
-    plural: function (n, one, many) { return n + ' ' + (n === 1 ? one : many); },
+    /**
+     * Fecha o día para la mitad de una frase: en español, en minúscula («el jueves, 19 de noviembre»); en inglés los
+     * días y los meses van con mayúscula, y solo «today», «tomorrow» y «yesterday» pasan a minúscula
+     */
+    inline: function (s) {
+      s = String(s || '');
+      if (!EN) return s.toLowerCase();
+      return /^(Today|Tomorrow|Yesterday|No date)$/.test(s) ? s.toLowerCase() : s;
+    },
+    /** «3 tareas»: cada forma se traduce (el catálogo tiene «tarea» y «tareas») y el plural sigue las reglas del idioma */
+    plural: function (n, one, many) {
+      var f = EN ? W.I18n.form(n) : (n === 1 ? 'one' : 'other');
+      return n + ' ' + tr(f === 'one' ? one : many);
+    },
     greeting: function () {
       var h = new Date().getHours();
-      return h < 6 ? 'Buenas noches' : h < 13 ? 'Buenos días' : h < 21 ? 'Buenas tardes' : 'Buenas noches';
+      return tr(h < 6 ? 'Buenas noches' : h < 13 ? 'Buenos días' : h < 21 ? 'Buenas tardes' : 'Buenas noches');
     },
 
     /**

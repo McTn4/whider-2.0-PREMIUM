@@ -6,6 +6,8 @@
  *    interrumpe; se abre con un toque o se cierra, y desaparece sola a las dos semanas.
  *  - Siempre a mano en Ajustes → Ayuda → Novedades (todas las versiones).
  * Cada dispositivo recuerda la última versión que ha visto (no se sincroniza: cada uno se actualiza a su ritmo).
+ * En otro idioma, las notas se traducen con su catálogo (la clave es el texto del CHANGELOG) y solo salen las versiones
+ * que lo tienen traducido: las anteriores al inglés no se enseñan a medias.
  */
 window.Whider = window.Whider || {};
 
@@ -18,7 +20,11 @@ window.Whider = window.Whider || {};
   var SEMVER = /^(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta|rc)\.(\d+))?$/;
   var MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-  function releases() { return /** @type {any[]} */ (W.RELEASES || []); }
+  function releases() {
+    var all = /** @type {any[]} */ (W.RELEASES || []);
+    if (!W.I18n || W.I18n.lang === 'es') return all;
+    return all.filter(function (r) { return !r.summary || W.I18n.has(r.summary); });
+  }
   function current() { return String(W.VERSION || '0.0.0'); }
 
   /** -1, 0 o 1 (las de prueba van antes que la estable de la misma versión) */
@@ -38,7 +44,9 @@ window.Whider = window.Whider || {};
   }
   function dateText(iso) {
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-    return m ? +m[3] + ' ' + MESES[+m[2] - 1] + ' ' + m[1] : '';
+    if (!m) return '';
+    if (W.I18n && W.I18n.lang !== 'es') return W.I18n.date(new Date(+m[1], +m[2] - 1, +m[3]), { day: 'numeric', month: 'short', year: 'numeric' });
+    return +m[3] + ' ' + MESES[+m[2] - 1] + ' ' + m[1];
   }
   /** Lo poco de Markdown que usa el CHANGELOG: **negrita** y `código` (todo lo demás, como texto) */
   function inline(s) {
@@ -87,15 +95,15 @@ window.Whider = window.Whider || {};
   function releaseNode(r) {
     var kids = [
       U.el('div.wn-head', [
-        U.el('h4', { text: 'WHIDER ' + label(r.v) }),
-        /-/.test(r.v) ? U.el('span.pill', { text: 'De prueba' }) : null,
+        U.el('h4', { text: W.t('WHIDER {0}', { 0: label(r.v) }) }),
+        /-/.test(r.v) ? U.el('span.pill', { text: W.t('De prueba') }) : null,
         r.date ? U.el('small', { text: dateText(r.date) }) : null
       ]),
-      r.summary ? U.el('p.wn-summary', { html: inline(r.summary) }) : null
+      r.summary ? U.el('p.wn-summary', { html: inline(W.t(r.summary)) }) : null
     ];
     (r.groups || []).forEach(function (g) {
-      kids.push(U.el('h5', { text: g.t }));
-      kids.push(U.el('ul', g.items.map(function (it) { return U.el('li', { html: inline(it) }); })));
+      kids.push(U.el('h5', { text: W.t(g.t) }));
+      kids.push(U.el('ul', g.items.map(function (it) { return U.el('li', { html: inline(W.t(it)) }); })));
     });
     return U.el('section.wn-release', kids);
   }
@@ -106,11 +114,11 @@ window.Whider = window.Whider || {};
     var list = o.only && o.only.length ? o.only : releases();
     var all = list.length < releases().length;
     var sheet = W.Sheet.open({
-      title: 'Novedades', className: 'whatsnew',
+      title: W.t('Novedades'), className: 'whatsnew',
       body: [
         U.el('div.wn-list', list.map(releaseNode)),
-        all ? U.el('button.link-btn.wn-all', { text: 'Ver todas las versiones', attrs: { type: 'button' }, on: { click: function () { sheet.close(); open(); } } }) : null,
-        U.el('p.hint.wn-foot', { text: 'Estás usando WHIDER ' + label(current()) + '.' })
+        all ? U.el('button.link-btn.wn-all', { text: W.t('Ver todas las versiones'), attrs: { type: 'button' }, on: { click: function () { sheet.close(); open(); } } }) : null,
+        U.el('p.hint.wn-foot', { text: W.t('Estás usando WHIDER {0}.', { 0: label(current()) }) })
       ]
     });
     markSeen();
@@ -122,17 +130,17 @@ window.Whider = window.Whider || {};
   function card() {
     if (!due()) return null;
     var list = pending(), top = list[0];
-    var close = U.el('button.circle-btn.sm', { attrs: { type: 'button', 'aria-label': 'Cerrar el aviso de novedades' }, on: { click: function () {
+    var close = U.el('button.circle-btn.sm', { attrs: { type: 'button', 'aria-label': W.t('Cerrar el aviso de novedades') }, on: { click: function () {
       markSeen();
-      W.Toast.show({ text: 'Las novedades quedan en Ajustes → Ayuda', icon: 'info' });
+      W.Toast.show({ text: W.t('Las novedades quedan en Ajustes → Ayuda'), icon: 'info' });
       W.Router.refresh();
     } } }, [U.icon('close', 'xs')]);
-    var go = U.el('button.btn.sm.soft', { text: 'Ver novedades', attrs: { type: 'button' }, on: { click: function () { open({ only: list }); } } });
+    var go = U.el('button.btn.sm.soft', { text: W.t('Ver novedades'), attrs: { type: 'button' }, on: { click: function () { open({ only: list }); } } });
     return U.el('div.wn-card', { attrs: { role: 'status' } }, [
       U.el('span.wn-badge', { attrs: { 'aria-hidden': 'true' } }, [U.icon('star', 'xs')]),
       U.el('div.wn-text', [
-        U.el('b', { text: 'WHIDER se ha actualizado a la ' + label(current()) }),
-        top && top.summary ? U.el('small', { text: top.summary }) : null
+        U.el('b', { text: W.t('WHIDER se ha actualizado a la {0}', { 0: label(current()) }) }),
+        top && top.summary ? U.el('small', { text: W.t(top.summary) }) : null
       ]),
       go, close
     ]);

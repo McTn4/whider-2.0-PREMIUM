@@ -512,7 +512,7 @@ window.Whider = window.Whider || {};
       groups[k].push(t);
     });
     var body = order.slice(0, 24).map(function (k) {
-      return W.UI.section({ header: k + ' · ' + groups[k].length, items: groups[k].slice(0, 60).map(function (t) { return W.UI.cell({ title: t.text, sub: t.doneOn ? 'Completada ' + U.fmtDay(t.doneOn).toLowerCase() : null }); }) });
+      return W.UI.section({ header: k + ' · ' + groups[k].length, items: groups[k].slice(0, 60).map(function (t) { return W.UI.cell({ title: t.text, sub: t.doneOn ? 'Completada ' + U.inline(U.fmtDay(t.doneOn)) : null }); }) });
     });
     if (order.length > 24) body.push(U.el('p.hint', { text: 'Y más meses: exporta el archivo para verlo entero.' }));
     var csv = function () {

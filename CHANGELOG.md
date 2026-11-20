@@ -40,6 +40,10 @@ Lo que cambias en un dispositivo llega a los demás al momento, y WHIDER consult
   usa): 251 → 516 KB (75 → 157 KB comprimido). Se sigue cargando después de mostrar la app.
 - Prueba nueva `tests/e2e/tiempo-real.js` (grupo «nube»): tareas, Cuaderno, pausa, sin escuchas, solicitudes, chat y
   reacciones entre dispositivos y cuentas.
+- **La app en inglés, en marcha** (aún oculta: se prueba con `?lang=en`): base de idiomas (`js/core/i18n.js`,
+  `js/i18n/en.js`), fechas y plurales por idioma, gramática inglesa de «Nueva tarea», `tools/i18n.js` y
+  `tests/e2e/ingles.js`. Traducido: Hoy y lo que comparten todas las pantallas. Ver
+  [docs/decisiones/0003](docs/decisiones/0003-idiomas.md).
 
 ## [1.1.0] · 2026-11-18
 

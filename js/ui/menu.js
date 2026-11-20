@@ -57,7 +57,7 @@ window.Whider = window.Whider || {};
       return new Promise(function (resolve) {
         var chosen;
         var layer = U.el('div.menu-layer');
-        var menu = U.el('div.menu', { attrs: { role: 'menu', 'aria-label': opts.title || 'Opciones' } });
+        var menu = U.el('div.menu', { attrs: { role: 'menu', 'aria-label': opts.title || W.t('Opciones') } });
         if (opts.title) menu.appendChild(U.el('div.menu-title', { text: opts.title }));
         items.forEach(function (it) {
           if (it.gap) menu.appendChild(U.el('div.menu-gap'));

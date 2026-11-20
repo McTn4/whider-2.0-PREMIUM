@@ -119,10 +119,10 @@ window.Whider = window.Whider || {};
     ]).then(function (v) {
       if (!v) return;
       if (v === 'none') return apply({ date: null, time: null }, 'sin fecha', 'calendar');
-      if (v !== 'pick') return apply({ date: v }, U.fmtDay(v).toLowerCase(), 'calendar');
+      if (v !== 'pick') return apply({ date: v }, U.inline(U.fmtDay(v)), 'calendar');
       var chosen = td;
       var s = W.Sheet.open({ title: 'Elegir un día', body: [U.el('div.group', [W.UI.datePicker(td, function (ds) { chosen = ds; })])],
-        foot: [U.el('button.btn.primary', { text: 'Aplicar', on: { click: function () { s.close(); apply({ date: chosen }, U.fmtDay(chosen).toLowerCase(), 'calendar'); } } })] });
+        foot: [U.el('button.btn.primary', { text: 'Aplicar', on: { click: function () { s.close(); apply({ date: chosen }, U.inline(U.fmtDay(chosen)), 'calendar'); } } })] });
     });
   }
 

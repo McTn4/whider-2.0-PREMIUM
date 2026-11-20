@@ -130,16 +130,16 @@ window.Whider = window.Whider || {};
 
     /** Texto de la frecuencia: «Cada día», «L, X, V», «3 veces por semana» */
     freqLabel: function (h) {
-      if (h.freq === 'weekly') return h.perWeek === 1 ? '1 vez por semana' : h.perWeek + ' veces por semana';
+      if (h.freq === 'weekly') return W.tn(h.perWeek, '1 vez por semana', '{n} veces por semana');
       if (h.freq === 'days') {
-        if (h.days.length === 7) return 'Cada día';
-        if (h.days.join() === '1,2,3,4,5') return 'De lunes a viernes';
-        if (h.days.join() === '0,6') return 'Fines de semana';
+        if (h.days.length === 7) return W.t('Cada día');
+        if (h.days.join() === '1,2,3,4,5') return W.t('De lunes a viernes');
+        if (h.days.join() === '0,6') return W.t('Fines de semana');
         return DAY_ORDER().filter(function (d) { return h.days.indexOf(d) >= 0; }).map(function (d) { return U.WEEKDAYS_SHORT[d]; }).join(', ');
       }
-      return 'Cada día';
+      return W.t('Cada día');
     },
-    targetLabel: function (h) { return h.target > 1 ? h.target + (h.unit ? ' ' + h.unit : ' veces') + ' al día' : ''; },
+    targetLabel: function (h) { return h.target > 1 ? W.t('{n} {unit} al día', { n: h.target, unit: h.unit || W.t('veces') }) : ''; },
 
     /** Resumen de hoy para Hoy y la barra lateral: { done, total } */
     todaySummary: function () {

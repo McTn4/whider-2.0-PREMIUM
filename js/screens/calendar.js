@@ -418,7 +418,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var t = st.find(id);
     if (!t || t.date === ds) return;
     st.updateTask(id, { date: ds });
-    W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.fmtLong(ds).toLowerCase(), icon: 'calendar' });
+    W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.inline(U.fmtLong(ds)), icon: 'calendar' });
   }
 
   /** Tarea dentro de una casilla del mes */
@@ -471,7 +471,7 @@ window.Whider.Screens = window.Whider.Screens || {};
             'aria-label': U.fmtLong(ds) + (pend ? ', ' + U.plural(pend, 'pendiente', 'pendientes') : '') + (ds === sel ? ', elegido' : '') }
         });
         cell.appendChild(U.el('div.mg-top', [U.el('span.mg-num', { text: d.getDate() === 1 ? d.getDate() + ' ' + U.MONTHS[d.getMonth()].slice(0, 3) : d.getDate() }),
-          U.el('button.mg-add', { attrs: { type: 'button', 'aria-label': 'Nueva tarea el ' + U.fmtLong(ds).toLowerCase(), title: 'Nueva tarea este día' },
+          U.el('button.mg-add', { attrs: { type: 'button', 'aria-label': 'Nueva tarea el ' + U.inline(U.fmtLong(ds)), title: 'Nueva tarea este día' },
             on: { click: function (e) { e.stopPropagation(); W.QuickAdd.open({ date: ds }); } } }, [U.icon('plus', 'xs')])]));
         var list = U.el('div.mg-items');
         items.slice(0, MG_MAX).forEach(function (x) { list.appendChild(mgChip(st, x)); });
@@ -544,7 +544,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var allday = U.el('div.wg-allday', [U.el('div.wg-label', { text: 'Sin hora' })].concat(days.map(function (ds) {
       var cell = U.el('div.wg-adcell', { attrs: { 'data-date': ds } });
       perDay[ds].untimed.forEach(function (x) { cell.appendChild(mgChip(st, x)); });
-      W.Sidebar.dropTarget(cell, function (id) { var t = st.find(id); if (t) { st.updateTask(id, { date: ds, time: null }); W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.fmtLong(ds).toLowerCase() + ', sin hora', icon: 'calendar' }); } });
+      W.Sidebar.dropTarget(cell, function (id) { var t = st.find(id); if (t) { st.updateTask(id, { date: ds, time: null }); W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.inline(U.fmtLong(ds)) + ', sin hora', icon: 'calendar' }); } });
       return cell;
     })));
 
@@ -588,7 +588,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         m = U.clamp(m, 0, 23 * 60 + 45);
         var hhmm = U.pad(Math.floor(m / 60)) + ':' + U.pad(m % 60);
         st.updateTask(id, { date: ds, time: hhmm });
-        W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.fmtLong(ds).toLowerCase() + ', ' + U.fmtTime(hhmm), icon: 'clock' });
+        W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.inline(U.fmtLong(ds)) + ', ' + U.fmtTime(hhmm), icon: 'clock' });
       });
       return col;
     });

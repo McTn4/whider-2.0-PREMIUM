@@ -61,14 +61,14 @@ window.Whider = window.Whider || {};
       var head = U.el('div.sheet-head', [lead, title, trail]);
       var body = U.el('div.sheet-body', o.body);
       var sheet = U.el('div.sheet' + (o.full ? '.full' : '') + (o.className ? '.' + o.className : ''),
-        { attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': o.title || 'Diálogo' } },
+        { attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': o.title || W.t('Diálogo') } },
         [U.el('div.sheet-grip'), head, body, o.foot ? U.el('div.sheet-foot', o.foot) : null]);
       layer.appendChild(scrim);
       layer.appendChild(sheet);
       root().appendChild(layer);
 
       var closed = false;
-      var closeBtn = U.el('button.circle-btn', { attrs: { 'aria-label': 'Cerrar' }, on: { click: function () { api.close(); } } }, [U.icon('close')]);
+      var closeBtn = U.el('button.circle-btn', { attrs: { 'aria-label': W.t('Cerrar') }, on: { click: function () { api.close(); } } }, [U.icon('close')]);
       var api = {
         el: sheet, body: body, back: null,
         /** Cierre "suave" (fondo, arrastre, Atrás): si hay cambios sin guardar, se pregunta antes */
@@ -76,7 +76,7 @@ window.Whider = window.Whider || {};
           if (o.guard && o.guard()) { sheet.style.transform = ''; if (o.onGuard) o.onGuard(); return; }
           api.close();
         },
-        setTitle: function (t) { title.textContent = t || ''; sheet.setAttribute('aria-label', t || 'Diálogo'); },
+        setTitle: function (t) { title.textContent = t || ''; sheet.setAttribute('aria-label', t || W.t('Diálogo')); },
         setLead: function (spec) { U.clear(lead); var b = headBtn(spec); if (b) lead.appendChild(b); },
         setTrail: function (spec) { U.clear(trail); var b = spec === 'close' ? closeBtn : headBtn(spec); if (b) trail.appendChild(b); },
         close: function (result) {
@@ -141,8 +141,8 @@ window.Whider = window.Whider || {};
         s.setTitle(e.title);
         var prev = entries.length > 1 ? entries[entries.length - 2] : null;
         if (prev) {
-          var label = prev.title && prev.title.length <= 14 ? prev.title : 'Atrás';
-          s.setLead({ icon: 'back', text: label, label: 'Volver a ' + (prev.title || 'la página anterior'), onTap: function () { nav.pop(); } });
+          var label = prev.title && prev.title.length <= 14 ? prev.title : W.t('Atrás');
+          s.setLead({ icon: 'back', text: label, label: W.t('Volver a {page}', { page: prev.title || W.t('la página anterior') }), onTap: function () { nav.pop(); } });
           var b = s.el.querySelector('.sh-lead .nav-btn'); if (b) b.classList.add('back');
         } else s.setLead(opts.lead || null);
         s.setTrail(p.trail !== undefined ? p.trail : done);
@@ -224,7 +224,7 @@ window.Whider = window.Whider || {};
         var s = Sheet.open({
           title: o.title,
           body: [o.text ? U.el('p.sheet-lead-text', { text: o.text }) : null, U.el('div.group', [U.el('label.cell', [input])])].concat(o.extra || []),
-          foot: [U.el('button.btn.primary', { text: o.ok || 'Aceptar', on: { click: submit } })],
+          foot: [U.el('button.btn.primary', { text: o.ok || W.t('Aceptar'), on: { click: submit } })],
           onClose: function () { resolve(result); }
         });
         setTimeout(function () { input.focus(); }, W.Layout && W.Layout.desktop ? 30 : 420);

@@ -13,9 +13,9 @@ window.Whider = window.Whider || {};
   var KIND_ICON = { date: 'calendar', time: 'clock', list: 'list', prio: 'flag', repeat: 'repeat' };
 
   function dayLabel(ds) {
-    if (!ds) return 'Sin fecha';
+    if (!ds) return W.t('Sin fecha');
     var td = U.today();
-    return ds === td ? 'Hoy' : ds === U.addDays(td, 1) ? 'Mañana' : U.fmtShort(ds);
+    return ds === td ? W.t('Hoy') : ds === U.addDays(td, 1) ? W.t('Mañana') : U.fmtShort(ds);
   }
 
   var QuickAdd = {
@@ -27,7 +27,7 @@ window.Whider = window.Whider || {};
      */
     inline: function (preset, placeholder) {
       var st = S();
-      var input = U.el('input', { attrs: { type: 'text', maxlength: 200, placeholder: placeholder || 'Añadir una tarea…', enterkeyhint: 'done', 'aria-label': placeholder || 'Añadir una tarea' } });
+      var input = U.el('input', { attrs: { type: 'text', maxlength: 200, placeholder: placeholder || W.t('Añadir una tarea…'), enterkeyhint: 'done', 'aria-label': placeholder || W.t('Añadir una tarea') } });
       var add = function () {
         var raw = input.value.trim();
         if (!raw) return;
@@ -45,7 +45,7 @@ window.Whider = window.Whider || {};
         requestAnimationFrame(function () { requestAnimationFrame(function () { var i = U.$(sel); if (i) i.focus(); }); });
       };
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); add(); } });
-      return U.el('label.inline-add', [U.icon('plus'), input, U.el('span.ia-hint', [U.el('kbd', { text: 'Intro' })])]);
+      return U.el('label.inline-add', [U.icon('plus'), input, U.el('span.ia-hint', [U.el('kbd', { text: W.t('Intro') })])]);
     },
 
     /** open({ date, time, listId, highlight }) — valores de partida según la pantalla */
@@ -65,13 +65,13 @@ window.Whider = window.Whider || {};
       var ignore = {};          // detecciones descartadas
       var parsed = null, added = 0;
 
-      var input = U.el('textarea.qa-input', { attrs: { rows: 1, maxlength: 200, placeholder: preset.placeholder || 'Escribe una tarea', enterkeyhint: 'send', 'aria-label': 'Nueva tarea' } });
+      var input = U.el('textarea.qa-input', { attrs: { rows: 1, maxlength: 200, placeholder: preset.placeholder || W.t('Escribe una tarea'), enterkeyhint: 'send', 'aria-label': W.t('Nueva tarea') } });
       var detected = U.el('div.qa-detected', { attrs: { 'aria-live': 'polite' } });
       var chips = U.el('div.chips');
-      var help = U.el('p.qa-help', ['Ej.: ', U.el('code', { text: 'Llamar a Ana mañana a las 10 #trabajo !!' }), U.el('br'),
-        'Fecha y hora en el texto · # categoría · ! a !!! prioridad · «cada semana» repite.']);
+      var help = U.el('p.qa-help', [W.t('Ej.: '), U.el('code', { text: W.t('Llamar a Ana mañana a las 10 #trabajo !!') }), U.el('br'),
+        W.t('Fecha y hora en el texto · # categoría · ! a !!! prioridad · «cada semana» repite.')]);
       var addedNote = U.el('span.qa-added');
-      var addBtn = U.el('button.btn.primary', { text: 'Añadir', on: { click: function () { submit(true); } } });
+      var addBtn = U.el('button.btn.primary', { text: W.t('Añadir'), on: { click: function () { submit(true); } } });
 
       var value = function (k) {
         if (manual[k] !== undefined) return manual[k];
@@ -85,7 +85,7 @@ window.Whider = window.Whider || {};
         U.clear(detected);
         (parsed ? parsed.found : []).forEach(function (f) {
           detected.appendChild(U.el('span.qa-tag', [U.icon(KIND_ICON[f.kind] || 'note'), f.label,
-            U.el('button', { attrs: { 'aria-label': 'Descartar ' + f.label, type: 'button' }, on: { click: function () { ignore[f.key] = true; reparse(); input.focus(); } } }, [U.icon('close')])]));
+            U.el('button', { attrs: { 'aria-label': W.t('Descartar {label}', { label: f.label }), type: 'button' }, on: { click: function () { ignore[f.key] = true; reparse(); input.focus(); } } }, [U.icon('close')])]));
         });
         help.style.display = input.value.trim() ? 'none' : '';
         addBtn.disabled = !input.value.trim();
@@ -102,24 +102,24 @@ window.Whider = window.Whider || {};
         var date = value('date'), time = value('time'), listId = value('listId'), hl = value('highlight'), repeat = value('repeat');
         var l = listId ? st.getList(listId) : null;
         chips.appendChild(chip('calendar', dayLabel(date), !!date, function (b) {
-          var opts = [{ value: U.today(), label: 'Hoy', icon: 'sun' }, { value: U.addDays(U.today(), 1), label: 'Mañana', icon: 'calendar' },
-            { value: U.addDays(U.today(), (8 - new Date().getDay()) % 7 || 7), label: 'Próximo lunes', icon: 'week' },
-            { value: '', label: 'Sin fecha', icon: 'inbox' }, { value: 'pick', label: 'Elegir día…', icon: 'today', gap: true }];
+          var opts = [{ value: U.today(), label: W.t('Hoy'), icon: 'sun' }, { value: U.addDays(U.today(), 1), label: W.t('Mañana'), icon: 'calendar' },
+            { value: U.addDays(U.today(), (8 - new Date().getDay()) % 7 || 7), label: W.t('Próximo lunes'), icon: 'week' },
+            { value: '', label: W.t('Sin fecha'), icon: 'inbox' }, { value: 'pick', label: W.t('Elegir día…'), icon: 'today', gap: true }];
           W.Menu.open(b, opts.map(function (o) { return Object.assign({ on: o.value === (date || '') }, o); })).then(function (v) {
             if (v === undefined) return;
             if (v === 'pick') { pickDate(date); return; }
             manual.date = v || null; if (!v) manual.time = null; drawChips();
           });
         }));
-        var timeChip = U.el('span.chip' + (time ? '.on' : ''), [U.icon('clock'), U.el('span', { text: time ? U.fmtTime(time) : 'Hora' })]);
-        var ti = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': 'Hora' } });
+        var timeChip = U.el('span.chip' + (time ? '.on' : ''), [U.icon('clock'), U.el('span', { text: time ? U.fmtTime(time) : W.t('Hora') })]);
+        var ti = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': W.t('Hora') } });
         ti.value = time || '';
         ti.addEventListener('click', function () { try { if (ti.showPicker) ti.showPicker(); } catch (e) { /* lo abre el sistema */ } });
         ti.addEventListener('change', function () { manual.time = ti.value || null; if (manual.time && !value('date')) manual.date = U.today(); drawChips(); });
         timeChip.appendChild(ti);
         chips.appendChild(timeChip);
-        chips.appendChild(chip(l ? W.Lists.icon(l) : 'list', l ? l.name : 'Sin categoría', !!l, function (b) {
-          W.Menu.open(b, [{ value: '', label: 'Sin lista', on: !l }].concat(st.lists.map(function (x) { return { value: x.id, label: x.name, on: x.id === listId }; })))
+        chips.appendChild(chip(l ? W.Lists.icon(l) : 'list', l ? l.name : W.t('Sin categoría'), !!l, function (b) {
+          W.Menu.open(b, [{ value: '', label: W.t('Sin lista'), on: !l }].concat(st.lists.map(function (x) { return { value: x.id, label: x.name, on: x.id === listId }; })))
             .then(function (v) { if (v !== undefined) { manual.listId = v || null; drawChips(); } });
         }));
         var prio = W.Editor.PRIO_OPTS.filter(function (o) { return o.value === hl; })[0] || W.Editor.PRIO_OPTS[0];
@@ -128,14 +128,14 @@ window.Whider = window.Whider || {};
             .then(function (v) { if (v) { manual.highlight = v; drawChips(); } });
         }, hl !== 'none' ? W.UI.prio(hl) : null));
         chips.appendChild(chip('repeat', repeat === 'none' ? 'Repetir' : st.REPEATS[repeat], repeat !== 'none', function (b) {
-          W.Menu.open(b, Object.keys(st.REPEATS).map(function (k) { return { value: k, label: k === 'none' ? 'Nunca' : st.REPEATS[k], on: k === repeat }; }))
+          W.Menu.open(b, Object.keys(st.REPEATS).map(function (k) { return { value: k, label: k === 'none' ? W.t('Nunca') : st.REPEATS[k], on: k === repeat }; }))
             .then(function (v) { if (v) { manual.repeat = v; drawChips(); } });
         }));
       };
 
       var pickDate = function (cur) {
         var picker = W.UI.datePicker(cur || U.today(), function (ds) { manual.date = ds; drawChips(); ps.close(); });
-        var ps = W.Sheet.open({ title: 'Elegir día', body: [U.el('div.group', [U.el('div.cell.col', [picker])])] });
+        var ps = W.Sheet.open({ title: W.t('Elegir día'), body: [U.el('div.group', [U.el('div.cell.col', [picker])])] });
       };
 
       /** Crea la tarea; con `close`, cierra al terminar (si no, queda lista para la siguiente) */
@@ -153,7 +153,7 @@ window.Whider = window.Whider || {};
         added++;
         W.Audio.vibrate([8]);
         if (t.warn && t.date && W.Notify.permission() === 'default') W.Notify.request();
-        if (close) { sheet.close(); W.Toast.show({ text: 'Tarea añadida: ' + t.text, type: 'success', icon: 'check' }); return; }
+        if (close) { sheet.close(); W.Toast.show({ text: W.t('Tarea añadida: {text}', { text: t.text }), type: 'success', icon: 'check' }); return; }
         input.value = ''; manual = {}; ignore = {}; autosize(); reparse();
         addedNote.textContent = U.plural(added, 'tarea añadida', 'tareas añadidas');
         input.focus();
@@ -162,7 +162,7 @@ window.Whider = window.Whider || {};
       input.addEventListener('input', function () { autosize(); reparse(); });
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(false); } });
 
-      var more = U.el('button.btn.ghost', { text: 'Más detalles', on: { click: function () {
+      var more = U.el('button.btn.ghost', { text: W.t('Más detalles'), on: { click: function () {
         var raw = input.value.trim(), p = raw ? W.Parse.task(raw, { lists: st.lists, ignore: ignore }) : { text: '' };
         var draft = { text: p.text || '', date: value('date'), time: value('time'), listId: value('listId'), highlight: value('highlight'), repeat: value('repeat') };
         sheet.close();
@@ -170,7 +170,7 @@ window.Whider = window.Whider || {};
       } } });
 
       var sheet = W.Sheet.open({
-        title: 'Nueva tarea', className: 'quick-add',
+        title: W.t('Nueva tarea'), className: 'quick-add',
         body: [U.el('div.qa-box', [input, detected]), chips, W.Templates.row(function () { sheet.close(); }), help, addedNote],
         foot: [more, addBtn],
         onClose: function () { current = null; var f = document.getElementById('fab'); if (f) f.classList.remove('open'); }

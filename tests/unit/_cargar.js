@@ -121,6 +121,8 @@ function cargar(archivos, opts = {}) {
   win.window = win;
   win.self = win;
   win.globalThis = win;
+  // Datos guardados antes de cargar (p. ej. { 'whider.lang': 'en' } para probar otro idioma)
+  for (const [k, v] of Object.entries(opts.almacen || {})) win.localStorage.setItem(k, v);
   const ctx = vm.createContext(win);
   for (const f of archivos) {
     const codigo = fs.readFileSync(path.join(RAIZ, f), 'utf8');

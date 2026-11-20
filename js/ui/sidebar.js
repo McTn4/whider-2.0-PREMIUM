@@ -20,23 +20,23 @@ window.Whider = window.Whider || {};
    * en el móvil. «opt» es la clave para ocultarla (Ajustes → Personalización).
    */
   var NAV = [
-    { id: 'home', label: 'Hoy', icon: 'sun', key: '1' },
-    { id: 'tasks', label: 'Tareas', icon: 'tasks', key: '2' },
-    { id: 'calendar', label: 'Calendario', icon: 'calendar', key: '3' },
-    { id: 'notes', label: 'Cuaderno', icon: 'notebook', key: '4', opt: 'notes' }
+    { id: 'home', label: W.t('Hoy'), icon: 'sun', key: '1' },
+    { id: 'tasks', label: W.t('Tareas'), icon: 'tasks', key: '2' },
+    { id: 'calendar', label: W.t('Calendario'), icon: 'calendar', key: '3' },
+    { id: 'notes', label: W.t('Cuaderno'), icon: 'notebook', key: '4', opt: 'notes' }
   ];
   var TEAM = [
-    { id: 'chats', label: 'Chats', icon: 'chat', key: '5', opt: 'chats' },
-    { id: 'friends', label: 'Personas', icon: 'users', key: '6', opt: 'friends' }
+    { id: 'chats', label: W.t('Chats'), icon: 'chat', key: '5', opt: 'chats' },
+    { id: 'friends', label: W.t('Personas'), icon: 'users', key: '6', opt: 'friends' }
   ];
   var DAY = [
-    { id: 'habits', label: 'Hábitos', icon: 'target', key: '7', opt: 'habits' },
-    { id: 'focus', label: 'Enfoque', icon: 'timer', key: '8', opt: 'focus' },
-    { id: 'automations', label: 'Automatizaciones', icon: 'system', opt: 'automations' }
+    { id: 'habits', label: W.t('Hábitos'), icon: 'target', key: '7', opt: 'habits' },
+    { id: 'focus', label: W.t('Enfoque'), icon: 'timer', key: '8', opt: 'focus' },
+    { id: 'automations', label: W.t('Automatizaciones'), icon: 'system', opt: 'automations' }
   ];
   var TOOLS = [
-    { id: 'stats', label: 'Estadísticas', icon: 'chart', key: '9', opt: 'stats' },
-    { id: 'reports', label: 'Informes', icon: 'print', opt: 'reports' }
+    { id: 'stats', label: W.t('Estadísticas'), icon: 'chart', key: '9', opt: 'stats' },
+    { id: 'reports', label: W.t('Informes'), icon: 'print', opt: 'reports' }
   ];
 
   function openedList(st) {
@@ -116,7 +116,7 @@ window.Whider = window.Whider || {};
       if (n.id === 'home') dropTarget(b, function (id) {
         var t = st.find(id); if (!t) return;
         st.updateTask(id, { date: td });
-        W.Toast.show({ text: '«' + t.text + '» pasa a hoy', icon: 'sun' });
+        W.Toast.show({ text: W.t('«{text}» pasa a hoy', { text: t.text }), icon: 'sun' });
       });
       return b;
     }));
@@ -130,9 +130,9 @@ window.Whider = window.Whider || {};
       ]) : null;
     };
     var unread = W.Chat ? W.Chat.unreadCount() : 0, reqs = W.People ? W.People.pendingCount() : 0;
-    var teamSec = group('Equipo', TEAM, function (n) { return n.id === 'chats' ? count(unread, true) : n.id === 'friends' ? count(reqs, true) : null; });
-    var daySec = group('Rutinas', DAY, function (n) { return n.id === 'habits' ? count(habitsLeft) : n.id === 'focus' && focus && focus.running ? (timerEl = U.el('span.sb-timer', { text: focus.text })) : null; });
-    var toolsSec = group('Análisis', TOOLS);
+    var teamSec = group(W.t('Equipo'), TEAM, function (n) { return n.id === 'chats' ? count(unread, true) : n.id === 'friends' ? count(reqs, true) : null; });
+    var daySec = group(W.t('Rutinas'), DAY, function (n) { return n.id === 'habits' ? count(habitsLeft) : n.id === 'focus' && focus && focus.running ? (timerEl = U.el('span.sb-timer', { text: focus.text })) : null; });
+    var toolsSec = group(W.t('Análisis'), TOOLS);
 
     var lists = U.el('div.sb-lists', st.lists.map(function (l) {
       var n = st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length;
@@ -144,11 +144,11 @@ window.Whider = window.Whider || {};
             e.preventDefault();
             var i = st.lists.indexOf(l);
             W.Menu.open({ x: e.clientX, y: e.clientY }, [
-              { value: 'open', label: 'Abrir', icon: W.Lists.icon(l) },
-              { value: 'edit', label: 'Editar…', icon: 'edit' },
-              { value: 'up', label: 'Subir', icon: 'up', gap: true, disabled: i === 0 },
-              { value: 'down', label: 'Bajar', icon: 'down', disabled: i === st.lists.length - 1 },
-              { value: 'remove', label: 'Eliminar la categoría', icon: 'trash', destructive: true, gap: true }
+              { value: 'open', label: W.t('Abrir'), icon: W.Lists.icon(l) },
+              { value: 'edit', label: W.t('Editar…'), icon: 'edit' },
+              { value: 'up', label: W.t('Subir'), icon: 'up', gap: true, disabled: i === 0 },
+              { value: 'down', label: W.t('Bajar'), icon: 'down', disabled: i === st.lists.length - 1 },
+              { value: 'remove', label: W.t('Eliminar la categoría'), icon: 'trash', destructive: true, gap: true }
             ]).then(function (v) {
               if (v === 'open') openList(l.id);
               else if (v === 'edit') W.Lists.edit(l);
@@ -163,7 +163,7 @@ window.Whider = window.Whider || {};
       dropTarget(b, function (id) {
         var t = st.find(id); if (!t || t.listId === l.id) return;
         st.updateTask(id, { listId: l.id });
-        W.Toast.show({ text: '«' + t.text + '» movida a ' + l.name, icon: 'list' });
+        W.Toast.show({ text: W.t('«{text}» movida a {name}', { text: t.text, name: l.name }), icon: 'list' });
       });
       return b;
     }));
@@ -171,8 +171,8 @@ window.Whider = window.Whider || {};
     var filtersSec = null;
     if (sb.filters !== false && W.Filters) {
       filtersSec = U.el('div.sb-sec', [
-        U.el('div.sb-head', [U.el('span', { text: 'Filtros' }),
-          U.el('button.sb-add', { attrs: { 'aria-label': 'Nuevo filtro', title: 'Nuevo filtro' }, on: { click: function () {
+        U.el('div.sb-head', [U.el('span', { text: W.t('Filtros') }),
+          U.el('button.sb-add', { attrs: { 'aria-label': W.t('Nuevo filtro'), title: W.t('Nuevo filtro') }, on: { click: function () {
             W.Filters.edit(null, function (f) { openView({ type: 'filter', id: f.id }); });
           } } }, [U.icon('plus', 'xs')])]),
         st.filters.length ? U.el('div.sb-lists', st.filters.map(function (f) {
@@ -184,44 +184,44 @@ window.Whider = window.Whider || {};
               contextmenu: function (e) { e.preventDefault(); W.Filters.menu(f, { x: e.clientX, y: e.clientY }); }
             }
           }, [U.icon('filter'), U.el('span.sb-label', { text: f.name }), count(n)]);
-        })) : U.el('button.sb-empty', { text: 'Guarda una búsqueda como filtro', on: { click: function () {
+        })) : U.el('button.sb-empty', { text: W.t('Guarda una búsqueda como filtro'), on: { click: function () {
           W.Filters.edit(null, function (f) { openView({ type: 'filter', id: f.id }); });
         } } })
       ]);
     }
 
     var name = st.displayName();
-    var sync = W.Auth && W.Auth.user ? W.Sync.statusText() : (W.Auth && W.Auth.configured() ? 'Sin cuenta' : 'En este dispositivo');
+    var sync = W.Auth && W.Auth.user ? W.Sync.statusText() : (W.Auth && W.Auth.configured() ? W.t('Sin cuenta') : W.t('En este dispositivo'));
 
     U.clear(el);
     el.appendChild(U.el('div.sb-brand', [
       U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
-      U.el('span', { text: 'WHIDER' })
+      U.el('span', { text: W.t('WHIDER') })
     ]));
     el.appendChild(U.el('div.sb-actions', [
-      U.el('button.btn.primary.sb-new', { attrs: { title: 'Nueva tarea · N' }, on: { click: function () { W.App.newTask(); } } },
-        [U.icon('plus', 'sm'), U.el('span', { text: 'Nueva tarea' }), U.el('kbd', { text: 'N' })]),
-      U.el('button.sb-search', { attrs: { title: 'Buscar tareas y acciones · ' + W.Layout.keys('K') }, on: { click: function () { W.Palette.open(); } } },
-        [U.icon('search', 'sm'), U.el('span', { text: 'Buscar' }), U.el('kbd', { text: W.Layout.keys('K') })])
+      U.el('button.btn.primary.sb-new', { attrs: { title: W.t('Nueva tarea · N') }, on: { click: function () { W.App.newTask(); } } },
+        [U.icon('plus', 'sm'), U.el('span', { text: W.t('Nueva tarea') }), U.el('kbd', { text: 'N' })]),
+      U.el('button.sb-search', { attrs: { title: W.t('Buscar tareas y acciones · {0}', { 0: W.Layout.keys('K') }) }, on: { click: function () { W.Palette.open(); } } },
+        [U.icon('search', 'sm'), U.el('span', { text: W.t('Buscar') }), U.el('kbd', { text: W.Layout.keys('K') })])
     ]));
     el.appendChild(nav);
     if (teamSec) el.appendChild(teamSec);
     if (daySec) el.appendChild(daySec);
     if (toolsSec) el.appendChild(toolsSec);
     el.appendChild(U.el('div.sb-sec', [
-      U.el('div.sb-head', [U.el('span', { text: 'Categorías' }),
-        U.el('button.sb-add', { attrs: { 'aria-label': 'Nueva categoría', title: 'Nueva categoría' }, on: { click: function () {
+      U.el('div.sb-head', [U.el('span', { text: W.t('Categorías') }),
+        U.el('button.sb-add', { attrs: { 'aria-label': W.t('Nueva categoría'), title: W.t('Nueva categoría') }, on: { click: function () {
           W.Lists.edit(null, function (l) { openList(l.id); });
         } } }, [U.icon('plus', 'xs')])]),
       lists
     ]));
     if (filtersSec) el.appendChild(filtersSec);
     el.appendChild(U.el('div.sb-foot', [
-      U.el('button.sb-profile' + (active === 'progress' ? '.active' : ''), { attrs: { title: 'Perfil y resumen · P' }, on: { click: function () { W.Router.go('progress'); } } }, [
+      U.el('button.sb-profile' + (active === 'progress' ? '.active' : ''), { attrs: { title: W.t('Perfil y resumen · P') }, on: { click: function () { W.Router.go('progress'); } } }, [
         W.Profile.avatar(),
-        U.el('span.sb-who', [U.el('strong', { text: name || 'Tu perfil' }), U.el('small' + (W.Sync && W.Sync.unsaved && W.Sync.unsaved() ? '.sb-unsaved' : ''), { text: sync })])
+        U.el('span.sb-who', [U.el('strong', { text: name || W.t('Tu perfil') }), U.el('small' + (W.Sync && W.Sync.unsaved && W.Sync.unsaved() ? '.sb-unsaved' : ''), { text: sync })])
       ]),
-      U.el('button.nav-icon.sb-gear', { attrs: { 'aria-label': 'Ajustes', title: 'Ajustes · ' + W.Layout.keys(',') }, on: { click: function () { W.Settings.open(); } } }, [U.icon('gear')])
+      U.el('button.nav-icon.sb-gear', { attrs: { 'aria-label': W.t('Ajustes'), title: W.t('Ajustes · {0}', { 0: W.Layout.keys(',') }) }, on: { click: function () { W.Settings.open(); } } }, [U.icon('gear')])
     ]));
   }
 

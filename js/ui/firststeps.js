@@ -18,16 +18,16 @@ window.Whider = window.Whider || {};
   function steps() {
     var st = S(), td = U.today(), fs = state();
     return [
-      { id: 'task', title: 'Crea tu primera tarea', sub: 'Con el botón + o escribiendo en Hoy',
+      { id: 'task', title: W.t('Crea tu primera tarea'), sub: W.t('Con el botón + o escribiendo en Hoy'),
         done: st.tasks.length > 0, run: function () { W.QuickAdd.open({ date: td }); } },
-      { id: 'when', title: 'Dale día y hora escribiendo', sub: 'Prueba: «Llamar a Ana mañana a las 10»',
+      { id: 'when', title: W.t('Dale día y hora escribiendo'), sub: W.t('Prueba: «Llamar a Ana mañana a las 10»'),
         done: st.tasks.some(function (t) { return !!t.time; }),
-        run: function () { W.QuickAdd.open({ date: td, placeholder: 'Llamar a Ana mañana a las 10' }); } },
-      { id: 'top', title: 'Elige lo más importante de hoy', sub: 'Hasta tres tareas, arriba del todo',
+        run: function () { W.QuickAdd.open({ date: td, placeholder: W.t('Llamar a Ana mañana a las 10') }); } },
+      { id: 'top', title: W.t('Elige lo más importante de hoy'), sub: W.t('Hasta tres tareas, arriba del todo'),
         done: !!fs.chose, run: function () { if (W.Screens.home.choose) W.Screens.home.choose(); } },
-      { id: 'page', title: 'Escribe tu primera página', sub: 'Notas, listas y archivos en el Cuaderno',
+      { id: 'page', title: W.t('Escribe tu primera página'), sub: W.t('Notas, listas y archivos en el Cuaderno'),
         done: !!(W.Pages && W.Pages.count() > 0), run: function () { W.Router.go('notes'); } },
-      { id: 'notify', title: 'Activa los avisos', sub: 'Para que no se te pase ninguna tarea',
+      { id: 'notify', title: W.t('Activa los avisos'), sub: W.t('Para que no se te pase ninguna tarea'),
         done: W.Notify.permission() === 'granted', run: function () { W.Notify.request(); } }
     ];
   }
@@ -52,21 +52,21 @@ window.Whider = window.Whider || {};
         // El nombre accesible es el propio texto (y «hecho», oculto a la vista, en los cumplidos)
         var row = U.el('button.fs-step' + (s.done ? '.done' : ''), { attrs: { type: 'button' } }, [
           U.el('span.fs-check', { attrs: { 'aria-hidden': 'true' } }, [s.done ? U.icon('check', 'xs') : null]),
-          U.el('span.fs-main', [U.el('b', { text: s.title }), s.done ? U.el('span.sr-only', { text: ' (hecho)' }) : U.el('small', { text: s.sub })]),
+          U.el('span.fs-main', [U.el('b', { text: s.title }), s.done ? U.el('span.sr-only', { text: W.t(' (hecho)') }) : U.el('small', { text: s.sub })]),
           s.done ? null : U.icon('chev', 'chev')
         ]);
         if (s.done) row.disabled = true;
         else row.addEventListener('click', function () { s.run(); });
         return row;
       });
-      var hide = U.el('button.link-btn.muted', { text: 'Ocultar', attrs: { 'aria-label': 'Ocultar los primeros pasos' }, on: { click: function () {
+      var hide = U.el('button.link-btn.muted', { text: W.t('Ocultar'), attrs: { 'aria-label': W.t('Ocultar los primeros pasos') }, on: { click: function () {
         FirstSteps.hide();
-        W.Toast.show({ text: 'Los primeros pasos quedan en Ajustes → Ayuda', icon: 'info' });
+        W.Toast.show({ text: W.t('Los primeros pasos quedan en Ajustes → Ayuda'), icon: 'info' });
         W.Router.refresh();
       } } });
       return W.UI.section({
-        cls: 'first-steps', title: 'Primeros pasos',
-        side: U.el('span.cell-row', [U.el('small', { text: hechos + ' de ' + list.length }), hide]),
+        cls: 'first-steps', title: W.t('Primeros pasos'),
+        side: U.el('span.cell-row', [U.el('small', { text: W.t('{hechos} de {length}', { hechos: hechos, length: list.length }) }), hide]),
         items: U.el('div.group.fs-list', rows)
       });
     },

@@ -169,7 +169,7 @@ window.Whider = window.Whider || {};
         W.Toast.show({ text: reminders.length === 1 ? '«' + r0.text + '» vence en ' + m0 + ' min' : U.plural(reminders.length, 'tarea vence pronto', 'tareas vencen pronto'), icon: 'clock', type: 'info' });
       }
       alerts.forEach(function (t) {
-        var reason = t.time && t.date === U.today() ? 'Superó la hora límite (' + U.fmtTime(t.time) + ')' : 'Venció ' + U.fmtDay(t.date).toLowerCase();
+        var reason = t.time && t.date === U.today() ? 'Superó la hora límite (' + U.fmtTime(t.time) + ')' : 'Venció ' + U.inline(U.fmtDay(t.date));
         Notify.system(t.text, reason + ' · Sigue pendiente', 'whider-due-' + t.id);
       });
       // Dentro de la app, un único aviso aunque venzan varias tareas a la vez

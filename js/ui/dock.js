@@ -12,13 +12,13 @@ window.Whider = window.Whider || {};
   var U = W.U;
   /** Pestañas posibles: icono normal, icono de la pestaña activa y el aviso que llevan */
   var OPTIONS = {
-    home: { label: 'Hoy', icon: 'sun', on: 'sun-fill', badge: 'alerts' },
-    tasks: { label: 'Tareas', icon: 'tasks', on: 'tasks-fill' },
-    calendar: { label: 'Calendario', icon: 'calendar', on: 'calendar-fill' },
-    notes: { label: 'Cuaderno', icon: 'notebook', on: 'notebook-fill' },
-    chats: { label: 'Chats', icon: 'chat', on: 'chat-fill', badge: 'chats' },
-    habits: { label: 'Hábitos', icon: 'target', on: 'target' },
-    focus: { label: 'Enfoque', icon: 'timer', on: 'timer-fill' }
+    home: { label: W.t('Hoy'), icon: 'sun', on: 'sun-fill', badge: 'alerts' },
+    tasks: { label: W.t('Tareas'), icon: 'tasks', on: 'tasks-fill' },
+    calendar: { label: W.t('Calendario'), icon: 'calendar', on: 'calendar-fill' },
+    notes: { label: W.t('Cuaderno'), icon: 'notebook', on: 'notebook-fill' },
+    chats: { label: W.t('Chats'), icon: 'chat', on: 'chat-fill', badge: 'chats' },
+    habits: { label: W.t('Hábitos'), icon: 'target', on: 'target' },
+    focus: { label: W.t('Enfoque'), icon: 'timer', on: 'timer-fill' }
   };
   var DEFAULT = ['home', 'tasks', 'calendar'];
   var drawn = '';
@@ -77,13 +77,13 @@ window.Whider = window.Whider || {};
       var draw = function () {
         U.clear(host);
         host.appendChild(W.UI.section({
-          header: 'Pestañas',
+          header: W.t('Pestañas'),
           items: chosen.map(function (k, i) {
             return W.UI.cell({
-              icon: OPTIONS[k].icon, title: OPTIONS[k].label, value: ['Izquierda', 'Centro izquierda', 'Derecha'][i],
+              icon: OPTIONS[k].icon, title: OPTIONS[k].label, value: [W.t('Izquierda'), W.t('Centro izquierda'), W.t('Derecha')][i],
               onTap: function (e, node) {
                 var opts = Object.keys(OPTIONS).map(function (id) { return { value: id, label: OPTIONS[id].label, icon: OPTIONS[id].icon, on: id === k }; });
-                W.Sheet.choose({ anchor: node.querySelector('.cell-value'), title: 'Pestaña ' + (i + 1), value: k, options: opts }).then(function (v) {
+                W.Sheet.choose({ anchor: node.querySelector('.cell-value'), title: W.t('Pestaña {n}', { n: i + 1 }), value: k, options: opts }).then(function (v) {
                   if (!v || v === k) return;
                   // Si ya estaba en otro hueco, se intercambian
                   var j = chosen.indexOf(v);
@@ -94,14 +94,14 @@ window.Whider = window.Whider || {};
               }
             });
           }),
-          footer: 'El botón + queda en el centro y «Más» a la derecha, con todo lo demás.'
+          footer: W.t('El botón + queda en el centro y «Más» a la derecha, con todo lo demás.')
         }));
       };
       draw();
       var sheet = W.Sheet.open({
-        title: 'Barra inferior', body: [host], foot: [
-          U.el('button.btn.ghost', { text: 'Restablecer', on: { click: function () { chosen = DEFAULT.slice(); draw(); } } }),
-          U.el('button.btn.primary', { text: 'Guardar', on: { click: function () {
+        title: W.t('Barra inferior'), body: [host], foot: [
+          U.el('button.btn.ghost', { text: W.t('Restablecer'), on: { click: function () { chosen = DEFAULT.slice(); draw(); } } }),
+          U.el('button.btn.primary', { text: W.t('Guardar'), on: { click: function () {
             W.State.setSetting('dock', chosen.join(','));
             sheet.close();
             if (after) after();

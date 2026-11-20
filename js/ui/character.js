@@ -21,49 +21,49 @@ window.Whider = window.Whider || {};
   var CATS = ['body', 'tone', 'eyes', 'mouth', 'head', 'acc', 'fx', 'bg', 'frame'];
   var CATALOG = {
     body: [
-      { id: 'gota', name: 'Gota' }, { id: 'cubo', name: 'Cubo' }, { id: 'capsula', name: 'Cápsula' }, { id: 'gato', name: 'Gato' },
-      { id: 'oso', name: 'Oso' }, { id: 'nube', name: 'Nube' }, { id: 'buho', name: 'Búho' }, { id: 'zorro', name: 'Zorro' },
-      { id: 'fantasma', name: 'Fantasma' }, { id: 'robot', name: 'Robot' }
+      { id: 'gota', name: W.t('Gota') }, { id: 'cubo', name: W.t('Cubo') }, { id: 'capsula', name: W.t('Cápsula') }, { id: 'gato', name: W.t('Gato') },
+      { id: 'oso', name: W.t('Oso') }, { id: 'nube', name: W.t('Nube') }, { id: 'buho', name: W.t('Búho') }, { id: 'zorro', name: W.t('Zorro') },
+      { id: 'fantasma', name: W.t('Fantasma') }, { id: 'robot', name: W.t('Robot') }
     ],
     tone: [
-      { id: 'blanco', name: 'Blanco' }, { id: 'perla', name: 'Perla' }, { id: 'grafito', name: 'Grafito' },
-      { id: 'negro', name: 'Noche' }, { id: 'cromo', name: 'Cromo' }, { id: 'platino', name: 'Platino' },
-      { id: 'obsidiana', name: 'Obsidiana' }, { id: 'holo', name: 'Holográfico' },
-      { id: 'cristal', name: 'Cristal' }, { id: 'marmol', name: 'Mármol' }
+      { id: 'blanco', name: W.t('Blanco') }, { id: 'perla', name: W.t('Perla') }, { id: 'grafito', name: W.t('Grafito') },
+      { id: 'negro', name: W.t('Noche') }, { id: 'cromo', name: W.t('Cromo') }, { id: 'platino', name: W.t('Platino') },
+      { id: 'obsidiana', name: W.t('Obsidiana') }, { id: 'holo', name: W.t('Holográfico') },
+      { id: 'cristal', name: W.t('Cristal') }, { id: 'marmol', name: W.t('Mármol') }
     ],
     eyes: [
-      { id: 'puntos', name: 'Puntos' }, { id: 'grandes', name: 'Grandes' }, { id: 'felices', name: 'Felices' },
-      { id: 'estrellas', name: 'Estrellas' }, { id: 'corazones', name: 'Corazones' }
+      { id: 'puntos', name: W.t('Puntos') }, { id: 'grandes', name: W.t('Grandes') }, { id: 'felices', name: W.t('Felices') },
+      { id: 'estrellas', name: W.t('Estrellas') }, { id: 'corazones', name: W.t('Corazones') }
     ],
     mouth: [
-      { id: 'sonrisa', name: 'Sonrisa' }, { id: 'abierta', name: 'Alegre' }, { id: 'neutra', name: 'Seria' },
-      { id: 'gato', name: 'Gatuna' }, { id: 'o', name: 'Sorpresa' }
+      { id: 'sonrisa', name: W.t('Sonrisa') }, { id: 'abierta', name: W.t('Alegre') }, { id: 'neutra', name: W.t('Seria') },
+      { id: 'gato', name: W.t('Gatuna') }, { id: 'o', name: W.t('Sorpresa') }
     ],
     head: [
-      { id: 'nada', name: 'Nada' }, { id: 'antena', name: 'Antena' }, { id: 'flequillo', name: 'Flequillo' },
-      { id: 'gorro', name: 'Gorro' }, { id: 'lazo', name: 'Lazo' }, { id: 'brote', name: 'Brote' },
-      { id: 'auriculares', name: 'Auriculares' }, { id: 'cresta', name: 'Cresta' },
-      { id: 'birrete', name: 'Birrete' }, { id: 'corona', name: 'Corona' }, { id: 'halo', name: 'Halo' }
+      { id: 'nada', name: W.t('Nada') }, { id: 'antena', name: W.t('Antena') }, { id: 'flequillo', name: W.t('Flequillo') },
+      { id: 'gorro', name: W.t('Gorro') }, { id: 'lazo', name: W.t('Lazo') }, { id: 'brote', name: W.t('Brote') },
+      { id: 'auriculares', name: W.t('Auriculares') }, { id: 'cresta', name: W.t('Cresta') },
+      { id: 'birrete', name: W.t('Birrete') }, { id: 'corona', name: W.t('Corona') }, { id: 'halo', name: W.t('Halo') }
     ],
     acc: [
-      { id: 'nada', name: 'Nada' }, { id: 'gafas', name: 'Gafas' }, { id: 'bufanda', name: 'Bufanda' },
-      { id: 'pajarita', name: 'Pajarita' }, { id: 'medalla', name: 'Medalla' }, { id: 'capa', name: 'Capa' },
-      { id: 'solares', name: 'Gafas de sol' }, { id: 'collar', name: 'Collar de perlas' }
+      { id: 'nada', name: W.t('Nada') }, { id: 'gafas', name: W.t('Gafas') }, { id: 'bufanda', name: W.t('Bufanda') },
+      { id: 'pajarita', name: W.t('Pajarita') }, { id: 'medalla', name: W.t('Medalla') }, { id: 'capa', name: W.t('Capa') },
+      { id: 'solares', name: W.t('Gafas de sol') }, { id: 'collar', name: W.t('Collar de perlas') }
     ],
     fx: [
-      { id: 'nada', name: 'Ninguno' }, { id: 'brillo', name: 'Destellos' }, { id: 'aura', name: 'Aura' },
-      { id: 'orbita', name: 'Órbita' }, { id: 'estela', name: 'Polvo de estrellas' }, { id: 'rayos', name: 'Rayos de luz' }
+      { id: 'nada', name: W.t('Ninguno') }, { id: 'brillo', name: W.t('Destellos') }, { id: 'aura', name: W.t('Aura') },
+      { id: 'orbita', name: W.t('Órbita') }, { id: 'estela', name: W.t('Polvo de estrellas') }, { id: 'rayos', name: W.t('Rayos de luz') }
     ],
     bg: [
-      { id: 'liso', name: 'Liso' }, { id: 'puntos', name: 'Puntos' }, { id: 'degradado', name: 'Degradado' }, { id: 'rayas', name: 'Rayas' },
-      { id: 'estrellas', name: 'Estrellas' }, { id: 'holo', name: 'Holográfico' }
+      { id: 'liso', name: W.t('Liso') }, { id: 'puntos', name: W.t('Puntos') }, { id: 'degradado', name: W.t('Degradado') }, { id: 'rayas', name: W.t('Rayas') },
+      { id: 'estrellas', name: W.t('Estrellas') }, { id: 'holo', name: W.t('Holográfico') }
     ],
     frame: [
-      { id: 'nada', name: 'Sin marco' }, { id: 'aro', name: 'Aro' }, { id: 'doble', name: 'Doble aro' }, { id: 'laurel', name: 'Laurel' },
-      { id: 'diamante', name: 'Diamante' }, { id: 'animado', name: 'Aro de luz' }, { id: 'corona', name: 'Con corona' }
+      { id: 'nada', name: W.t('Sin marco') }, { id: 'aro', name: W.t('Aro') }, { id: 'doble', name: W.t('Doble aro') }, { id: 'laurel', name: W.t('Laurel') },
+      { id: 'diamante', name: W.t('Diamante') }, { id: 'animado', name: W.t('Aro de luz') }, { id: 'corona', name: W.t('Con corona') }
     ]
   };
-  var MOODS = { happy: 'Contento', proud: 'Orgulloso', focus: 'Concentrado', worried: 'Preocupado', sleepy: 'Dormido', party: 'De fiesta' };
+  var MOODS = { happy: W.t('Contento'), proud: W.t('Orgulloso'), focus: W.t('Concentrado'), worried: W.t('Preocupado'), sleepy: W.t('Dormido'), party: W.t('De fiesta') };
 
   var BODIES = {
     gota: { d: 'M60 24C83 24 95 46 95 70c0 22-15 34-35 34S25 92 25 70C25 46 37 24 60 24z', top: 24, ey: 63, ex: 12, my: 79, arm: [27, 76], feet: 103 },
@@ -308,34 +308,34 @@ window.Whider = window.Whider || {};
     var st = S(), s = st.stats(), out = [], td = U.today(), name = st.displayName().split(' ')[0];
     var overdue = st.overdueAll(), left = s.todayTotal - s.todayDone, h = new Date().getHours();
     var f = W.Screens.focus.status();
-    if (f.running) out.push({ text: f.mode === 'work' ? 'Estoy concentrado contigo. Quedan ' + f.text + '.' : 'Pausa: respira y estírate. Quedan ' + f.text + '.' });
+    if (f.running) out.push({ text: f.mode === 'work' ? W.t('Estoy concentrado contigo. Quedan {text}.', { text: f.text }) : W.t('Pausa: respira y estírate. Quedan {text}.', { text: f.text }) });
     // De otros días: se pueden pasar a hoy. De hoy con la hora pasada: no tiene sentido «pasarlas a hoy»
     var past = overdue.filter(function (t) { return t.date < td; });
-    if (past.length) out.push({ text: past.length === 1 ? 'Tienes una tarea de otro día sin hacer. ¿La pasamos a hoy?' : 'Tienes ' + past.length + ' tareas de otros días sin hacer. ¿Las pasamos a hoy?',
-      action: { label: 'Pasar a hoy', run: function () {
+    if (past.length) out.push({ text: past.length === 1 ? W.t('Tienes una tarea de otro día sin hacer. ¿La pasamos a hoy?') : W.t('Tienes {length} tareas de otros días sin hacer. ¿Las pasamos a hoy?', { length: past.length }),
+      action: { label: W.t('Pasar a hoy'), run: function () {
         var ids = past.map(function (t) { return t.id; });
         st.bulkUpdate(ids, function () { return { date: td, time: null }; });
-        W.Toast.show({ text: U.plural(ids.length, 'tarea pasa', 'tareas pasan') + ' a hoy', icon: 'sun' });
+        W.Toast.show({ text: W.t('{n} a hoy', { n: U.plural(ids.length, 'tarea pasa', 'tareas pasan') }), icon: 'sun' });
       } } });
     else if (overdue.length) out.push(overdue.length === 1
-      ? { text: 'Se te pasó la hora de «' + overdue[0].text + '». ¿Le buscamos otro hueco?', action: { label: 'Posponer', run: function () { W.TaskCard.actions.postpone(overdue[0].id); } } }
-      : { text: 'Se te pasó la hora de ' + overdue.length + ' tareas de hoy. Ve a por la primera.' });
-    if (s.todayTotal && !left) out.push({ text: '¡Todo hecho por hoy' + (name ? ', ' + name : '') + '! Me encanta este ritmo.' });
+      ? { text: W.t('Se te pasó la hora de «{text}». ¿Le buscamos otro hueco?', { text: overdue[0].text }), action: { label: W.t('Posponer'), run: function () { W.TaskCard.actions.postpone(overdue[0].id); } } }
+      : { text: W.t('Se te pasó la hora de {length} tareas de hoy. Ve a por la primera.', { length: overdue.length }) });
+    if (s.todayTotal && !left) out.push({ text: W.t('¡Todo hecho por hoy{0}! Me encanta este ritmo.', { 0: name ? ', ' + name : '' }) });
     else if (left > 0) {
       var nx = opts.next ? nextTask() : null;
-      if (nx) out.push({ text: 'Lo siguiente: «' + nx.text + '».',
-        action: f.running ? null : { label: 'Enfoque de ' + st.settings.focus.work + ' min', run: function () { W.Screens.focus.linkTask(nx.id); W.Screens.focus.toggle(); W.Router.refresh(); } } });
-      else out.push({ text: left === 1 ? 'Te queda una tarea para hoy. ¡Vamos!' : 'Te quedan ' + left + ' tareas para hoy. Una a una.',
-        action: f.running ? null : { label: 'Enfoque de ' + st.settings.focus.work + ' min', run: function () { W.Screens.focus.toggle(); W.Router.refresh(); } } });
+      if (nx) out.push({ text: W.t('Lo siguiente: «{text}».', { text: nx.text }),
+        action: f.running ? null : { label: W.t('Enfoque de {work} min', { work: st.settings.focus.work }), run: function () { W.Screens.focus.linkTask(nx.id); W.Screens.focus.toggle(); W.Router.refresh(); } } });
+      else out.push({ text: left === 1 ? W.t('Te queda una tarea para hoy. ¡Vamos!') : W.t('Te quedan {left} tareas para hoy. Una a una.', { left: left }),
+        action: f.running ? null : { label: W.t('Enfoque de {work} min', { work: st.settings.focus.work }), run: function () { W.Screens.focus.toggle(); W.Router.refresh(); } } });
     }
     if (W.Habits) {
       var hp = W.Habits.list().filter(W.Habits.pendingToday);
-      if (hp.length) out.push({ text: 'Aún te falta un hábito: «' + hp[0].name + '».', action: { label: hp[0].target > 1 ? 'Sumar uno' : 'Hecho', run: function () { W.Habits.tap(hp[0], td); } } });
+      if (hp.length) out.push({ text: W.t('Aún te falta un hábito: «{name}».', { name: hp[0].name }), action: { label: hp[0].target > 1 ? W.t('Sumar uno') : W.t('Hecho'), run: function () { W.Habits.tap(hp[0], td); } } });
     }
-    if (s.streak >= 2) out.push({ text: 'Llevas ' + s.streak + ' días de racha. No la rompas.' });
-    if (!s.todayTotal && !overdue.length) out.push({ text: h < 13 ? '¿Qué quieres conseguir hoy?' : '¿Algo más para hoy?', action: { label: 'Nueva tarea', run: function () { W.QuickAdd.open({ date: td }); } } });
-    if (h >= 22 || h < 6) out.push({ text: 'Es tarde. Mañana seguimos con energía.' });
-    out.push({ text: 'Tócame cuando quieras: te cuento cómo vas.' });
+    if (s.streak >= 2) out.push({ text: W.t('Llevas {streak} días de racha. No la rompas.', { streak: s.streak }) });
+    if (!s.todayTotal && !overdue.length) out.push({ text: h < 13 ? W.t('¿Qué quieres conseguir hoy?') : W.t('¿Algo más para hoy?'), action: { label: W.t('Nueva tarea'), run: function () { W.QuickAdd.open({ date: td }); } } });
+    if (h >= 22 || h < 6) out.push({ text: W.t('Es tarde. Mañana seguimos con energía.') });
+    out.push({ text: W.t('Tócame cuando quieras: te cuento cómo vas.') });
     return out;
   }
 
@@ -344,7 +344,7 @@ window.Whider = window.Whider || {};
   function node(o) {
     o = o || {};
     var m = o.mood || mood();
-    var wrap = U.el('div.buddy' + (o.cls ? '.' + o.cls : ''), { attrs: { role: 'button', tabindex: '0', 'aria-label': (config().name || 'Tu personaje') + ', ' + MOODS[m].toLowerCase() + '. Toca para hablar.' } }, [svg({ size: o.size || 72, mood: m })]);
+    var wrap = U.el('div.buddy' + (o.cls ? '.' + o.cls : ''), { attrs: { role: 'button', tabindex: '0', 'aria-label': W.t('{name}, {mood}. Toca para hablar.', { name: config().name || W.t('Tu personaje'), mood: MOODS[m].toLowerCase() }) } }, [svg({ size: o.size || 72, mood: m })]);
     var bubble = null;
     var speak = function () {
       var all = lines(), l = all[lineIndex++ % all.length];
@@ -383,11 +383,11 @@ window.Whider = window.Whider || {};
     // En el ordenador, si el bloque «Resumen del día» está a la vista, el recuento no se repite aquí
     var widgets = (S().settings.desk || {}).widgets || {};
     var showCount = !desk || widgets.summary === false;
-    var meta = U.el('div.buddy-meta', [U.el('strong', { text: c.name || 'Tu personaje' }),
-      showCount ? U.el('span', { text: s.todayTotal ? s.todayDone + ' de ' + U.plural(s.todayTotal, 'tarea hecha', 'tareas hechas') + ' hoy' : 'Nada programado para hoy' })
+    var meta = U.el('div.buddy-meta', [U.el('strong', { text: c.name || W.t('Tu personaje') }),
+      showCount ? U.el('span', { text: s.todayTotal ? W.t('{done} de {total} hoy', { done: s.todayDone, total: U.plural(s.todayTotal, 'tarea hecha', 'tareas hechas') }) : W.t('Nada programado para hoy') })
         : U.el('span', { text: MOODS[m] }),
       showCount ? U.el('div.bar', [U.el('i', { style: { width: s.todayPct + '%' } })]) : null]);
-    var edit = U.el('button.circle-btn.buddy-edit', { attrs: { 'aria-label': 'Personalizar tu personaje', title: 'Personalizar' }, on: { click: function (e) { e.stopPropagation(); Character.edit(); } } }, [U.icon('palette')]);
+    var edit = U.el('button.circle-btn.buddy-edit', { attrs: { 'aria-label': W.t('Personalizar tu personaje'), title: W.t('Personalizar') }, on: { click: function (e) { e.stopPropagation(); Character.edit(); } } }, [U.icon('palette')]);
     if (desk) return U.el('div.group.card.side-card.buddy-card', [U.el('div.buddy-row', [b, meta, edit]), bubble]);
     return U.el('div.buddy-strip', [b, U.el('div.buddy-say', [bubble]), edit]);
   }
@@ -410,16 +410,16 @@ window.Whider = window.Whider || {};
     fill(lines({ next: true })[0]);
     b.addEventListener('click', function () { var l = lines({ next: true }); idx++; fill(l[idx % l.length]); });
     var chips = [];
-    if (s.streak) chips.push(U.el('span.hero-chip', [U.icon('flame'), U.el('b', { text: String(s.streak) }), (s.streak === 1 ? ' día' : ' días') + ' de racha']));
-    if (s.focusToday) chips.push(U.el('span.hero-chip', [U.icon('timer'), U.el('b', { text: String(s.focusToday) }), ' min de enfoque']));
+    if (s.streak) chips.push(U.el('span.hero-chip', [U.icon('flame'), U.el('b', { text: String(s.streak) }), ' ' + W.tn(s.streak, 'día de racha', 'días de racha')]));
+    if (s.focusToday) chips.push(U.el('span.hero-chip', [U.icon('timer'), U.el('b', { text: String(s.focusToday) }), W.t(' min de enfoque')]));
     var pct = s.todayPct;
-    var info = U.el('button.day-info', { attrs: { type: 'button', title: 'Ver tu perfil y resumen' }, on: { click: function () { W.Router.go('progress'); } } }, [
-      U.el('strong', { text: s.todayTotal ? s.todayDone + ' de ' + s.todayTotal + ' hechas hoy' : 'Nada programado para hoy' }),
-      s.todayTotal ? U.el('span.bar', { attrs: { role: 'progressbar', 'aria-label': 'Progreso de hoy', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) } },
+    var info = U.el('button.day-info', { attrs: { type: 'button', title: W.t('Ver tu perfil y resumen') }, on: { click: function () { W.Router.go('progress'); } } }, [
+      U.el('strong', { text: s.todayTotal ? W.t('{todayDone} de {todayTotal} hechas hoy', { todayDone: s.todayDone, todayTotal: s.todayTotal }) : W.t('Nada programado para hoy') }),
+      s.todayTotal ? U.el('span.bar', { attrs: { role: 'progressbar', 'aria-label': W.t('Progreso de hoy'), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) } },
         [U.el('i', { style: { width: pct + '%' } })]) : null,
       chips.length ? U.el('span.hero-chips', chips) : null
     ]);
-    var edit = U.el('button.circle-btn.buddy-edit', { attrs: { 'aria-label': 'Personalizar tu personaje', title: 'Personalizar' }, on: { click: function (e) { e.stopPropagation(); Character.edit(); } } }, [U.icon('palette')]);
+    var edit = U.el('button.circle-btn.buddy-edit', { attrs: { 'aria-label': W.t('Personalizar tu personaje'), title: W.t('Personalizar') }, on: { click: function (e) { e.stopPropagation(); Character.edit(); } } }, [U.icon('palette')]);
     return U.el('div.day-card', [U.el('div.day-row', [b, info, edit]), bubble]);
   }
 
@@ -428,8 +428,8 @@ window.Whider = window.Whider || {};
     return U.el('span.buddy-illus', [svg({ size: size || 96, mood: mood0 || 'happy', prop: prop })]);
   }
 
-  var KIND = { body: 'Especie', tone: 'Acabado', eyes: 'Ojos', mouth: 'Boca', head: 'Cabeza', acc: 'Accesorio', fx: 'Efecto', bg: 'Fondo', frame: 'Marco' };
-  var TABS = [{ value: 'body', label: 'Especie' }, { value: 'face', label: 'Cara' }, { value: 'head', label: 'Cabeza' }, { value: 'acc', label: 'Accesorios' }, { value: 'avatar', label: 'Perfil' }];
+  var KIND = { body: W.t('Especie'), tone: 'Acabado', eyes: 'Ojos', mouth: 'Boca', head: 'Cabeza', acc: 'Accesorio', fx: 'Efecto', bg: 'Fondo', frame: 'Marco' };
+  var TABS = [{ value: 'body', label: W.t('Especie') }, { value: 'face', label: W.t('Cara') }, { value: 'head', label: W.t('Cabeza') }, { value: 'acc', label: W.t('Accesorios') }, { value: 'avatar', label: W.t('Perfil') }];
 
   /* ---------- Editor ---------- */
   function edit(tab0) {
@@ -440,14 +440,14 @@ window.Whider = window.Whider || {};
     var drawStage = function () {
       U.clear(stage);
       stage.appendChild(svg({ size: 168, mood: previewMood, cfg: draft }));
-      if (W.Avatar) stage.appendChild(U.el('div.be-avatar', [W.Avatar.buddy(draft, 64), U.el('small', { text: 'Así te ven' })]));
+      if (W.Avatar) stage.appendChild(U.el('div.be-avatar', [W.Avatar.buddy(draft, 64), U.el('small', { text: W.t('Así te ven') })]));
     };
     var moods = U.el('div.chips.be-moods', Object.keys(MOODS).map(function (k) {
       var c = U.el('button.chip' + (k === previewMood ? '.on' : ''), { attrs: { type: 'button' }, text: MOODS[k] });
       c.addEventListener('click', function () { previewMood = k; U.$$('.chip', moods).forEach(function (x) { x.classList.toggle('on', x === c); }); drawStage(); });
       return c;
     }));
-    var name = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 16, placeholder: 'Nombre de tu personaje', 'aria-label': 'Nombre de tu personaje' } });
+    var name = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 16, placeholder: W.t('Nombre de tu personaje'), 'aria-label': W.t('Nombre de tu personaje') } });
     name.value = draft.name || '';
     name.addEventListener('input', function () { draft.name = name.value.trim(); });
     var grid = U.el('div.be-grid');
@@ -469,7 +469,7 @@ window.Whider = window.Whider || {};
         grid.appendChild(U.el('div.be-h', { text: KIND[cat] }));
         grid.appendChild(U.el('div.be-row', CATALOG[cat].map(function (it) { return option(cat, it); })));
       });
-      if (tab === 'face') grid.appendChild(W.UI.group([W.UI.cell({ title: 'Mejillas', right: W.UI.toggle(!!draft.cheeks, function (v) { draft.cheeks = v; drawStage(); drawGrid(); }, 'Mejillas') })]));
+      if (tab === 'face') grid.appendChild(W.UI.group([W.UI.cell({ title: W.t('Mejillas'), right: W.UI.toggle(!!draft.cheeks, function (v) { draft.cheeks = v; drawStage(); drawGrid(); }, W.t('Mejillas')) })]));
     };
     var tabs = W.UI.segmented(TABS, tab, function (v) { tab = v; drawGrid(); });
     var randomize = function () {
@@ -481,15 +481,15 @@ window.Whider = window.Whider || {};
       W.Audio.boop(); drawStage(); drawGrid();
     };
     var s = W.Sheet.open({
-      title: 'Tu personaje', className: 'editor buddy-editor', full: true,
+      title: W.t('Tu personaje'), className: 'editor buddy-editor', full: true,
       body: [
         U.el('div.be-top', [stage, moods]),
         U.el('div.group', [U.el('label.cell', [name])]),
         tabs, grid
       ],
       foot: [
-        U.el('button.btn.ghost', { on: { click: randomize } }, [U.icon('sparkle', 'sm'), 'Al azar']),
-        U.el('button.btn.primary', { text: 'Guardar', on: { click: function () {
+        U.el('button.btn.ghost', { on: { click: randomize } }, [U.icon('sparkle', 'sm'), W.t('Al azar')]),
+        U.el('button.btn.primary', { text: W.t('Guardar'), on: { click: function () {
           var out = {}; ['name', 'body', 'tone', 'eyes', 'mouth', 'head', 'acc', 'cheeks', 'fx', 'bg', 'frame'].forEach(function (k) { out[k] = draft[k]; });
           if (!out.name) out.name = DEFAULT.name;
           S().setCharacter(out); W.Audio.success(); s.close();

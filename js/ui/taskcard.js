@@ -15,9 +15,9 @@ window.Whider = window.Whider || {};
   'use strict';
   var U = W.U, S = function () { return W.State; };
   var PRIO_CLS = { danger: '.p-danger', purple: '.p-purple', star: '.p-star', none: '' };
-  var PRIO_NAME = { danger: 'urgente', purple: 'importante', star: 'destacada' };
+  var PRIO_NAME = { danger: W.t('urgente'), purple: W.t('importante'), star: W.t('destacada') };
   // Lo que se escribe junto a la tarea (lo destacado basta con su barra)
-  var PRIO_TEXT = { danger: { cls: '.p3', text: 'Urgente' }, purple: { cls: '.p2', text: 'Importante' } };
+  var PRIO_TEXT = { danger: { cls: '.p3', text: W.t('Urgente') }, purple: { cls: '.p2', text: W.t('Importante') } };
 
   var Actions = {
     toggle: function (id, animated) {
@@ -33,28 +33,28 @@ window.Whider = window.Whider || {};
       var snap = S().removeTask(id);
       if (!snap) return;
       W.Audio.select();
-      W.Toast.show({ text: 'Tarea eliminada', icon: 'trash', action: { label: 'Deshacer', fn: function () { S().restoreTask(snap); } } });
+      W.Toast.show({ text: W.t('Tarea eliminada'), icon: 'trash', action: { label: W.t('Deshacer'), fn: function () { S().restoreTask(snap); } } });
     },
     confirmRemove: function (id) {
       if (!S().settings.confirmDelete) { Actions.remove(id); return Promise.resolve(true); }
       var t = S().find(id);
-      return W.Sheet.confirm({ title: '¿Eliminar la tarea?', text: t ? '«' + t.text + '»' : '', ok: 'Eliminar', danger: true })
+      return W.Sheet.confirm({ title: W.t('¿Eliminar la tarea?'), text: t ? '«' + t.text + '»' : '', ok: W.t('Eliminar'), danger: true })
         .then(function (ok) { if (ok) Actions.remove(id); return ok; });
     },
     /** Posponer con opciones sencillas (menú junto al botón) */
     postpone: function (id, anchor) {
-      var now = new Date(), opts = [{ value: 60, label: 'Dentro de 1 hora', icon: 'clock' }];
-      if (now.getHours() < 17) opts.push({ value: 'evening', label: 'Esta tarde', desc: 'Hoy a las ' + U.fmtTime('18:00'), icon: 'sun' });
-      opts.push({ value: 'tomorrow', label: 'Mañana', icon: 'calendar' });
-      opts.push({ value: 'edit', label: 'Elegir fecha y hora…', icon: 'edit', gap: true });
-      var pick = anchor ? W.Menu.open(anchor, opts) : W.Sheet.choose({ title: 'Posponer', options: opts });
+      var now = new Date(), opts = [{ value: 60, label: W.t('Dentro de 1 hora'), icon: 'clock' }];
+      if (now.getHours() < 17) opts.push({ value: 'evening', label: W.t('Esta tarde'), desc: W.t('Hoy a las {0}', { 0: U.fmtTime('18:00') }), icon: 'sun' });
+      opts.push({ value: 'tomorrow', label: W.t('Mañana'), icon: 'calendar' });
+      opts.push({ value: 'edit', label: W.t('Elegir fecha y hora…'), icon: 'edit', gap: true });
+      var pick = anchor ? W.Menu.open(anchor, opts) : W.Sheet.choose({ title: W.t('Posponer'), options: opts });
       pick.then(function (v) {
         if (v === undefined) return;
         if (v === 'edit') { W.Editor.open(id); return; }
         if (v === 'tomorrow') S().moveToTomorrow(id);
         else if (v === 'evening') S().updateTask(id, { date: U.today(), time: '18:00' });
         else S().snooze(id, v);
-        W.Toast.show({ text: 'Tarea pospuesta', icon: 'clock' });
+        W.Toast.show({ text: W.t('Tarea pospuesta'), icon: 'clock' });
       });
     },
     /** Menú del botón derecho (o de la tecla de menú) */
@@ -63,19 +63,19 @@ window.Whider = window.Whider || {};
       if (!t) return;
       var td = U.today(), next = U.addDays(td, (8 - new Date().getDay()) % 7 || 7);
       var items = [
-        { value: 'toggle', label: t.done ? 'Marcar como pendiente' : 'Completar', icon: t.done ? 'reset' : 'check' },
-        { value: 'edit', label: 'Editar…', icon: 'edit' }
+        { value: 'toggle', label: t.done ? W.t('Marcar como pendiente') : W.t('Completar'), icon: t.done ? 'reset' : 'check' },
+        { value: 'edit', label: W.t('Editar…'), icon: 'edit' }
       ];
       if (!t.done) {
-        items.push({ value: 'doing', label: t.startedAt ? 'Quitar de «En curso»' : 'Marcar «En curso»', icon: 'play' });
-        items.push({ value: 'today', label: 'Para hoy', icon: 'sun', gap: true, on: t.date === td });
-        items.push({ value: 'tomorrow', label: 'Para mañana', icon: 'calendar', on: t.date === U.addDays(td, 1) });
-        items.push({ value: 'monday', label: 'Para el lunes', desc: U.fmtLong(next), icon: 'week', on: t.date === next });
-        items.push({ value: 'prio', label: 'Prioridad…', icon: 'flag', gap: true });
-        items.push({ value: 'list', label: 'Cambiar de categoría…', icon: 'list' });
-        items.push({ value: 'focus', label: 'Enfocarme en esta tarea', icon: 'target' });
+        items.push({ value: 'doing', label: t.startedAt ? W.t('Quitar de «En curso»') : W.t('Marcar «En curso»'), icon: 'play' });
+        items.push({ value: 'today', label: W.t('Para hoy'), icon: 'sun', gap: true, on: t.date === td });
+        items.push({ value: 'tomorrow', label: W.t('Para mañana'), icon: 'calendar', on: t.date === U.addDays(td, 1) });
+        items.push({ value: 'monday', label: W.t('Para el lunes'), desc: U.fmtLong(next), icon: 'week', on: t.date === next });
+        items.push({ value: 'prio', label: W.t('Prioridad…'), icon: 'flag', gap: true });
+        items.push({ value: 'list', label: W.t('Cambiar de categoría…'), icon: 'list' });
+        items.push({ value: 'focus', label: W.t('Enfocarme en esta tarea'), icon: 'target' });
       }
-      items.push({ value: 'delete', label: 'Eliminar', icon: 'trash', destructive: true, gap: true });
+      items.push({ value: 'delete', label: W.t('Eliminar'), icon: 'trash', destructive: true, gap: true });
       var again = function (list) { return new Promise(function (r) { setTimeout(function () { r(W.Menu.open(at, list)); }, 40); }); };
       W.Menu.open(at, items).then(function (v) {
         if (!v) return;
@@ -87,7 +87,7 @@ window.Whider = window.Whider || {};
         else if (v === 'monday') st.updateTask(id, { date: next });
         else if (v === 'prio') again(W.Editor.PRIO_OPTS.map(function (o) { return { value: o.value, label: o.label, prio: o.value, on: o.value === t.highlight }; }))
           .then(function (h) { if (h) st.updateTask(id, { highlight: h }); });
-        else if (v === 'list') again([{ value: '', label: 'Sin categoría', on: !t.listId }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, icon: W.Lists.icon(l), on: l.id === t.listId }; })))
+        else if (v === 'list') again([{ value: '', label: W.t('Sin categoría'), on: !t.listId }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, icon: W.Lists.icon(l), on: l.id === t.listId }; })))
           .then(function (l) { if (l !== undefined) st.updateTask(id, { listId: l || null }); });
         else if (v === 'focus') { W.Screens.focus.linkTask(id); W.Router.go('focus'); }
         else if (v === 'delete') Actions.confirmRemove(id);
@@ -127,16 +127,16 @@ window.Whider = window.Whider || {};
   function bulkMenu(at) {
     var n = W.Select.count();
     W.Menu.open(at, [
-      { value: 'complete', label: 'Completar las ' + n, icon: 'check' },
-      { value: 'today', label: 'Todas para hoy', icon: 'sun', gap: true },
-      { value: 'tomorrow', label: 'Todas para mañana', icon: 'calendar' },
-      { value: 'duplicate', label: 'Duplicar', icon: 'layers', gap: true },
-      { value: 'delete', label: 'Eliminar las ' + n, icon: 'trash', destructive: true, gap: true }
+      { value: 'complete', label: W.t('Completar las {n}', { n: n }), icon: 'check' },
+      { value: 'today', label: W.t('Todas para hoy'), icon: 'sun', gap: true },
+      { value: 'tomorrow', label: W.t('Todas para mañana'), icon: 'calendar' },
+      { value: 'duplicate', label: W.t('Duplicar'), icon: 'layers', gap: true },
+      { value: 'delete', label: W.t('Eliminar las {n}', { n: n }), icon: 'trash', destructive: true, gap: true }
     ], { title: U.plural(n, 'tarea seleccionada', 'tareas seleccionadas') }).then(function (v) {
       var A = W.Select.actions, td = U.today();
       if (v === 'complete') A.complete();
-      else if (v === 'today') A.apply({ date: td }, 'para hoy', 'sun');
-      else if (v === 'tomorrow') A.apply({ date: U.addDays(td, 1) }, 'para mañana', 'calendar');
+      else if (v === 'today') A.apply({ date: td }, W.t('para hoy'), 'sun');
+      else if (v === 'tomorrow') A.apply({ date: U.addDays(td, 1) }, W.t('para mañana'), 'calendar');
       else if (v === 'duplicate') A.duplicate();
       else if (v === 'delete') A.remove();
     });
@@ -153,10 +153,10 @@ window.Whider = window.Whider || {};
     var parts = [], st = S(), late = st.isOverdue(t);
     var showDay = t.date && (ctx === 'alerts' || (!(ctx === 'today' && t.date === U.today()) && ctx !== 'day'));
     var day = showDay ? U.fmtDay(t.date) : '', time = t.time && ctx !== 'day' ? U.fmtTime(t.time) : '';
-    if (t.done && t.doneOn && ctx === 'done') { day = 'Completada ' + U.fmtDay(t.doneOn).toLowerCase(); time = ''; }
+    if (t.done && t.doneOn && ctx === 'done') { day = W.t('Completada {day}', { day: U.inline(U.fmtDay(t.doneOn)) }); time = ''; }
     var pt = !t.done && PRIO_TEXT[t.highlight];
     if (pt) parts.push(U.el('span.m-prio' + pt.cls, { text: pt.text }));
-    if (st.isDoing(t)) parts.push(U.el('span.m-doing', { text: 'En curso' }));
+    if (st.isDoing(t)) parts.push(U.el('span.m-doing', { text: W.t('En curso') }));
     if (day || time) parts.push(U.el('span' + (late ? '.late' : ''), [day + (day && time ? ', ' : ''), time ? U.el('span.m-num', { text: time }) : null]));
     var list = t.listId ? st.getList(t.listId) : null;
     if (list && ctx !== 'list') parts.push(listLabel(list));
@@ -177,8 +177,8 @@ window.Whider = window.Whider || {};
     var sx = 0, sy = 0, dx = 0, mode = null, id = null, bgR = null, bgL = null, limit = 96;
     var ensureBg = function () {
       if (bgR) return;
-      bgR = U.el('div.task-swipe-bg.right', [U.icon(t.done ? 'reset' : 'check'), U.el('span', { text: t.done ? 'Pendiente' : 'Completar' })]);
-      bgL = U.el('div.task-swipe-bg.left', [U.el('span', { text: 'Eliminar' }), U.icon('trash')]);
+      bgR = U.el('div.task-swipe-bg.right', [U.icon(t.done ? 'reset' : 'check'), U.el('span', { text: t.done ? W.t('Pendiente') : W.t('Completar') })]);
+      bgL = U.el('div.task-swipe-bg.left', [U.el('span', { text: W.t('Eliminar') }), U.icon('trash')]);
       card.insertBefore(bgL, body); card.insertBefore(bgR, bgL);
     };
     body.addEventListener('pointerdown', function (e) {
@@ -234,9 +234,9 @@ window.Whider = window.Whider || {};
   function create(t, opts) {
     opts = opts || {};
     var doing = S().isDoing(t);
-    var extra = [PRIO_NAME[t.highlight], doing ? 'en curso' : ''].filter(Boolean).join(', ');
+    var extra = [PRIO_NAME[t.highlight], doing ? W.t('en curso') : ''].filter(Boolean).join(', ');
     var check = U.el('button.check' + (PRIO_CLS[t.highlight] || '') + (t.done ? '.on' : '') + (doing ? '.doing' : ''), {
-      attrs: { 'aria-label': (t.done ? 'Marcar como pendiente: ' : 'Completar: ') + t.text + (extra ? ' (' + extra + ')' : ''), 'aria-pressed': t.done ? 'true' : 'false' }
+      attrs: { 'aria-label': (t.done ? W.t('Marcar como pendiente: {task}', { task: t.text }) : W.t('Completar: {task}', { task: t.text })) + (extra ? ' (' + extra + ')' : ''), 'aria-pressed': t.done ? 'true' : 'false' }
     });
     check.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
     var title = U.el('span.task-title', { text: t.text });
@@ -246,7 +246,7 @@ window.Whider = window.Whider || {};
     var trail = [];
     if (PRIO_NAME[t.highlight] && !t.done) trail.push(W.UI.prio(t.highlight));
     if (opts.postpone && !t.done) {
-      trail.push(U.el('button.btn.xs.soft', { text: 'Posponer', on: { click: function (e) { e.stopPropagation(); Actions.postpone(t.id, e.currentTarget); } } }));
+      trail.push(U.el('button.btn.xs.soft', { text: W.t('Posponer'), on: { click: function (e) { e.stopPropagation(); Actions.postpone(t.id, e.currentTarget); } } }));
     }
     var body = U.el('div.task-body', [
       opts.time !== undefined ? U.el('span.tl-time', { text: opts.time }) : null,

@@ -42,7 +42,7 @@ fs.rmdirSync(path.join(OUT, 'sitio', 'en'));
  * ---------- Empaquetado de la app (solo la web publicada) ----------
  * La app son ~60 scripts clásicos que cuelgan de window.Whider. En desarrollo, en Android y en la app de
  * escritorio se cargan tal cual (desde el propio dispositivo). En la web se juntan y se minimizan:
- *   assets/app.<huella>.js       todos los scripts de app.html, en el mismo orden (salvo js/config.js)
+ *   assets/app.<huella>.js       todos los scripts de app.html, en el mismo orden (salvo js/config.js y js/core/i18n.js)
  *   assets/cuaderno.<huella>.js  el editor del Cuaderno, que se sigue cargando solo al abrirlo
  *   assets/app.<huella>.css      las hojas de estilo de app.html (desktop.css, dentro de su @media)
  * Cada uno con su mapa de código (.map, con los archivos originales dentro) y un nombre que cambia con su
@@ -96,8 +96,10 @@ function empaquetar() {
   const APP = path.join(OUT, 'app.html');
   let html = fs.readFileSync(APP, 'utf8');
 
-  // 1. Scripts de app.html (config.js se queda aparte: es la configuración de cada despliegue)
-  const scriptTags = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>\n?/g)].filter((m) => m[1] !== 'js/config.js');
+  // 1. Scripts de app.html. Se quedan aparte config.js (la configuración de cada despliegue) e i18n.js (en otro idioma
+  //    escribe la etiqueta de su catálogo justo detrás de sí misma: tiene que ir antes del paquete, no dentro)
+  const APARTE = ['js/config.js', 'js/core/i18n.js'];
+  const scriptTags = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>\n?/g)].filter((m) => !APARTE.includes(m[1]));
   const jsFiles = scriptTags.map((m) => m[1]);
   // 2. El editor del Cuaderno: la misma lista que usa js/screens/notes.js para cargarlo
   const notes = fs.readFileSync(path.join(OUT, 'js/screens/notes.js'), 'utf8');

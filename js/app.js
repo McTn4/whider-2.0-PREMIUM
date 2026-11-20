@@ -287,6 +287,8 @@ window.Whider = window.Whider || {};
 
   function init() {
     if (migrateFromFileOrigin()) return;
+    // En otro idioma, los textos fijos de la página (barra inferior, nombres de cada pantalla…)
+    if (W.I18n && W.I18n.lang !== 'es') W.I18n.dom(document.body);
     adoptSystemFontScale();
     applyAppearance();
 
@@ -391,5 +393,7 @@ window.Whider = window.Whider || {};
 
   W.App = { handleBack: handleBack, applyAppearance: applyAppearance, afterAuth: afterAuth, logout: logout, deleteAccount: deleteAccount, newTask: newTaskFromContext, hideSplash: hideSplash, receiveShare: receiveShare };
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  // En otro idioma, primero su catálogo (js/i18n/<idioma>.js); en español no hay que esperar a nada
+  function start() { if (W.I18n && W.I18n.lang !== 'es') W.I18n.ready().then(init); else init(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })(window.Whider);

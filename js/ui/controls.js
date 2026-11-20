@@ -35,12 +35,12 @@ window.Whider = window.Whider || {};
 
   /** Foto de perfil (abre el Perfil) y engranaje (abre los Ajustes): siempre a mano */
   function profileBtn() {
-    return U.el('button.avatar-btn', { attrs: { 'aria-label': 'Tu perfil y resumen', title: 'Perfil' }, on: { click: function () { W.Router.go('progress'); } } }, [W.Profile.avatar()]);
+    return U.el('button.avatar-btn', { attrs: { 'aria-label': W.t('Tu perfil y resumen'), title: W.t('Perfil') }, on: { click: function () { W.Router.go('progress'); } } }, [W.Profile.avatar()]);
   }
   function gearBtn() {
     // Con cambios sin subir por un fallo, el engranaje lleva un punto (y lo dice al lector de pantalla)
     var unsaved = !!(W.Sync && W.Sync.unsaved && W.Sync.unsaved());
-    var b = navBtn({ icon: 'gear', label: unsaved ? 'Ajustes (hay cambios sin guardar en la nube)' : 'Ajustes', onTap: function () { W.Settings.open(); } });
+    var b = navBtn({ icon: 'gear', label: unsaved ? W.t('Ajustes (hay cambios sin guardar en la nube)') : W.t('Ajustes'), onTap: function () { W.Settings.open(); } });
     b.classList.add('gear-btn');
     return b;
   }
@@ -56,7 +56,7 @@ window.Whider = window.Whider || {};
     header: function (o) {
       // En el ordenador, la foto y los ajustes están en la barra lateral
       var desk = W.Layout && W.Layout.desktop;
-      var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: 'Volver a ' + o.back.label, onTap: o.back.onTap, back: true }) : o.profile && !desk ? profileBtn() : null]);
+      var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: W.t('Volver a {label}', { label: o.back.label }), onTap: o.back.onTap, back: true }) : o.profile && !desk ? profileBtn() : null]);
       var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false || desk ? [] : [gearBtn()]));
       var nav = U.el('header.nav', [lead, U.el('div.nav-title', { text: o.compact || o.title }), trail]);
       var lt = U.el('div.lt', [
@@ -174,8 +174,8 @@ window.Whider = window.Whider || {};
         if (v === value) return;
         value = v; out.textContent = fmt ? fmt(v) : v; sync(); W.Audio.select(); onChange(v);
       };
-      minus = U.el('button', { text: '−', attrs: { 'aria-label': 'Menos' }, on: { click: function () { set(value - step); } } });
-      plus = U.el('button', { text: '+', attrs: { 'aria-label': 'Más' }, on: { click: function () { set(value + step); } } });
+      minus = U.el('button', { text: '−', attrs: { 'aria-label': W.t('Menos') }, on: { click: function () { set(value - step); } } });
+      plus = U.el('button', { text: '+', attrs: { 'aria-label': W.t('Más') }, on: { click: function () { set(value + step); } } });
       sync();
       return U.el('span.cell-row', [out, U.el('span.stepper', [minus, plus])]);
     },
@@ -231,8 +231,8 @@ window.Whider = window.Whider || {};
         wrap.appendChild(U.el('div.cal-head', [
           U.el('strong', { text: U.fmtMonth(view.y, view.m) }),
           U.el('div.cal-arrows', [
-            navBtn({ icon: 'left', label: 'Mes anterior', onTap: function () { shift(-1); } }),
-            navBtn({ icon: 'right', label: 'Mes siguiente', onTap: function () { shift(1); } })
+            navBtn({ icon: 'left', label: W.t('Mes anterior'), onTap: function () { shift(-1); } }),
+            navBtn({ icon: 'right', label: W.t('Mes siguiente'), onTap: function () { shift(1); } })
           ])
         ]));
         wrap.appendChild(UI.monthGrid({ y: view.y, m: view.m, selected: value, slide: slide, onPick: function (ds) { value = ds; W.Audio.select(); onChange(ds); slide = 0; draw(); } }));

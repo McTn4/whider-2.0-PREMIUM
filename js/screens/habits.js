@@ -14,14 +14,14 @@ window.Whider.Screens = window.Whider.Screens || {};
   var U = W.U, S = function () { return W.State; }, H = function () { return W.Habits; };
 
   var SUGGEST = [
-    { name: 'Beber agua', icon: 'coffee', target: 8, unit: 'vasos' },
-    { name: 'Leer 20 minutos', icon: 'note' },
-    { name: 'Meditar', icon: 'moon' },
-    { name: 'Hacer ejercicio', icon: 'flame', freq: 'weekly', perWeek: 3 },
-    { name: 'Caminar 30 minutos', icon: 'bolt' },
-    { name: 'Dormir 8 horas', icon: 'moon' }
+    { name: W.t('Beber agua'), icon: 'coffee', target: 8, unit: W.t('vasos') },
+    { name: W.t('Leer 20 minutos'), icon: 'note' },
+    { name: W.t('Meditar'), icon: 'moon' },
+    { name: W.t('Hacer ejercicio'), icon: 'flame', freq: 'weekly', perWeek: 3 },
+    { name: W.t('Caminar 30 minutos'), icon: 'bolt' },
+    { name: W.t('Dormir 8 horas'), icon: 'moon' }
   ];
-  var FREQS = [{ value: 'daily', label: 'Cada día' }, { value: 'days', label: 'Días concretos' }, { value: 'weekly', label: 'Veces por semana' }];
+  var FREQS = [{ value: 'daily', label: W.t('Cada día') }, { value: 'days', label: W.t('Días concretos') }, { value: 'weekly', label: W.t('Veces por semana') }];
 
   function weekStart(ds) { var ws = S().settings.weekStart; return U.addDays(ds, -((U.weekday(ds) - ws + 7) % 7)); }
   function checkSvg() { return U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]); }
@@ -32,8 +32,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     var n = H().count(h, ds), done = n >= h.target;
     var b = U.el('button.hcheck' + (done ? '.on' : '') + (h.target > 1 ? '.count' : '') + (n > 0 && !done ? '.partial' : ''), {
       style: h.target > 1 ? { '--p': Math.round(Math.min(n, h.target) / h.target * 100) } : null,
-      attrs: { type: 'button', 'aria-pressed': done ? 'true' : 'false', title: h.target > 1 ? 'Sumar uno (' + n + ' de ' + h.target + ')' : done ? 'Desmarcar' : 'Marcar como hecho',
-        'aria-label': (done ? 'Hecho: ' : 'Marcar: ') + h.name + (h.target > 1 ? ', ' + n + ' de ' + h.target : '') }
+      attrs: { type: 'button', 'aria-pressed': done ? 'true' : 'false', title: h.target > 1 ? W.t('Sumar uno ({n} de {target})', { n: n, target: h.target }) : done ? W.t('Desmarcar') : W.t('Marcar como hecho'),
+        'aria-label': (done ? W.t('Hecho: {name}', { name: h.name }) : W.t('Marcar: {name}', { name: h.name })) + (h.target > 1 ? ', ' + W.t('{n} de {total}', { n: n, total: h.target }) : '') }
     }, h.target > 1 ? [U.el('span', { text: n + '/' + h.target })] : [checkSvg()]);
     b.addEventListener('click', function (e) { e.stopPropagation(); H().tap(h, ds); });
     b.addEventListener('contextmenu', function (e) {
@@ -50,7 +50,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     return U.el('div.hweek', [0, 1, 2, 3, 4, 5, 6].map(function (i) {
       var ds = U.addDays(start, i), future = ds > td, due = H().isDue(h, ds), done = H().isDone(h, ds);
       var b = U.el('button.hday' + (done ? '.done' : '') + (due ? '.due' : '.off') + (ds === td ? '.today' : '') + (future ? '.future' : ''), {
-        attrs: { type: 'button', title: U.fmtLong(ds) + (done ? ' · hecho' : due && !future ? ' · sin hacer' : ''), 'aria-label': U.fmtLong(ds) + (done ? ', hecho' : '') }
+        attrs: { type: 'button', title: U.fmtLong(ds) + (done ? ' · ' + W.t('hecho') : due && !future ? ' · ' + W.t('sin hacer') : ''), 'aria-label': U.fmtLong(ds) + (done ? ', ' + W.t('hecho') : '') }
       }, [U.el('small', { text: U.WEEKDAYS_LETTER[U.weekday(ds)] })]);
       if (future) b.disabled = true;
       else b.addEventListener('click', function (e) { e.stopPropagation(); H().tap(h, ds); });
@@ -63,7 +63,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     opts = opts || {};
     var td = U.today(), st = H().stats(h);
     var meta = [U.el('span', { text: H().freqLabel(h) })];
-    if (h.freq === 'weekly') meta.push(U.el('span', { text: st.week + ' de ' + h.perWeek + ' esta semana' }));
+    if (h.freq === 'weekly') meta.push(U.el('span', { text: W.t('{week} de {perWeek} esta semana', { week: st.week, perWeek: h.perWeek }) }));
     if (st.streak) meta.push(U.el('span.hstreak', [U.icon('flame', 'xs'), U.el('b', { text: String(st.streak) })]));
     if (h.reminder && !opts.compact) meta.push(U.el('span.hrem', [U.icon('bell', 'xs'), U.fmtTime(h.reminder)]));
     var main = U.el('div.hmain', [U.el('span.htitle', [U.icon(h.icon, 'sm'), U.el('span', { text: h.name })]),
@@ -85,7 +85,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       for (var i = 0; i < 7; i++) {
         var ds = U.addDays(start, w * 7 + i), n = H().count(h, ds);
         var lvl = ds > td ? 'lx' : n >= h.target ? 'l4' : n > 0 ? (n / h.target >= .5 ? 'l3' : 'l2') : (H().isDue(h, ds) && ds >= born ? 'l0' : 'lx');
-        col.appendChild(U.el('i.' + lvl + (ds === td ? '.today' : ''), { attrs: { title: U.fmtLong(ds) + (n ? ' · ' + n + (h.target > 1 ? ' de ' + h.target : '') : '') } }));
+        col.appendChild(U.el('i.' + lvl + (ds === td ? '.today' : ''), { attrs: { title: U.fmtLong(ds) + (n ? ' · ' + (h.target > 1 ? W.t('{n} de {total}', { n: n, total: h.target }) : n) : '') } }));
       }
       cols.push(col);
     }
@@ -93,13 +93,13 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   function statTiles(h) {
-    var s = H().stats(h), unit = h.freq === 'weekly' ? ['semana', 'semanas'] : ['día', 'días'];
+    var s = H().stats(h), unit = h.freq === 'weekly' ? [W.t('semana'), W.t('semanas')] : [W.t('día'), W.t('días')];
     var tile = function (v, l) { return U.el('div', [U.el('strong', { text: v }), U.el('span', { text: l })]); };
     return U.el('div.group.stats.hstats', [
-      tile(String(s.streak), 'Racha (' + (s.streak === 1 ? unit[0] : unit[1]) + ')'),
-      tile(String(s.best), 'Mejor racha'),
-      tile(s.rate30 == null ? '—' : s.rate30 + '%', 'Último mes'),
-      tile(String(s.total), 'Días cumplidos')
+      tile(String(s.streak), W.t('Racha ({unit})', { unit: s.streak === 1 ? unit[0] : unit[1] })),
+      tile(String(s.best), W.t('Mejor racha')),
+      tile(s.rate30 == null ? '—' : s.rate30 + '%', W.t('Último mes')),
+      tile(String(s.total), W.t('Días cumplidos'))
     ]);
   }
 
@@ -107,15 +107,15 @@ window.Whider.Screens = window.Whider.Screens || {};
   function editor(id, preset) {
     var st = S(), src = id ? st.getHabit(id) : null;
     var d = src ? JSON.parse(JSON.stringify(src)) : Object.assign({ name: '', icon: 'target', freq: 'daily', days: [1, 2, 3, 4, 5], perWeek: 3, target: 1, unit: '', reminder: null }, preset || {});
-    var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 40, placeholder: 'Nombre del hábito', 'aria-label': 'Nombre del hábito', enterkeyhint: 'done' } });
+    var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 40, placeholder: W.t('Nombre del hábito'), 'aria-label': W.t('Nombre del hábito'), enterkeyhint: 'done' } });
     name.value = d.name;
-    var saveBtn = U.el('button.btn.primary', { text: src ? 'Guardar cambios' : 'Crear hábito', on: { click: function () { save(); } } });
+    var saveBtn = U.el('button.btn.primary', { text: src ? W.t('Guardar cambios') : W.t('Crear hábito'), on: { click: function () { save(); } } });
     var sync = function () { saveBtn.disabled = !name.value.trim(); };
     name.addEventListener('input', sync);
     name.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (name.value.trim()) save(); } });
 
     var icons = U.el('div.icon-pick', H().ICONS.map(function (ic) {
-      var b = U.el('button' + (ic === d.icon ? '.active' : ''), { attrs: { type: 'button', 'aria-label': 'Icono ' + ic } }, [U.icon(ic)]);
+      var b = U.el('button' + (ic === d.icon ? '.active' : ''), { attrs: { type: 'button', 'aria-label': W.t('Icono {ic}', { ic: ic }) } }, [U.icon(ic)]);
       b.addEventListener('click', function () { d.icon = ic; U.$$('button', icons).forEach(function (x) { x.classList.toggle('active', x === b); }); W.Audio.select(); });
       return b;
     }));
@@ -136,25 +136,25 @@ window.Whider.Screens = window.Whider.Screens || {};
           return b;
         })));
       } else if (d.freq === 'weekly') {
-        freqHost.appendChild(U.el('div.cell-row.hfreq-row', [U.el('span', { text: 'Veces por semana' }),
+        freqHost.appendChild(U.el('div.cell-row.hfreq-row', [U.el('span', { text: W.t('Veces por semana') }),
           W.UI.stepper(d.perWeek, 1, 7, 1, function (v) { d.perWeek = v; })]));
       }
     };
     drawFreq();
 
-    var unit = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 14, placeholder: 'Unidad (vasos, páginas…)', 'aria-label': 'Unidad' } });
+    var unit = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 14, placeholder: W.t('Unidad (vasos, páginas…)'), 'aria-label': W.t('Unidad') } });
     unit.value = d.unit || '';
     var unitRow = U.el('label.cell', [unit]);
-    var targetRow = W.UI.cell({ title: 'Objetivo diario', right: W.UI.stepper(d.target, 1, 50, 1, function (v) { d.target = v; unitRow.style.display = v > 1 ? '' : 'none'; }, function (v) { return v === 1 ? '1 vez' : v + ' veces'; }) });
+    var targetRow = W.UI.cell({ title: W.t('Objetivo diario'), right: W.UI.stepper(d.target, 1, 50, 1, function (v) { d.target = v; unitRow.style.display = v > 1 ? '' : 'none'; }, function (v) { return v === 1 ? '1 vez' : v + ' veces'; }) });
     unitRow.style.display = d.target > 1 ? '' : 'none';
 
     var remPill = U.el('span.pill.accent', { text: U.fmtTime(d.reminder || '09:00') });
-    var remInput = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': 'Hora del recordatorio' } });
+    var remInput = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': W.t('Hora del recordatorio') } });
     remInput.value = d.reminder || '09:00';
     remInput.addEventListener('change', function () { if (remInput.value) { d.reminder = remInput.value; remPill.firstChild.textContent = U.fmtTime(remInput.value); } });
     remPill.appendChild(remInput);
-    var remTime = W.UI.cell({ title: 'Hora', right: remPill });
-    var remRow = W.UI.cell({ icon: 'bell', title: 'Recordármelo', right: W.UI.toggle(!!d.reminder, function (v) { d.reminder = v ? (remInput.value || '09:00') : null; remTime.style.display = v ? '' : 'none'; }, 'Recordatorio') });
+    var remTime = W.UI.cell({ title: W.t('Hora'), right: remPill });
+    var remRow = W.UI.cell({ icon: 'bell', title: W.t('Recordármelo'), right: W.UI.toggle(!!d.reminder, function (v) { d.reminder = v ? (remInput.value || '09:00') : null; remTime.style.display = v ? '' : 'none'; }, W.t('Recordatorio')) });
     remTime.style.display = d.reminder ? '' : 'none';
 
     var body = [];
@@ -166,22 +166,22 @@ window.Whider.Screens = window.Whider.Screens || {};
       })));
     }
     body.push(U.el('div.group', [U.el('label.cell', [name])]));
-    body.push(W.UI.section({ header: 'Icono', items: U.el('div.group', [U.el('div.cell.col', [icons])]) }));
-    body.push(W.UI.section({ header: 'Frecuencia', items: U.el('div.group', [freqHost]) }));
-    body.push(W.UI.section({ header: 'Objetivo', items: [targetRow, unitRow], footer: 'Con más de una vez al día, cada toque suma una (por ejemplo, 8 vasos de agua).' }));
-    body.push(W.UI.section({ header: 'Recordatorio', items: [remRow, remTime], footer: 'Te avisa a esa hora si todavía no lo has marcado.' }));
+    body.push(W.UI.section({ header: W.t('Icono'), items: U.el('div.group', [U.el('div.cell.col', [icons])]) }));
+    body.push(W.UI.section({ header: W.t('Frecuencia'), items: U.el('div.group', [freqHost]) }));
+    body.push(W.UI.section({ header: W.t('Objetivo'), items: [targetRow, unitRow], footer: W.t('Con más de una vez al día, cada toque suma una (por ejemplo, 8 vasos de agua).') }));
+    body.push(W.UI.section({ header: W.t('Recordatorio'), items: [remRow, remTime], footer: W.t('Te avisa a esa hora si todavía no lo has marcado.') }));
     if (src) {
       body.push(W.UI.section({ items: [
-        W.UI.cell({ title: src.archived ? 'Recuperar el hábito' : 'Archivar el hábito', center: true, onTap: function () { st.updateHabit(src.id, { archived: !src.archived }); s.close(); } }),
-        W.UI.cell({ title: 'Eliminar el hábito', center: true, danger: true, onTap: function () {
-          W.Sheet.confirm({ title: '¿Eliminar «' + src.name + '»?', text: 'Se borra también su historial. Si solo quieres dejarlo de momento, mejor archívalo.', ok: 'Eliminar', danger: true })
+        W.UI.cell({ title: src.archived ? W.t('Recuperar el hábito') : W.t('Archivar el hábito'), center: true, onTap: function () { st.updateHabit(src.id, { archived: !src.archived }); s.close(); } }),
+        W.UI.cell({ title: W.t('Eliminar el hábito'), center: true, danger: true, onTap: function () {
+          W.Sheet.confirm({ title: W.t('¿Eliminar «{name}»?', { name: src.name }), text: W.t('Se borra también su historial. Si solo quieres dejarlo de momento, mejor archívalo.'), ok: W.t('Eliminar'), danger: true })
             .then(function (ok) {
               if (!ok) return;
               var snap = st.removeHabit(src.id); s.close();
-              W.Toast.show({ text: 'Hábito eliminado', icon: 'trash', action: { label: 'Deshacer', fn: function () { st.restoreHabit(snap); } } });
+              W.Toast.show({ text: W.t('Hábito eliminado'), icon: 'trash', action: { label: W.t('Deshacer'), fn: function () { st.restoreHabit(snap); } } });
             });
         } })
-      ], footer: 'Archivado, deja de aparecer en Hoy pero conserva su historial.' }));
+      ], footer: W.t('Archivado, deja de aparecer en Hoy pero conserva su historial.') }));
     }
     var save = function () {
       d.name = name.value.trim(); d.unit = unit.value.trim();
@@ -190,7 +190,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       W.Audio.vibrate([8]);
       s.close();
     };
-    var s = W.Sheet.open({ title: src ? 'Editar hábito' : 'Nuevo hábito', className: 'editor', full: true, body: body, foot: [saveBtn] });
+    var s = W.Sheet.open({ title: src ? W.t('Editar hábito') : W.t('Nuevo hábito'), className: 'editor', full: true, body: body, foot: [saveBtn] });
     sync();
     if (!src) setTimeout(function () { name.focus(); }, W.Layout.desktop ? 30 : 380);
     return s;
@@ -207,20 +207,20 @@ window.Whider.Screens = window.Whider.Screens || {};
       U.clear(host);
       var td = U.today(), n = H().count(h, td), done = n >= h.target;
       var today = h.target > 1
-        ? U.el('div.group', [W.UI.cell({ title: 'Hoy', sub: H().targetLabel(h), right: W.UI.stepper(n, 0, Math.max(h.target, 99), 1, function (v) { st.setHabitCount(h.id, td, v); }, function (v) { return v + ' de ' + h.target; }) })])
-        : U.el('button.btn.block' + (done ? '.ghost' : '.primary'), { on: { click: function () { H().tap(h, td); } } }, [U.icon(done ? 'reset' : 'check', 'sm'), done ? 'Hecho hoy · desmarcar' : 'Marcar hoy como hecho']);
+        ? U.el('div.group', [W.UI.cell({ title: W.t('Hoy'), sub: H().targetLabel(h), right: W.UI.stepper(n, 0, Math.max(h.target, 99), 1, function (v) { st.setHabitCount(h.id, td, v); }, function (v) { return W.t('{n} de {total}', { n: v, total: h.target }); }) })])
+        : U.el('button.btn.block' + (done ? '.ghost' : '.primary'), { on: { click: function () { H().tap(h, td); } } }, [U.icon(done ? 'reset' : 'check', 'sm'), done ? W.t('Hecho hoy · desmarcar') : W.t('Marcar hoy como hecho')]);
       host.appendChild(U.el('div.hhead', [U.el('span.hbadge', [U.icon(h.icon)]), U.el('div', [
         U.el('strong', { text: h.name }),
-        U.el('span', { text: [H().freqLabel(h), H().targetLabel(h), h.reminder ? 'aviso a las ' + U.fmtTime(h.reminder) : ''].filter(Boolean).join(' · ') })
+        U.el('span', { text: [H().freqLabel(h), H().targetLabel(h), h.reminder ? W.t('aviso a las {time}', { time: U.fmtTime(h.reminder) }) : ''].filter(Boolean).join(' · ') })
       ])]));
       host.appendChild(today);
       host.appendChild(statTiles(h));
-      host.appendChild(W.UI.section({ header: 'Últimas 18 semanas', items: U.el('div.group.card', [heat(h, 18)]) }));
-      host.appendChild(W.UI.section({ header: 'Esta semana', items: U.el('div.group.card', [weekStrip(h)]) }));
+      host.appendChild(W.UI.section({ header: W.t('Últimas 18 semanas'), items: U.el('div.group.card', [heat(h, 18)]) }));
+      host.appendChild(W.UI.section({ header: W.t('Esta semana'), items: U.el('div.group.card', [weekStrip(h)]) }));
     };
     var unsub = st.subscribe(function (reason) { if (reason === 'habit' || reason === 'habits' || reason === 'sync') draw(); });
-    var s = W.Sheet.open({ title: 'Hábito', className: 'editor', full: true, body: [host],
-      foot: [U.el('button.btn.ghost', { on: { click: function () { s.close(); setTimeout(function () { editor(id); }, 200); } } }, [U.icon('edit', 'sm'), 'Editar'])],
+    var s = W.Sheet.open({ title: W.t('Hábito'), className: 'editor', full: true, body: [host],
+      foot: [U.el('button.btn.ghost', { on: { click: function () { s.close(); setTimeout(function () { editor(id); }, 200); } } }, [U.icon('edit', 'sm'), W.t('Editar')])],
       onClose: function () { unsub(); } });
     draw();
     return s;
@@ -235,12 +235,12 @@ window.Whider.Screens = window.Whider.Screens || {};
     menu: function (h, at) {
       var st = S(), td = U.today();
       W.Menu.open(at, [
-        { value: 'tap', label: H().isDone(h, td) ? 'Desmarcar hoy' : 'Marcar hoy', icon: 'check' },
-        { value: 'open', label: 'Ver detalle', icon: 'chart' },
-        { value: 'edit', label: 'Editar…', icon: 'edit' },
-        { value: 'up', label: 'Subir', icon: 'up', gap: true },
-        { value: 'down', label: 'Bajar', icon: 'down' },
-        { value: 'archive', label: h.archived ? 'Recuperar' : 'Archivar', icon: 'tray', gap: true }
+        { value: 'tap', label: H().isDone(h, td) ? W.t('Desmarcar hoy') : W.t('Marcar hoy'), icon: 'check' },
+        { value: 'open', label: W.t('Ver detalle'), icon: 'chart' },
+        { value: 'edit', label: W.t('Editar…'), icon: 'edit' },
+        { value: 'up', label: W.t('Subir'), icon: 'up', gap: true },
+        { value: 'down', label: W.t('Bajar'), icon: 'down' },
+        { value: 'archive', label: h.archived ? W.t('Recuperar') : W.t('Archivar'), icon: 'tray', gap: true }
       ]).then(function (v) {
         if (v === 'tap') H().tap(h, td);
         else if (v === 'open') detail(h.id);
@@ -255,13 +255,13 @@ window.Whider.Screens = window.Whider.Screens || {};
       var st = S(), list = H().dueToday();
       if (!H().list().length) {
         if (st.meta.habitsHint) return null;
-        return W.UI.section({ title: 'Hábitos', items: U.el('div.group', [W.UI.cell({ icon: 'target', title: 'Crea tu primer hábito', sub: 'Beber agua, leer, hacer ejercicio…', onTap: function () { editor(null); },
-          right: U.el('button.circle-btn', { attrs: { 'aria-label': 'No mostrar' }, on: { click: function (e) { e.stopPropagation(); st.setMeta('habitsHint', true); W.Router.refresh(); } } }, [U.icon('close')]) })]) });
+        return W.UI.section({ title: W.t('Hábitos'), items: U.el('div.group', [W.UI.cell({ icon: 'target', title: W.t('Crea tu primer hábito'), sub: W.t('Beber agua, leer, hacer ejercicio…'), onTap: function () { editor(null); },
+          right: U.el('button.circle-btn', { attrs: { 'aria-label': W.t('No mostrar') }, on: { click: function (e) { e.stopPropagation(); st.setMeta('habitsHint', true); W.Router.refresh(); } } }, [U.icon('close')]) })]) });
       }
       if (!list.length) return null;
       var sum = H().todaySummary();
-      return W.UI.section({ title: 'Hábitos de hoy', cls: 'habits-today',
-        side: U.el('button.link-btn.muted', { text: sum.done + ' de ' + sum.total, attrs: { title: 'Ver todos los hábitos' }, on: { click: function () { W.Router.go('habits'); } } }),
+      return W.UI.section({ title: W.t('Hábitos de hoy'), cls: 'habits-today',
+        side: U.el('button.link-btn.muted', { text: W.t('{done} de {total}', { done: sum.done, total: sum.total }), attrs: { title: W.t('Ver todos los hábitos') }, on: { click: function () { W.Router.go('habits'); } } }),
         items: U.el('ul.group.habit-list.compact', list.map(function (h) { return habitRow(h, { compact: true }); })) });
     }
   };
@@ -273,17 +273,17 @@ window.Whider.Screens = window.Whider.Screens || {};
     for (var i = range - 1; i >= 0; i--) days.push(U.addDays(td, -i));
     var list = H().list();
     var cols = 'minmax(220px, 1.6fr) repeat(' + range + ', minmax(22px, 1fr)) 64px 64px 64px';
-    var head = U.el('div.hg-row.hg-head', { style: { gridTemplateColumns: cols } }, [U.el('span', { text: 'Hábito' })].concat(days.map(function (ds) {
+    var head = U.el('div.hg-row.hg-head', { style: { gridTemplateColumns: cols } }, [U.el('span', { text: W.t('Hábito') })].concat(days.map(function (ds) {
       return U.el('span.hg-day' + (ds === td ? '.today' : ''), { attrs: { title: U.fmtLong(ds) } }, [U.el('small', { text: U.WEEKDAYS_LETTER[U.weekday(ds)] }), U.el('b', { text: U.parse(ds).getDate() })]);
-    })).concat([U.el('span.hg-num', { text: 'Racha' }), U.el('span.hg-num', { text: 'Mejor' }), U.el('span.hg-num', { text: '30 días' })]));
+    })).concat([U.el('span.hg-num', { text: W.t('Racha') }), U.el('span.hg-num', { text: W.t('Mejor') }), U.el('span.hg-num', { text: W.t('30 días') })]));
     var rows = list.map(function (h) {
       var s = H().stats(h);
-      var name = U.el('button.hg-name', { attrs: { type: 'button', title: 'Ver detalle' }, on: { click: function () { detail(h.id); } } },
+      var name = U.el('button.hg-name', { attrs: { type: 'button', title: W.t('Ver detalle') }, on: { click: function () { detail(h.id); } } },
         [U.icon(h.icon, 'sm'), U.el('span', [U.el('b', { text: h.name }), U.el('small', { text: H().freqLabel(h) + (h.target > 1 ? ' · ' + H().targetLabel(h) : '') })])]);
       var cells = days.map(function (ds) {
         var n = H().count(h, ds), done = n >= h.target, due = H().isDue(h, ds);
         var c = U.el('button.hg-cell' + (done ? '.done' : n ? '.partial' : '') + (due ? '' : '.off') + (ds === td ? '.today' : ''), {
-          attrs: { type: 'button', title: U.fmtLong(ds) + (n ? ' · ' + n + (h.target > 1 ? ' de ' + h.target : '') : due ? ' · sin hacer' : ' · no toca') }
+          attrs: { type: 'button', title: U.fmtLong(ds) + ' · ' + (n ? (h.target > 1 ? W.t('{n} de {total}', { n: n, total: h.target }) : n) : due ? W.t('sin hacer') : W.t('no toca')) }
         }, h.target > 1 && n && !done ? [U.el('span', { text: n })] : []);
         c.addEventListener('click', function () { H().tap(h, ds); });
         c.addEventListener('contextmenu', function (e) { e.preventDefault(); if (n > 0) st.setHabitCount(h.id, ds, h.target > 1 ? n - 1 : 0); });
@@ -295,7 +295,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       row.addEventListener('contextmenu', function (e) { if (e.target.closest('.hg-cell')) return; e.preventDefault(); HabitView.menu(h, { x: e.clientX, y: e.clientY }); });
       return row;
     });
-    var seg = W.UI.segmented([{ value: 7, label: '7 días' }, { value: 14, label: '14 días' }, { value: 30, label: '30 días' }], range,
+    var seg = W.UI.segmented([{ value: 7, label: W.t('7 días') }, { value: 14, label: W.t('14 días') }, { value: 30, label: W.t('30 días') }], range,
       function (v) { st.ui.habitRange = v; W.Router.refresh(); }, { mini: true });
     var sum = H().todaySummary();
     var rates = list.map(function (h) { return H().rate(h, U.addDays(td, -6), td); }).filter(function (r) { return r != null; });
@@ -303,29 +303,29 @@ window.Whider.Screens = window.Whider.Screens || {};
     var bestNow = list.reduce(function (m, h) { var s = H().streak(h); return s > m.n ? { n: s, h: h } : m; }, { n: 0, h: null });
     var kpi = function (v, l) { return U.el('div', [U.el('strong', { text: v }), U.el('span', { text: l })]); };
     return [
-      U.el('div.group.stats.hkpis', [kpi(sum.total ? sum.done + '/' + sum.total : '—', 'Hechos hoy'), kpi(week == null ? '—' : week + '%', 'Cumplido esta semana'),
-        kpi(String(bestNow.n), bestNow.h ? 'Mejor racha · ' + bestNow.h.name : 'Mejor racha'), kpi(String(list.length), list.length === 1 ? 'Hábito activo' : 'Hábitos activos')]),
-      U.el('div.hg-tools', [seg, U.el('span.muted', { text: 'Clic en una casilla para marcar ese día · clic derecho para quitar' })]),
+      U.el('div.group.stats.hkpis', [kpi(sum.total ? sum.done + '/' + sum.total : '—', W.t('Hechos hoy')), kpi(week == null ? '—' : week + '%', W.t('Cumplido esta semana')),
+        kpi(String(bestNow.n), bestNow.h ? W.t('Mejor racha') + ' · ' + bestNow.h.name : W.t('Mejor racha')), kpi(String(list.length), list.length === 1 ? W.t('Hábito activo') : W.t('Hábitos activos'))]),
+      U.el('div.hg-tools', [seg, U.el('span.muted', { text: W.t('Clic en una casilla para marcar ese día · clic derecho para quitar') })]),
       U.el('div.group.hgrid', [head].concat(rows))
     ];
   }
 
   W.Screens.habits = {
-    title: 'Hábitos',
+    title: W.t('Hábitos'),
     back: function () { if (W.Layout.desktop) return false; W.Router.back(); return true; },
     render: function (root) {
       var st = S(), desk = W.Layout.desktop, list = H().list();
       var sum = H().todaySummary();
       var head = W.UI.header({
-        title: 'Hábitos',
-        back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } },
-        sub: list.length ? (sum.total ? sum.done + ' de ' + sum.total + ' hechos hoy' : 'Hoy no toca ninguno') : 'Pequeñas rutinas que se repiten',
-        actions: desk ? [{ text: 'Nuevo hábito', icon: 'plus', label: 'Nuevo hábito', onTap: function () { editor(null); } }] : [{ icon: 'plus', label: 'Nuevo hábito', onTap: function () { editor(null); } }]
+        title: W.t('Hábitos'),
+        back: desk ? null : { label: W.t('Atrás'), onTap: function () { W.Router.back(); } },
+        sub: list.length ? (sum.total ? W.t('{done} de {total} hechos hoy', { done: sum.done, total: sum.total }) : W.t('Hoy no toca ninguno')) : W.t('Pequeñas rutinas que se repiten'),
+        actions: desk ? [{ text: W.t('Nuevo hábito'), icon: 'plus', label: W.t('Nuevo hábito'), onTap: function () { editor(null); } }] : [{ icon: 'plus', label: W.t('Nuevo hábito'), onTap: function () { editor(null); } }]
       });
       var content = [];
       if (!list.length) {
-        content.push(U.el('div.group', [W.UI.empty('buddy:sprout', 'Sin hábitos todavía', 'Crea uno y márcalo cada día: verás tu racha y tu progreso.',
-          U.el('button.btn.sm.primary', { on: { click: function () { editor(null); } } }, [U.icon('plus', 'sm'), 'Crear un hábito']))]));
+        content.push(U.el('div.group', [W.UI.empty('buddy:sprout', W.t('Sin hábitos todavía'), W.t('Crea uno y márcalo cada día: verás tu racha y tu progreso.'),
+          U.el('button.btn.sm.primary', { on: { click: function () { editor(null); } } }, [U.icon('plus', 'sm'), W.t('Crear un hábito')]))]));
         content.push(U.el('div.chips.wrap.hsuggest', SUGGEST.map(function (sg) {
           var c = U.el('button.chip', { attrs: { type: 'button' } }, [U.icon(sg.icon), U.el('span', { text: sg.name })]);
           c.addEventListener('click', function () { editor(null, Object.assign({ freq: 'daily', perWeek: 3, target: 1, unit: '' }, sg)); });
@@ -338,15 +338,15 @@ window.Whider.Screens = window.Whider.Screens || {};
         H().dueToday().forEach(function (h) { dueIds[h.id] = true; });
         var todayList = list.filter(function (h) { return dueIds[h.id]; });
         var others = list.filter(function (h) { return !dueIds[h.id]; });
-        if (todayList.length) content.push(W.UI.section({ title: 'Hoy', first: true, side: U.el('small', { text: sum.done + '/' + sum.total }),
+        if (todayList.length) content.push(W.UI.section({ title: W.t('Hoy'), first: true, side: U.el('small', { text: sum.done + '/' + sum.total }),
           items: U.el('ul.group.habit-list', todayList.map(function (h) { return habitRow(h, { week: true }); })) }));
-        if (others.length) content.push(W.UI.section({ title: 'Otros días', first: !todayList.length,
+        if (others.length) content.push(W.UI.section({ title: W.t('Otros días'), first: !todayList.length,
           items: U.el('ul.group.habit-list', others.map(function (h) { return habitRow(h, { week: true }); })) }));
       }
       var arch = H().archived();
       if (arch.length) {
-        content.push(W.UI.section({ header: 'Archivados', items: U.el('ul.group.habit-list', arch.map(function (h) { return habitRow(h, {}); })),
-          footer: 'No aparecen en Hoy. Ábrelos para recuperarlos.' }));
+        content.push(W.UI.section({ header: W.t('Archivados'), items: U.el('ul.group.habit-list', arch.map(function (h) { return habitRow(h, {}); })),
+          footer: W.t('No aparecen en Hoy. Ábrelos para recuperarlos.') }));
       }
       W.UI.mount(root, head, content);
     }
