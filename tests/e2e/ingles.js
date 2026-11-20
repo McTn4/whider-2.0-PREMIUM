@@ -8,7 +8,8 @@ const { APP } = require('./_util');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0;
 const ok = (c, m, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (!c && extra !== undefined ? '  → ' + JSON.stringify(extra, null, 1).slice(0, 3000) : '')); if (!c) fails++; };
-const PANTALLAS = ['home', 'tasks'];
+// «calendar:week» abre el calendario en esa vista (en el móvil no hay vista de día)
+const PANTALLAS = ['home', 'tasks', 'calendar:month', 'calendar:week', 'calendar:day', 'calendar:agenda', 'focus', 'progress', 'records', 'more', 'stats', 'reports'];
 // Hojas que se abren encima (Ajustes y sus páginas, la ayuda, los atajos, el importador, el editor de tareas…)
 const HOJAS = [
   ['ajustes', () => Whider.Settings.open()],
@@ -59,27 +60,30 @@ const leer = (p, scr) => p.evaluate((s) => {
   return out;
 }, scr);
 
-/** Todo el texto de las hojas abiertas, también el que está plegado (las respuestas de las preguntas frecuentes) */
-const leerHojas = (p) => p.evaluate(() => {
+/** Todo el texto de las hojas abiertas (u otra zona), también el que está plegado (las respuestas de las preguntas frecuentes) */
+const leerHojas = (p, sel) => p.evaluate((selector) => {
   const out = [];
-  document.querySelectorAll('.sheet-layer').forEach((z) => {
+  document.querySelectorAll(selector || '.sheet-layer').forEach((z) => {
     const tw = document.createTreeWalker(z, NodeFilter.SHOW_TEXT);
     for (let n = tw.nextNode(); n; n = tw.nextNode()) n.nodeValue.split('\n').forEach((l) => { if (l.trim()) out.push(l.trim()); });
     z.querySelectorAll('[aria-label],[title],[placeholder]').forEach((el) => ['aria-label', 'title', 'placeholder'].forEach((a) => { const v = el.getAttribute(a); if (v) out.push('[' + a + '] ' + v); }));
   });
   return out;
-});
+}, sel);
 
 (async () => {
   const b = await chromium.launch();
   for (const movil of [false, true]) {
     const p = await abrir(b, movil), donde = movil ? 'móvil' : 'ordenador';
     ok(await p.evaluate(() => document.documentElement.lang === 'en' && Whider.I18n.lang === 'en'), donde + ': la app está en inglés (lang="en")');
-    for (const scr of PANTALLAS) {
-      await p.evaluate((s) => Whider.Router.go(s), scr);
+    for (const pantalla of PANTALLAS) {
+      const [scr, vista] = pantalla.split(':');
+      if (movil && vista === 'day') continue;
+      await p.evaluate(([s, v]) => { if (v) Whider.State.ui.calView = v; Whider.Router.go(s); Whider.Router.refresh(); }, [scr, vista]);
       await sleep(600);
-      const restos = (await leer(p, scr)).filter((l) => ESPANOL.test(l));
-      ok(!restos.length, donde + ': «' + scr + '» sin textos en español', restos);
+      // «records» es la pestaña Marcas de la pantalla de perfil
+      const restos = (await leer(p, scr === 'records' ? 'progress' : scr)).filter((l) => ESPANOL.test(l));
+      ok(!restos.length, donde + ': «' + pantalla + '» sin textos en español', restos);
     }
     for (const [nombre, abrirHoja, arg, solo] of HOJAS) {
       if (solo === 'ordenador' && movil) continue;
@@ -90,6 +94,15 @@ const leerHojas = (p) => p.evaluate(() => {
       ok(texto.length > 2 && !restos.length, donde + ': hoja «' + nombre + '» sin textos en español', restos.length ? restos : texto);
       await p.evaluate(() => { let n = 0; while (Whider.Sheet.isOpen() && n++ < 10) Whider.Sheet.closeTop(); });
       await sleep(450);
+    }
+    // La presentación inicial, paso a paso (sin terminarla, para no cambiar el nombre ni el personaje)
+    await p.evaluate(() => Whider.Onboarding.start());
+    for (let paso = 1; paso <= 3; paso++) {
+      await sleep(500);
+      const texto = await leerHojas(p, '#onboardingRoot');
+      const restos = texto.filter((l) => ESPANOL.test(l));
+      ok(texto.length > 1 && !restos.length, donde + ': presentación, paso ' + paso + ', sin textos en español', restos.length ? restos : texto);
+      if (paso < 3) await p.click('#onboardingRoot .ob-foot button');
     }
     const faltan = await p.evaluate(() => Whider.I18n.missing());
     ok(!faltan.length, donde + ': todo lo pedido está en el catálogo', faltan);

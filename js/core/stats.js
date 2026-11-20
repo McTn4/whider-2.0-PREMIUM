@@ -67,19 +67,19 @@ window.Whider = window.Whider || {};
   function insights(c) {
     var cur = c.cur, prev = c.prev, out = [], st = S();
     var d = delta(cur.done, prev.done);
-    if (d != null && prev.done) out.push({ icon: d >= 0 ? 'up' : 'down', text: d >= 0 ? 'Has completado un ' + d + ' % más que en el periodo anterior.' : 'Has completado un ' + Math.abs(d) + ' % menos que en el periodo anterior.' });
+    if (d != null && prev.done) out.push({ icon: d >= 0 ? 'up' : 'down', text: d >= 0 ? W.t('Has completado un {pct} % más que en el periodo anterior.', { pct: d }) : W.t('Has completado un {pct} % menos que en el periodo anterior.', { pct: Math.abs(d) }) });
     var wd = cur.byWeekday.indexOf(Math.max.apply(null, cur.byWeekday));
-    if (cur.byWeekday[wd] > 0) out.push({ icon: 'calendar', text: 'Tu día más productivo es el ' + U.WEEKDAYS[wd] + '.' });
+    if (cur.byWeekday[wd] > 0) out.push({ icon: 'calendar', text: W.t('Tu día más productivo es el {day}.', { day: U.WEEKDAYS[wd] }) });
     var hs = cur.byHour, bestH = 0, bestV = 0;
     for (var h = 0; h < 23; h++) { var v = hs[h] + hs[h + 1]; if (v > bestV) { bestV = v; bestH = h; } }
-    if (bestV > 1) out.push({ icon: 'clock', text: 'Completas más entre las ' + bestH + ':00 y las ' + (bestH + 2) + ':00.' });
-    if (cur.onTime != null && cur.withDeadline >= 3) out.push({ icon: 'check', text: cur.onTime >= 80 ? 'El ' + cur.onTime + ' % de tus tareas con fecha las terminas a tiempo. ¡Muy bien!' : 'El ' + cur.onTime + ' % de tus tareas con fecha se terminan a tiempo: prueba a poner menos para cada día.' });
+    if (bestV > 1) out.push({ icon: 'clock', text: W.t('Completas más entre las {from} y las {to}.', { from: bestH + ':00', to: (bestH + 2) + ':00' }) });
+    if (cur.onTime != null && cur.withDeadline >= 3) out.push({ icon: 'check', text: cur.onTime >= 80 ? W.t('El {pct} % de tus tareas con fecha las terminas a tiempo. ¡Muy bien!', { pct: cur.onTime }) : W.t('El {pct} % de tus tareas con fecha se terminan a tiempo: prueba a poner menos para cada día.', { pct: cur.onTime }) });
     var topList = Object.keys(cur.byList).sort(function (a, b) { return cur.byList[b] - cur.byList[a]; })[0];
-    if (topList && cur.byList[topList] >= 2) { var l = st.getList(topList); out.push({ icon: l ? W.Lists.icon(l) : 'tray', text: 'Donde más avanzas: ' + (l ? l.name : 'sin categoría') + ' (' + cur.byList[topList] + ' completadas).' }); }
-    if (cur.focus >= 60) out.push({ icon: 'timer', text: 'Llevas ' + String(Math.round(cur.focus / 60 * 10) / 10).replace('.', ',') + ' h de enfoque en este periodo.' });
+    if (topList && cur.byList[topList] >= 2) { var l = st.getList(topList); out.push({ icon: l ? W.Lists.icon(l) : 'tray', text: W.t('Donde más avanzas: {name} ({n} completadas).', { name: l ? l.name : W.t('sin categoría'), n: cur.byList[topList] }) }); }
+    if (cur.focus >= 60) out.push({ icon: 'timer', text: W.t('Llevas {h} h de enfoque en este periodo.', { h: W.I18n.number(Math.round(cur.focus / 60 * 10) / 10) }) });
     var weak = cur.habits.filter(function (x) { return x.rate < 50; }).sort(function (a, b) { return a.rate - b.rate; })[0];
-    if (weak) out.push({ icon: 'target', text: 'El hábito que más te cuesta: «' + weak.habit.name + '» (' + weak.rate + ' %).' });
-    if (st.bestStreak() >= 3) out.push({ icon: 'flame', text: 'Tu mejor racha: ' + st.bestStreak() + ' días seguidos completando tareas.' });
+    if (weak) out.push({ icon: 'target', text: W.t('El hábito que más te cuesta: «{name}» ({pct} %).', { name: weak.habit.name, pct: weak.rate }) });
+    if (st.bestStreak() >= 3) out.push({ icon: 'flame', text: W.t('Tu mejor racha: {n} días seguidos completando tareas.', { n: st.bestStreak() }) });
     return out;
   }
 

@@ -3,7 +3,7 @@
 /**
  * WHIDER · Herramienta de idiomas (ver docs/decisiones/0003-idiomas.md y js/core/i18n.js)
  *
- *   node tools/i18n.js faltan [archivo…]      textos que pasan por W.t / W.tn / W.tk / U.plural y no están en
+ *   node tools/i18n.js faltan [archivo…]      textos que pasan por W.t / W.tn / W.tp / U.plural y no están en
  *                                             js/i18n/en.js, por archivo y listos para traducir
  *   node tools/i18n.js sobran                 claves del catálogo que ya no usa nadie
  *   node tools/i18n.js pendientes [archivo…]  textos que parecen de la interfaz y aún no pasan por W.t (aproximado)
@@ -104,6 +104,8 @@ function legible(s) {
   if (typeof s !== 'string' || !LETRAS.test(s)) return false;
   if (/^(#|\.|\/|https?:|data:|mailto:|whider\.|[a-z]+:\/\/)/.test(s)) return false;
   if (/^(url|rgba?|hsla?|var|calc|translate|rotate|scale|minmax|repeat)\(/.test(s)) return false;
+  // Marcado que no es texto (un SVG) y siglas que se dicen igual en todos los idiomas (CSV, JSON, PDF)
+  if (/^<(svg|path|polyline|use|g)\b/.test(s) || /^[A-Z]{2,5}$/.test(s)) return false;
   if (
     /^[a-z][a-zA-Z0-9_-]*$/.test(s) &&
     !/^(sí|no|de|y|o|ok|hoy|ayer|nada|todo|todas|todos|ninguno|ninguna|nunca|siempre|ahora|antes|después|mañana)$/.test(
@@ -134,7 +136,7 @@ function usadas(lista) {
       CallExpression(n) {
         const c = nombre(n.callee);
         let pos = null;
-        if (c === 'W.t' || c === 'W.tk' || c === 'tr') pos = [0];
+        if (c === 'W.t' || c === 'W.tk' || c === 'W.tp' || c === 'tr') pos = [0];
         else if (c === 'W.tn') pos = [1, 2];
         else if (/(^|\.)plural$/.test(c) || /U2\(\)\.plural$/.test(c)) pos = [1, 2];
         if (!pos) return;
@@ -144,7 +146,7 @@ function usadas(lista) {
           const s = literal(a);
           if (s != null) {
             if (!keys.has(s)) keys.set(s, f);
-          } else if (c === 'W.t' || c === 'W.tk') dinamicas.push(f + ':' + a.loc.start.line);
+          } else if (c === 'W.t' || c === 'W.tk' || c === 'W.tp') dinamicas.push(f + ':' + a.loc.start.line);
         }
       }
     });
@@ -185,7 +187,7 @@ function envolver(f) {
   walk.simple(ast, {
     CallExpression(n) {
       const c = nombre(n.callee);
-      if (/^(W\.t|W\.tn|W\.tk|tr)$/.test(c) || /(^|\.)plural$/.test(c)) ya.push([n.start, n.end]);
+      if (/^(W\.t|W\.tn|W\.tk|W\.tp|tr)$/.test(c) || /(^|\.)plural$/.test(c)) ya.push([n.start, n.end]);
     }
   });
   const dentro = (n) => ya.some(([a, b]) => n.start >= a && n.end <= b);
@@ -226,7 +228,8 @@ function envolver(f) {
     const textos = partes.filter((p) => literal(p) != null);
     if (!textos.length || !textos.some((p) => legible(literal(p)))) return;
     // Si alguna parte ya es texto traducido o un plural, o lleva texto dentro (condiciones), se deja para hacerlo a mano
-    if (partes.some((p) => p.type === 'CallExpression' && /^(W\.t|W\.tn|tr)$|plural$/.test(nombre(p.callee)))) return;
+    if (partes.some((p) => p.type === 'CallExpression' && /^(W\.t|W\.tn|W\.tp|tr)$|plural$/.test(nombre(p.callee))))
+      return;
     const conTexto = (x) => {
       let hay = false;
       walk.full(x, (m) => {
@@ -320,7 +323,7 @@ function envolverDatos(f, nombreVar, minimo) {
   const ya = [];
   walk.simple(objetivo, {
     CallExpression(n) {
-      if (/^(W\.t|W\.tn|W\.tk|tr)$/.test(nombre(n.callee))) ya.push([n.start, n.end]);
+      if (/^(W\.t|W\.tn|W\.tk|W\.tp|tr)$/.test(nombre(n.callee))) ya.push([n.start, n.end]);
     }
   });
   const cambios = [];
@@ -350,7 +353,7 @@ function pendientes(lista) {
       CallExpression(n) {
         const c = nombre(n.callee);
         if (
-          /^(W\.t|W\.tn|W\.tk|tr|console\.\w+)$/.test(c) ||
+          /^(W\.t|W\.tn|W\.tk|W\.tp|tr|console\.\w+)$/.test(c) ||
           /(^|\.)plural$/.test(c) ||
           /querySelector|getItem|setItem|removeItem|addEventListener|classList|getAttribute|setAttribute|matchMedia|RegExp|test|indexOf|split|replace|match/.test(
             c

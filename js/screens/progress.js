@@ -16,7 +16,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   function chart(st, rerender) {
     var days = st.lastDays(range), max = 1;
     days.forEach(function (d) { if (d.count > max) max = d.count; });
-    var bars = U.el('div.chart' + (range > 7 ? '.dense' : ''), { attrs: { role: 'img', 'aria-label': 'Tareas completadas por día' } });
+    var bars = U.el('div.chart' + (range > 7 ? '.dense' : ''), { attrs: { role: 'img', 'aria-label': W.t('Tareas completadas por día') } });
     days.forEach(function (d, i) {
       var h = d.count ? Math.max(5, Math.round(d.count / max * 100)) : 2;
       var label = range === 7 ? U.WEEKDAYS_LETTER[U.weekday(d.date)] : (i % 5 === 0 || d.isToday ? String(U.parse(d.date).getDate()) : '');
@@ -27,10 +27,10 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
     var total = days.reduce(function (a, d) { return a + d.count; }, 0);
     return U.el('div.group.card', [
-      U.el('div.card-head', [U.el('strong', { text: 'Tareas completadas' }),
+      U.el('div.card-head', [U.el('strong', { text: W.t('Tareas completadas') }),
         W.UI.segmented([{ value: 7, label: '7 D' }, { value: 30, label: '30 D' }], range, function (v) { range = v; rerender(); }, { mini: true })]),
-      U.el('div.card-kicker', { text: 'Media diaria' }),
-      U.el('div.card-big', [fmtAvg(total / range), U.el('small', { text: U.plural(total, 'tarea', 'tareas') + ' en ' + range + ' días' })]),
+      U.el('div.card-kicker', { text: W.t('Media diaria') }),
+      U.el('div.card-big', [fmtAvg(total / range), U.el('small', { text: W.t('{tasks} en {n} días', { tasks: U.plural(total, 'tarea', 'tareas'), n: range }) })]),
       bars
     ]);
   }
@@ -52,7 +52,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     }
     var active = Object.keys(map).filter(function (k) { return k >= start; }).length;
     return U.el('div.group.card', [
-      U.el('div.card-head', [U.el('strong', { text: 'Constancia' }), U.el('span.muted', { text: U.plural(active, 'día activo', 'días activos') })]),
+      U.el('div.card-head', [U.el('strong', { text: W.t('Constancia') }), U.el('span.muted', { text: U.plural(active, 'día activo', 'días activos') })]),
       g
     ]);
   }
@@ -64,9 +64,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     }).filter(function (r) { return r.all; });
     if (!rows.length) return null;
     return U.el('div.group.card', [
-      U.el('div.card-head', [U.el('strong', { text: 'Por categorías' })]),
+      U.el('div.card-head', [U.el('strong', { text: W.t('Por categorías') })]),
       U.el('div.list-bars', rows.map(function (r) {
-        return U.el('div', [U.el('div.list-bar-top', [U.el('span', { text: r.l.name }), U.el('b', { text: r.done + ' de ' + r.all })]),
+        return U.el('div', [U.el('div.list-bar-top', [U.el('span', { text: r.l.name }), U.el('b', { text: W.t('{done} de {total}', { done: r.done, total: r.all }) })]),
           U.el('div.bar', [U.el('i', { style: { width: Math.round(r.done / r.all * 100) + '%' } })])]);
       }))
     ]);
@@ -76,9 +76,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     var s = st.stats();
     var nodes = [
       U.el('div.group.stats', [
-        U.el('div', [U.el('strong', { text: s.done }), U.el('span', { text: 'Completadas' })]),
-        U.el('div', [U.el('strong', { text: s.streak }), U.el('span', { text: s.streak === 1 ? 'Día de racha' : 'Días de racha' })]),
-        U.el('div', [U.el('strong', { text: s.focusMin }), U.el('span', { text: 'Min de enfoque' })])
+        U.el('div', [U.el('strong', { text: s.done }), U.el('span', { text: W.t('Completadas') })]),
+        U.el('div', [U.el('strong', { text: s.streak }), U.el('span', { text: s.streak === 1 ? W.t('Día de racha') : W.t('Días de racha') })]),
+        U.el('div', [U.el('strong', { text: s.focusMin }), U.el('span', { text: W.t('Min de enfoque') })])
       ]),
       chart(st, rerender),
       heatmap(st),
@@ -97,10 +97,10 @@ window.Whider.Screens = window.Whider.Screens || {};
   function profileCard(st) {
     var u = W.Auth && W.Auth.user, name = st.displayName();
     return U.el('div.profile-card', [
-      U.el('button.photo-pick', { attrs: { 'aria-label': 'Editar nombre y foto' }, on: { click: function () { W.Profile.edit(); } } }, [W.Profile.avatar('lg'), U.el('span.cam', [U.icon('camera')])]),
+      U.el('button.photo-pick', { attrs: { 'aria-label': W.t('Editar nombre y foto') }, on: { click: function () { W.Profile.edit(); } } }, [W.Profile.avatar('lg'), U.el('span.cam', [U.icon('camera')])]),
       U.el('div.profile-id', [
-        U.el('strong', { text: name || 'Tu perfil' }),
-        U.el('span', { text: u && u.email ? u.email : (W.Auth && W.Auth.configured() ? 'Sin cuenta · datos solo en este dispositivo' : 'Datos guardados en este dispositivo') })
+        U.el('strong', { text: name || W.t('Tu perfil') }),
+        U.el('span', { text: u && u.email ? u.email : (W.Auth && W.Auth.configured() ? W.t('Sin cuenta · datos solo en este dispositivo') : W.t('Datos guardados en este dispositivo')) })
       ])
     ]);
   }
@@ -108,29 +108,29 @@ window.Whider.Screens = window.Whider.Screens || {};
   /** Tu foto de perfil: el personaje (o tu foto), con acceso a personalizarlo */
   function avatarCard() {
     var c = W.Character.config(), mode = W.Avatar ? W.Avatar.mode() : 'buddy';
-    var sub = mode === 'photo' ? 'Usas tu foto como imagen de perfil' : mode === 'initial' ? 'Usas tu inicial como imagen de perfil' : (c.name || 'Tu personaje') + ' es tu imagen de perfil';
-    return W.UI.section({ items: [W.UI.cell({ icon: 'palette', title: 'Personaje e imagen de perfil', sub: sub, onTap: function () { W.Character.edit(); } })] });
+    var sub = mode === 'photo' ? W.t('Usas tu foto como imagen de perfil') : mode === 'initial' ? W.t('Usas tu inicial como imagen de perfil') : W.t('{name} es tu imagen de perfil', { name: c.name || W.t('Tu personaje') });
+    return W.UI.section({ items: [W.UI.cell({ icon: 'palette', title: W.t('Personaje e imagen de perfil'), sub: sub, onTap: function () { W.Character.edit(); } })] });
   }
 
   /** Cuenta: lo que es de tu cuenta, no de las secciones de la app */
   function accountLinks() {
     var desk = W.Layout.desktop;
     return W.UI.section({ items: [
-      W.UI.cell({ icon: desk ? 'monitor' : 'phone', title: 'Mis dispositivos', sub: desk ? 'Enfoque compartido con tu móvil' : 'Gestiona el ordenador desde aquí', onTap: function () { W.Devices.sheet(); } }),
-      W.UI.cell({ icon: 'gear', title: 'Ajustes', sub: 'Apariencia, avisos, cuenta y datos', onTap: function () { W.Settings.open(); } })
+      W.UI.cell({ icon: desk ? 'monitor' : 'phone', title: W.t('Mis dispositivos'), sub: desk ? W.t('Enfoque compartido con tu móvil') : W.t('Gestiona el ordenador desde aquí'), onTap: function () { W.Devices.sheet(); } }),
+      W.UI.cell({ icon: 'gear', title: W.t('Ajustes'), sub: W.t('Apariencia, avisos, cuenta y datos'), onTap: function () { W.Settings.open(); } })
     ] });
   }
 
   W.Screens.progress = {
-    title: 'Perfil',
+    title: W.t('Perfil'),
     back: function () { W.Router.back(); return true; },
     render: function (root) {
       var st = S(), tab = st.ui.profileTab === 'records' ? 'records' : 'summary';
-      var head = W.UI.header({ title: 'Perfil', back: { label: 'Atrás', onTap: function () { W.Router.back(); } },
-        actions: tab === 'records' ? [{ icon: 'plus', label: 'Nueva marca', onTap: function () { W.RecordsView.newMark(); } }] : [] });
+      var head = W.UI.header({ title: W.t('Perfil'), back: { label: W.t('Atrás'), onTap: function () { W.Router.back(); } },
+        actions: tab === 'records' ? [{ icon: 'plus', label: W.t('Nueva marca'), onTap: function () { W.RecordsView.newMark(); } }] : [] });
       var host = U.el('div');
       var draw = function () { if (tab === 'records') W.RecordsView.render(host); else activity(st, host, draw); };
-      var seg = W.UI.segmented([{ value: 'summary', label: 'Actividad' }, { value: 'records', label: 'Marcas' }],
+      var seg = W.UI.segmented([{ value: 'summary', label: W.t('Actividad') }, { value: 'records', label: W.t('Marcas') }],
         tab, function (v) { st.ui.profileTab = v; W.Screens.progress.render(root); });
       seg.style.marginTop = '16px';
       var account = U.el('div.profile-account', [avatarCard(), accountLinks()]);

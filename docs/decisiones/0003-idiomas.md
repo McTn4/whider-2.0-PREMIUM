@@ -58,9 +58,14 @@ Se prueba abriendo la app con `?lang=en` (`?lang=es` para volver); no aparece en
   de «Nueva tarea» (`js/core/parse.js`), la herramienta `tools/i18n.js` y la prueba `tests/e2e/ingles.js`, que
   recorre en inglés las pantallas y las hojas ya traducidas, en el ordenador y en el móvil, y falla si queda algo en
   español o sin traducir. Hoy cubre: Hoy (con la barra lateral, la inferior, el personaje, los hábitos de hoy, los
-  primeros pasos y las novedades), Tareas (filtros, selección, paleta de órdenes), Ajustes con todas sus páginas y
-  el texto de privacidad, la ayuda y los comentarios, los atajos de teclado, el importador, las plantillas, los
-  dispositivos, el perfil, las actualizaciones, la instalación, las copias, los avisos y el editor de tareas.
+  primeros pasos y las novedades), Tareas (filtros, selección, paleta de órdenes), Calendario (mes, semana, día y
+  agenda), Enfoque, «Más», Perfil con Actividad y Marcas, Estadísticas, Informes, la presentación inicial, Ajustes
+  con todas sus páginas y el texto de privacidad, la ayuda y los comentarios, los atajos de teclado, el importador,
+  las plantillas, los dispositivos, el perfil, las actualizaciones, la instalación, las copias, los avisos y el
+  editor de tareas.
+- **Fechas**: lo que antes se componía a mano en español (semanas, periodos, «16 de noviembre») sale de
+  `js/core/util.js` (`fmtRange`, `fmtSpan`, `fmtDate`, `fmtDayMonth`, `fmtDayMon`, `fmtLongYear`, `fmtHour`), que
+  en español da lo mismo que antes. Las frases con un enlace o una negrita dentro usan `W.tp`.
 - **Atajos**: en inglés, la vista de semana del calendario va con la W (la S sigue funcionando).
 - **Ajuste respecto a lo previsto**: algunos módulos preparan sus textos al cargarse (la barra lateral, por ejemplo),
   así que el catálogo no puede llegar después. En inglés, `i18n.js` escribe la etiqueta del catálogo justo detrás de
@@ -73,8 +78,7 @@ Se prueba abriendo la app con `?lang=en` (`?lang=es` para volver); no aparece en
   por funciones); `node tools/i18n.js datos <archivo> <VARIABLE>` envuelve los textos de una tabla (preguntas
   frecuentes, plantillas…); `node tools/i18n.js faltan` da lo que falta en el catálogo; se añade la pantalla a
   `PANTALLAS` (o la hoja a `HOJAS`) en `tests/e2e/ingles.js`.
-- **Falta**: Calendario, Enfoque, Cuaderno (páginas, bloques, bases de datos, archivos y plantillas), Personas y
-  chats, automatizaciones, informes y estadísticas, marcas, la pantalla de inicio de sesión, la presentación y
-  «Más»; después, los menús de la app de escritorio y los textos nativos de Android, y por último la opción de
-  idioma en Ajustes.
+- **Falta**: Cuaderno (páginas, bloques, bases de datos, archivos y plantillas), Personas y chats,
+  automatizaciones y la pantalla de inicio de sesión; después, los menús de la app de escritorio y los textos
+  nativos de Android, y por último la opción de idioma en Ajustes.
 

@@ -15,7 +15,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   function row(o) {
     return W.UI.cell({
       icon: o.icon, title: o.label, sub: o.sub, cls: 'mo-row', attrs: o.go ? { 'data-go': o.go } : null,
-      value: o.badge ? U.el('span.mo-badge', { text: o.badge > 9 ? '9+' : String(o.badge), attrs: { 'aria-label': o.badge + ' sin ver' } }) : null,
+      value: o.badge ? U.el('span.mo-badge', { text: o.badge > 9 ? '9+' : String(o.badge), attrs: { 'aria-label': W.t('{n} sin ver', { n: o.badge }) } }) : null,
       onTap: function () { if (o.run) o.run(); else W.Router.go(o.go); }
     });
   }
@@ -26,43 +26,43 @@ window.Whider.Screens = window.Whider.Screens || {};
       U.el('span.mo-tile-ic', [U.icon(o.icon)]),
       U.el('b', { text: o.label }),
       U.el('small', { text: o.sub }),
-      o.badge ? U.el('span.mo-badge', { text: o.badge > 9 ? '9+' : String(o.badge), attrs: { 'aria-label': o.badge + ' sin leer' } }) : null
+      o.badge ? U.el('span.mo-badge', { text: o.badge > 9 ? '9+' : String(o.badge), attrs: { 'aria-label': W.t('{n} sin leer', { n: o.badge }) } }) : null
     ]);
   }
 
   W.Screens.more = {
-    title: 'Más',
+    title: W.t('Más'),
     render: function (root) {
       var st = S(), u = W.Auth && W.Auth.user;
-      var head = W.UI.header({ title: 'Más', profile: false, sub: 'Todo WHIDER, por orden de importancia' });
+      var head = W.UI.header({ title: W.t('Más'), profile: false, sub: W.t('Todo WHIDER, por orden de importancia') });
       var unread = W.Chat ? W.Chat.unreadCount() : 0, reqs = W.People ? W.People.pendingCount() : 0;
       var habitsLeft = W.Habits ? W.Habits.list().filter(W.Habits.pendingToday).length : 0;
       var f = W.Screens.focus.status();
       var me = U.el('button.mo-me', { attrs: { type: 'button' }, on: { click: function () { W.Router.go('progress'); } } }, [
         W.Avatar.me(56, { live: true }),
-        U.el('span.mo-me-main', [U.el('strong', { text: st.displayName() || 'Tu perfil' }), U.el('small', { text: u && u.email ? u.email : 'Perfil, actividad y marcas' })]),
+        U.el('span.mo-me-main', [U.el('strong', { text: st.displayName() || W.t('Tu perfil') }), U.el('small', { text: u && u.email ? u.email : W.t('Perfil, actividad y marcas') })]),
         U.icon('chev', 'chev')
       ]);
       var pages = W.Pages ? W.Pages.count() : 0;
       W.UI.mount(root, head, [
         me,
         U.el('div.mo-tiles', [
-          tile({ go: 'notes', icon: 'notebook', label: 'Cuaderno', sub: pages ? U.plural(pages, 'página', 'páginas') : 'Notas, listas y archivos' }),
-          tile({ go: 'chats', icon: 'chat', label: 'Chats', sub: unread ? U.plural(unread, 'mensaje sin leer', 'mensajes sin leer') : 'Con tus contactos y equipos', badge: unread })
+          tile({ go: 'notes', icon: 'notebook', label: W.t('Cuaderno'), sub: pages ? U.plural(pages, 'página', 'páginas') : W.t('Notas, listas y archivos') }),
+          tile({ go: 'chats', icon: 'chat', label: W.t('Chats'), sub: unread ? U.plural(unread, 'mensaje sin leer', 'mensajes sin leer') : W.t('Con tus contactos y equipos'), badge: unread })
         ]),
-        W.UI.section({ header: 'Equipo', items: [
-          row({ go: 'friends', icon: 'users', label: 'Personas', sub: reqs ? U.plural(reqs, 'solicitud', 'solicitudes') + ' por responder' : 'Amigos, trabajo y equipos', badge: reqs })
+        W.UI.section({ header: W.t('Equipo'), items: [
+          row({ go: 'friends', icon: 'users', label: W.t('Personas'), sub: reqs ? W.t('{n} por responder', { n: U.plural(reqs, 'solicitud', 'solicitudes') }) : W.t('Amigos, trabajo y equipos'), badge: reqs })
         ] }),
-        W.UI.section({ header: 'Rutinas', items: [
-          row({ go: 'habits', icon: 'target', label: 'Hábitos', sub: habitsLeft ? 'Te ' + (habitsLeft === 1 ? 'queda 1' : 'quedan ' + habitsLeft) + ' hoy' : 'Rutinas y rachas' }),
-          row({ go: 'focus', icon: 'timer', label: 'Enfoque', sub: f.running ? f.text + ' · en marcha' : 'Temporizador para concentrarte' }),
-          row({ go: 'automations', icon: 'system', label: 'Automatizaciones', sub: 'Reglas y métodos listos para usar' })
+        W.UI.section({ header: W.t('Rutinas'), items: [
+          row({ go: 'habits', icon: 'target', label: W.t('Hábitos'), sub: habitsLeft ? W.tn(habitsLeft, 'Te queda 1 hoy', 'Te quedan {n} hoy') : W.t('Rutinas y rachas') }),
+          row({ go: 'focus', icon: 'timer', label: W.t('Enfoque'), sub: f.running ? W.t('{time} · en marcha', { time: f.text }) : W.t('Temporizador para concentrarte') }),
+          row({ go: 'automations', icon: 'system', label: W.t('Automatizaciones'), sub: W.t('Reglas y métodos listos para usar') })
         ] }),
-        W.UI.section({ header: 'Análisis', items: [
-          row({ go: 'stats', icon: 'chart', label: 'Estadísticas', sub: 'Tu progreso' }),
-          row({ go: 'reports', icon: 'print', label: 'Informes', sub: 'Resúmenes para compartir' })
+        W.UI.section({ header: W.t('Análisis'), items: [
+          row({ go: 'stats', icon: 'chart', label: W.t('Estadísticas'), sub: W.t('Tu progreso') }),
+          row({ go: 'reports', icon: 'print', label: W.t('Informes'), sub: W.t('Resúmenes para compartir') })
         ] }),
-        W.UI.section({ items: [row({ icon: 'gear', label: 'Ajustes', sub: 'Apariencia, avisos, cuenta y datos', run: function () { W.Settings.open(); } })] })
+        W.UI.section({ items: [row({ icon: 'gear', label: W.t('Ajustes'), sub: W.t('Apariencia, avisos, cuenta y datos'), run: function () { W.Settings.open(); } })] })
       ]);
     }
   };

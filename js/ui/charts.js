@@ -63,7 +63,7 @@ window.Whider = window.Whider || {};
       var max = niceMax(Math.max.apply(null, data.map(function (d) { return d.value; }).concat([1])));
       var unit = o.unit || ['', ''];
       var lab = function (v) { return fmt(v) + (unit[0] ? ' ' + (v === 1 ? unit[0] : unit[1]) : ''); };
-      var wrap = U.el('div.vchart', { attrs: { role: 'group', 'aria-label': o.title || 'Gráfico de columnas' }, style: { '--h': (o.height || 150) + 'px' } });
+      var wrap = U.el('div.vchart', { attrs: { role: 'group', 'aria-label': o.title || W.t('Gráfico de columnas') }, style: { '--h': (o.height || 150) + 'px' } });
       var grid = U.el('div.vc-grid', [max, max / 2, 0].map(function (v) { return U.el('div.vc-line', [U.el('span', { text: fmt(v) })]); }));
       var cols = U.el('div.vc-cols' + (data.length > 40 ? '.dense' : ''));
       data.forEach(function (d, i) {
@@ -79,7 +79,7 @@ window.Whider = window.Whider || {};
       if (o.avg) {
         var vals = data.filter(function (d) { return !d.future; }).map(function (d) { return d.value; });
         var avg = vals.length ? vals.reduce(function (a, b) { return a + b; }, 0) / vals.length : 0;
-        if (avg > 0) wrap.appendChild(U.el('div.vc-avg', { style: { bottom: 'calc(20px + (var(--h) - 20px) * ' + (avg / max).toFixed(4) + ')' } }, [U.el('span', { text: 'media ' + fmt(avg) })]));
+        if (avg > 0) wrap.appendChild(U.el('div.vc-avg', { style: { bottom: 'calc(20px + (var(--h) - 20px) * ' + (avg / max).toFixed(4) + ')' } }, [U.el('span', { text: W.t('media {value}', { value: fmt(avg) }) })]));
       }
       return wrap;
     },
@@ -89,7 +89,7 @@ window.Whider = window.Whider || {};
       o = o || {};
       var max = Math.max.apply(null, data.map(function (d) { return d.value; }).concat([1]));
       var unit = o.unit || ['', ''];
-      return U.el('div.hb', { attrs: { role: 'group', 'aria-label': o.title || 'Barras' } }, data.map(function (d) {
+      return U.el('div.hb', { attrs: { role: 'group', 'aria-label': o.title || W.t('Barras') } }, data.map(function (d) {
         var lab = fmt(d.value) + (unit[0] ? ' ' + (d.value === 1 ? unit[0] : unit[1]) : '');
         var row = U.el('div.hb-row', { attrs: { tabindex: '0', role: 'img', 'aria-label': d.label + ': ' + lab } }, [
           U.el('span.hb-label', [d.prio ? W.UI.prio(d.prio) : d.icon ? U.icon(d.icon, 'sm') : null, U.el('span', { text: d.label })]),
@@ -117,7 +117,7 @@ window.Whider = window.Whider || {};
       plot.appendChild(end); plot.appendChild(cross); plot.appendChild(dot);
       var grid = U.el('div.vc-grid', [max, max / 2, 0].map(function (v) { return U.el('div.vc-line', [U.el('span', { text: f(v) })]); }));
       var axis = U.el('div.ac-x', data.map(function (d, i) { return U.el('span', { text: !o.every || i % o.every === 0 || i === n - 1 ? d.x : '' }); }));
-      var wrap = U.el('div.achart', { attrs: { role: 'img', 'aria-label': o.title || 'Gráfico de línea', tabindex: '0' }, style: { '--h': H + 'px' } }, [grid, plot, axis]);
+      var wrap = U.el('div.achart', { attrs: { role: 'img', 'aria-label': o.title || W.t('Gráfico de línea'), tabindex: '0' }, style: { '--h': H + 'px' } }, [grid, plot, axis]);
       var at = function (clientX) {
         var r = plot.getBoundingClientRect(), i = Math.round(U.clamp((clientX - r.left) / r.width, 0, 1) * (n - 1));
         var d = data[i]; if (!d) return;
@@ -146,7 +146,7 @@ window.Whider = window.Whider || {};
       var start = U.addDays(td, -((U.weekday(td) - ws + 7) % 7) - (weeks - 1) * 7);
       var vals = Object.keys(map).filter(function (k) { return k >= start; }).map(function (k) { return map[k]; });
       var max = Math.max.apply(null, vals.concat([1]));
-      var grid = U.el('div.yh-grid', { attrs: { role: 'img', 'aria-label': o.title || 'Constancia del año' } });
+      var grid = U.el('div.yh-grid', { attrs: { role: 'img', 'aria-label': o.title || W.t('Constancia del año') } });
       var months = U.el('div.yh-months');
       var lastM = -1;
       for (var w = 0; w < weeks; w++) {
@@ -163,7 +163,7 @@ window.Whider = window.Whider || {};
         grid.appendChild(col);
       }
       months.style.gridTemplateColumns = 'repeat(' + weeks + ', 1fr)';
-      var scale = U.el('div.yh-scale', [U.el('span', { text: 'Menos' })].concat(['0', '1', '2', '3', '4'].map(function (l) { return U.el('i.yh-c.l' + l); })).concat([U.el('span', { text: 'Más' })]));
+      var scale = U.el('div.yh-scale', [U.el('span', { text: W.t('Menos') })].concat(['0', '1', '2', '3', '4'].map(function (l) { return U.el('i.yh-c.l' + l); })).concat([U.el('span', { text: W.t('Más') })]));
       return U.el('div.yh', [months, grid, scale]);
     },
 
@@ -177,10 +177,10 @@ window.Whider = window.Whider || {};
     card: function (o) {
       var body = U.el('div.ch-body', [o.chart]);
       var showing = false;
-      var btn = o.table ? U.el('button.link-btn.muted.ch-tbtn', { text: 'Tabla', attrs: { 'aria-pressed': 'false' } }) : null;
+      var btn = o.table ? U.el('button.link-btn.muted.ch-tbtn', { text: W.t('Tabla'), attrs: { 'aria-pressed': 'false' } }) : null;
       if (btn) btn.addEventListener('click', function () {
         showing = !showing; U.clear(body); body.appendChild(showing ? o.table() : o.chart);
-        btn.textContent = showing ? 'Gráfico' : 'Tabla'; btn.setAttribute('aria-pressed', showing ? 'true' : 'false');
+        btn.textContent = showing ? W.t('Gráfico') : W.t('Tabla'); btn.setAttribute('aria-pressed', showing ? 'true' : 'false');
       });
       return U.el('div.group.card.ch-card' + (o.wide ? '.wide' : '') + (o.cls ? '.' + o.cls : ''), [
         U.el('div.ch-head', [U.el('div', [U.el('strong', { text: o.title }), o.sub ? U.el('small', { text: o.sub }) : null]), btn]), body]);
@@ -198,9 +198,9 @@ window.Whider = window.Whider || {};
       return U.el('div.st-tile', [
         U.el('span.st-label', { text: o.label }),
         U.el('strong.st-value', { text: o.value }),
-        d == null ? U.el('span.st-delta.flat', { text: o.sub || 'Sin periodo anterior' })
+        d == null ? U.el('span.st-delta.flat', { text: o.sub || W.t('Sin periodo anterior') })
           : U.el('span.st-delta' + (good === true ? '.good' : good === false ? '.bad' : '.flat'), [U.icon(d > 0 ? 'up' : d < 0 ? 'down' : 'chev', 'xs'),
-            (d > 0 ? '+' : '') + d + (o.vs === 'puntos' ? (Math.abs(d) === 1 ? ' punto' : ' puntos') + ' vs. periodo anterior' : ' % ' + (o.vs || 'vs. periodo anterior'))]),
+            (d > 0 ? '+' : '') + d + (o.vs === 'puntos' ? ' ' + W.tn(Math.abs(d), 'punto vs. periodo anterior', 'puntos vs. periodo anterior') : ' % ' + (o.vs || W.t('vs. periodo anterior')))]),
         spark
       ]);
     },

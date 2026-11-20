@@ -12,10 +12,10 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
 
   var AUTO = {
-    streak: { title: 'Mejor racha', unit: 'días', icon: 'flame', fmt: function (v) { return U.plural(v, 'día', 'días'); } },
-    day: { title: 'Más tareas en un día', unit: 'tareas', icon: 'bolt', fmt: function (v) { return U.plural(v, 'tarea', 'tareas'); } },
-    week: { title: 'Mejor semana', unit: 'tareas', icon: 'calendar', fmt: function (v) { return U.plural(v, 'tarea', 'tareas'); } },
-    focusDay: { title: 'Más enfoque en un día', unit: 'min', icon: 'timer', fmt: function (v) { return v + ' min'; } }
+    streak: { title: W.t('Mejor racha'), unit: W.t('días'), icon: 'flame', fmt: function (v) { return U.plural(v, 'día', 'días'); } },
+    day: { title: W.t('Más tareas en un día'), unit: W.t('tareas'), icon: 'bolt', fmt: function (v) { return U.plural(v, 'tarea', 'tareas'); } },
+    week: { title: W.t('Mejor semana'), unit: W.t('tareas'), icon: 'calendar', fmt: function (v) { return U.plural(v, 'tarea', 'tareas'); } },
+    focusDay: { title: W.t('Más enfoque en un día'), unit: 'min', icon: 'timer', fmt: function (v) { return v + ' min'; } }
   };
   var MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
 
@@ -123,7 +123,7 @@ window.Whider = window.Whider || {};
       if (fresh.length) st.save();
       if (!silent) fresh.forEach(function (f, i) {
         setTimeout(function () {
-          var text = f.type === 'milestone' ? 'Hito: ' + f.value + ' tareas completadas' : 'Nueva marca · ' + AUTO[f.type].title + ': ' + AUTO[f.type].fmt(f.value);
+          var text = f.type === 'milestone' ? W.t('Hito: {n} tareas completadas', { n: f.value }) : W.t('Nueva marca · {title}: {value}', { title: AUTO[f.type].title, value: AUTO[f.type].fmt(f.value) });
           W.Toast.show({ text: text, type: 'success', icon: f.type === 'milestone' ? 'trophy' : AUTO[f.type].icon, duration: 4200 });
           W.Audio.vibrate([12]);
         }, 1200 + i * 800);
@@ -132,10 +132,15 @@ window.Whider = window.Whider || {};
     },
 
     historyText: function (h) {
-      if (h.type === 'milestone') return h.value + ' tareas completadas en total';
-      if (h.type === 'custom') return h.text || 'Nueva marca personal';
+      if (h.type === 'milestone') return W.t('{n} tareas completadas en total', { n: h.value });
+      if (h.type === 'custom') {
+        // Se compone al mostrarlo (así sale en el idioma de la app); el texto guardado queda para las marcas ya borradas
+        var m = h.markId && Records.getMark ? Records.getMark(h.markId) : null;
+        if (m && h.prev != null) return m.name + ': ' + fmtValue(m, h.value) + ' ' + W.t('(antes {prev})', { prev: fmtValue(m, h.prev) });
+        return h.text || W.t('Nueva marca personal');
+      }
       var a = AUTO[h.type];
-      return a ? a.title + ': ' + a.fmt(h.value) + (h.prev ? ' (antes ' + h.prev + ')' : '') : '';
+      return a ? a.title + ': ' + a.fmt(h.value) + (h.prev ? ' ' + W.t('(antes {prev})', { prev: h.prev }) : '') : '';
     },
 
     /* ---------- Marcas personales ---------- */
@@ -179,7 +184,7 @@ window.Whider = window.Whider || {};
       var record = !prevBest || isBetter(m, value, prevBest.value);
       if (record && prevBest) {
         pushHistory({ type: 'custom', value: value, prev: prevBest.value, markId: m.id,
-          text: m.name + ': ' + fmtValue(m, value) + ' (antes ' + fmtValue(m, prevBest.value) + ')' });
+          text: m.name + ': ' + fmtValue(m, value) + ' ' + W.t('(antes {prev})', { prev: fmtValue(m, prevBest.value) }) });
       }
       S().notify('records');
       return record && !!prevBest;

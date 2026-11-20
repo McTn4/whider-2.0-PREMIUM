@@ -11,12 +11,12 @@ window.Whider.Screens = window.Whider.Screens || {};
   'use strict';
   var U = W.U, S = function () { return W.State; };
   var PERIODS = [
-    { value: 'week', label: 'Esta semana' }, { value: 'lastweek', label: 'Semana pasada' }, { value: 'month', label: 'Este mes' },
-    { value: 'lastmonth', label: 'Mes pasado' }, { value: 'year', label: 'Este año' }, { value: 'custom', label: 'Personalizado' }
+    { value: 'week', label: W.t('Esta semana') }, { value: 'lastweek', label: W.t('Semana pasada') }, { value: 'month', label: W.t('Este mes') },
+    { value: 'lastmonth', label: W.t('Mes pasado') }, { value: 'year', label: W.t('Este año') }, { value: 'custom', label: W.t('Personalizado') }
   ];
   var SECTIONS = [
-    { id: 'summary', label: 'Resumen' }, { id: 'done', label: 'Completadas' }, { id: 'pending', label: 'Pendientes' }, { id: 'lists', label: 'Categorías' },
-    { id: 'focus', label: 'Enfoque' }, { id: 'habits', label: 'Hábitos' }, { id: 'notes', label: 'Cuaderno' }
+    { id: 'summary', label: W.t('Resumen') }, { id: 'done', label: W.t('Completadas') }, { id: 'pending', label: W.t('Pendientes') }, { id: 'lists', label: W.t('Categorías') },
+    { id: 'focus', label: W.t('Enfoque') }, { id: 'habits', label: W.t('Hábitos') }, { id: 'notes', label: W.t('Cuaderno') }
   ];
   var ui = { period: 'week', from: null, to: null, sections: { summary: true, done: true, pending: true, lists: true, focus: true, habits: true, notes: false } };
 
@@ -32,8 +32,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       default: return [weekStart(td), td];
     }
   }
-  function longDate(ds) { var d = U.parse(ds); return d.getDate() + ' de ' + U.MONTHS[d.getMonth()] + ' de ' + d.getFullYear(); }
-  function periodText(a, b) { return a === b ? longDate(a) : 'Del ' + longDate(a) + ' al ' + longDate(b); }
+  function longDate(ds) { return U.fmtDate(ds); }
+  function periodText(a, b) { return a === b ? longDate(a) : W.t('Del {from} al {to}', { from: longDate(a), to: longDate(b) }); }
 
   /** Todo lo que va en el informe */
   function data(from, to) {
@@ -53,53 +53,53 @@ window.Whider.Screens = window.Whider.Screens || {};
   function doc(d, sections) {
     var Ch = W.Charts, cur = d.cur, out = U.el('article.rp-doc');
     out.appendChild(U.el('header.rp-head', [
-      U.el('div.rp-brand', [U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]), U.el('span', { text: 'WHIDER' })]),
-      U.el('h2', { text: 'Informe de actividad' }),
+      U.el('div.rp-brand', [U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]), U.el('span', { text: W.t('WHIDER') })]),
+      U.el('h2', { text: W.t('Informe de actividad') }),
       U.el('p', { text: periodText(d.from, d.to) + (d.name ? ' · ' + d.name : '') }),
-      U.el('small', { text: 'Generado el ' + longDate(U.today()) + ' a las ' + U.fmtTime(U.nowHM()) })
+      U.el('small', { text: W.t('Generado el {date} a las {time}', { date: longDate(U.today()), time: U.fmtTime(U.nowHM()) }) })
     ]));
     var sec = function (title, body) { out.appendChild(U.el('section.rp-sec', [U.el('h3', { text: title })].concat(body))); };
     if (sections.summary) {
       var dl = W.Stats.delta(cur.done, d.prev.done);
-      var kp = [['Completadas', Ch.fmt(cur.done) + (dl != null && d.prev.done ? ' (' + (dl > 0 ? '+' : '') + dl + ' %)' : '')], ['Creadas', Ch.fmt(cur.created)], ['Media al día', Ch.fmt(cur.avg)],
-        ['A tiempo', cur.onTime == null ? '—' : cur.onTime + ' %'], ['Enfoque', Ch.fmtMin(cur.focus)], ['Hábitos', cur.habitRate == null ? '—' : cur.habitRate + ' %'],
-        ['Días con actividad', cur.activeDays + ' de ' + cur.days.filter(function (r) { return !r.future; }).length], ['Mejor día', cur.best.date ? U.fmtShort(cur.best.date) + ' (' + cur.best.done + ')' : '—']];
-      sec('Resumen', [U.el('div.rp-kpis', kp.map(function (k) { return U.el('div', [U.el('span', { text: k[0] }), U.el('strong', { text: k[1] })]); })),
+      var kp = [[W.t('Completadas'), Ch.fmt(cur.done) + (dl != null && d.prev.done ? ' (' + (dl > 0 ? '+' : '') + dl + ' %)' : '')], [W.t('Creadas'), Ch.fmt(cur.created)], [W.t('Media al día'), Ch.fmt(cur.avg)],
+        [W.t('A tiempo'), cur.onTime == null ? '—' : cur.onTime + ' %'], [W.t('Enfoque'), Ch.fmtMin(cur.focus)], [W.t('Hábitos'), cur.habitRate == null ? '—' : cur.habitRate + ' %'],
+        [W.t('Días con actividad'), W.t('{done} de {total}', { done: cur.activeDays, total: cur.days.filter(function (r) { return !r.future; }).length })], [W.t('Mejor día'), cur.best.date ? U.fmtShort(cur.best.date) + ' (' + cur.best.done + ')' : '—']];
+      sec(W.t('Resumen'), [U.el('div.rp-kpis', kp.map(function (k) { return U.el('div', [U.el('span', { text: k[0] }), U.el('strong', { text: k[1] })]); })),
         U.el('ul.rp-ins', W.Stats.insights(d.c).slice(0, 4).map(function (x) { return U.el('li', { text: x.text }); }))]);
     }
     if (sections.done) {
       var byDay = {}, order = [];
       d.done.forEach(function (t) { var k = U.ymd(new Date(t.doneAt)); if (!byDay[k]) { byDay[k] = []; order.push(k); } byDay[k].push(t); });
-      sec('Tareas completadas (' + d.done.length + ')', d.done.length ? order.map(function (k) {
+      sec(W.t('Tareas completadas ({n})', { n: d.done.length }), d.done.length ? order.map(function (k) {
         return U.el('div.rp-day', [U.el('h4', { text: U.cap(U.fmtLong(k)) }), U.el('ul', byDay[k].map(function (t) {
           var l = t.listId ? S().getList(t.listId) : null;
           return U.el('li', [U.el('span.rp-t', { text: U.fmtTime(U.pad(new Date(t.doneAt).getHours()) + ':' + U.pad(new Date(t.doneAt).getMinutes())) }), U.el('span', { text: t.text }), l ? U.el('em', { text: l.name }) : null]);
         }))]);
-      }) : [U.el('p.rp-none', { text: 'Sin tareas completadas en este periodo.' })]);
+      }) : [U.el('p.rp-none', { text: W.t('Sin tareas completadas en este periodo.') })]);
     }
     if (sections.pending) {
       var late = d.pending.filter(function (t) { return S().isOverdue(t); });
-      sec('Pendientes con fecha (' + d.pending.length + ')', d.pending.length ? [U.el('ul.rp-list', d.pending.slice(0, 60).map(function (t) {
-        return U.el('li', [U.el('span.rp-t', { text: U.fmtShort(t.date) + (t.time ? ' ' + U.fmtTime(t.time) : '') }), U.el('span', { text: t.text }), S().isOverdue(t) ? U.el('em', { text: 'vencida' }) : null]);
-      })), late.length ? U.el('p.rp-note', { text: U.plural(late.length, 'tarea vencida', 'tareas vencidas') + ' en total.' }) : null] : [U.el('p.rp-none', { text: 'Nada pendiente con fecha. ¡Al día!' })]);
+      sec(W.t('Pendientes con fecha ({n})', { n: d.pending.length }), d.pending.length ? [U.el('ul.rp-list', d.pending.slice(0, 60).map(function (t) {
+        return U.el('li', [U.el('span.rp-t', { text: U.fmtShort(t.date) + (t.time ? ' ' + U.fmtTime(t.time) : '') }), U.el('span', { text: t.text }), S().isOverdue(t) ? U.el('em', { text: W.t('vencida') }) : null]);
+      })), late.length ? U.el('p.rp-note', { text: W.t('{n} en total.', { n: U.plural(late.length, 'tarea vencida', 'tareas vencidas') }) }) : null] : [U.el('p.rp-none', { text: W.t('Nada pendiente con fecha. ¡Al día!') })]);
     }
-    if (sections.lists && d.lists.length) sec('Por categoría', [Ch.table(['Categoría', 'Completadas', 'Pendientes'], d.lists.map(function (x) { return [x.name, x.done, x.pending]; }))]);
+    if (sections.lists && d.lists.length) sec(W.t('Por categoría'), [Ch.table([W.t('Categoría'), W.t('Completadas'), W.t('Pendientes')], d.lists.map(function (x) { return [x.name, x.done, x.pending]; }))]);
     if (sections.focus) {
       var fd = cur.days.filter(function (r) { return r.focus > 0; });
-      sec('Enfoque', [U.el('p', { text: cur.focus ? Ch.fmtMin(cur.focus) + ' en ' + U.plural(cur.sessions, 'sesión', 'sesiones') + '.' : 'Sin sesiones de enfoque en este periodo.' }),
-        fd.length ? Ch.table(['Día', 'Minutos', 'Sesiones'], fd.map(function (r) { return [U.fmtShort(r.date), r.focus, r.sessions]; })) : null]);
+      sec(W.t('Enfoque'), [U.el('p', { text: cur.focus ? W.t('{time} en {sessions}.', { time: Ch.fmtMin(cur.focus), sessions: U.plural(cur.sessions, 'sesión', 'sesiones') }) : W.t('Sin sesiones de enfoque en este periodo.') }),
+        fd.length ? Ch.table([W.t('Día'), W.t('Minutos'), W.t('Sesiones')], fd.map(function (r) { return [U.fmtShort(r.date), r.focus, r.sessions]; })) : null]);
     }
-    if (sections.habits && cur.habits.length) sec('Hábitos', [Ch.table(['Hábito', 'Cumplido', 'Racha actual'], cur.habits.map(function (x) { return [x.habit.name, x.rate + ' %', W.Habits.streak(x.habit)]; }))]);
-    if (sections.notes) sec('Páginas editadas (' + d.notes.length + ')', d.notes.length ? [U.el('ul.rp-list', d.notes.map(function (n) { return U.el('li', [U.el('span.rp-t', { text: U.fmtShort(U.ymd(new Date(n.updatedAt))) }), U.el('span', { text: W.Notes.title(n) })]); }))] : [U.el('p.rp-none', { text: 'Sin páginas editadas en este periodo.' })]);
+    if (sections.habits && cur.habits.length) sec(W.t('Hábitos'), [Ch.table([W.t('Hábito'), W.t('Cumplido'), W.t('Racha actual')], cur.habits.map(function (x) { return [x.habit.name, x.rate + ' %', W.Habits.streak(x.habit)]; }))]);
+    if (sections.notes) sec(W.t('Páginas editadas ({n})', { n: d.notes.length }), d.notes.length ? [U.el('ul.rp-list', d.notes.map(function (n) { return U.el('li', [U.el('span.rp-t', { text: U.fmtShort(U.ymd(new Date(n.updatedAt))) }), U.el('span', { text: W.Notes.title(n) })]); }))] : [U.el('p.rp-none', { text: W.t('Sin páginas editadas en este periodo.') })]);
     return out;
   }
 
   /* ---------- Exportar ---------- */
   function csvCell(v) { var s = v == null ? '' : String(v); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
   function toCsv(d) {
-    var st = S(), rows = [['Estado', 'Tarea', 'Categoría', 'Prioridad', 'Fecha', 'Hora', 'Completada el', 'Notas']];
-    d.done.forEach(function (t) { var l = st.getList(t.listId); rows.push(['Completada', t.text, l ? l.name : '', st.PRIORITIES[t.highlight].label, t.date || '', t.time || '', new Date(t.doneAt).toLocaleString('es-ES'), t.notes || '']); });
-    d.pending.forEach(function (t) { var l = st.getList(t.listId); rows.push([st.isOverdue(t) ? 'Vencida' : 'Pendiente', t.text, l ? l.name : '', st.PRIORITIES[t.highlight].label, t.date || '', t.time || '', '', t.notes || '']); });
+    var st = S(), rows = [[W.t('Estado'), W.t('Tarea'), W.t('Categoría'), W.t('Prioridad'), W.t('Fecha'), W.t('Hora'), W.t('Completada el'), W.t('Notas')]];
+    d.done.forEach(function (t) { var l = st.getList(t.listId); rows.push([W.t('Completada'), t.text, l ? l.name : '', st.PRIORITIES[t.highlight].label, t.date || '', t.time || '', new Date(t.doneAt).toLocaleString(W.I18n.locale), t.notes || '']); });
+    d.pending.forEach(function (t) { var l = st.getList(t.listId); rows.push([st.isOverdue(t) ? W.t('Vencida') : W.t('Pendiente'), t.text, l ? l.name : '', st.PRIORITIES[t.highlight].label, t.date || '', t.time || '', '', t.notes || '']); });
     return rows.map(function (r) { return r.map(csvCell).join(';'); }).join('\r\n');
   }
   function toJson(d) {
@@ -112,16 +112,16 @@ window.Whider.Screens = window.Whider.Screens || {};
       habitos: cur.habits.map(function (x) { return { habito: x.habit.name, cumplido: x.rate }; }) }, null, 2);
   }
   function toText(d) {
-    var cur = d.cur, L = ['WHIDER · Informe de actividad', periodText(d.from, d.to), ''];
-    L.push('· Completadas: ' + cur.done + ' (media de ' + W.Charts.fmt(cur.avg) + ' al día)');
-    if (cur.onTime != null) L.push('· A tiempo: ' + cur.onTime + ' %');
-    L.push('· Enfoque: ' + W.Charts.fmtMin(cur.focus));
-    if (cur.habitRate != null) L.push('· Hábitos: ' + cur.habitRate + ' % cumplidos');
+    var cur = d.cur, L = [W.t('WHIDER · Informe de actividad'), periodText(d.from, d.to), ''];
+    L.push('· ' + W.t('Completadas: {n} (media de {avg} al día)', { n: cur.done, avg: W.Charts.fmt(cur.avg) }));
+    if (cur.onTime != null) L.push('· ' + W.t('A tiempo: {pct} %', { pct: cur.onTime }));
+    L.push('· ' + W.t('Enfoque: {time}', { time: W.Charts.fmtMin(cur.focus) }));
+    if (cur.habitRate != null) L.push('· ' + W.t('Hábitos: {pct} % cumplidos', { pct: cur.habitRate }));
     W.Stats.insights(d.c).slice(0, 3).forEach(function (x) { L.push('· ' + x.text); });
     return L.join('\n');
   }
   function copy(text) {
-    var done = function () { W.Toast.show({ text: 'Copiado: ya puedes pegarlo donde quieras', icon: 'check' }); };
+    var done = function () { W.Toast.show({ text: W.t('Copiado: ya puedes pegarlo donde quieras'), icon: 'check' }); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { fallback(); });
     else fallback();
     function fallback() { var ta = U.el('textarea', { style: { position: 'fixed', opacity: '0' } }); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { /* sin portapapeles */ } ta.remove(); }
@@ -134,7 +134,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       setTimeout(function () {
         D.printToPDF(name).then(function (r) {
           end();
-          if (r && r.ok) W.Toast.show({ text: 'Informe guardado en PDF', icon: 'download', action: D.showFile ? { label: 'Mostrar', fn: function () { D.showFile(r.path); } } : null });
+          if (r && r.ok) W.Toast.show({ text: W.t('Informe guardado en PDF'), icon: 'download', action: D.showFile ? { label: W.t('Mostrar'), fn: function () { D.showFile(r.path); } } : null });
         }, end);
       }, 120);
     } else { setTimeout(function () { window.print(); end(); }, 60); }
@@ -143,7 +143,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   /* ---------- Pantalla ---------- */
   var current = null;
   W.Screens.reports = {
-    title: 'Informes',
+    title: W.t('Informes'),
     back: function () { if (W.Layout.desktop) return false; W.Router.back(); return true; },
     /** Menú Archivo → Informe en PDF */
     pdf: function () { if (current) pdf(current); },
@@ -152,14 +152,14 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (!desk && ui.period !== 'week' && ui.period !== 'lastweek') ui.period = 'week';
       var r = range(ui.period), d = data(r[0], r[1]);
       current = d;
-      var head = W.UI.header({ title: desk ? 'Informes' : 'Tu semana', back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } }, sub: periodText(r[0], r[1]) });
+      var head = W.UI.header({ title: desk ? W.t('Informes') : W.t('Tu semana'), back: desk ? null : { label: W.t('Atrás'), onTap: function () { W.Router.back(); } }, sub: periodText(r[0], r[1]) });
       var content = [];
       var opts = (desk ? PERIODS : PERIODS.slice(0, 2));
       var periodSeg = W.UI.segmented(opts.map(function (o) { return { value: o.value, label: o.label }; }), ui.period, function (v) { ui.period = v; W.Router.refresh(); }, { mini: true });
       var controls = [U.el('div.rp-row', [periodSeg])];
       if (desk && ui.period === 'custom') {
-        var mk = function (val, set) { var i = U.el('input.input.rp-date', { attrs: { type: 'date', 'aria-label': 'Fecha' } }); i.value = val; i.addEventListener('change', function () { if (i.value) { set(i.value); W.Router.refresh(); } }); return i; };
-        controls.push(U.el('div.rp-row', [U.el('span.muted', { text: 'Del' }), mk(r[0], function (v) { ui.from = v; }), U.el('span.muted', { text: 'al' }), mk(r[1], function (v) { ui.to = v; })]));
+        var mk = function (val, set) { var i = U.el('input.input.rp-date', { attrs: { type: 'date', 'aria-label': W.t('Fecha') } }); i.value = val; i.addEventListener('change', function () { if (i.value) { set(i.value); W.Router.refresh(); } }); return i; };
+        controls.push(U.el('div.rp-row', [U.el('span.muted', { text: W.t('Del') }), mk(r[0], function (v) { ui.from = v; }), U.el('span.muted', { text: 'al' }), mk(r[1], function (v) { ui.to = v; })]));
       }
       if (desk) {
         controls.push(U.el('div.chips.wrap.rp-secs', SECTIONS.map(function (s) {
@@ -168,10 +168,10 @@ window.Whider.Screens = window.Whider.Screens || {};
           return c;
         })));
         controls.push(U.el('div.rp-actions', [
-          U.el('button.btn.primary.sm', { on: { click: function () { pdf(d); } } }, [U.icon('print', 'sm'), window.WhiderDesktop ? 'Guardar en PDF' : 'Imprimir o PDF']),
+          U.el('button.btn.primary.sm', { on: { click: function () { pdf(d); } } }, [U.icon('print', 'sm'), window.WhiderDesktop ? W.t('Guardar en PDF') : W.t('Imprimir o PDF')]),
           U.el('button.btn.ghost.sm', { on: { click: function () { U.saveFile('whider-informe-' + r[0] + '_' + r[1], toCsv(d), 'csv'); } } }, [U.icon('download', 'sm'), 'CSV']),
           U.el('button.btn.ghost.sm', { on: { click: function () { U.saveFile('whider-informe-' + r[0] + '_' + r[1], toJson(d), 'json'); } } }, [U.icon('download', 'sm'), 'JSON']),
-          U.el('button.btn.ghost.sm', { on: { click: function () { copy(toText(d)); } } }, [U.icon('layers', 'sm'), 'Copiar resumen'])
+          U.el('button.btn.ghost.sm', { on: { click: function () { copy(toText(d)); } } }, [U.icon('layers', 'sm'), W.t('Copiar resumen')])
         ]));
         content.push(U.el('div.rp-controls', controls));
         content.push(U.el('div.rp-paper', [doc(d, ui.sections)]));
@@ -180,19 +180,19 @@ window.Whider.Screens = window.Whider.Screens || {};
         var cur = d.cur, Ch = W.Charts;
         content.push(U.el('div.rp-controls', controls));
         content.push(U.el('div.st-tiles', [
-          Ch.tile({ label: 'Completadas', value: Ch.fmt(cur.done), delta: d.prev.done ? W.Stats.delta(cur.done, d.prev.done) : null, vs: 'vs. semana anterior', sub: 'Primera semana con datos' }),
-          Ch.tile({ label: 'A tiempo', value: cur.onTime == null ? '—' : cur.onTime + ' %', sub: cur.withDeadline ? 'De ' + cur.withDeadline + ' con fecha' : 'Sin tareas con fecha' }),
-          Ch.tile({ label: 'Enfoque', value: Ch.fmtMin(cur.focus), sub: U.plural(cur.sessions, 'sesión', 'sesiones') }),
-          Ch.tile({ label: 'Hábitos', value: cur.habitRate == null ? '—' : cur.habitRate + ' %', sub: cur.habits.length ? U.plural(cur.habits.length, 'hábito', 'hábitos') : 'Sin hábitos' })
+          Ch.tile({ label: W.t('Completadas'), value: Ch.fmt(cur.done), delta: d.prev.done ? W.Stats.delta(cur.done, d.prev.done) : null, vs: W.t('vs. semana anterior'), sub: W.t('Primera semana con datos') }),
+          Ch.tile({ label: W.t('A tiempo'), value: cur.onTime == null ? '—' : cur.onTime + ' %', sub: cur.withDeadline ? W.t('De {n} con fecha', { n: cur.withDeadline }) : W.t('Sin tareas con fecha') }),
+          Ch.tile({ label: W.t('Enfoque'), value: Ch.fmtMin(cur.focus), sub: U.plural(cur.sessions, 'sesión', 'sesiones') }),
+          Ch.tile({ label: W.t('Hábitos'), value: cur.habitRate == null ? '—' : cur.habitRate + ' %', sub: cur.habits.length ? U.plural(cur.habits.length, 'hábito', 'hábitos') : W.t('Sin hábitos') })
         ]));
         var ins = W.Stats.insights(d.c);
-        content.push(W.UI.section({ title: 'Lo más destacado', items: U.el('div.group.card', [ins.length ? U.el('ul.ins-list', ins.slice(0, 5).map(function (x) { return U.el('li', [U.el('span.ins-ic', [U.icon(x.icon, 'sm')]), U.el('span', { text: x.text })]); }))
-          : W.UI.empty('buddy:trophy', 'Tu semana empieza ahora', 'Completa tareas y aquí verás lo mejor de tu semana.', null, true)]) }));
+        content.push(W.UI.section({ title: W.t('Lo más destacado'), items: U.el('div.group.card', [ins.length ? U.el('ul.ins-list', ins.slice(0, 5).map(function (x) { return U.el('li', [U.el('span.ins-ic', [U.icon(x.icon, 'sm')]), U.el('span', { text: x.text })]); }))
+          : W.UI.empty('buddy:trophy', W.t('Tu semana empieza ahora'), W.t('Completa tareas y aquí verás lo mejor de tu semana.'), null, true)]) }));
         content.push(U.el('div.rp-mobile-actions', [U.el('button.btn.primary.block', { on: { click: function () {
           var text = toText(d);
-          if (navigator.share) navigator.share({ title: 'Mi semana en WHIDER', text: text }).catch(function () { copy(text); }); else copy(text);
-        } } }, [U.icon('send', 'sm'), 'Compartir mi semana'])]));
-        content.push(U.el('p.hint', { text: 'El informe completo, con PDF y hoja de cálculo, está en WHIDER para ordenador.' }));
+          if (navigator.share) navigator.share({ title: W.t('Mi semana en WHIDER'), text: text }).catch(function () { copy(text); }); else copy(text);
+        } } }, [U.icon('send', 'sm'), W.t('Compartir mi semana')])]));
+        content.push(U.el('p.hint', { text: W.t('El informe completo, con PDF y hoja de cálculo, está en WHIDER para ordenador.') }));
       }
       W.UI.mount(root, head, content);
     }

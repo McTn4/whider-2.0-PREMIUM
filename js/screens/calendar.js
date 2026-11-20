@@ -15,8 +15,8 @@ window.Whider.Screens = window.Whider.Screens || {};
   var U = W.U, S = function () { return W.State; };
   var slideDir = 0, rootEl = null;
   var HOUR_H = 56;
-  var VIEWS = [{ value: 'month', label: 'Mes' }, { value: 'week', label: 'Semana' }, { value: 'agenda', label: 'Agenda' }];
-  var DESK_VIEWS = [{ value: 'month', label: 'Mes' }, { value: 'week', label: 'Semana' }, { value: 'day', label: 'Día' }, { value: 'agenda', label: 'Agenda' }];
+  var VIEWS = [{ value: 'month', label: W.t('Mes') }, { value: 'week', label: W.t('Semana') }, { value: 'agenda', label: W.t('Agenda') }];
+  var DESK_VIEWS = [{ value: 'month', label: W.t('Mes') }, { value: 'week', label: W.t('Semana') }, { value: 'day', label: W.t('Día') }, { value: 'agenda', label: W.t('Agenda') }];
   function blockMin(t) { return t.duration || 45; }
   function endLabel(t) { var e = (minutesOf(t) + (t.duration || 0)) % 1440; return U.fmtTime(U.pad(Math.floor(e / 60)) + ':' + U.pad(e % 60)); }
 
@@ -48,9 +48,9 @@ window.Whider.Screens = window.Whider.Screens || {};
       n++;
     });
     lines.push('END:VCALENDAR');
-    if (!n) { W.Toast.show({ text: 'No hay tareas pendientes con fecha para exportar', icon: 'info' }); return; }
+    if (!n) { W.Toast.show({ text: W.t('No hay tareas pendientes con fecha para exportar'), icon: 'info' }); return; }
     U.saveFile('whider-calendario', lines.join('\r\n') + '\r\n', 'ics');
-    if (!window.WhiderDesktop) W.Toast.show({ text: U.plural(n, 'tarea exportada', 'tareas exportadas') + ' · ábrelo con tu calendario', icon: 'download' });
+    if (!window.WhiderDesktop) W.Toast.show({ text: W.t('{n} · ábrelo con tu calendario', { n: U.plural(n, 'tarea exportada', 'tareas exportadas') }), icon: 'download' });
   }
 
   /* ---------- Estado de la vista ---------- */
@@ -71,9 +71,9 @@ window.Whider.Screens = window.Whider.Screens || {};
   function weekStart(st, ds) { var ws = st.settings.weekStart; return U.addDays(ds, -((U.weekday(ds) - ws + 7) % 7)); }
   function dayName(ds) {
     var td = U.today();
-    if (ds === td) return 'Hoy';
-    if (ds === U.addDays(td, 1)) return 'Mañana';
-    if (ds === U.addDays(td, -1)) return 'Ayer';
+    if (ds === td) return W.t('Hoy');
+    if (ds === U.addDays(td, 1)) return W.t('Mañana');
+    if (ds === U.addDays(td, -1)) return W.t('Ayer');
     return U.fmtLong(ds);
   }
 
@@ -111,7 +111,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var body = U.el('div.task-body', [U.el('span.tl-time' + (t.time ? '' : '.none'), { text: t.time ? U.fmtTime(t.time) : '—' }), check,
       U.el('div.task-main', [U.el('span.task-title', { text: t.text }), meta])]);
     body.addEventListener('click', function () { W.Editor.open(t.id); });
-    return U.el('li.task.projected', { attrs: { 'aria-label': t.text + ' (se repite)' } }, [body]);
+    return U.el('li.task.projected', { attrs: { 'aria-label': W.t('{text} (se repite)', { text: t.text }) } }, [body]);
   }
   function dayList(st, ds, real, proj) {
     var items = sortDay(st, real || []);
@@ -124,7 +124,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   /** Campo para añadir directamente al día elegido (entiende hora, lista y prioridad) */
   function quickDay(st, ds) {
-    var input = U.el('input', { attrs: { type: 'text', maxlength: 200, placeholder: 'Añadir a ' + (ds === U.today() ? 'hoy' : dayName(ds).toLowerCase()) + '…', enterkeyhint: 'done', 'aria-label': 'Añadir tarea a este día' } });
+    var input = U.el('input', { attrs: { type: 'text', maxlength: 200, placeholder: W.t('Añadir a {day}…', { day: U.inline(dayName(ds)) }), enterkeyhint: 'done', 'aria-label': W.t('Añadir tarea a este día') } });
     var add = function () {
       var raw = input.value.trim();
       if (!raw) { input.focus(); return; }
@@ -135,19 +135,19 @@ window.Whider.Screens = window.Whider.Screens || {};
       setTimeout(function () { var i = U.$('#screen-calendar .quick-day input'); if (i) i.focus(); }, 60);
     };
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); add(); } });
-    return U.el('label.quick-day', [U.icon('plus'), input, U.el('button.btn.soft.sm', { text: 'Añadir', on: { click: add } })]);
+    return U.el('label.quick-day', [U.icon('plus'), input, U.el('button.btn.soft.sm', { text: W.t('Añadir'), on: { click: add } })]);
   }
 
   function dayPanel(st, ds, data) {
     var real = data.byDate[ds] || [], proj = data.proj[ds] || [];
     var done = real.filter(function (t) { return t.done; }).length;
-    var info = real.length ? done + ' de ' + U.plural(real.length, 'tarea completada', 'tareas completadas') : proj.length ? U.plural(proj.length, 'tarea que se repite', 'tareas que se repiten') : 'Sin tareas';
+    var info = real.length ? W.tn(real.length, '{done} de {n} tarea completada', '{done} de {n} tareas completadas', { done: done }) : proj.length ? U.plural(proj.length, 'tarea que se repite', 'tareas que se repiten') : W.t('Sin tareas');
     var head = U.el('div.day-head', [
       U.el('div', [U.el('strong', { text: dayName(ds) }), U.el('span', { text: (ds === U.today() || Math.abs(U.diffDays(U.today(), ds)) === 1 ? U.fmtLong(ds) + ' · ' : '') + info })]),
       real.length ? U.el('div.day-progress', [U.el('div.bar', [U.el('i', { style: { width: Math.round(done / real.length * 100) + '%' } })])]) : null
     ]);
     var body = real.length || proj.length ? dayList(st, ds, real, proj)
-      : U.el('div.group', [W.UI.empty('calendar', 'Día libre', ds < U.today() ? 'No hubo tareas este día.' : 'Escribe arriba para añadir algo a este día.', null, true)]);
+      : U.el('div.group', [W.UI.empty('calendar', W.t('Día libre'), ds < U.today() ? W.t('No hubo tareas este día.') : W.t('Escribe arriba para añadir algo a este día.'), null, true)]);
     return U.el('div.sec', [head, ds >= U.today() ? quickDay(st, ds) : null, body]);
   }
 
@@ -170,7 +170,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         if (proj.length) dots.push({ kind: 'rep' });
         if (!pend.length && !proj.length && real.length && ds <= td) dots.push({ kind: 'done' });
         if (!dots.length) return null;
-        return { dots: dots, label: pend.length ? U.plural(pend.length, 'pendiente', 'pendientes') : proj.length ? 'se repite' : 'completado' };
+        return { dots: dots, label: pend.length ? U.plural(pend.length, 'pendiente', 'pendientes') : proj.length ? W.t('se repite') : W.t('completado') };
       },
       onPick: function (ds) { st.ui.calSelected = ds; W.Audio.select(); rerender(); }
     });
@@ -183,12 +183,12 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) shiftMonth(st, dx < 0 ? 1 : -1);
     });
     grid.addEventListener('pointercancel', function () { sx = null; });
-    var title = U.el('button.cal-title', { attrs: { type: 'button', 'aria-label': U.fmtMonth(cm.y, cm.m) + ', elegir mes' } }, [U.fmtMonth(cm.y, cm.m), U.icon('down')]);
+    var title = U.el('button.cal-title', { attrs: { type: 'button', 'aria-label': W.t('{month}, elegir mes', { month: U.fmtMonth(cm.y, cm.m) }) } }, [U.fmtMonth(cm.y, cm.m), U.icon('down')]);
     title.addEventListener('click', function () { pickMonth(st, title); });
     var card = U.el('div.group.cal', [
       U.el('div.cal-head', [title, U.el('div.cal-arrows', [
-        W.UI.navBtn({ icon: 'left', label: 'Mes anterior', onTap: function () { shiftMonth(st, -1); } }),
-        W.UI.navBtn({ icon: 'right', label: 'Mes siguiente', onTap: function () { shiftMonth(st, 1); } })
+        W.UI.navBtn({ icon: 'left', label: W.t('Mes anterior'), onTap: function () { shiftMonth(st, -1); } }),
+        W.UI.navBtn({ icon: 'right', label: W.t('Mes siguiente'), onTap: function () { shiftMonth(st, 1); } })
       ])]),
       grid
     ]);
@@ -209,8 +209,8 @@ window.Whider.Screens = window.Whider.Screens || {};
   function pickMonth(st, anchor) {
     var y = st.ui.calMonth.y, opts = [];
     for (var m = 0; m < 12; m++) opts.push({ value: y + ':' + m, label: U.cap(U.MONTHS[m]) + ' ' + y, on: m === st.ui.calMonth.m });
-    opts.push({ value: (y + 1) + ':0', label: 'Enero ' + (y + 1), gap: true });
-    opts.push({ value: 'today', label: 'Ir a hoy', icon: 'today' });
+    opts.push({ value: (y + 1) + ':0', label: U.fmtMonth(y + 1, 0), gap: true });
+    opts.push({ value: 'today', label: W.t('Ir a hoy'), icon: 'today' });
     W.Menu.open(anchor, opts).then(function (v) {
       if (!v) return;
       if (v === 'today') { select(st, U.today()); rerender(); return; }
@@ -247,12 +247,11 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) shiftWeek(st, dx < 0 ? 1 : -1);
     });
     strip.addEventListener('pointercancel', function () { sx = null; });
-    var a = U.parse(start), z = U.parse(end);
-    var range = a.getMonth() === z.getMonth() ? a.getDate() + ' – ' + z.getDate() + ' ' + U.MONTHS[z.getMonth()] : a.getDate() + ' ' + U.MONTHS[a.getMonth()].slice(0, 3) + ' – ' + z.getDate() + ' ' + U.MONTHS[z.getMonth()].slice(0, 3);
+    var range = U.fmtRange(start, end);
     var card = U.el('div.group.week', [
       U.el('div.cal-head', [U.el('span.cal-title', { text: U.cap(range) }), U.el('div.cal-arrows', [
-        W.UI.navBtn({ icon: 'left', label: 'Semana anterior', onTap: function () { shiftWeek(st, -1); } }),
-        W.UI.navBtn({ icon: 'right', label: 'Semana siguiente', onTap: function () { shiftWeek(st, 1); } })
+        W.UI.navBtn({ icon: 'left', label: W.t('Semana anterior'), onTap: function () { shiftWeek(st, -1); } }),
+        W.UI.navBtn({ icon: 'right', label: W.t('Semana siguiente'), onTap: function () { shiftWeek(st, 1); } })
       ])]),
       strip
     ]);
@@ -274,7 +273,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var startMin = firstH * 60;
 
     // Sin hora
-    var allday = U.el('div.allday', [U.el('span.allday-label', { text: untimed.length ? 'Sin hora' : 'Sin tareas sin hora · toca una hora para añadir' })]);
+    var allday = U.el('div.allday', [U.el('span.allday-label', { text: untimed.length ? W.t('Sin hora') : W.t('Sin tareas sin hora · toca una hora para añadir') })]);
     untimed.forEach(function (x) {
       var chip = U.el('button.chip' + (x.t.done && !x.proj ? '.done' : ''), { attrs: { type: 'button' } }, [
         U.icon(x.proj ? 'repeat' : x.t.done ? 'check' : 'clock'), U.el('span', { text: x.t.text })]);
@@ -306,10 +305,10 @@ window.Whider.Screens = window.Whider.Screens || {};
     timed.forEach(function (x) {
       var m = mins(x);
       var blk = U.el('div.blk' + (x.proj ? '.proj' : '') + (x.t.done && !x.proj ? '.done' : '') + (x.t.highlight !== 'none' ? '.p-' + x.t.highlight : ''), {
-        attrs: { role: 'button', tabindex: '0', 'aria-label': U.fmtTime(x.t.time) + ', ' + x.t.text + (x.proj ? ' (se repite)' : '') },
+        attrs: { role: 'button', tabindex: '0', 'aria-label': U.fmtTime(x.t.time) + ', ' + (x.proj ? W.t('{text} (se repite)', { text: x.t.text }) : x.t.text) },
         style: { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(34, HOUR_H * 0.75 - 2) + 'px',
           left: 'calc(' + (x.col / x.cols * 100) + '% + ' + (x.col ? 3 : 0) + 'px)', width: 'calc(' + (100 / x.cols) + '% - ' + (x.cols > 1 ? 3 : 0) + 'px)' }
-      }, [U.el('b', [W.Lists.dot(x.t.listId), x.t.text]), U.el('small', { text: U.fmtTime(x.t.time) + (x.proj ? ' · se repite' : '') })]);
+      }, [U.el('b', [W.Lists.dot(x.t.listId), x.t.text]), U.el('small', { text: U.fmtTime(x.t.time) + (x.proj ? ' · ' + W.t('se repite') : '') })]);
       if (x.proj || x.t.done) blk.addEventListener('click', function (e) { e.stopPropagation(); W.Editor.open(x.t.id); });
       else attachDrag(st, blk, x.t, startMin);
       hours.appendChild(blk);
@@ -329,7 +328,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
 
     var head = U.el('div.day-head', [U.el('div', [U.el('strong', { text: dayName(ds) }),
-      U.el('span', { text: real.length || proj.length ? U.plural(real.length + proj.length, 'tarea', 'tareas') + ' · mantén pulsada una para cambiar su hora' : 'Toca una hora para añadir una tarea' })])]);
+      U.el('span', { text: real.length || proj.length ? W.t('{n} · mantén pulsada una para cambiar su hora', { n: U.plural(real.length + proj.length, 'tarea', 'tareas') }) : W.t('Toca una hora para añadir una tarea') })])]);
     return U.el('div.sec', [head, U.el('div.group', [allday, U.el('div.hours-pad'), hours, U.el('div.hours-pad')])]);
   }
 
@@ -361,7 +360,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       setTimeout(function () { blk._justDragged = false; }, 80);
       if (dragged && curMin != null) {
         var hhmm = U.pad(Math.floor(curMin / 60)) + ':' + U.pad(curMin % 60);
-        if (hhmm !== t.time) { st.updateTask(t.id, { time: hhmm }); W.Toast.show({ text: 'Hora cambiada a las ' + U.fmtTime(hhmm), icon: 'clock' }); }
+        if (hhmm !== t.time) { st.updateTask(t.id, { time: hhmm }); W.Toast.show({ text: W.t('Hora cambiada a las {time}', { time: U.fmtTime(hhmm) }), icon: 'clock' }); }
       }
     };
     blk.addEventListener('touchstart', function (e) { begin(e.touches[0].clientY); }, { passive: true });
@@ -386,7 +385,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var td = U.today(), to = U.addDays(td, 30), out = [];
     var data = collect(st, td, to);
     var overdue = pool(st).filter(function (t) { return st.isOverdue(t) && t.date < td; }).sort(st.compareDeadline);
-    if (overdue.length) out.push(W.UI.section({ title: 'Vencidas', red: true, first: true, side: U.el('small', { text: overdue.length }),
+    if (overdue.length) out.push(W.UI.section({ title: W.t('Vencidas'), red: true, first: true, side: U.el('small', { text: overdue.length }),
       items: W.TaskCard.list(overdue, { ctx: 'alerts', postpone: true }) }));
     var days = 0;
     for (var d = td; d <= to; d = U.addDays(d, 1)) {
@@ -397,9 +396,9 @@ window.Whider.Screens = window.Whider.Screens || {};
         U.el('strong', { text: dayName(d) }), U.el('span', { text: (d === td || d === U.addDays(td, 1) ? U.fmtLong(d) + ' · ' : '') + U.plural(real.length + proj.length, 'tarea', 'tareas') })]),
         dayList(st, d, real, proj)]));
     }
-    if (!days && !overdue.length) out.push(U.el('div.sec', [U.el('div.group', [W.UI.empty('agenda', 'Nada en los próximos 30 días', 'Las tareas con fecha aparecerán aquí, día a día.',
-      U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), 'Nueva tarea']))])]));
-    else out.push(U.el('p.hint', { text: 'Se muestran los próximos 30 días.' }));
+    if (!days && !overdue.length) out.push(U.el('div.sec', [U.el('div.group', [W.UI.empty('agenda', W.t('Nada en los próximos 30 días'), W.t('Las tareas con fecha aparecerán aquí, día a día.'),
+      U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), W.t('Nueva tarea')]))])]));
+    else out.push(U.el('p.hint', { text: W.t('Se muestran los próximos 30 días.') }));
     return out;
   }
 
@@ -418,14 +417,14 @@ window.Whider.Screens = window.Whider.Screens || {};
     var t = st.find(id);
     if (!t || t.date === ds) return;
     st.updateTask(id, { date: ds });
-    W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.inline(U.fmtLong(ds)), icon: 'calendar' });
+    W.Toast.show({ text: W.t('«{text}» pasa al {day}', { text: t.text, day: U.inline(U.fmtLong(ds)) }), icon: 'calendar' });
   }
 
   /** Tarea dentro de una casilla del mes */
   function mgChip(st, x) {
     var t = x.t, late = !x.proj && st.isOverdue(t);
     var chip = U.el('button.mg-chip' + (x.proj ? '.rep' : '') + (!x.proj && t.done ? '.done' : '') + (late ? '.late' : '') + (t.highlight !== 'none' && !t.done ? '.p-' + t.highlight : ''), {
-      attrs: { type: 'button', title: (t.time ? U.fmtTime(t.time) + ' · ' : '') + t.text + (x.proj ? ' (se repite)' : '') }
+      attrs: { type: 'button', title: (t.time ? U.fmtTime(t.time) + ' · ' : '') + (x.proj ? W.t('{text} (se repite)', { text: t.text }) : t.text) }
     }, [W.Lists.dot(t.listId), t.time ? U.el('b', { text: U.fmtTime(t.time) }) : null, U.el('span', { text: t.text })]);
     chip.addEventListener('click', function (e) { e.stopPropagation(); W.Editor.open(t.id); });
     chip.addEventListener('dblclick', function (e) { e.stopPropagation(); });
@@ -468,14 +467,14 @@ window.Whider.Screens = window.Whider.Screens || {};
         var pend = real.filter(function (t) { return !t.done; }).length;
         var cell = U.el('div.mg-cell' + (inMonth ? '' : '.out') + (ds === td ? '.today' : '') + (ds === sel ? '.selected' : '') + (ds < td ? '.past' : ''), {
           attrs: { role: 'group', 'data-date': ds, 'aria-current': ds === td ? 'date' : null,
-            'aria-label': U.fmtLong(ds) + (pend ? ', ' + U.plural(pend, 'pendiente', 'pendientes') : '') + (ds === sel ? ', elegido' : '') }
+            'aria-label': U.fmtLong(ds) + (pend ? ', ' + U.plural(pend, 'pendiente', 'pendientes') : '') + (ds === sel ? ', ' + W.t('elegido') : '') }
         });
-        cell.appendChild(U.el('div.mg-top', [U.el('span.mg-num', { text: d.getDate() === 1 ? d.getDate() + ' ' + U.MONTHS[d.getMonth()].slice(0, 3) : d.getDate() }),
-          U.el('button.mg-add', { attrs: { type: 'button', 'aria-label': 'Nueva tarea el ' + U.inline(U.fmtLong(ds)), title: 'Nueva tarea este día' },
+        cell.appendChild(U.el('div.mg-top', [U.el('span.mg-num', { text: d.getDate() === 1 ? U.fmtDayMon(ds) : d.getDate() }),
+          U.el('button.mg-add', { attrs: { type: 'button', 'aria-label': W.t('Nueva tarea el {day}', { day: U.inline(U.fmtLong(ds)) }), title: W.t('Nueva tarea este día') },
             on: { click: function (e) { e.stopPropagation(); W.QuickAdd.open({ date: ds }); } } }, [U.icon('plus', 'xs')])]));
         var list = U.el('div.mg-items');
         items.slice(0, MG_MAX).forEach(function (x) { list.appendChild(mgChip(st, x)); });
-        if (items.length > MG_MAX) list.appendChild(U.el('span.mg-more', { text: '+' + (items.length - MG_MAX) + ' más' }));
+        if (items.length > MG_MAX) list.appendChild(U.el('span.mg-more', { text: W.t('+{n} más', { n: items.length - MG_MAX }) }));
         cell.appendChild(list);
         cell.addEventListener('click', function () {
           if (ds === st.ui.calSelected) return;
@@ -541,25 +540,24 @@ window.Whider.Screens = window.Whider.Screens || {};
       return b;
     })));
 
-    var allday = U.el('div.wg-allday', [U.el('div.wg-label', { text: 'Sin hora' })].concat(days.map(function (ds) {
+    var allday = U.el('div.wg-allday', [U.el('div.wg-label', { text: W.t('Sin hora') })].concat(days.map(function (ds) {
       var cell = U.el('div.wg-adcell', { attrs: { 'data-date': ds } });
       perDay[ds].untimed.forEach(function (x) { cell.appendChild(mgChip(st, x)); });
-      W.Sidebar.dropTarget(cell, function (id) { var t = st.find(id); if (t) { st.updateTask(id, { date: ds, time: null }); W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.inline(U.fmtLong(ds)) + ', sin hora', icon: 'calendar' }); } });
+      W.Sidebar.dropTarget(cell, function (id) { var t = st.find(id); if (t) { st.updateTask(id, { date: ds, time: null }); W.Toast.show({ text: W.t('«{text}» pasa al {day}, sin hora', { text: t.text, day: U.inline(U.fmtLong(ds)) }), icon: 'calendar' }); } });
       return cell;
     })));
 
     var hoursCol = U.el('div.wg-hours');
-    var h12 = st.settings.timeFormat === '12';
-    for (var h = firstH; h <= lastH; h++) hoursCol.appendChild(U.el('span', { text: h12 ? ((h % 12) || 12) + (h < 12 ? ' a. m.' : ' p. m.') : U.pad(h) + ':00' }));
+    for (var h = firstH; h <= lastH; h++) hoursCol.appendChild(U.el('span', { text: U.fmtHour(h) }));
     var cols = days.map(function (ds) {
       var col = U.el('div.wg-col' + (ds === td ? '.today' : '') + (ds < td ? '.past' : ''), { attrs: { 'data-date': ds } });
       perDay[ds].timed.forEach(function (x) {
         var m = minutesOf(x.t), t = x.t;
         var blk = U.el('div.blk.wg-blk' + (x.proj ? '.proj' : '') + (t.done && !x.proj ? '.done' : '') + (t.highlight !== 'none' ? '.p-' + t.highlight : ''), {
-          attrs: { role: 'button', tabindex: '0', title: U.fmtTime(t.time) + ' · ' + t.text, 'aria-label': U.fmtTime(t.time) + ', ' + t.text + (x.proj ? ' (se repite)' : '') },
+          attrs: { role: 'button', tabindex: '0', title: U.fmtTime(t.time) + ' · ' + t.text, 'aria-label': U.fmtTime(t.time) + ', ' + (x.proj ? W.t('{text} (se repite)', { text: t.text }) : t.text) },
           style: { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(26, blockMin(t) / 60 * HOUR_H - 2) + 'px',
             left: 'calc(' + (x.col / x.cols * 100) + '% + ' + (x.col ? 2 : 3) + 'px)', width: 'calc(' + (100 / x.cols) + '% - ' + (x.cols > 1 ? 4 : 6) + 'px)', right: 'auto' }
-        }, [U.el('b', { text: t.text }), U.el('small', { text: U.fmtTime(t.time) + (t.duration ? ' – ' + endLabel(t) : '') + (x.proj ? ' · se repite' : '') })]);
+        }, [U.el('b', { text: t.text }), U.el('small', { text: U.fmtTime(t.time) + (t.duration ? ' – ' + endLabel(t) : '') + (x.proj ? ' · ' + W.t('se repite') : '') })]);
         if (x.proj || t.done) blk.addEventListener('click', function (e) { e.stopPropagation(); W.Editor.open(t.id); });
         else {
           gridDrag(st, blk, t, { startMin: startMin, days: days, cols: function () { return U.$$('.wg-col', blk.closest('.wg-body')); } });
@@ -588,7 +586,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         m = U.clamp(m, 0, 23 * 60 + 45);
         var hhmm = U.pad(Math.floor(m / 60)) + ':' + U.pad(m % 60);
         st.updateTask(id, { date: ds, time: hhmm });
-        W.Toast.show({ text: '«' + t.text + '» pasa al ' + U.inline(U.fmtLong(ds)) + ', ' + U.fmtTime(hhmm), icon: 'clock' });
+        W.Toast.show({ text: W.t('«{text}» pasa al {day}, {time}', { text: t.text, day: U.inline(U.fmtLong(ds)), time: U.fmtTime(hhmm) }), icon: 'clock' });
       });
       return col;
     });
@@ -599,7 +597,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   /** Estirar un bloque por abajo: cambia la duración (de 15 en 15 minutos) */
   function resizeDrag(st, blk, t) {
-    var h = U.el('span.wg-resize', { attrs: { title: 'Arrastra para cambiar la duración', 'aria-hidden': 'true' } });
+    var h = U.el('span.wg-resize', { attrs: { title: W.t('Arrastra para cambiar la duración'), 'aria-hidden': 'true' } });
     blk.appendChild(h);
     h.addEventListener('mousedown', function (e) {
       if (e.button !== 0) return;
@@ -615,7 +613,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       var up = function () {
         window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up);
         document.body.classList.remove('resizing'); blk.classList.remove('lifted');
-        if (dur !== t.duration) { st.updateTask(t.id, { duration: dur }); W.Toast.show({ text: '«' + t.text + '» dura ' + W.Editor.durLabel(dur), icon: 'timer' }); }
+        if (dur !== t.duration) { st.updateTask(t.id, { duration: dur }); W.Toast.show({ text: W.t('«{text}» dura {time}', { text: t.text, time: W.Editor.durLabel(dur) }), icon: 'timer' }); }
         else rerender();
       };
       window.addEventListener('mousemove', move);
@@ -671,28 +669,25 @@ window.Whider.Screens = window.Whider.Screens || {};
   function deskToolbar(st, v, listChip, doneChip) {
     var td = U.today(), week = v.calView === 'week', agenda = v.calView === 'agenda', day = v.calView === 'day';
     var title;
-    if (agenda) title = 'Próximos 30 días';
-    else if (day) title = U.fmtLong(v.calSelected) + ' ' + U.parse(v.calSelected).getFullYear();
-    else if (week) {
-      var a = U.parse(weekStart(st, v.calSelected)), z = U.parse(U.addDays(weekStart(st, v.calSelected), 6));
-      title = a.getMonth() === z.getMonth() ? a.getDate() + ' – ' + z.getDate() + ' de ' + U.MONTHS[z.getMonth()] + ' ' + z.getFullYear()
-        : a.getDate() + ' ' + U.MONTHS[a.getMonth()].slice(0, 3) + ' – ' + z.getDate() + ' ' + U.MONTHS[z.getMonth()].slice(0, 3) + ' ' + z.getFullYear();
-    } else title = U.fmtMonth(v.calMonth.y, v.calMonth.m);
+    if (agenda) title = W.t('Próximos 30 días');
+    else if (day) title = U.fmtLongYear(v.calSelected);
+    else if (week) title = U.fmtRange(weekStart(st, v.calSelected), U.addDays(weekStart(st, v.calSelected), 6), true);
+    else title = U.fmtMonth(v.calMonth.y, v.calMonth.m);
     var shift = function (d) { if (day) { select(st, U.addDays(v.calSelected, d)); rerender(); } else if (week) shiftWeek(st, d); else shiftMonth(st, d); };
     var left = U.el('div.ct-left', agenda ? [U.el('h2.ct-title', { text: title })] : [
       U.el('div.ct-arrows', [
-        W.UI.navBtn({ icon: 'left', label: day ? 'Día anterior (←)' : week ? 'Semana anterior (←)' : 'Mes anterior (←)', onTap: function () { shift(-1); } }),
-        W.UI.navBtn({ icon: 'right', label: day ? 'Día siguiente (→)' : week ? 'Semana siguiente (→)' : 'Mes siguiente (→)', onTap: function () { shift(1); } })
+        W.UI.navBtn({ icon: 'left', label: day ? W.t('Día anterior (←)') : week ? W.t('Semana anterior (←)') : W.t('Mes anterior (←)'), onTap: function () { shift(-1); } }),
+        W.UI.navBtn({ icon: 'right', label: day ? W.t('Día siguiente (→)') : week ? W.t('Semana siguiente (→)') : W.t('Mes siguiente (→)'), onTap: function () { shift(1); } })
       ]),
-      U.el('button.btn.ghost.sm.ct-today', { attrs: { type: 'button', title: 'Ir a hoy (T)' }, on: { click: function () { select(st, td); rerender(); } } }, ['Hoy']),
+      U.el('button.btn.ghost.sm.ct-today', { attrs: { type: 'button', title: W.t('Ir a hoy (T)') }, on: { click: function () { select(st, td); rerender(); } } }, [W.t('Hoy')]),
       week || day ? U.el('h2.ct-title', { text: U.cap(title) }) : (function () {
-        var b = U.el('button.ct-title', { attrs: { type: 'button', 'aria-label': title + ', elegir mes' } }, [title, U.icon('down')]);
+        var b = U.el('button.ct-title', { attrs: { type: 'button', 'aria-label': W.t('{month}, elegir mes', { month: title }) } }, [title, U.icon('down')]);
         b.addEventListener('click', function () { pickMonth(st, b); });
         return b;
       })()
     ]);
     var seg = W.UI.segmented(DESK_VIEWS, v.calView, function (val) { v.calView = val; rerender(); }, { mini: true });
-    var exp = U.el('button.btn.ghost.sm.ct-export', { attrs: { type: 'button', title: 'Exportar las tareas con fecha a otro calendario (.ics)' }, on: { click: function () { exportIcs(st); } } }, [U.icon('download', 'sm'), 'Exportar']);
+    var exp = U.el('button.btn.ghost.sm.ct-export', { attrs: { type: 'button', title: W.t('Exportar las tareas con fecha a otro calendario (.ics)') }, on: { click: function () { exportIcs(st); } } }, [U.icon('download', 'sm'), W.t('Exportar')]);
     return U.el('div.cal-toolbar', [left, U.el('div.ct-right', [listChip, doneChip, exp, seg])]);
   }
 
@@ -714,30 +709,31 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   /* ---------- Pantalla ---------- */
   W.Screens.calendar = {
-    title: 'Calendario',
+    title: W.t('Calendario'),
     key: function (e) { return W.Layout.desktop && calendarKey(e); },
     render: function (root) {
       rootEl = root;
       var st = S(), v = ui(st), td = U.today();
       var cm = v.calMonth;
       var all = pool(st).filter(function (t) { return t.date && t.date.slice(0, 7) === cm.y + '-' + U.pad(cm.m + 1); });
-      var sub = v.calView === 'agenda' ? 'Próximos 30 días' : v.calView === 'week' ? 'Semana ' + weekNumber(weekStart(st, v.calSelected)) + ' · ' + U.fmtMonth(cm.y, cm.m)
-        : U.fmtMonth(cm.y, cm.m) + (all.length ? ' · ' + all.filter(function (t) { return t.done; }).length + ' de ' + all.length + ' completadas' : '');
+      var nDone = all.filter(function (t) { return t.done; }).length, wk = weekNumber(weekStart(st, v.calSelected));
+      var sub = v.calView === 'agenda' ? W.t('Próximos 30 días') : v.calView === 'week' ? W.t('Semana {n} · {month}', { n: wk, month: U.fmtMonth(cm.y, cm.m) })
+        : U.fmtMonth(cm.y, cm.m) + (all.length ? ' · ' + W.t('{done} de {total} completadas', { done: nDone, total: all.length }) : '');
       var isToday = v.calSelected === td, desk = W.Layout.desktop;
       if (!desk && v.calView === 'day') v.calView = 'week';
-      if (desk) sub = v.calView === 'agenda' ? 'Lo vencido y los próximos 30 días' : v.calView === 'day' ? 'Día · semana ' + weekNumber(weekStart(st, v.calSelected)) : v.calView === 'week' ? 'Semana ' + weekNumber(weekStart(st, v.calSelected))
-        : all.length ? all.filter(function (t) { return t.done; }).length + ' de ' + all.length + ' completadas este mes' : 'Sin tareas este mes';
-      var head = W.UI.header({ title: 'Calendario', profile: true, sub: sub,
-        actions: isToday || v.calView === 'agenda' || desk ? [] : [{ text: 'Hoy', label: 'Ir a hoy', onTap: function () { select(st, td); rerender(); } }] });
+      if (desk) sub = v.calView === 'agenda' ? W.t('Lo vencido y los próximos 30 días') : v.calView === 'day' ? W.t('Día · semana {n}', { n: wk }) : v.calView === 'week' ? W.t('Semana {n}', { n: wk })
+        : all.length ? W.t('{done} de {total} completadas este mes', { done: nDone, total: all.length }) : W.t('Sin tareas este mes');
+      var head = W.UI.header({ title: W.t('Calendario'), profile: true, sub: sub,
+        actions: isToday || v.calView === 'agenda' || desk ? [] : [{ text: W.t('Hoy'), label: W.t('Ir a hoy'), onTap: function () { select(st, td); rerender(); } }] });
       var list = v.calList ? st.getList(v.calList) : null;
       var listChip = U.el('button.chip' + (list ? '.on' : ''), { attrs: { type: 'button' } }, [
-        U.icon(list ? W.Lists.icon(list) : 'filter'), U.el('span', { text: list ? list.name : 'Todas las categorías' }), U.icon('down')]);
+        U.icon(list ? W.Lists.icon(list) : 'filter'), U.el('span', { text: list ? list.name : W.t('Todas las categorías') }), U.icon('down')]);
       listChip.addEventListener('click', function () {
-        W.Menu.open(listChip, [{ value: '', label: 'Todas las categorías', icon: 'layers', on: !list }].concat(st.lists.map(function (l) {
+        W.Menu.open(listChip, [{ value: '', label: W.t('Todas las categorías'), icon: 'layers', on: !list }].concat(st.lists.map(function (l) {
           return { value: l.id, label: l.name, icon: W.Lists.icon(l), on: list && list.id === l.id };
         }))).then(function (val) { if (val !== undefined) { v.calList = val || null; rerender(); } });
       });
-      var doneChip = U.el('button.chip' + (v.calShowDone ? '.on' : ''), { attrs: { type: 'button', 'aria-pressed': v.calShowDone ? 'true' : 'false' } }, [U.icon('check'), U.el('span', { text: 'Completadas' })]);
+      var doneChip = U.el('button.chip' + (v.calShowDone ? '.on' : ''), { attrs: { type: 'button', 'aria-pressed': v.calShowDone ? 'true' : 'false' } }, [U.icon('check'), U.el('span', { text: W.t('Completadas') })]);
       doneChip.addEventListener('click', function () { v.calShowDone = !v.calShowDone; W.Audio.select(); rerender(); });
       if (desk) {
         var deskBody = v.calView === 'week' ? deskWeek(st) : v.calView === 'day' ? deskWeek(st, true) : v.calView === 'agenda' ? [U.el('div.cal-agenda', agendaView(st))] : deskMonth(st);

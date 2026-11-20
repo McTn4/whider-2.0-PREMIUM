@@ -29,8 +29,8 @@ window.Whider = window.Whider || {};
   function renderWelcome() {
     return [
       U.svg('svg', { viewBox: '0 0 64 64', class: 'ob-mark', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
-      U.el('h1', { text: 'WHIDER' }),
-      U.el('p', { text: 'Tareas, calendario, avisos y enfoque.' })
+      U.el('h1', { text: W.t('WHIDER') }),
+      U.el('p', { text: W.t('Tareas, calendario, avisos y enfoque.') })
     ];
   }
 
@@ -46,9 +46,9 @@ window.Whider = window.Whider || {};
       preview.classList.toggle('has-photo', !!src);
       if (src) preview.appendChild(U.el('img', { attrs: { alt: '', src: src, referrerpolicy: 'no-referrer' } }));
       else preview.appendChild(document.createTextNode((data.name || 'W').charAt(0).toUpperCase()));
-      link.textContent = src ? 'Cambiar foto' : 'Añadir foto';
+      link.textContent = src ? W.t('Cambiar foto') : W.t('Añadir foto');
     };
-    var input = U.el('input.cell-input.ob-input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'given-name', enterkeyhint: 'next', 'aria-label': 'Tu nombre' } });
+    var input = U.el('input.cell-input.ob-input', { attrs: { type: 'text', maxlength: 30, placeholder: W.t('Tu nombre'), autocomplete: 'given-name', enterkeyhint: 'next', 'aria-label': W.t('Tu nombre') } });
     input.value = data.name;
     input.addEventListener('input', function () { data.name = input.value.trim(); if (!preview.classList.contains('has-photo')) paint(); });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); input.blur(); next(); } });
@@ -56,9 +56,9 @@ window.Whider = window.Whider || {};
     link.addEventListener('click', pick);
     paint();
     return [
-      U.el('h1', { text: 'Tu perfil' }),
-      U.el('p', { text: 'Así aparecerás en WHIDER. Puedes cambiarlo cuando quieras.' }),
-      U.el('div.ob-avatar', [U.el('button.photo-pick', { attrs: { 'aria-label': 'Elegir foto' }, on: { click: pick } }, [preview]), link]),
+      U.el('h1', { text: W.t('Tu perfil') }),
+      U.el('p', { text: W.t('Así aparecerás en WHIDER. Puedes cambiarlo cuando quieras.') }),
+      U.el('div.ob-avatar', [U.el('button.photo-pick', { attrs: { 'aria-label': W.t('Elegir foto') }, on: { click: pick } }, [preview]), link]),
       U.el('div.group', [U.el('label.cell', [input])])
     ];
   }
@@ -77,13 +77,13 @@ window.Whider = window.Whider || {};
         return b;
       }));
     };
-    var input = U.el('input.cell-input.ob-input', { attrs: { type: 'text', maxlength: 16, placeholder: 'Nombre de tu compañero', 'aria-label': 'Nombre de tu compañero' } });
+    var input = U.el('input.cell-input.ob-input', { attrs: { type: 'text', maxlength: 16, placeholder: W.t('Nombre de tu compañero'), 'aria-label': W.t('Nombre de tu compañero') } });
     input.value = data.buddy.name || '';
     input.addEventListener('input', function () { data.buddy.name = input.value.trim(); });
     draw();
     return [
-      U.el('h1', { text: 'Tu compañero' }),
-      U.el('p', { text: 'Es tu imagen de perfil y te acompaña en Hoy con lo que importa: lo vencido, lo que queda y tu racha.' }),
+      U.el('h1', { text: W.t('Tu compañero') }),
+      U.el('p', { text: W.t('Es tu imagen de perfil y te acompaña en Hoy con lo que importa: lo vencido, lo que queda y tu racha.') }),
       stage,
       row('body', ['gota', 'cubo', 'capsula']),
       row('tone', ['blanco', 'perla']),
@@ -96,15 +96,15 @@ window.Whider = window.Whider || {};
     var kind = steps[step];
     var body = kind === 'welcome' ? renderWelcome() : kind === 'buddy' ? renderBuddy() : renderProfile();
     var last = step === steps.length - 1;
-    var cta = U.el('button.btn.primary.block', { text: last ? 'Empezar' : 'Continuar', on: { click: function () {
+    var cta = U.el('button.btn.primary.block', { text: last ? W.t('Empezar') : W.t('Continuar'), on: { click: function () {
       if (kind === 'profile') { var i = U.$('.ob-input', root); if (i) data.name = i.value.trim(); }
       if (last) W.Audio.success();
       next();
     } } });
     root.appendChild(U.el('div.ob-card', [
       U.el('div.ob-top', [
-        step > 0 ? W.UI.navBtn({ icon: 'back', text: 'Atrás', back: true, onTap: function () { step--; render(); } }) : U.el('span'),
-        U.el('button.nav-btn', { text: 'Omitir', on: { click: finish } })
+        step > 0 ? W.UI.navBtn({ icon: 'back', text: W.t('Atrás'), back: true, onTap: function () { step--; render(); } }) : U.el('span'),
+        U.el('button.nav-btn', { text: W.t('Omitir'), on: { click: finish } })
       ]),
       U.el('div.ob-body' + (kind === 'welcome' ? '.welcome' : ''), body),
       U.el('div.ob-foot', [

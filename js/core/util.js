@@ -43,6 +43,7 @@ window.Whider = window.Whider || {};
 
   var U = {
     MONTHS: MONTHS,
+    MONTHS_SHORT: MONTHS_SHORT,
     WEEKDAYS_SHORT: WEEKDAYS_SHORT,
     WEEKDAYS_LETTER: WEEKDAYS_LETTER,
     WEEKDAYS: WEEKDAYS,
@@ -155,6 +156,39 @@ window.Whider = window.Whider || {};
       return WEEKDAYS_SHORT[d.getDay()].toLowerCase() + ' ' + d.getDate() + ' ' + MONTHS_SHORT[d.getMonth()];
     },
     fmtMonth: function (y, m) { return cap(MONTHS[m]) + ' ' + y; },
+    /** «Jueves, 19 de noviembre 2026» / «Thursday, November 19, 2026» */
+    fmtLongYear: function (s) { return U.fmtLong(s) + (EN ? ', ' : ' ') + U.parse(s).getFullYear(); },
+    /** «16 de noviembre» / «November 16» */
+    fmtDayMonth: function (s) { var d = U.parse(s); return EN ? MONTHS[d.getMonth()] + ' ' + d.getDate() : d.getDate() + ' de ' + MONTHS[d.getMonth()]; },
+    /** «20 de noviembre de 2026» / «November 20, 2026» */
+    fmtDate: function (s) { return U.fmtDayMonth(s) + (EN ? ', ' : ' de ') + U.parse(s).getFullYear(); },
+    /** «Del 14 de noviembre al 20 de noviembre de 2026» / «November 14 – November 20, 2026» (el primer año, solo si es otro) */
+    fmtSpan: function (from, to) {
+      var a = U.parse(from), b = U.parse(to), otherYear = a.getFullYear() !== b.getFullYear();
+      if (EN) return U.fmtDayMonth(from) + (otherYear ? ', ' + a.getFullYear() : '') + ' – ' + U.fmtDayMonth(to) + ', ' + b.getFullYear();
+      return 'Del ' + U.fmtDayMonth(from) + (otherYear ? ' de ' + a.getFullYear() : '') + ' al ' + U.fmtDayMonth(to) + ' de ' + b.getFullYear();
+    },
+    /** «1 nov» / «Nov 1» */
+    fmtDayMon: function (s) { var d = U.parse(s); return EN ? MONTHS_SHORT[d.getMonth()] + ' ' + d.getDate() : d.getDate() + ' ' + MONTHS_SHORT[d.getMonth()]; },
+    /** Una hora en punto para la regla del calendario: «15:00», «3 p. m.» o «3 PM» */
+    fmtHour: function (h) {
+      if (!W.State || W.State.settings.timeFormat !== '12') return pad(h) + ':00';
+      return ((h % 12) || 12) + (EN ? (h < 12 ? ' AM' : ' PM') : (h < 12 ? ' a. m.' : ' p. m.'));
+    },
+    /**
+     * Una semana: «16 – 22 noviembre» (con el año, «16 – 22 de noviembre 2026»), «30 nov – 6 dic»; en inglés
+     * «November 16 – 22» (con el año, «November 16 – 22, 2026») y «Nov 30 – Dec 6»
+     */
+    fmtRange: function (a, z, withYear) {
+      var x = U.parse(a), y = U.parse(z), same = x.getMonth() === y.getMonth(), yr = withYear ? y.getFullYear() : null;
+      if (EN) {
+        var r = same ? MONTHS[y.getMonth()] + ' ' + x.getDate() + ' – ' + y.getDate()
+          : MONTHS_SHORT[x.getMonth()] + ' ' + x.getDate() + ' – ' + MONTHS_SHORT[y.getMonth()] + ' ' + y.getDate();
+        return yr ? r + ', ' + yr : r;
+      }
+      if (same) return x.getDate() + ' – ' + y.getDate() + (yr ? ' de ' : ' ') + MONTHS[y.getMonth()] + (yr ? ' ' + yr : '');
+      return x.getDate() + ' ' + MONTHS_SHORT[x.getMonth()] + ' – ' + y.getDate() + ' ' + MONTHS_SHORT[y.getMonth()] + (yr ? ' ' + yr : '');
+    },
     fmtDay: function (s) {
       if (!s) return tr('Sin fecha');
       var td = U.today(), diff = U.diffDays(td, s);

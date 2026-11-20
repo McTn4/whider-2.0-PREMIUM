@@ -66,6 +66,21 @@ window.Whider = window.Whider || {};
   function tn(n, one, other, vars) {
     return t(form(n) === 'one' ? one : other, Object.assign({ n: n }, vars || {}));
   }
+  /**
+   * Frase con elementos dentro: W.tp('Acepto la {link}', { link: nodo }) → ['Acepto la ', nodo], para U.el. Así el
+   * orden de las palabras lo decide cada idioma y el enlace (o la negrita) no parte la frase en trozos sin traducir.
+   */
+  function tp(es, parts) {
+    var s = t(es), out = [], re = /\{(\w+)\}/g, last = 0, m;
+    while ((m = re.exec(s))) {
+      if (m.index > last) out.push(s.slice(last, m.index));
+      var v = parts ? parts[m[1]] : null;
+      out.push(v == null ? m[0] : typeof v === 'object' ? v : String(v));
+      last = re.lastIndex;
+    }
+    if (last < s.length) out.push(s.slice(last));
+    return out;
+  }
   /** Descarga el catálogo de un idioma (una vez); si no se puede, la app sigue en español */
   function load(l) {
     if (l === 'es' || catalogs[l]) return Promise.resolve();
@@ -88,6 +103,7 @@ window.Whider = window.Whider || {};
     get locale() { return LOCALES[lang]; },
     t: t,
     tn: tn,
+    tp: tp,
     form: form,
     /** Se resuelve cuando el catálogo del idioma está cargado (al momento en español) */
     ready: function () { return load(lang); },
@@ -140,4 +156,5 @@ window.Whider = window.Whider || {};
   W.I18n = I18n;
   W.t = t;
   W.tn = tn;
+  W.tp = tp;
 })(window.Whider);
