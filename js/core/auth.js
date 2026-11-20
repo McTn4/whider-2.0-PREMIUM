@@ -17,34 +17,34 @@ window.Whider = window.Whider || {};
   var REDIRECT_FLAG = 'whider.googleRedirect';
 
   var ERRORS = {
-    'auth/email-already-in-use': 'Ya existe una cuenta con este correo. Inicia sesión.',
-    'auth/invalid-email': 'El correo no es válido.',
-    'auth/missing-email': 'Escribe tu correo.',
-    'auth/weak-password': 'La contraseña es demasiado débil.',
-    'auth/missing-password': 'Escribe tu contraseña.',
-    'auth/wrong-password': 'Correo o contraseña incorrectos.',
-    'auth/user-not-found': 'Correo o contraseña incorrectos.',
-    'auth/invalid-credential': 'Correo o contraseña incorrectos.',
-    'auth/invalid-login-credentials': 'Correo o contraseña incorrectos.',
-    'auth/user-disabled': 'Esta cuenta está desactivada.',
-    'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos y vuelve a probar.',
-    'auth/network-request-failed': 'Sin conexión. Comprueba tu internet e inténtalo de nuevo.',
-    'auth/popup-closed-by-user': 'Has cerrado la ventana de Google.',
-    'auth/cancelled-popup-request': 'Inicio de sesión cancelado.',
-    'auth/popup-blocked': 'El navegador bloqueó la ventana de Google.',
-    'auth/account-exists-with-different-credential': 'Este correo ya está registrado con otro método. Entra con correo y contraseña.',
-    'auth/requires-recent-login': 'Por seguridad, vuelve a iniciar sesión y repite la acción.',
-    'auth/operation-not-allowed': 'Este método de acceso no está activado en Firebase.',
-    'auth/unauthorized-domain': 'Este dominio no está autorizado en Firebase (Authentication → Configuración).',
-    'auth/internal-error': 'Error del servidor de cuentas. Inténtalo de nuevo.',
-    'whider/domain': 'Solo se admiten correos profesionales de: ',
-    'whider/load': 'No se pudo cargar el sistema de cuentas. Comprueba tu conexión.',
-    'whider/google-cancelled': 'Inicio de sesión con Google cancelado.',
-    'whider/google-timeout': 'No se completó el acceso con Google en el navegador. Inténtalo de nuevo.',
-    'whider/google-config': 'Google no reconoce esta app. En Firebase → Configuración del proyecto → Tus apps → Android, comprueba el paquete com.whider.app y la huella SHA-1 de la firma.',
-    'whider/google-no-account': 'No hay ninguna cuenta de Google en este móvil. Añádela en Ajustes del teléfono → Cuentas.',
-    'whider/google-unavailable': 'Google no está disponible ahora mismo en este dispositivo. Inténtalo de nuevo.',
-    'whider/google-client': 'Falta el ID de cliente web de Google en js/config.js.'
+    'auth/email-already-in-use': W.t('Ya existe una cuenta con este correo. Inicia sesión.'),
+    'auth/invalid-email': W.t('El correo no es válido.'),
+    'auth/missing-email': W.t('Escribe tu correo.'),
+    'auth/weak-password': W.t('La contraseña es demasiado débil.'),
+    'auth/missing-password': W.t('Escribe tu contraseña.'),
+    'auth/wrong-password': W.t('Correo o contraseña incorrectos.'),
+    'auth/user-not-found': W.t('Correo o contraseña incorrectos.'),
+    'auth/invalid-credential': W.t('Correo o contraseña incorrectos.'),
+    'auth/invalid-login-credentials': W.t('Correo o contraseña incorrectos.'),
+    'auth/user-disabled': W.t('Esta cuenta está desactivada.'),
+    'auth/too-many-requests': W.t('Demasiados intentos. Espera unos minutos y vuelve a probar.'),
+    'auth/network-request-failed': W.t('Sin conexión. Comprueba tu internet e inténtalo de nuevo.'),
+    'auth/popup-closed-by-user': W.t('Has cerrado la ventana de Google.'),
+    'auth/cancelled-popup-request': W.t('Inicio de sesión cancelado.'),
+    'auth/popup-blocked': W.t('El navegador bloqueó la ventana de Google.'),
+    'auth/account-exists-with-different-credential': W.t('Este correo ya está registrado con otro método. Entra con correo y contraseña.'),
+    'auth/requires-recent-login': W.t('Por seguridad, vuelve a iniciar sesión y repite la acción.'),
+    'auth/operation-not-allowed': W.t('Este método de acceso no está activado en Firebase.'),
+    'auth/unauthorized-domain': W.t('Este dominio no está autorizado en Firebase (Authentication → Configuración).'),
+    'auth/internal-error': W.t('Error del servidor de cuentas. Inténtalo de nuevo.'),
+    'whider/domain': W.t('Solo se admiten correos profesionales de: '),
+    'whider/load': W.t('No se pudo cargar el sistema de cuentas. Comprueba tu conexión.'),
+    'whider/google-cancelled': W.t('Inicio de sesión con Google cancelado.'),
+    'whider/google-timeout': W.t('No se completó el acceso con Google en el navegador. Inténtalo de nuevo.'),
+    'whider/google-config': W.t('Google no reconoce esta app. En Firebase → Configuración del proyecto → Tus apps → Android, comprueba el paquete com.whider.app y la huella SHA-1 de la firma.'),
+    'whider/google-no-account': W.t('No hay ninguna cuenta de Google en este móvil. Añádela en Ajustes del teléfono → Cuentas.'),
+    'whider/google-unavailable': W.t('Google no está disponible ahora mismo en este dispositivo. Inténtalo de nuevo.'),
+    'whider/google-client': W.t('Falta el ID de cliente web de Google en js/config.js.')
   };
 
   function err(code, extra) { var e = new Error(code); e.code = code; e.extra = extra; return e; }
@@ -159,8 +159,8 @@ window.Whider = window.Whider || {};
       return Math.min(4, score);
     },
     passwordProblem: function (p) {
-      if (p.length < 8) return 'Usa al menos 8 caracteres.';
-      if (!/[A-Za-z]/.test(p) || !/\d/.test(p)) return 'Combina letras y números.';
+      if (p.length < 8) return W.t('Usa al menos 8 caracteres.');
+      if (!/[A-Za-z]/.test(p) || !/\d/.test(p)) return W.t('Combina letras y números.');
       return null;
     },
 
@@ -280,7 +280,7 @@ window.Whider = window.Whider || {};
       var code = e && (e.code || e.message);
       var m = ERRORS[code];
       if (code === 'whider/domain') return m + (e.extra || '');
-      return m || 'No se ha podido completar. ' + (code ? '(' + code + ')' : '');
+      return m || W.t('No se ha podido completar.') + (code ? ' (' + code + ')' : '');
     }
   };
 

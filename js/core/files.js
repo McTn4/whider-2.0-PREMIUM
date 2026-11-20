@@ -189,16 +189,16 @@ window.Whider = window.Whider || {};
   /** Tipo legible de un archivo: { label: 'Documento PDF', short: 'PDF' } */
   function kind(mime, name) {
     var m = String(mime || ''), e = ext(name), up = function (d) { return (e || d).toUpperCase().slice(0, 4); };
-    if (m === 'application/pdf' || e === 'pdf') return { label: 'Documento PDF', short: 'PDF', k: 'pdf' };
-    if (/wordprocessing|msword|opendocument\.text|rtf/.test(m) || /^(docx?|odt|rtf|pages)$/.test(e)) return { label: 'Documento', short: up('doc'), k: 'doc' };
-    if (/spreadsheet|ms-excel|text\/csv/.test(m) || /^(xlsx?|ods|csv|numbers)$/.test(e)) return { label: 'Hoja de cálculo', short: up('xls'), k: 'sheet' };
-    if (/presentation|powerpoint/.test(m) || /^(pptx?|odp|key)$/.test(e)) return { label: 'Presentación', short: up('ppt'), k: 'slides' };
-    if (/^image\//.test(m)) return { label: 'Imagen', short: up('img'), k: 'image' };
-    if (/^audio\//.test(m)) return { label: 'Audio', short: up('aud'), k: 'audio' };
-    if (/^video\//.test(m)) return { label: 'Vídeo', short: up('vid'), k: 'video' };
-    if (/zip|rar|7z|tar|gzip/.test(m) || /^(zip|rar|7z|tar|gz)$/.test(e)) return { label: 'Archivo comprimido', short: up('zip'), k: 'zip' };
-    if (/^text\//.test(m) || /json|xml/.test(m)) return { label: 'Texto', short: up('txt'), k: 'text' };
-    return { label: 'Archivo', short: up('file'), k: 'file' };
+    if (m === 'application/pdf' || e === 'pdf') return { label: W.t('Documento PDF'), short: 'PDF', k: 'pdf' };
+    if (/wordprocessing|msword|opendocument\.text|rtf/.test(m) || /^(docx?|odt|rtf|pages)$/.test(e)) return { label: W.t('Documento'), short: up('doc'), k: 'doc' };
+    if (/spreadsheet|ms-excel|text\/csv/.test(m) || /^(xlsx?|ods|csv|numbers)$/.test(e)) return { label: W.t('Hoja de cálculo'), short: up('xls'), k: 'sheet' };
+    if (/presentation|powerpoint/.test(m) || /^(pptx?|odp|key)$/.test(e)) return { label: W.t('Presentación'), short: up('ppt'), k: 'slides' };
+    if (/^image\//.test(m)) return { label: W.t('Imagen'), short: up('img'), k: 'image' };
+    if (/^audio\//.test(m)) return { label: W.t('Audio'), short: up('aud'), k: 'audio' };
+    if (/^video\//.test(m)) return { label: W.t('Vídeo'), short: up('vid'), k: 'video' };
+    if (/zip|rar|7z|tar|gzip/.test(m) || /^(zip|rar|7z|tar|gz)$/.test(e)) return { label: W.t('Archivo comprimido'), short: up('zip'), k: 'zip' };
+    if (/^text\//.test(m) || /json|xml/.test(m)) return { label: W.t('Texto'), short: up('txt'), k: 'text' };
+    return { label: W.t('Archivo'), short: up('file'), k: 'file' };
   }
   function b64(blob) {
     return new Promise(function (resolve, reject) {
@@ -528,21 +528,22 @@ window.Whider = window.Whider || {};
 
   /* ---------- Abrir, descargar y ver ---------- */
   function explain(e, name) {
-    var c = e && e.code, n = name ? '«' + name + '»' : 'este archivo';
+    // El nombre va entre comillas; sin nombre, «este archivo» (en la frase de «missing», con mayúscula)
+    var c = e && e.code, n = name ? W.t('«{name}»', { name: name }) : W.t('este archivo'), v = { file: n };
     switch (c) {
-      case 'too-big': return n + ' pesa ' + fmtSize(e.size) + '. El máximo es ' + fmtSize(MAX) + ' por archivo.';
-      case 'quota': return 'No queda espacio en este dispositivo para guardar ' + n + '.';
-      case 'store': return 'No se pudo guardar ' + n + ' en este dispositivo.';
-      case 'offline': return 'Sin conexión: ' + n + ' aún no está en este dispositivo.';
-      case 'signed-out': return 'Entra en tu cuenta para traer ' + n + ' de la nube.';
-      case 'missing': return n.charAt(0).toUpperCase() + n.slice(1) + ' aún no está en la nube: se subirá desde el dispositivo donde se añadió.';
-      case 'no-access': return 'No tienes acceso a ' + n + '.';
-      case 'corrupt': return 'No se pudo descargar ' + n + ' entero. Vuelve a intentarlo.';
-      default: return 'No se pudo abrir ' + n + '.';
+      case 'too-big': return W.t('{file} pesa {size}. El máximo es {max} por archivo.', { file: n, size: fmtSize(e.size), max: fmtSize(MAX) });
+      case 'quota': return W.t('No queda espacio en este dispositivo para guardar {file}.', v);
+      case 'store': return W.t('No se pudo guardar {file} en este dispositivo.', v);
+      case 'offline': return W.t('Sin conexión: {file} aún no está en este dispositivo.', v);
+      case 'signed-out': return W.t('Entra en tu cuenta para traer {file} de la nube.', v);
+      case 'missing': return W.t('{file} aún no está en la nube: se subirá desde el dispositivo donde se añadió.', { file: n.charAt(0).toUpperCase() + n.slice(1) });
+      case 'no-access': return W.t('No tienes acceso a {file}.', v);
+      case 'corrupt': return W.t('No se pudo descargar {file} entero. Vuelve a intentarlo.', v);
+      default: return W.t('No se pudo abrir {file}.', v);
     }
   }
   function short(code) {
-    return { offline: 'Sin conexión', 'signed-out': 'En la nube', missing: 'Aún no está en la nube', 'no-access': 'Sin acceso', corrupt: 'Descarga incompleta' }[code] || 'No disponible';
+    return { offline: W.t('Sin conexión'), 'signed-out': W.t('En la nube'), missing: W.t('Aún no está en la nube'), 'no-access': W.t('Sin acceso'), corrupt: W.t('Descarga incompleta') }[code] || W.t('No disponible');
   }
   /** Estado para mostrarlo: local (pendiente de subir), up (subiendo), ok, down (bajando), cloud (no está aquí), none */
   function status(id, sk) {
@@ -572,7 +573,7 @@ window.Whider = window.Whider || {};
     return get(id, sk).then(function (b) { if (!urls[id]) urls[id] = URL.createObjectURL(b); return urls[id]; });
   }
   function withBlob(ref, sk, fn, onFail) {
-    var slow = setTimeout(function () { W.Toast.show({ text: 'Trayendo «' + (ref.n || 'archivo') + '» de la nube…', icon: 'download', duration: 2500 }); }, 450);
+    var slow = setTimeout(function () { W.Toast.show({ text: W.t('Trayendo «{name}» de la nube…', { name: ref.n || W.t('archivo') }), icon: 'download', duration: 2500 }); }, 450);
     return get(ref.f, sk).then(function (blob) { clearTimeout(slow); return fn(blob); }, function (e) {
       clearTimeout(slow);
       if (onFail) onFail(e);
@@ -590,14 +591,14 @@ window.Whider = window.Whider || {};
     if (D && typeof D.openFile === 'function' && typeof D.saveBinary === 'function') return {
       open: function (ref, blob) {
         return bytes(blob).then(function (u8) { return D.openFile(cleanName(ref.n), u8); }).then(function (r) {
-          if (r && r.blocked) W.Toast.show({ text: 'Por seguridad, WHIDER no abre programas ni scripts. Descárgalo si confías en quien lo añadió.', icon: 'shield', duration: 6000 });
-          else if (r && !r.ok) W.Toast.show({ text: 'No hay ninguna aplicación para abrir «' + ref.n + '». Puedes descargarlo.', type: 'danger', icon: 'alert' });
+          if (r && r.blocked) W.Toast.show({ text: W.t('Por seguridad, WHIDER no abre programas ni scripts. Descárgalo si confías en quien lo añadió.'), icon: 'shield', duration: 6000 });
+          else if (r && !r.ok) W.Toast.show({ text: W.t('No hay ninguna aplicación para abrir «{name}». Puedes descargarlo.', { name: ref.n }), type: 'danger', icon: 'alert' });
         });
       },
       save: function (ref, blob) {
         return bytes(blob).then(function (u8) { return D.saveBinary(cleanName(ref.n), u8); }).then(function (r) {
-          if (r && r.ok) W.Toast.show({ text: 'Guardado en ' + r.path, icon: 'check', type: 'success', action: D.showFile ? { label: 'Mostrar', fn: function () { D.showFile(r.path); } } : null });
-          else if (r && r.error) W.Toast.show({ text: 'No se pudo guardar: ' + r.error, type: 'danger', icon: 'alert' });
+          if (r && r.ok) W.Toast.show({ text: W.t('Guardado en {path}', { path: r.path }), icon: 'check', type: 'success', action: D.showFile ? { label: W.t('Mostrar'), fn: function () { D.showFile(r.path); } } : null });
+          else if (r && r.error) W.Toast.show({ text: W.t('No se pudo guardar: {error}', { error: r.error }), type: 'danger', icon: 'alert' });
         });
       }
     };
@@ -648,20 +649,20 @@ window.Whider = window.Whider || {};
     var btn = function (icon, label, fn, cls) {
       return U.el('button.fv-btn' + (cls ? '.' + cls : ''), { attrs: { type: 'button', 'aria-label': label, title: label }, on: { click: function (e) { e.stopPropagation(); fn(); } } }, [U.icon(icon)]);
     };
-    var close = btn('close', 'Cerrar', closePreview, 'close');
-    var layer = U.el('div.fv-layer', { attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': ref.n || 'Vista previa' } }, [
+    var close = btn('close', W.t('Cerrar'), closePreview, 'close');
+    var layer = U.el('div.fv-layer', { attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': ref.n || W.t('Vista previa') } }, [
       U.el('header.fv-bar', [
-        U.el('div.fv-title', [U.el('strong', { text: ref.n || 'Archivo' }), U.el('small', { text: k.label + (ref.s ? ' · ' + fmtSize(ref.s) : '') })]),
+        U.el('div.fv-title', [U.el('strong', { text: ref.n || W.t('Archivo') }), U.el('small', { text: k.label + (ref.s ? ' · ' + fmtSize(ref.s) : '') })]),
         U.el('div.fv-acts', [
-          btn('download', nat ? 'Guardar en el dispositivo' : 'Descargar', function () { download(ref, sk); }),
-          nat ? btn('external', 'Abrir con otra aplicación', function () { withBlob(ref, sk, function (b) { return nat.open(ref, b); }); }) : null,
-          opts.onDelete ? btn('trash', 'Quitar de la página', function () { closePreview(); opts.onDelete(); }, 'danger') : null,
+          btn('download', nat ? W.t('Guardar en el dispositivo') : W.t('Descargar'), function () { download(ref, sk); }),
+          nat ? btn('external', W.t('Abrir con otra aplicación'), function () { withBlob(ref, sk, function (b) { return nat.open(ref, b); }); }) : null,
+          opts.onDelete ? btn('trash', W.t('Quitar de la página'), function () { closePreview(); opts.onDelete(); }, 'danger') : null,
           close
         ])
       ]),
       stage
     ]);
-    stage.appendChild(U.el('div.fv-wait', [U.el('span.fv-spin'), U.el('span', { text: 'Abriendo…' })]));
+    stage.appendChild(U.el('div.fv-wait', [U.el('span.fv-spin'), U.el('span', { text: W.t('Abriendo…') })]));
     layer.addEventListener('click', function (e) { if (e.target === layer || e.target === stage) closePreview(); });
     var onKey = function (e) {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePreview(); }
@@ -691,7 +692,7 @@ window.Whider = window.Whider || {};
           if (viewer !== mine) return;
           U.clear(stage);
           if (/^image\//.test(t)) {
-            var img = U.el('img.fv-img', { attrs: { src: u, alt: ref.n || 'Imagen', draggable: 'false' } });
+            var img = U.el('img.fv-img', { attrs: { src: u, alt: ref.n || W.t('Imagen'), draggable: 'false' } });
             // Toca para ver a tamaño real (y moverla); otra vez para encajarla
             img.addEventListener('click', function (e) { e.stopPropagation(); stage.classList.toggle('zoom'); });
             stage.appendChild(img);

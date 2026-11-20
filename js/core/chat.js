@@ -19,7 +19,7 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
   var F = function () { return W.Auth.sdk(); }, DB = function () { return W.Auth.db(); };
   var CACHE = 'whider.chats.v1';
-  var REACTIONS = [{ id: 'like', icon: 'thumb', label: 'Me gusta' }, { id: 'heart', icon: 'heart', label: 'Me encanta' }, { id: 'star', icon: 'star', label: 'Genial' }, { id: 'check', icon: 'check', label: 'Hecho' }, { id: 'flame', icon: 'flame', label: '¡Fuego!' }, { id: 'smile', icon: 'smile', label: 'Jaja' }];
+  var REACTIONS = [{ id: 'like', icon: 'thumb', label: W.t('Me gusta') }, { id: 'heart', icon: 'heart', label: W.t('Me encanta') }, { id: 'star', icon: 'star', label: W.t('Genial') }, { id: 'check', icon: 'check', label: W.t('Hecho') }, { id: 'flame', icon: 'flame', label: W.t('¡Fuego!') }, { id: 'smile', icon: 'smile', label: W.t('Jaja') }];
   var cache = (function () { try { var x = JSON.parse(localStorage.getItem(CACHE) || 'null'); return x && x.chats ? x : { chats: {}, msgs: {} }; } catch (e) { return { chats: {}, msgs: {} }; } })();
   var chats = cache.chats, msgs = cache.msgs, owner = cache.owner || null, openCid = null, listAt = 0, msgTimer = null, listTimer = null, subs = [], saveT = null, loading = {}, readT = null;
   // Escuchas: de quién es la lista, qué chat se escucha, si aún no ha llegado la primera lista y hasta dónde se ha avisado de cada chat
@@ -60,18 +60,18 @@ window.Whider = window.Whider || {};
     if (!silent) S().notify('social');
   }
   function preview(m) {
-    if (m.del) return 'Mensaje eliminado';
-    if (m.kind === 'task') return 'Tarea: ' + ((m.ref && m.ref.text) || '');
-    if (m.kind === 'page') return 'Página: ' + ((m.ref && m.ref.title) || '');
-    if (m.kind === 'cheer') return 'Ánimo: ' + (m.text || '');
+    if (m.del) return W.t('Mensaje eliminado');
+    if (m.kind === 'task') return W.t('Tarea: {text}', { text: (m.ref && m.ref.text) || '' });
+    if (m.kind === 'page') return W.t('Página: {text}', { text: (m.ref && m.ref.title) || '' });
+    if (m.kind === 'cheer') return W.t('Ánimo: {text}', { text: m.text || '' });
     return String(m.text || '').slice(0, 120);
   }
   function title(c) {
-    if (!c) return 'Chat';
-    if (c.type === 'team') { var sp = S().social.spaces[c.sid]; return (sp && sp.name) || c.title || 'Equipo'; }
+    if (!c) return W.t('Chat');
+    if (c.type === 'team') { var sp = S().social.spaces[c.sid]; return (sp && sp.name) || c.title || W.t('Equipo'); }
     var other = (c.memberIds || []).filter(function (x) { return x !== me(); })[0];
     var p = other && W.People.profile(other), f = other && S().social.friends[other];
-    return (p && p.name) || (f && f.name) || (c.members && c.members[other]) || 'Contacto';
+    return (p && p.name) || (f && f.name) || (c.members && c.members[other]) || W.t('Contacto');
   }
   function other(c) { return c && c.type === 'dm' ? (c.memberIds || []).filter(function (x) { return x !== me(); })[0] : null; }
   function unread(c) { var p = prefs(c.id); return !!(c.last && c.last.by !== me() && (c.lastAt || 0) > (p.read || 0)); }
@@ -124,7 +124,7 @@ window.Whider = window.Whider || {};
       if (!t) throw { code: 'not-found' };
       var ids = Object.keys(t.members || {}).sort(), c = chats[cid];
       if (c && !c.local && JSON.stringify((c.memberIds || []).slice().sort()) === JSON.stringify(ids) && c.title === (t.name || 'Equipo')) return cid;
-      return upsertChat(cid, { type: 'team', sid: sid, title: t.name || 'Equipo', memberIds: ids, members: t.members || {} });
+      return upsertChat(cid, { type: 'team', sid: sid, title: t.name || W.t('Equipo'), memberIds: ids, members: t.members || {} });
     });
   }
 
@@ -180,7 +180,7 @@ window.Whider = window.Whider || {};
       local.failed = true; delete local.pending;
       emit('msgs', cid);
       console.warn('Enviar:', e && (e.code || e.message));
-      W.Toast.show({ text: 'No se pudo enviar. Toca el mensaje para reintentar.', type: 'danger' });
+      W.Toast.show({ text: W.t('No se pudo enviar. Toca el mensaje para reintentar.'), type: 'danger' });
       throw e;
     });
   }
@@ -193,7 +193,7 @@ window.Whider = window.Whider || {};
   function patchMsg(cid, mid, patch, local) {
     var list = msgs[cid] || []; list.forEach(function (m) { if (m.id === mid) Object.assign(m, local || patch); });
     emit('msgs', cid);
-    return F().updateDoc(F().doc(DB(), 'chats', cid, 'msgs', mid), patch).then(persist).catch(function (e) { console.warn('Mensaje:', e && (e.code || e.message)); W.Toast.show({ text: 'No se pudo cambiar el mensaje', type: 'danger' }); loadMsgs(cid); });
+    return F().updateDoc(F().doc(DB(), 'chats', cid, 'msgs', mid), patch).then(persist).catch(function (e) { console.warn('Mensaje:', e && (e.code || e.message)); W.Toast.show({ text: W.t('No se pudo cambiar el mensaje'), type: 'danger' }); loadMsgs(cid); });
   }
   function react(cid, mid, kind) {
     var m = (msgs[cid] || []).filter(function (x) { return x.id === mid; })[0]; if (!m) return;
@@ -242,7 +242,7 @@ window.Whider = window.Whider || {};
     if (cid === openCid && !document.hidden && S().activeScreen === 'chats') { (msgsLive(cid) ? Promise.resolve() : loadMsgs(cid)).then(function () { markRead(cid); }); return; }
     if (prefs(cid).muted) return;
     var t = title(c), body = (c.type === 'team' ? (c.last.name || '') + ': ' : '') + (c.last.text || '');
-    W.Toast.show({ text: t + ': ' + body.slice(0, 90), icon: 'chat', duration: 5000, action: { label: 'Abrir', fn: function () { Chat.openChat(cid); } } });
+    W.Toast.show({ text: t + ': ' + body.slice(0, 90), icon: 'chat', duration: 5000, action: { label: W.t('Abrir'), fn: function () { Chat.openChat(cid); } } });
     W.Audio.chime();
     if (document.hidden || S().activeScreen !== 'chats') W.Notify.system(t, body.slice(0, 140), 'chat-' + cid);
   }
@@ -336,7 +336,7 @@ window.Whider = window.Whider || {};
       }).catch(function (e) {
         console.warn('Chat:', e && (e.code || e.message));
         var b = W.People.blocker();
-        W.Toast.show({ text: b ? b.title : 'No se pudo abrir el chat', type: 'danger' });
+        W.Toast.show({ text: b ? b.title : W.t('No se pudo abrir el chat'), type: 'danger' });
       });
     },
     init: function () {

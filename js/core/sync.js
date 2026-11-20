@@ -145,20 +145,20 @@ window.Whider = window.Whider || {};
       ctx = ctx || {};
       var code = String((e && e.code) || '').replace(/^firestore\//, ''), msg = String((e && e.message) || '');
       if (code === 'size' || (code === 'invalid-argument' && /size|bytes|too large|exceed/i.test(msg))) {
-        return { kind: 'size', retry: false, text: 'Tus datos ya no caben en la copia de la nube (máximo 1 MB). Siguen a salvo en este dispositivo: archiva las tareas completadas antiguas en Ajustes → Datos.' };
+        return { kind: 'size', retry: false, text: W.t('Tus datos ya no caben en la copia de la nube (máximo 1 MB). Siguen a salvo en este dispositivo: archiva las tareas completadas antiguas en Ajustes → Datos.') };
       }
       if (ctx.offline || code === 'unavailable' || code === 'deadline-exceeded' || /network|failed to fetch|offline|load failed/i.test(msg)) {
-        return { kind: 'connection', retry: true, text: 'Sin conexión con la nube. Tus cambios están guardados aquí y se subirán solos.' };
+        return { kind: 'connection', retry: true, text: W.t('Sin conexión con la nube. Tus cambios están guardados aquí y se subirán solos.') };
       }
-      if (code === 'unauthenticated') return { kind: 'auth', retry: false, text: 'La sesión ha caducado. Vuelve a iniciar sesión para seguir guardando en la nube.' };
+      if (code === 'unauthenticated') return { kind: 'auth', retry: false, text: W.t('La sesión ha caducado. Vuelve a iniciar sesión para seguir guardando en la nube.') };
       if (code === 'permission-denied') {
         return ctx.verified === false
-          ? { kind: 'unverified', retry: false, text: 'Verifica tu correo para activar la copia en la nube.' }
-          : { kind: 'permissions', retry: false, text: 'La nube no ha aceptado los cambios. Cierra sesión y vuelve a entrar; si sigue pasando, escríbenos.' };
+          ? { kind: 'unverified', retry: false, text: W.t('Verifica tu correo para activar la copia en la nube.') }
+          : { kind: 'permissions', retry: false, text: W.t('La nube no ha aceptado los cambios. Cierra sesión y vuelve a entrar; si sigue pasando, escríbenos.') };
       }
-      if (code === 'aborted' || code === 'failed-precondition') return { kind: 'conflict', retry: true, text: 'Otro dispositivo estaba guardando a la vez. Se vuelve a intentar enseguida.' };
-      if (code === 'resource-exhausted') return { kind: 'quota', retry: true, slow: true, text: 'La nube está al límite de uso. Se volverá a intentar en unos minutos.' };
-      return { kind: 'server', retry: true, text: 'La nube no responde bien ahora mismo. Se volverá a intentar.' };
+      if (code === 'aborted' || code === 'failed-precondition') return { kind: 'conflict', retry: true, text: W.t('Otro dispositivo estaba guardando a la vez. Se vuelve a intentar enseguida.') };
+      if (code === 'resource-exhausted') return { kind: 'quota', retry: true, slow: true, text: W.t('La nube está al límite de uso. Se volverá a intentar en unos minutos.') };
+      return { kind: 'server', retry: true, text: W.t('La nube no responde bien ahora mismo. Se volverá a intentar.') };
     },
 
     setStatus: function (s) {
@@ -501,16 +501,16 @@ window.Whider = window.Whider || {};
     /** Identificador de la cuenta conectada (o null) */
     uid: function () { return uid; },
     statusText: function () {
-      var since = Sync.pendingSince && Date.now() - Sync.pendingSince > 60000 ? ' · cambios sin subir desde ' + W.U.fmtRel(Sync.pendingSince - Date.now()) : '';
-      var next = Sync.retryAt ? ' · nuevo intento ' + W.U.fmtRel(Sync.retryAt - Date.now()) : '';
+      var since = Sync.pendingSince && Date.now() - Sync.pendingSince > 60000 ? ' · ' + W.t('cambios sin subir desde {when}', { when: W.U.fmtRel(Sync.pendingSince - Date.now()) }) : '';
+      var next = Sync.retryAt ? ' · ' + W.t('nuevo intento {when}', { when: W.U.fmtRel(Sync.retryAt - Date.now()) }) : '';
       switch (Sync.status) {
-        case 'synced': return 'Sincronizado' + (liveOk() ? ' · al momento' : Sync.lastAt ? ' · ' + W.U.fmtRel(Sync.lastAt - Date.now()) : '');
-        case 'pending': return 'Guardando en la nube…';
-        case 'connecting': return 'Conectando…';
-        case 'offline': return 'Sin conexión · tus cambios se subirán al volver' + since;
-        case 'unverified': return 'Verifica tu correo para activar la copia en la nube';
-        case 'error': return (Sync.lastError ? Sync.lastError.text : 'No se pudo sincronizar') + next + since;
-        default: return 'Solo en este dispositivo';
+        case 'synced': return W.t('Sincronizado') + (liveOk() ? ' · ' + W.t('al momento') : Sync.lastAt ? ' · ' + W.U.fmtRel(Sync.lastAt - Date.now()) : '');
+        case 'pending': return W.t('Guardando en la nube…');
+        case 'connecting': return W.t('Conectando…');
+        case 'offline': return W.t('Sin conexión · tus cambios se subirán al volver') + since;
+        case 'unverified': return W.t('Verifica tu correo para activar la copia en la nube');
+        case 'error': return (Sync.lastError ? Sync.lastError.text : W.t('No se pudo sincronizar')) + next + since;
+        default: return W.t('Solo en este dispositivo');
       }
     },
     /**
@@ -551,7 +551,7 @@ window.Whider = window.Whider || {};
       if (!gone.length && Sync.size > SIZE_MAX) gone = st.archiveDone(Date.now() - 180 * day);
       if (!gone.length) return false;
       Sync.archiveRemote(gone);
-      if (W.Toast) W.Toast.show({ text: U2().plural(gone.length, 'tarea completada hace tiempo pasa', 'tareas completadas hace tiempo pasan') + ' al archivo (Ajustes → Datos)', icon: 'inbox', duration: 6000 });
+      if (W.Toast) W.Toast.show({ text: W.t('{n} al archivo (Ajustes → Datos)', { n: U2().plural(gone.length, 'tarea completada hace tiempo pasa', 'tareas completadas hace tiempo pasan') }), icon: 'inbox', duration: 6000 });
       return true;
     },
     /** ¿Hay cambios de este dispositivo que no han llegado a la nube por un fallo? */

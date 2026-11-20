@@ -32,55 +32,55 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   var SYSTEMS = [
-    { id: 'gtd', icon: 'tray', name: 'GTD · Organízalo todo', desc: 'Captura todo en una bandeja, decide la siguiente acción y revisa cada semana.',
-      gives: ['Categorías Bandeja de entrada, Próximas acciones, En espera y Algún día', 'Filtro «Próximas acciones»', 'Regla: lo nuevo sin categoría va a la bandeja', 'Hábito semanal de revisión'],
+    { id: 'gtd', icon: 'tray', name: W.t('GTD · Organízalo todo'), desc: W.t('Captura todo en una bandeja, decide la siguiente acción y revisa cada semana.'),
+      gives: [W.t('Categorías Bandeja de entrada, Próximas acciones, En espera y Algún día'), W.t('Filtro «Próximas acciones»'), W.t('Regla: lo nuevo sin categoría va a la bandeja'), W.t('Hábito semanal de revisión')],
       install: function () {
-        var inbox = ensureList('Bandeja de entrada', 'tray'), next = ensureList('Próximas acciones', 'bolt');
-        ensureList('En espera', 'clock'); ensureList('Algún día', 'star');
-        ensureFilter({ name: 'Próximas acciones', lists: [next.id], when: 'any', status: 'pending' });
-        ensureRule({ name: 'GTD · A la bandeja', trigger: { type: 'created' }, conditions: [{ field: 'list', op: 'is', value: '' }], actions: [{ type: 'set_list', value: inbox.id }] }, 'gtd');
-        ensureHabit({ name: 'Revisión semanal', icon: 'repeat', freq: 'weekly', perWeek: 1 });
+        var inbox = ensureList(W.t('Bandeja de entrada'), 'tray'), next = ensureList(W.t('Próximas acciones'), 'bolt');
+        ensureList(W.t('En espera'), 'clock'); ensureList(W.t('Algún día'), 'star');
+        ensureFilter({ name: W.t('Próximas acciones'), lists: [next.id], when: 'any', status: 'pending' });
+        ensureRule({ name: W.t('GTD · A la bandeja'), trigger: { type: 'created' }, conditions: [{ field: 'list', op: 'is', value: '' }], actions: [{ type: 'set_list', value: inbox.id }] }, 'gtd');
+        ensureHabit({ name: W.t('Revisión semanal'), icon: 'repeat', freq: 'weekly', perWeek: 1 });
       } },
-    { id: 'eisenhower', icon: 'grid', name: 'Matriz de Eisenhower', desc: 'Separa lo urgente de lo importante: haz, planifica, delega o descarta.',
-      gives: ['Filtros 1 · Hacer ya, 2 · Planificar, 3 · Delegar y 4 · Revisar', 'Regla: lo urgente siempre con avisos', 'Ideal con la vista de tablero por prioridad'],
+    { id: 'eisenhower', icon: 'grid', name: W.t('Matriz de Eisenhower'), desc: W.t('Separa lo urgente de lo importante: haz, planifica, delega o descarta.'),
+      gives: [W.t('Filtros 1 · Hacer ya, 2 · Planificar, 3 · Delegar y 4 · Revisar'), W.t('Regla: lo urgente siempre con avisos'), W.t('Ideal con la vista de tablero por prioridad')],
       install: function () {
-        ensureFilter({ name: '1 · Hacer ya', priorities: ['danger'], when: 'any', status: 'pending' });
-        ensureFilter({ name: '2 · Planificar', priorities: ['purple'], when: 'any', status: 'pending' });
-        ensureFilter({ name: '3 · Delegar', priorities: ['star'], when: 'any', status: 'pending' });
-        ensureFilter({ name: '4 · Revisar', priorities: ['none'], when: 'overdue', status: 'pending' });
-        ensureRule({ name: 'Eisenhower · Avisos en lo urgente', trigger: { type: 'created' }, conditions: [{ field: 'priority', op: 'is', value: 'danger' }], actions: [{ type: 'set_warn', value: true }] }, 'eisenhower');
+        ensureFilter({ name: W.t('1 · Hacer ya'), priorities: ['danger'], when: 'any', status: 'pending' });
+        ensureFilter({ name: W.t('2 · Planificar'), priorities: ['purple'], when: 'any', status: 'pending' });
+        ensureFilter({ name: W.t('3 · Delegar'), priorities: ['star'], when: 'any', status: 'pending' });
+        ensureFilter({ name: W.t('4 · Revisar'), priorities: ['none'], when: 'overdue', status: 'pending' });
+        ensureRule({ name: W.t('Eisenhower · Avisos en lo urgente'), trigger: { type: 'created' }, conditions: [{ field: 'priority', op: 'is', value: 'danger' }], actions: [{ type: 'set_warn', value: true }] }, 'eisenhower');
       } },
-    { id: 'timeblock', icon: 'calendar', name: 'Bloques de tiempo', desc: 'Cada tarea con hora ocupa su hueco en el calendario: planifica el día como una agenda.',
-      gives: ['Calendario en vista Semana, de 8:00 a 20:00', 'Regla: las tareas con hora duran 1 h si no dices otra cosa', 'Hábito diario «Planificar el día» a las 8:30'],
+    { id: 'timeblock', icon: 'calendar', name: W.t('Bloques de tiempo'), desc: W.t('Cada tarea con hora ocupa su hueco en el calendario: planifica el día como una agenda.'),
+      gives: [W.t('Calendario en vista Semana, de 8:00 a 20:00'), W.t('Regla: las tareas con hora duran 1 h si no dices otra cosa'), W.t('Hábito diario «Planificar el día» a las 8:30')],
       install: function () {
         var st = S(), dk = st.settings.desk; dk.calView = 'week'; dk.calStartH = 8; dk.calEndH = 20; st.ui.calView = 'week'; st.saveSettings('settings:desk');
-        ensureRule({ name: 'Bloques · Duración de 1 h', trigger: { type: 'created' }, conditions: [{ field: 'time', op: 'has' }], actions: [{ type: 'set_duration', value: 60 }] }, 'timeblock');
-        ensureHabit({ name: 'Planificar el día', icon: 'calendar', freq: 'daily', reminder: '08:30' });
+        ensureRule({ name: W.t('Bloques · Duración de 1 h'), trigger: { type: 'created' }, conditions: [{ field: 'time', op: 'has' }], actions: [{ type: 'set_duration', value: 60 }] }, 'timeblock');
+        ensureHabit({ name: W.t('Planificar el día'), icon: 'calendar', freq: 'daily', reminder: '08:30' });
       } },
-    { id: '135', icon: 'target', name: 'Método 1-3-5', desc: 'Cada día: una tarea grande, tres medianas y cinco pequeñas. Ni más ni menos.',
-      gives: ['Filtro «Hoy · 1-3-5»', 'Aviso cada mañana a las 8:00 para elegirlas', 'Hábito «Elegir mi 1-3-5»'],
+    { id: '135', icon: 'target', name: W.t('Método 1-3-5'), desc: W.t('Cada día: una tarea grande, tres medianas y cinco pequeñas. Ni más ni menos.'),
+      gives: [W.t('Filtro «Hoy · 1-3-5»'), W.t('Aviso cada mañana a las 8:00 para elegirlas'), W.t('Hábito «Elegir mi 1-3-5»')],
       install: function () {
-        ensureFilter({ name: 'Hoy · 1-3-5', when: 'today', status: 'pending' });
-        ensureRule({ name: '1-3-5 · Elegir el día', trigger: { type: 'daily', time: '08:00' }, conditions: [], actions: [{ type: 'notify', value: 'Elige tu 1-3-5: una grande, tres medianas y cinco pequeñas.' }] }, '135');
-        ensureHabit({ name: 'Elegir mi 1-3-5', icon: 'target', freq: 'daily' });
+        ensureFilter({ name: W.t('Hoy · 1-3-5'), when: 'today', status: 'pending' });
+        ensureRule({ name: W.t('1-3-5 · Elegir el día'), trigger: { type: 'daily', time: '08:00' }, conditions: [], actions: [{ type: 'notify', value: W.t('Elige tu 1-3-5: una grande, tres medianas y cinco pequeñas.') }] }, '135');
+        ensureHabit({ name: W.t('Elegir mi 1-3-5'), icon: 'target', freq: 'daily' });
       } },
-    { id: 'weekly', icon: 'repeat', name: 'Revisión semanal', desc: 'Los viernes por la tarde, una tarea para cerrar la semana y preparar la siguiente.',
-      gives: ['Regla: cada viernes a las 17:00 crea «Revisión semanal»', 'Filtro «Esta semana»'],
+    { id: 'weekly', icon: 'repeat', name: W.t('Revisión semanal'), desc: W.t('Los viernes por la tarde, una tarea para cerrar la semana y preparar la siguiente.'),
+      gives: [W.t('Regla: cada viernes a las 17:00 crea «Revisión semanal»'), W.t('Filtro «Esta semana»')],
       install: function () {
-        ensureFilter({ name: 'Esta semana', when: 'week', status: 'pending' });
-        ensureRule({ name: 'Revisión semanal', trigger: { type: 'daily', time: '17:00' }, conditions: [{ field: 'weekday', op: 'is', value: 5 }], actions: [{ type: 'create_task', value: 'Revisión semanal a las 17:30' }] }, 'weekly');
+        ensureFilter({ name: W.t('Esta semana'), when: 'week', status: 'pending' });
+        ensureRule({ name: W.t('Revisión semanal'), trigger: { type: 'daily', time: '17:00' }, conditions: [{ field: 'weekday', op: 'is', value: 5 }], actions: [{ type: 'create_task', value: W.t('Revisión semanal a las 17:30') }] }, 'weekly');
       } },
-    { id: 'zero', icon: 'check', name: 'Bandeja a cero', desc: 'Nada se queda atrás: lo vencido pasa a hoy y lo completado antiguo se limpia solo.',
-      gives: ['Regla: lo vencido pasa a hoy cada mañana', 'Regla: borrar completadas de hace más de 30 días'],
+    { id: 'zero', icon: 'check', name: W.t('Bandeja a cero'), desc: W.t('Nada se queda atrás: lo vencido pasa a hoy y lo completado antiguo se limpia solo.'),
+      gives: [W.t('Regla: lo vencido pasa a hoy cada mañana'), W.t('Regla: borrar completadas de hace más de 30 días')],
       install: function () {
-        ensureRule({ name: 'Bandeja a cero · Vencidas a hoy', trigger: { type: 'daily', time: '07:00' }, conditions: [{ field: 'date', op: 'overdue' }], actions: [{ type: 'set_date', value: 'today' }] }, 'zero');
-        ensureRule({ name: 'Bandeja a cero · Limpieza', trigger: { type: 'daily', time: '03:00' }, conditions: [{ field: 'done_age', op: 'gt', value: 30 }], actions: [{ type: 'delete' }] }, 'zero');
+        ensureRule({ name: W.t('Bandeja a cero · Vencidas a hoy'), trigger: { type: 'daily', time: '07:00' }, conditions: [{ field: 'date', op: 'overdue' }], actions: [{ type: 'set_date', value: 'today' }] }, 'zero');
+        ensureRule({ name: W.t('Bandeja a cero · Limpieza'), trigger: { type: 'daily', time: '03:00' }, conditions: [{ field: 'done_age', op: 'gt', value: 30 }], actions: [{ type: 'delete' }] }, 'zero');
       } },
-    { id: 'pomodoro', icon: 'timer', name: 'Pomodoro', desc: 'Bloques de 25 minutos con pausas: concentración sin agotarte.',
-      gives: ['Enfoque 25 / 5 / 15 min, 4 sesiones, pausas automáticas', 'Hábito «4 pomodoros» con objetivo diario'],
+    { id: 'pomodoro', icon: 'timer', name: W.t('Pomodoro'), desc: W.t('Bloques de 25 minutos con pausas: concentración sin agotarte.'),
+      gives: [W.t('Enfoque 25 / 5 / 15 min, 4 sesiones, pausas automáticas'), W.t('Hábito «4 pomodoros» con objetivo diario')],
       install: function () {
         var st = S(), f = st.settings.focus; f.work = 25; f.short = 5; f.long = 15; f.rounds = 4; f.autoBreaks = true; st.saveSettings('settings:focus');
-        ensureHabit({ name: '4 pomodoros', icon: 'timer', freq: 'daily', target: 4, unit: 'sesiones' });
+        ensureHabit({ name: W.t('4 pomodoros'), icon: 'timer', freq: 'daily', target: 4, unit: W.t('sesiones') });
       } }
   ];
 
@@ -90,7 +90,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     st.batch(function () { sys.install(); });
     var m = Object.assign({}, st.meta.systems || {}); m[sys.id] = Date.now(); st.setMeta('systems', m);
     W.Audio.success();
-    W.Toast.show({ text: 'Sistema «' + sys.name + '» listo', type: 'success', icon: sys.icon, duration: 4000 });
+    W.Toast.show({ text: W.t('Sistema «{name}» listo', { name: sys.name }), type: 'success', icon: sys.icon, duration: 4000 });
     W.Router.refresh();
   }
 
@@ -110,22 +110,22 @@ window.Whider.Screens = window.Whider.Screens || {};
       return b;
     };
     switch (kind) {
-      case 'list': return menu([{ value: '', label: 'Sin categoría' }, { value: '@default', label: 'La de por defecto' }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name }; })));
-      case 'prio': return menu(W.Editor.PRIO_OPTS.map(function (o) { return { value: o.value, label: o.value === 'none' ? 'Normal' : o.label }; }));
+      case 'list': return menu([{ value: '', label: W.t('Sin categoría') }, { value: '@default', label: W.t('La de por defecto') }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name }; })));
+      case 'prio': return menu(W.Editor.PRIO_OPTS.map(function (o) { return { value: o.value, label: o.value === 'none' ? W.t('Normal') : o.label }; }));
       case 'when': return menu(A().WHEN);
-      case 'onoff': return menu([{ value: true, label: 'Activar' }, { value: false, label: 'Quitar' }]);
+      case 'onoff': return menu([{ value: true, label: W.t('Activar') }, { value: false, label: W.t('Quitar') }]);
       case 'duration': return menu(W.Editor.DUR_OPTS);
       case 'weekday': return menu([1, 2, 3, 4, 5, 6, 0].map(function (d) { return { value: d, label: U.cap(U.WEEKDAYS[d]) }; }));
-      case 'days': return menu([7, 14, 30, 60, 90].map(function (d) { return { value: d, label: d + ' días' }; }));
-      case 'time': var t = U.el('input.input.rb-time', { attrs: { type: 'time', 'aria-label': 'Hora' } }); t.value = /^\d{2}:\d{2}$/.test(value) ? value : '09:00'; if (!/^\d{2}:\d{2}$/.test(value)) onChange(t.value); t.addEventListener('change', function () { onChange(t.value); }); return t;
-      default: var i = U.el('input.input.rb-text', { attrs: { type: 'text', maxlength: 120, placeholder: 'Escribe…' } }); i.value = value == null ? '' : value; i.addEventListener('input', function () { onChange(i.value); }); return i;
+      case 'days': return menu([7, 14, 30, 60, 90].map(function (d) { return { value: d, label: W.t('{n} días', { n: d }) }; }));
+      case 'time': var t = U.el('input.input.rb-time', { attrs: { type: 'time', 'aria-label': W.t('Hora') } }); t.value = /^\d{2}:\d{2}$/.test(value) ? value : '09:00'; if (!/^\d{2}:\d{2}$/.test(value)) onChange(t.value); t.addEventListener('change', function () { onChange(t.value); }); return t;
+      default: var i = U.el('input.input.rb-text', { attrs: { type: 'text', maxlength: 120, placeholder: W.t('Escribe…') } }); i.value = value == null ? '' : value; i.addEventListener('input', function () { onChange(i.value); }); return i;
     }
   }
 
   function editRule(rule) {
     var st = S(), src = rule ? JSON.parse(JSON.stringify(rule)) : { name: '', enabled: true, trigger: { type: 'created', time: '07:00' }, conditions: [], actions: [{ type: 'set_date', value: 'today' }] };
     var d = src;
-    var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 60, placeholder: 'Nombre de la regla', 'aria-label': 'Nombre de la regla' } });
+    var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 60, placeholder: W.t('Nombre de la regla'), 'aria-label': W.t('Nombre de la regla') } });
     name.value = d.name;
     var host = U.el('div.rb');
     var draw = function () {
@@ -133,8 +133,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       // Cuando
       var when = [W.UI.segmented(A().TRIGGERS.map(function (t) { return { value: t.value, label: t.label.replace('Se crea una tarea', 'Al crear').replace('Se completa una tarea', 'Al completar').replace('Una tarea vence', 'Al vencer').replace('Cada día, a una hora', 'Cada día') }; }),
         d.trigger.type, function (v) { d.trigger.type = v; draw(); }, { mini: true })];
-      if (d.trigger.type === 'daily') when.push(U.el('label.rb-line', [U.el('span', { text: 'a las' }), valueControl('time', d.trigger.time, function (v) { d.trigger.time = v; })]));
-      host.appendChild(W.UI.section({ header: 'Cuando', items: U.el('div.group', [U.el('div.cell.col', when)]) }));
+      if (d.trigger.type === 'daily') when.push(U.el('label.rb-line', [U.el('span', { text: W.t('a las') }), valueControl('time', d.trigger.time, function (v) { d.trigger.time = v; })]));
+      host.appendChild(W.UI.section({ header: W.t('Cuando'), items: U.el('div.group', [U.el('div.cell.col', when)]) }));
       // Si
       var conds = d.conditions.map(function (c, i) {
         var F = A().FIELDS[c.field];
@@ -152,10 +152,10 @@ window.Whider.Screens = window.Whider.Screens || {};
           op.addEventListener('click', function () { W.Menu.open(op, opOpts.map(function (o) { return { value: o.value, label: o.label, on: o.value === c.op }; })).then(function (v) { if (v) { c.op = v; draw(); } }); });
         } else c.op = opOpts[0].value;
         return U.el('div.cell.rb-row', [field, op, valueControl(F.kind, c.value, function (v) { c.value = v; }),
-          U.el('button.circle-btn.rb-x', { attrs: { 'aria-label': 'Quitar condición' }, on: { click: function () { d.conditions.splice(i, 1); draw(); } } }, [U.icon('close')])]);
+          U.el('button.circle-btn.rb-x', { attrs: { 'aria-label': W.t('Quitar condición') }, on: { click: function () { d.conditions.splice(i, 1); draw(); } } }, [U.icon('close')])]);
       });
-      conds.push(W.UI.cell({ icon: 'plus', title: 'Añadir condición', accent: true, chevron: false, onTap: function () { d.conditions.push({ field: 'list', op: 'is', value: '' }); draw(); } }));
-      host.appendChild(W.UI.section({ header: 'Si (todas se cumplen)', items: conds, footer: d.conditions.length ? null : 'Sin condiciones, vale para todas las tareas.' }));
+      conds.push(W.UI.cell({ icon: 'plus', title: W.t('Añadir condición'), accent: true, chevron: false, onTap: function () { d.conditions.push({ field: 'list', op: 'is', value: '' }); draw(); } }));
+      host.appendChild(W.UI.section({ header: W.t('Si (todas se cumplen)'), items: conds, footer: d.conditions.length ? null : W.t('Sin condiciones, vale para todas las tareas.') }));
       // Entonces
       var acts = d.actions.map(function (a, i) {
         var X = A().ACTIONS[a.type];
@@ -164,30 +164,30 @@ window.Whider.Screens = window.Whider.Screens || {};
           W.Menu.open(type, Object.keys(A().ACTIONS).map(function (k) { return { value: k, label: A().ACTIONS[k].label, on: k === a.type }; })).then(function (v) { if (v) { a.type = v; a.value = null; draw(); } });
         });
         return U.el('div.cell.rb-row', [type, valueControl(X.kind, a.value, function (v) { a.value = v; }),
-          U.el('button.circle-btn.rb-x', { attrs: { 'aria-label': 'Quitar acción' }, on: { click: function () { d.actions.splice(i, 1); draw(); } } }, [U.icon('close')])]);
+          U.el('button.circle-btn.rb-x', { attrs: { 'aria-label': W.t('Quitar acción') }, on: { click: function () { d.actions.splice(i, 1); draw(); } } }, [U.icon('close')])]);
       });
-      if (d.actions.length < 8) acts.push(W.UI.cell({ icon: 'plus', title: 'Añadir acción', accent: true, chevron: false, onTap: function () { d.actions.push({ type: 'set_priority', value: 'purple' }); draw(); } }));
-      host.appendChild(W.UI.section({ header: 'Entonces', items: acts }));
+      if (d.actions.length < 8) acts.push(W.UI.cell({ icon: 'plus', title: W.t('Añadir acción'), accent: true, chevron: false, onTap: function () { d.actions.push({ type: 'set_priority', value: 'purple' }); draw(); } }));
+      host.appendChild(W.UI.section({ header: W.t('Entonces'), items: acts }));
     };
     draw();
     var test = function () {
-      d.name = name.value.trim() || 'Regla';
+      d.name = name.value.trim() || W.t('Regla');
       var pool = A().dryRun(d);
-      W.Sheet.open({ title: 'Prueba de la regla', body: [
+      W.Sheet.open({ title: W.t('Prueba de la regla'), body: [
         U.el('p.sheet-lead-text', { text: A().describe(d) }),
-        pool.length ? W.UI.section({ header: 'Ahora mismo afectaría a ' + U.plural(pool.length, 'tarea', 'tareas'), items: pool.slice(0, 12).map(function (t) { return W.UI.cell({ icon: t.done ? 'check' : 'note', title: t.text, sub: t.date ? U.fmtDay(t.date) : 'Sin fecha' }); }),
-          footer: pool.length > 12 ? 'Y ' + (pool.length - 12) + ' más.' : 'No se ha cambiado nada: es solo una prueba.' })
-          : U.el('div.group', [W.UI.empty('buddy:search', 'Ninguna tarea cumple la regla ahora', d.trigger.type === 'created' || d.trigger.type === 'completed' ? 'Se aplicará a las tareas nuevas o completadas que la cumplan.' : 'Se aplicará cuando alguna la cumpla.', null, true)])
+        pool.length ? W.UI.section({ header: W.t('Ahora mismo afectaría a {n}', { n: U.plural(pool.length, 'tarea', 'tareas') }), items: pool.slice(0, 12).map(function (t) { return W.UI.cell({ icon: t.done ? 'check' : 'note', title: t.text, sub: t.date ? U.fmtDay(t.date) : W.t('Sin fecha') }); }),
+          footer: pool.length > 12 ? W.t('Y {0} más.', { 0: pool.length - 12 }) : W.t('No se ha cambiado nada: es solo una prueba.') })
+          : U.el('div.group', [W.UI.empty('buddy:search', W.t('Ninguna tarea cumple la regla ahora'), d.trigger.type === 'created' || d.trigger.type === 'completed' ? W.t('Se aplicará a las tareas nuevas o completadas que la cumplan.') : W.t('Se aplicará cuando alguna la cumpla.'), null, true)])
       ] });
     };
-    var s = W.Sheet.open({ title: rule ? 'Editar regla' : 'Nueva regla', className: 'editor rule-editor', full: true,
-      body: [U.el('div.group', [U.el('label.cell', [name])]), host].concat(rule ? [U.el('div.group', [W.UI.cell({ title: 'Eliminar la regla', center: true, danger: true, onTap: function () {
-        W.Sheet.confirm({ title: '¿Eliminar «' + rule.name + '»?', ok: 'Eliminar', danger: true }).then(function (ok) { if (ok) { st.removeRule(rule.id); s.close(); } });
+    var s = W.Sheet.open({ title: rule ? W.t('Editar regla') : W.t('Nueva regla'), className: 'editor rule-editor', full: true,
+      body: [U.el('div.group', [U.el('label.cell', [name])]), host].concat(rule ? [U.el('div.group', [W.UI.cell({ title: W.t('Eliminar la regla'), center: true, danger: true, onTap: function () {
+        W.Sheet.confirm({ title: W.t('¿Eliminar «{name}»?', { name: rule.name }), ok: W.t('Eliminar'), danger: true }).then(function (ok) { if (ok) { st.removeRule(rule.id); s.close(); } });
       } })])] : []),
-      foot: [U.el('button.btn.ghost', { on: { click: test } }, [U.icon('search', 'sm'), 'Probar']),
-        U.el('button.btn.primary', { text: 'Guardar', on: { click: function () {
-          d.name = name.value.trim() || 'Mi regla';
-          if (!d.actions.length) { W.Toast.show({ text: 'Añade al menos una acción', type: 'danger' }); return; }
+      foot: [U.el('button.btn.ghost', { on: { click: test } }, [U.icon('search', 'sm'), W.t('Probar')]),
+        U.el('button.btn.primary', { text: W.t('Guardar'), on: { click: function () {
+          d.name = name.value.trim() || W.t('Mi regla');
+          if (!d.actions.length) { W.Toast.show({ text: W.t('Añade al menos una acción'), type: 'danger' }); return; }
           st.saveRule(Object.assign({}, d, rule ? { id: rule.id } : {}));
           W.Audio.success(); s.close();
         } } })] });
@@ -202,7 +202,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (v) {
         if (cur) st.saveRule({ id: cur.id, enabled: true });
         else st.saveRule(Object.assign({ name: tp.name, enabled: true, template: tp.id }, JSON.parse(JSON.stringify(tp.rule))));
-        W.Toast.show({ text: '«' + tp.name + '» activada', icon: 'bolt' });
+        W.Toast.show({ text: W.t('«{name}» activada', { name: tp.name }), icon: 'bolt' });
       } else if (cur) st.saveRule({ id: cur.id, enabled: false });
     }, tp.name) });
   }
@@ -212,25 +212,25 @@ window.Whider.Screens = window.Whider.Screens || {};
     return U.el('div.cell.rule-cell', [
       W.UI.cellIcon(r.trigger.type === 'daily' ? 'clock' : r.trigger.type === 'overdue' ? 'alert' : r.trigger.type === 'completed' ? 'check' : 'plus'),
       U.el('span.cell-main', [U.el('span.cell-title', { text: r.name }), U.el('span.cell-sub', { text: A().describe(r) }),
-        U.el('span.rule-meta', { text: (r.runs ? U.plural(r.runs, 'vez', 'veces') + (r.lastRun ? ' · última ' + U.fmtRel(r.lastRun - Date.now()) : '') : 'Aún no se ha ejecutado') })]),
+        U.el('span.rule-meta', { text: (r.runs ? U.plural(r.runs, 'vez', 'veces') + (r.lastRun ? ' · ' + W.t('última {when}', { when: U.fmtRel(r.lastRun - Date.now()) }) : '') : W.t('Aún no se ha ejecutado')) })]),
       U.el('div.rule-trail', [
-        U.el('button.btn.xs.soft', { text: 'Editar', on: { click: function () { editRule(r); } } }),
+        U.el('button.btn.xs.soft', { text: W.t('Editar'), on: { click: function () { editRule(r); } } }),
         W.UI.toggle(r.enabled, function (v) { st.saveRule({ id: r.id, enabled: v }); }, r.name)
       ])
     ]);
   }
 
   W.Screens.automations = {
-    title: 'Automatizaciones',
+    title: W.t('Automatizaciones'),
     edit: editRule,
     SYSTEMS: SYSTEMS,
     back: function () { if (W.Layout.desktop) return false; W.Router.back(); return true; },
     render: function (root) {
       var st = S(), desk = W.Layout.desktop;
       var custom = st.rules.filter(function (r) { return !r.template || r.template.indexOf('sys-') === 0; });
-      var head = W.UI.header({ title: 'Automatizaciones', back: desk ? null : { label: 'Atrás', onTap: function () { W.Router.back(); } },
-        sub: 'Reglas que trabajan por ti y métodos listos para usar',
-        actions: desk ? [{ text: 'Nueva regla', icon: 'plus', label: 'Nueva regla', onTap: function () { editRule(null); } }] : [] });
+      var head = W.UI.header({ title: W.t('Automatizaciones'), back: desk ? null : { label: W.t('Atrás'), onTap: function () { W.Router.back(); } },
+        sub: W.t('Reglas que trabajan por ti y métodos listos para usar'),
+        actions: desk ? [{ text: W.t('Nueva regla'), icon: 'plus', label: W.t('Nueva regla'), onTap: function () { editRule(null); } }] : [] });
       var content = [];
       // Sistemas profesionales
       var cards = U.el('div.sys-grid', SYSTEMS.map(function (sys) {
@@ -238,20 +238,20 @@ window.Whider.Screens = window.Whider.Screens || {};
         return U.el('div.sys-card' + (done ? '.done' : ''), [
           U.el('div.sys-top', [U.el('span.sys-ic', [U.icon(sys.icon)]), U.el('div', [U.el('strong', { text: sys.name }), U.el('span', { text: sys.desc })])]),
           U.el('ul.sys-gives', sys.gives.map(function (g) { return U.el('li', [U.icon('check', 'xs'), U.el('span', { text: g })]); })),
-          U.el('button.btn.sm.' + (done ? 'ghost' : 'primary'), { on: { click: function () { install(sys); } } }, [done ? 'Instalado · reinstalar' : 'Instalar'])
+          U.el('button.btn.sm.' + (done ? 'ghost' : 'primary'), { on: { click: function () { install(sys); } } }, [done ? W.t('Instalado · reinstalar') : W.t('Instalar')])
         ]);
       }));
-      content.push(W.UI.section({ title: 'Métodos listos para usar', first: true, items: cards }));
+      content.push(W.UI.section({ title: W.t('Métodos listos para usar'), first: true, items: cards }));
       // Plantillas rápidas
-      content.push(W.UI.section({ title: 'Automatizaciones rápidas', items: A().TEMPLATES.map(templateCell),
-        footer: 'Se ejecutan solas, también con la app en segundo plano mientras esté abierta.' }));
+      content.push(W.UI.section({ title: W.t('Automatizaciones rápidas'), items: A().TEMPLATES.map(templateCell),
+        footer: W.t('Se ejecutan solas, también con la app en segundo plano mientras esté abierta.') }));
       // Mis reglas
       var mine = custom.map(ruleCell);
-      mine.push(W.UI.cell({ icon: 'plus', title: 'Nueva regla', sub: 'Cuando… Si… Entonces…', accent: true, chevron: false, onTap: function () { editRule(null); } }));
-      content.push(W.UI.section({ title: 'Mis reglas', side: custom.length ? U.el('small', { text: custom.length }) : null, items: mine }));
+      mine.push(W.UI.cell({ icon: 'plus', title: W.t('Nueva regla'), sub: W.t('Cuando… Si… Entonces…'), accent: true, chevron: false, onTap: function () { editRule(null); } }));
+      content.push(W.UI.section({ title: W.t('Mis reglas'), side: custom.length ? U.el('small', { text: custom.length }) : null, items: mine }));
       // Historial
       var hist = A().log().slice(0, desk ? 20 : 8);
-      if (hist.length) content.push(W.UI.section({ header: 'Lo último que han hecho', items: hist.map(function (e) {
+      if (hist.length) content.push(W.UI.section({ header: W.t('Lo último que han hecho'), items: hist.map(function (e) {
         return W.UI.cell({ icon: 'bolt', title: e.name, sub: e.text, value: U.fmtRel(e.at - Date.now()) });
       }) }));
       W.UI.mount(root, head, content);

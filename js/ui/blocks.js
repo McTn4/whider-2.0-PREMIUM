@@ -17,7 +17,7 @@ window.Whider = window.Whider || {};
   'use strict';
   var U = W.U, P = function () { return W.Pages; };
   var DRAG = 'text/x-whider-block';
-  var PH = { p: 'Escribe o pulsa «/» para elegir un bloque', h1: 'Título 1', h2: 'Título 2', h3: 'Título 3', ul: 'Lista', ol: 'Lista', todo: 'Tarea', toggle: 'Desplegable', quote: 'Cita', callout: 'Escribe algo importante…', code: 'Código' };
+  var PH = { p: W.t('Escribe o pulsa «/» para elegir un bloque'), h1: W.t('Título 1'), h2: W.t('Título 2'), h3: W.t('Título 3'), ul: W.t('Lista'), ol: W.t('Lista'), todo: W.t('Tarea'), toggle: W.t('Desplegable'), quote: W.t('Cita'), callout: W.t('Escribe algo importante…'), code: W.t('Código') };
   var LIST_TYPES = { ul: 1, ol: 1, todo: 1, toggle: 1 };
   var CONT_TYPES = { ul: 1, ol: 1, todo: 1 }; // Intro crea otro igual
   var MD = [
@@ -152,7 +152,7 @@ window.Whider = window.Whider || {};
       if (!ro) root.appendChild(tail);
       decorate();
     }
-    var tail = U.el('div.bk-tail', { attrs: { title: 'Añadir un bloque al final' }, on: { click: function () {
+    var tail = U.el('div.bk-tail', { attrs: { title: W.t('Añadir un bloque al final') }, on: { click: function () {
       var last = blocks[blocks.length - 1];
       if (last && isText(last) && isEmpty(textEl(last) || document.createElement('div')) && last.t === 'p') { focusBlock(last, 'end'); return; }
       structural();
@@ -198,8 +198,8 @@ window.Whider = window.Whider || {};
       var e = U.el('div.bk.bk-' + b.t, { attrs: { 'data-id': b.id, 'data-t': b.t } });
       e._b = b; els[b.id] = e;
       var gutter = ro ? null : U.el('div.bk-gutter', [
-        U.el('button.bk-plus', { attrs: { type: 'button', tabindex: '-1', 'aria-label': 'Añadir bloque debajo', title: 'Añadir debajo (Alt clic: encima)' }, on: { click: function (ev) { ev.preventDefault(); addBelow(b, ev.altKey); } } }, [U.icon('plus')]),
-        U.el('button.bk-handle', { attrs: { type: 'button', tabindex: '-1', draggable: 'true', 'aria-label': 'Mover o abrir el menú del bloque', title: 'Arrastra para mover · clic para opciones' }, on: {
+        U.el('button.bk-plus', { attrs: { type: 'button', tabindex: '-1', 'aria-label': W.t('Añadir bloque debajo'), title: W.t('Añadir debajo (Alt clic: encima)') }, on: { click: function (ev) { ev.preventDefault(); addBelow(b, ev.altKey); } } }, [U.icon('plus')]),
+        U.el('button.bk-handle', { attrs: { type: 'button', tabindex: '-1', draggable: 'true', 'aria-label': W.t('Mover o abrir el menú del bloque'), title: W.t('Arrastra para mover · clic para opciones') }, on: {
           click: function (ev) { ev.preventDefault(); blockMenu(b, ev.currentTarget); },
           dragstart: function (ev) { dragId = b.id; ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData(DRAG, b.id); try { ev.dataTransfer.setDragImage(e, 10, 10); } catch (x) { /* sin imagen */ } e.classList.add('dragging'); },
           dragend: function () { dragId = null; e.classList.remove('dragging'); hideDrop(); }
@@ -210,26 +210,26 @@ window.Whider = window.Whider || {};
         case 'ul': body.appendChild(U.el('span.bk-mark.bk-bullet', { attrs: { 'aria-hidden': 'true' } })); body.appendChild(editable(b)); break;
         case 'ol': body.appendChild(U.el('span.bk-mark.bk-num', { attrs: { 'aria-hidden': 'true' }, text: '1.' })); body.appendChild(editable(b)); break;
         case 'todo':
-          var chk = U.el('button.bk-check' + (b.c ? '.on' : ''), { attrs: { type: 'button', 'aria-label': b.c ? 'Desmarcar' : 'Marcar como hecho', 'aria-pressed': b.c ? 'true' : 'false', disabled: ro } }, [U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })])]);
+          var chk = U.el('button.bk-check' + (b.c ? '.on' : ''), { attrs: { type: 'button', 'aria-label': b.c ? W.t('Desmarcar') : W.t('Marcar como hecho'), 'aria-pressed': b.c ? 'true' : 'false', disabled: ro } }, [U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })])]);
           chk.addEventListener('click', function () { structural(); b.c = !b.c; chk.classList.toggle('on', b.c); e.classList.toggle('done', b.c); if (b.c) { W.Audio.success(); W.Audio.vibrate([8]); } save(); });
           e.classList.toggle('done', !!b.c);
           body.appendChild(chk); body.appendChild(editable(b)); break;
         case 'toggle':
-          var arrow = U.el('button.bk-arrow' + (b.o ? '.open' : ''), { attrs: { type: 'button', 'aria-label': b.o ? 'Plegar' : 'Desplegar', 'aria-expanded': b.o ? 'true' : 'false' } }, [U.icon('right')]);
+          var arrow = U.el('button.bk-arrow' + (b.o ? '.open' : ''), { attrs: { type: 'button', 'aria-label': b.o ? W.t('Plegar') : W.t('Desplegar'), 'aria-expanded': b.o ? 'true' : 'false' } }, [U.icon('right')]);
           arrow.addEventListener('click', function () { b.o = !b.o; arrow.classList.toggle('open', b.o); arrow.setAttribute('aria-expanded', b.o ? 'true' : 'false'); decorate(); save(); });
           body.appendChild(arrow); body.appendChild(editable(b));
-          e.appendChild(U.el('button.bk-toggle-empty', { attrs: { type: 'button' }, text: 'Desplegable vacío. Toca para escribir dentro.', on: { click: function () { structural(); var nb = newBlock('p', '', { i: (b.i || 0) + 1 }); insertAt(indexOf(b) + 1, nb); focusBlock(nb, 'start'); save(); } } }));
+          e.appendChild(U.el('button.bk-toggle-empty', { attrs: { type: 'button' }, text: W.t('Desplegable vacío. Toca para escribir dentro.'), on: { click: function () { structural(); var nb = newBlock('p', '', { i: (b.i || 0) + 1 }); insertAt(indexOf(b) + 1, nb); focusBlock(nb, 'start'); save(); } } }));
           break;
         case 'callout':
-          var ic = U.el('button.bk-callout-ic', { attrs: { type: 'button', 'aria-label': 'Cambiar el icono', disabled: ro } }, [U.icon(b.ic || 'bolt')]);
+          var ic = U.el('button.bk-callout-ic', { attrs: { type: 'button', 'aria-label': W.t('Cambiar el icono'), disabled: ro } }, [U.icon(b.ic || 'bolt')]);
           ic.addEventListener('click', function (ev) { iconMenu(ev.currentTarget, b.ic, function (v) { structural(); b.ic = v; U.clear(ic); ic.appendChild(U.icon(v)); save(); }); });
           body.appendChild(ic); body.appendChild(editable(b)); break;
         case 'code':
-          var lang = U.el('button.bk-lang', { attrs: { type: 'button', disabled: ro }, text: b.l || 'Texto', on: { click: function (ev) {
-            var L = ['Texto', 'JavaScript', 'Python', 'HTML', 'CSS', 'JSON', 'SQL', 'Java', 'C', 'Bash'];
+          var lang = U.el('button.bk-lang', { attrs: { type: 'button', disabled: ro }, text: b.l || W.t('Texto'), on: { click: function (ev) {
+            var L = [W.t('Texto'), 'JavaScript', 'Python', 'HTML', 'CSS', 'JSON', 'SQL', 'Java', 'C', 'Bash'];
             W.Menu.open(ev.currentTarget, L.map(function (x) { return { value: x, label: x, on: (b.l || 'Texto') === x }; })).then(function (v) { if (!v) return; b.l = v === 'Texto' ? '' : v; lang.textContent = v; save(); });
           } } });
-          var copy = U.el('button.bk-copy', { attrs: { type: 'button', 'aria-label': 'Copiar el código', title: 'Copiar' }, on: { click: function () { copyText(textEl(b).textContent); } } }, [U.icon('copy')]);
+          var copy = U.el('button.bk-copy', { attrs: { type: 'button', 'aria-label': W.t('Copiar el código'), title: W.t('Copiar') }, on: { click: function () { copyText(textEl(b).textContent); } } }, [U.icon('copy')]);
           body.appendChild(U.el('div.bk-code-bar', [lang, copy]));
           body.appendChild(editable(b, 'bk-codetext'));
           break;
@@ -328,7 +328,7 @@ window.Whider = window.Whider || {};
     function deleteBlock(b) {
       structural();
       var prev = prevText(b), next = nextText(b);
-      if (b.t === 'page' && b.ref) { var pm = P().get(b.ref); if (pm && pm.parent === pageId) W.Sheet.confirm({ title: '¿Mover «' + P().title(pm) + '» a la papelera?', text: 'Es una subpágina de esta página.', ok: 'Mover a la papelera', danger: true }).then(function (ok) { if (ok) { P().remove(pm.id); } }); }
+      if (b.t === 'page' && b.ref) { var pm = P().get(b.ref); if (pm && pm.parent === pageId) W.Sheet.confirm({ title: W.t('¿Mover «{name}» a la papelera?', { name: P().title(pm) }), text: W.t('Es una subpágina de esta página.'), ok: W.t('Mover a la papelera'), danger: true }).then(function (ok) { if (ok) { P().remove(pm.id); } }); }
       removeBlock(b);
       if (!blocks.length) { var nb = newBlock('p'); insertAt(0, nb); focusBlock(nb, 'start'); }
       else focusBlock(prev || next, prev ? 'end' : 'start');
@@ -554,7 +554,7 @@ window.Whider = window.Whider || {};
       var a = document.activeElement;
       var cur = saved.commonAncestorContainer; cur = cur.nodeType === 1 ? cur : cur.parentNode;
       var existing = cur && cur.closest ? cur.closest('a') : null;
-      W.Sheet.prompt({ title: existing ? 'Cambiar el enlace' : 'Añadir un enlace', value: existing ? existing.getAttribute('href') : '', placeholder: 'https://…', maxLength: 600, ok: 'Guardar' }).then(function (u) {
+      W.Sheet.prompt({ title: existing ? W.t('Cambiar el enlace') : W.t('Añadir un enlace'), value: existing ? existing.getAttribute('href') : '', placeholder: 'https://…', maxLength: 600, ok: W.t('Guardar') }).then(function (u) {
         if (a) a.focus();
         var s2 = sel(); s2.removeAllRanges(); s2.addRange(saved);
         if (!u) return;
@@ -575,18 +575,18 @@ window.Whider = window.Whider || {};
       if (!t || !root.contains(t) || t.classList.contains('bk-codetext')) { hideToolbar(); return; }
       if (!toolbar) {
         var btn = function (icon, label, run) { return U.el('button.bt-btn', { attrs: { type: 'button', 'aria-label': label, title: label }, on: { mousedown: function (e) { e.preventDefault(); }, click: function (e) { e.preventDefault(); run(e); } } }, [U.icon(icon)]); };
-        toolbar = U.el('div.bk-toolbar', { attrs: { role: 'toolbar', 'aria-label': 'Formato del texto' } }, [
-          U.el('button.bt-turn', { attrs: { type: 'button', title: 'Convertir en' }, on: { mousedown: function (e) { e.preventDefault(); }, click: function (e) { var bel = t2().closest('.bk'); if (bel) turnMenu(bel._b, e.currentTarget); } } }, [U.el('span', { text: 'Convertir' }), U.icon('down', 'xs')]),
+        toolbar = U.el('div.bk-toolbar', { attrs: { role: 'toolbar', 'aria-label': W.t('Formato del texto') } }, [
+          U.el('button.bt-turn', { attrs: { type: 'button', title: W.t('Convertir en') }, on: { mousedown: function (e) { e.preventDefault(); }, click: function (e) { var bel = t2().closest('.bk'); if (bel) turnMenu(bel._b, e.currentTarget); } } }, [U.el('span', { text: W.t('Convertir') }), U.icon('down', 'xs')]),
           U.el('span.bt-sep'),
-          btn('bold', 'Negrita (Ctrl B)', function () { fmt('bold'); }),
-          btn('italic', 'Cursiva (Ctrl I)', function () { fmt('italic'); }),
-          btn('underline', 'Subrayado (Ctrl U)', function () { fmt('underline'); }),
-          btn('strike', 'Tachado (Ctrl Mayús X)', function () { fmt('strikeThrough'); }),
-          btn('code', 'Código (Ctrl E)', function () { wrapInline('code'); }),
-          btn('highlight', 'Resaltar (Ctrl Mayús H)', function () { wrapInline('mark'); }),
-          btn('link', 'Enlace (Ctrl K)', function () { link(); }),
+          btn('bold', W.t('Negrita (Ctrl B)'), function () { fmt('bold'); }),
+          btn('italic', W.t('Cursiva (Ctrl I)'), function () { fmt('italic'); }),
+          btn('underline', W.t('Subrayado (Ctrl U)'), function () { fmt('underline'); }),
+          btn('strike', W.t('Tachado (Ctrl Mayús X)'), function () { fmt('strikeThrough'); }),
+          btn('code', W.t('Código (Ctrl E)'), function () { wrapInline('code'); }),
+          btn('highlight', W.t('Resaltar (Ctrl Mayús H)'), function () { wrapInline('mark'); }),
+          btn('link', W.t('Enlace (Ctrl K)'), function () { link(); }),
           U.el('span.bt-sep'),
-          btn('tasks', 'Crear una tarea con este texto', function () { var txt = sel().toString().trim(); if (txt) { W.Editor.open(null, { text: txt.slice(0, 200) }); } })
+          btn('tasks', W.t('Crear una tarea con este texto'), function () { var txt = sel().toString().trim(); if (txt) { W.Editor.open(null, { text: txt.slice(0, 200) }); } })
         ]);
         document.body.appendChild(toolbar);
       }
@@ -604,31 +604,31 @@ window.Whider = window.Whider || {};
     /* -- Menús -- */
     function turnMenu(b, anchor) {
       var types = ['p', 'h1', 'h2', 'h3', 'ul', 'ol', 'todo', 'toggle', 'quote', 'callout', 'code'];
-      W.Menu.open(anchor, types.map(function (k) { var d = P().BLOCKS[k]; return { value: k, label: d.label, icon: d.icon, on: b.t === k }; }), { title: 'Convertir en' }).then(function (v) { if (v && v !== b.t) { convert(b, v); focusBlock(b, 'end'); } });
+      W.Menu.open(anchor, types.map(function (k) { var d = P().BLOCKS[k]; return { value: k, label: d.label, icon: d.icon, on: b.t === k }; }), { title: W.t('Convertir en') }).then(function (v) { if (v && v !== b.t) { convert(b, v); focusBlock(b, 'end'); } });
     }
     function iconMenu(anchor, current, done) {
-      W.Menu.open(anchor, ['bolt', 'info', 'alert', 'star', 'flag', 'target', 'heart', 'book', 'calendar', 'clock', 'pin', 'sparkle'].map(function (k) { return { value: k, label: { bolt: 'Rayo', info: 'Información', alert: 'Atención', star: 'Estrella', flag: 'Bandera', target: 'Diana', heart: 'Corazón', book: 'Libro', calendar: 'Calendario', clock: 'Reloj', pin: 'Chincheta', sparkle: 'Brillo' }[k], icon: k, on: current === k }; }), { title: 'Icono' }).then(function (v) { if (v) done(v); });
+      W.Menu.open(anchor, ['bolt', 'info', 'alert', 'star', 'flag', 'target', 'heart', 'book', 'calendar', 'clock', 'pin', 'sparkle'].map(function (k) { return { value: k, label: { bolt: W.t('Rayo'), info: W.t('Información'), alert: W.t('Atención'), star: W.t('Estrella'), flag: W.t('Bandera'), target: W.t('Diana'), heart: W.t('Corazón'), book: W.t('Libro'), calendar: W.t('Calendario'), clock: W.t('Reloj'), pin: W.t('Chincheta'), sparkle: W.t('Brillo') }[k], icon: k, on: current === k }; }), { title: W.t('Icono') }).then(function (v) { if (v) done(v); });
     }
     function blockMenu(b, anchor) {
       // Por grupos: lo propio del bloque (un archivo: abrirlo o descargarlo), editar, mover, convertir y borrar
       var items = [];
       if (b.f) {
-        items.push({ value: 'open', label: b.t === 'img' ? 'Ver en grande' : 'Abrir', icon: b.t === 'img' ? 'expand' : 'external' });
-        items.push({ value: 'dl', label: 'Descargar', icon: 'download' });
-        if (b.t === 'file') items.push({ value: 'rename', label: 'Cambiar el nombre', icon: 'edit' });
+        items.push({ value: 'open', label: b.t === 'img' ? W.t('Ver en grande') : W.t('Abrir'), icon: b.t === 'img' ? 'expand' : 'external' });
+        items.push({ value: 'dl', label: W.t('Descargar'), icon: 'download' });
+        if (b.t === 'file') items.push({ value: 'rename', label: W.t('Cambiar el nombre'), icon: 'edit' });
       }
-      if (b.t === 'img' && (b.src || b.f)) items.push({ value: 'size', label: 'Tamaño de la imagen', icon: 'grid' });
+      if (b.t === 'img' && (b.src || b.f)) items.push({ value: 'size', label: W.t('Tamaño de la imagen'), icon: 'grid' });
       // «Convertir en» solo para texto: en un archivo o una imagen se perdería el adjunto
-      if (isText(b)) items.push({ value: 'turn', label: 'Convertir en…', icon: 'swap', gap: items.length > 0 });
-      items.push({ value: 'dup', label: 'Duplicar', icon: 'copy', desc: 'Ctrl D', gap: items.length > 0 && !isText(b) });
-      items.push({ value: 'up', label: 'Subir', icon: 'up', desc: 'Ctrl Mayús ↑', gap: true });
-      items.push({ value: 'down', label: 'Bajar', icon: 'down', desc: 'Ctrl Mayús ↓' });
-      items.push({ value: 'in', label: 'Sangrar', icon: 'right', desc: 'Tab' });
-      items.push({ value: 'out', label: 'Quitar sangría', icon: 'left', desc: 'Mayús Tab' });
-      if (isText(b) && b.t !== 'code') items.push({ value: 'task', label: 'Crear tarea con este texto', icon: 'tasks', gap: true });
-      if (isText(b)) items.push({ value: 'subpage', label: 'Convertir en subpágina', icon: 'page', gap: b.t === 'code' });
-      items.push({ value: 'copy', label: b.f && b.t === 'file' ? 'Copiar el nombre' : 'Copiar el texto', icon: 'layers', gap: !isText(b) });
-      items.push({ value: 'del', label: 'Eliminar', icon: 'trash', destructive: true, gap: true });
+      if (isText(b)) items.push({ value: 'turn', label: W.t('Convertir en…'), icon: 'swap', gap: items.length > 0 });
+      items.push({ value: 'dup', label: W.t('Duplicar'), icon: 'copy', desc: W.t('Ctrl D'), gap: items.length > 0 && !isText(b) });
+      items.push({ value: 'up', label: W.t('Subir'), icon: 'up', desc: W.t('Ctrl Mayús ↑'), gap: true });
+      items.push({ value: 'down', label: W.t('Bajar'), icon: 'down', desc: W.t('Ctrl Mayús ↓') });
+      items.push({ value: 'in', label: W.t('Sangrar'), icon: 'right', desc: W.t('Tab') });
+      items.push({ value: 'out', label: W.t('Quitar sangría'), icon: 'left', desc: W.t('Mayús Tab') });
+      if (isText(b) && b.t !== 'code') items.push({ value: 'task', label: W.t('Crear tarea con este texto'), icon: 'tasks', gap: true });
+      if (isText(b)) items.push({ value: 'subpage', label: W.t('Convertir en subpágina'), icon: 'page', gap: b.t === 'code' });
+      items.push({ value: 'copy', label: b.f && b.t === 'file' ? W.t('Copiar el nombre') : W.t('Copiar el texto'), icon: 'layers', gap: !isText(b) });
+      items.push({ value: 'del', label: W.t('Eliminar'), icon: 'trash', destructive: true, gap: true });
       W.Menu.open(anchor, items).then(function (v) {
         if (!v) return;
         var i = indexOf(b);
@@ -638,18 +638,18 @@ window.Whider = window.Whider || {};
         else if (v === 'down') { var end = i + 1 + childrenOf(b).length; if (end < blocks.length) { structural(); moveBlock(b, end + 1 + childrenOf(blocks[end]).length); } }
         else if (v === 'in') indent(b, 1);
         else if (v === 'out') indent(b, -1);
-        else if (v === 'task') { var text = P().plain(b.x).trim(); if (text) { var pr = W.Parse.task(text); var task = W.State.addTask({ text: pr.text || text, date: pr.date !== undefined ? pr.date : U.today(), time: pr.time || null, listId: pr.listId || null, highlight: pr.highlight || 'none', warn: W.State.settings.defaultWarn }); structural(); b.t = 'task'; b.ref = task.id; delete b.x; refreshBlock(b); save(); W.Toast.show({ text: 'Tarea creada', icon: 'check', type: 'success' }); } }
+        else if (v === 'task') { var text = P().plain(b.x).trim(); if (text) { var pr = W.Parse.task(text); var task = W.State.addTask({ text: pr.text || text, date: pr.date !== undefined ? pr.date : U.today(), time: pr.time || null, listId: pr.listId || null, highlight: pr.highlight || 'none', warn: W.State.settings.defaultWarn }); structural(); b.t = 'task'; b.ref = task.id; delete b.x; refreshBlock(b); save(); W.Toast.show({ text: W.t('Tarea creada'), icon: 'check', type: 'success' }); } }
         else if (v === 'subpage') { var titleTxt = P().plain(b.x).trim(); structural(); var sp = P().create({ title: titleTxt, parent: pageId }); b.t = 'page'; b.ref = sp.id; b.x = ''; refreshBlock(b); save(true); }
         else if (v === 'open') openAttachment(b);
         else if (v === 'dl') W.Files.download(fref(b), scope());
-        else if (v === 'rename') W.Sheet.prompt({ title: 'Nombre del archivo', value: b.n || '', maxLength: 120, ok: 'Guardar' }).then(function (n) { n = String(n || '').trim(); if (!n || n === b.n) return; structural(); b.n = n; refreshBlock(b); save(); });
+        else if (v === 'rename') W.Sheet.prompt({ title: W.t('Nombre del archivo'), value: b.n || '', maxLength: 120, ok: W.t('Guardar') }).then(function (n) { n = String(n || '').trim(); if (!n || n === b.n) return; structural(); b.n = n; refreshBlock(b); save(); });
         else if (v === 'size') W.Menu.open(anchor, [25, 50, 75, 100].map(function (w) { return { value: w, label: w + ' %', on: (b.w || 100) === w }; })).then(function (w) { if (w) { b.w = w; refreshBlock(b); save(); } });
         else if (v === 'copy') copyText(b.t === 'table' ? (b.rows || []).map(function (r) { return r.map(P().plain).join('\t'); }).join('\n') : P().plain(b.x || '') || b.n || '');
         else if (v === 'del') deleteBlock(b);
       });
     }
     function copyText(s) {
-      if (navigator.clipboard) navigator.clipboard.writeText(s).then(function () { W.Toast.show({ text: 'Copiado', icon: 'check' }); }).catch(function () {});
+      if (navigator.clipboard) navigator.clipboard.writeText(s).then(function () { W.Toast.show({ text: W.t('Copiado'), icon: 'check' }); }).catch(function () {});
     }
 
     /* -- Arrastrar bloques -- */
@@ -810,9 +810,9 @@ window.Whider = window.Whider || {};
         if (o && o.images != null) { go(!!o.images); return; }
         if (W.Layout.desktop) { go(false); return; }
         // Móvil: la galería de fotos del sistema o el explorador de archivos, como en cualquier app
-        W.Sheet.choose({ title: 'Adjuntar a la página', options: [
-          { value: 'img', label: 'Fotos', icon: 'image', desc: 'De la galería; se ven dentro de la página' },
-          { value: 'file', label: 'Archivos', icon: 'file', desc: 'PDF, documentos, hojas de cálculo… hasta ' + W.Files.fmtSize(W.Files.MAX) }
+        W.Sheet.choose({ title: W.t('Adjuntar a la página'), options: [
+          { value: 'img', label: W.t('Fotos'), icon: 'image', desc: W.t('De la galería; se ven dentro de la página') },
+          { value: 'file', label: W.t('Archivos'), icon: 'file', desc: W.t('PDF, documentos, hojas de cálculo… hasta {size}', { size: W.Files.fmtSize(W.Files.MAX) }) }
         ] }).then(function (v) { if (v) go(v === 'img'); });
       },
       refreshLive: function () { blocks.forEach(function (b) { if (b.t === 'task' || b.t === 'agenda' || b.t === 'page' || b.t === 'db') refreshBlock(b); }); },

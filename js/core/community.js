@@ -27,11 +27,11 @@ window.Whider = window.Whider || {};
   var lastPoll = 0, lastProfiles = 0, ticker = null, errorState = null, failures = 0, publishTimer = null, subs = [], polling = null;
   // Escucha del buzón: de quién es y si hay que volver a leerlo al acabar la lectura en curso
   var inboxFor = null, pollAgain = false;
-  var CHEERS = ['¡Vamos, tú puedes!', '¡Qué racha llevas!', 'A por el día de hoy', 'Te reto a completar 3 tareas hoy', 'Gran semana, sigue así', '¡Buen trabajo en equipo!'];
+  var CHEERS = [W.t('¡Vamos, tú puedes!'), W.t('¡Qué racha llevas!'), W.t('A por el día de hoy'), W.t('Te reto a completar 3 tareas hoy'), W.t('Gran semana, sigue así'), W.t('¡Buen trabajo en equipo!')];
 
   function uid() { return W.Auth && W.Auth.user ? W.Auth.user.uid : null; }
   function ref() { var a = Array.prototype.slice.call(arguments); return F().doc.apply(null, [DB()].concat(a)); }
-  function myName() { return (S().displayName() || (W.Auth.user && W.Auth.user.displayName) || 'Sin nombre').slice(0, 40); }
+  function myName() { return (S().displayName() || (W.Auth.user && W.Auth.user.displayName) || W.t('Sin nombre')).slice(0, 40); }
   function canUse() { return !!uid() && W.Auth.isVerified() && !!DB(); }
   function ready() { return canUse() && !!S().social.enabled; }
   function emit(r) { subs.slice().forEach(function (fn) { try { fn(r); } catch (e) { console.error(e); } }); }
@@ -50,13 +50,13 @@ window.Whider = window.Whider || {};
   /* ---------- Estado para las pantallas ---------- */
   /** Qué impide usar la comunidad (o null si todo va bien) */
   function blocker() {
-    if (!(W.Auth && W.Auth.configured())) return { id: 'noaccounts', title: 'Cuentas no configuradas', text: 'Esta copia de WHIDER no tiene cuentas activadas.' };
-    if (!uid()) return { id: 'guest', title: 'Necesitas una cuenta', text: 'Inicia sesión para conectar con tus amigos y tu equipo, chatear y compartir páginas.' };
-    if (!W.Auth.isVerified()) return { id: 'unverified', title: 'Verifica tu correo', text: 'Te enviamos un enlace al registrarte. Ábrelo y vuelve aquí.' };
-    if (!DB()) return { id: 'loading', title: 'Conectando…', text: 'Un momento.' };
-    if (errorState === 'permission') return { id: 'permission', title: 'La comunidad no está disponible', text: 'El servidor todavía no tiene la configuración de la comunidad. Si eres quien publica la app: publica el archivo firestore.rules en Firebase → Firestore Database → Reglas.' };
-    if (errorState === 'offline') return { id: 'offline', title: 'Sin conexión', text: 'Cuando vuelva internet, lo pendiente se envía solo.', soft: true };
-    if (errorState === 'network') return { id: 'network', title: 'No se pudo conectar', text: 'Lo intentamos de nuevo en unos segundos.', soft: true };
+    if (!(W.Auth && W.Auth.configured())) return { id: 'noaccounts', title: W.t('Cuentas no configuradas'), text: W.t('Esta copia de WHIDER no tiene cuentas activadas.') };
+    if (!uid()) return { id: 'guest', title: W.t('Necesitas una cuenta'), text: W.t('Inicia sesión para conectar con tus amigos y tu equipo, chatear y compartir páginas.') };
+    if (!W.Auth.isVerified()) return { id: 'unverified', title: W.t('Verifica tu correo'), text: W.t('Te enviamos un enlace al registrarte. Ábrelo y vuelve aquí.') };
+    if (!DB()) return { id: 'loading', title: W.t('Conectando…'), text: W.t('Un momento.') };
+    if (errorState === 'permission') return { id: 'permission', title: W.t('La comunidad no está disponible'), text: W.t('El servidor todavía no tiene la configuración de la comunidad. Si eres quien publica la app: publica el archivo firestore.rules en Firebase → Firestore Database → Reglas.') };
+    if (errorState === 'offline') return { id: 'offline', title: W.t('Sin conexión'), text: W.t('Cuando vuelva internet, lo pendiente se envía solo.'), soft: true };
+    if (errorState === 'network') return { id: 'network', title: W.t('No se pudo conectar'), text: W.t('Lo intentamos de nuevo en unos segundos.'), soft: true };
     return null;
   }
 
@@ -148,7 +148,7 @@ window.Whider = window.Whider || {};
         var a = got.accepted[k], old = st.social.friends[k] || {};
         st.social.friends[k] = Object.assign({}, old, { name: a.name || old.name || '', code: a.code || old.code || '', at: Date.now(), removed: false, pending: false, kind: old.kind || (a.kind === 'work' ? 'work' : 'friend') });
         changed = true;
-        W.Toast.show({ text: (a.name || 'Alguien') + ' ya está en tus contactos', type: 'success', icon: 'users' });
+        W.Toast.show({ text: W.t('{name} ya está en tus contactos', { name: a.name || W.t('Alguien') }), type: 'success', icon: 'users' });
       });
       Object.keys(got.links || {}).forEach(function (k) {
         if (toRequests[k]) return;
@@ -158,7 +158,7 @@ window.Whider = window.Whider || {};
         if (inv) { inv.uses = (inv.uses || 0) + 1; inv.at = Date.now(); }
         changed = true;
         send(k, 'accepted', { name: myName(), code: st.social.code, at: Date.now(), kind: l.kind }).catch(function () {});
-        W.Toast.show({ text: (l.name || 'Alguien') + ' se ha unido con tu invitación', type: 'success', icon: 'users', duration: 4500 });
+        W.Toast.show({ text: W.t('{name} se ha unido con tu invitación', { name: l.name || W.t('Alguien') }), type: 'success', icon: 'users', duration: 4500 });
         W.Audio.chime();
       });
       Object.keys(got.cheers || {}).forEach(function (k) {
@@ -166,7 +166,7 @@ window.Whider = window.Whider || {};
         st.social.cheers.push({ id: c.id || U.uid('c'), from: k, name: c.name || '', text: String(c.text || '').slice(0, 80), at: c.at || Date.now() });
         st.social.cheers = st.social.cheers.slice(-30);
         changed = true;
-        W.Toast.show({ text: (c.name || 'Alguien') + ': «' + String(c.text || '').slice(0, 80) + '»', icon: 'send', duration: 6000 });
+        W.Toast.show({ text: W.t('{name}: «{text}»', { name: c.name || W.t('Alguien'), text: String(c.text || '').slice(0, 80) }), icon: 'send', duration: 6000 });
         W.Audio.chime();
       });
       Object.keys(got.spaces || {}).forEach(function (k) {
@@ -174,7 +174,7 @@ window.Whider = window.Whider || {};
         if (sp && sp.id && /^[A-Za-z0-9_-]{4,40}$/.test(sp.id)) {
           st.social.spaces[sp.id] = { name: String(sp.name || 'Equipo').slice(0, 40), at: Date.now(), left: false, icon: sp.icon || '' };
           changed = true;
-          W.Toast.show({ text: (sp.from || 'Alguien') + ' te ha añadido al equipo «' + (sp.name || '') + '»', icon: 'team', duration: 5000 });
+          W.Toast.show({ text: W.t('{name} te ha añadido al equipo «{team}»', { name: sp.from || W.t('Alguien'), team: sp.name || '' }), icon: 'team', duration: 5000 });
         }
       });
       if (changed) st.notify('social');
@@ -227,18 +227,18 @@ window.Whider = window.Whider || {};
   function normCode(code) { return String(code || '').toUpperCase().replace(/\s+/g, '').replace(/^WH(?!-)/, 'WH-'); }
   function addByCode(code, kind) {
     code = normCode(code);
-    if (!/^WH-[A-Z0-9]{6}$/.test(code)) { W.Toast.show({ text: 'Los códigos son así: WH-7K3Q9P', type: 'danger' }); return Promise.resolve(false); }
-    if (code === S().social.code) { W.Toast.show({ text: 'Ese es tu propio código', icon: 'info' }); return Promise.resolve(false); }
+    if (!/^WH-[A-Z0-9]{6}$/.test(code)) { W.Toast.show({ text: W.t('Los códigos son así: WH-7K3Q9P'), type: 'danger' }); return Promise.resolve(false); }
+    if (code === S().social.code) { W.Toast.show({ text: W.t('Ese es tu propio código'), icon: 'info' }); return Promise.resolve(false); }
     return ensureEnabled().then(function () { return F().getDoc(ref('codes', code)); }).then(function (s) {
-      if (!s.exists()) { W.Toast.show({ text: 'No hay nadie con ese código. Revisa que esté bien escrito.', type: 'danger' }); return false; }
+      if (!s.exists()) { W.Toast.show({ text: W.t('No hay nadie con ese código. Revisa que esté bien escrito.'), type: 'danger' }); return false; }
       var to = s.data().uid, f = S().social.friends[to];
-      if (f && !f.removed && !f.pending) { W.Toast.show({ text: 'Ya está en tus contactos', icon: 'users' }); return false; }
+      if (f && !f.removed && !f.pending) { W.Toast.show({ text: W.t('Ya está en tus contactos'), icon: 'users' }); return false; }
       return send(to, 'requests', { name: myName(), code: S().social.code, at: Date.now(), kind: kind === 'work' ? 'work' : 'friend' }).then(function () {
         S().setFriend(to, { name: '', code: code, removed: false, pending: true, kind: kind === 'work' ? 'work' : 'friend' });
-        W.Toast.show({ text: 'Solicitud enviada. Le llegará al momento.', type: 'success', icon: 'send' });
+        W.Toast.show({ text: W.t('Solicitud enviada. Le llegará al momento.'), type: 'success', icon: 'send' });
         return true;
       });
-    }).catch(function (e) { try { fail(e); } catch (x) { /* ya avisado */ } W.Toast.show({ text: blocker() ? blocker().title : 'No se pudo enviar', type: 'danger' }); return false; });
+    }).catch(function (e) { try { fail(e); } catch (x) { /* ya avisado */ } W.Toast.show({ text: blocker() ? blocker().title : W.t('No se pudo enviar'), type: 'danger' }); return false; });
   }
   function answer(fromUid, accept, kind) {
     var st = S(), me = uid(), req = inbox.requests[fromUid] || {};
@@ -257,7 +257,7 @@ window.Whider = window.Whider || {};
       var k = kind || req.kind || 'friend';
       st.setFriend(fromUid, { name: req.name || '', code: req.code || '', removed: false, pending: false, kind: k === 'work' ? 'work' : 'friend' });
       return send(fromUid, 'accepted', { name: myName(), code: st.social.code, at: Date.now(), kind: k }).then(function () {
-        W.Toast.show({ text: 'Ya estáis conectados', type: 'success', icon: 'users' });
+        W.Toast.show({ text: W.t('Ya estáis conectados'), type: 'success', icon: 'users' });
         return loadProfiles([fromUid]);
       });
     }).catch(function (e) { try { fail(e); } catch (x) { /* ya avisado */ } });
@@ -265,7 +265,7 @@ window.Whider = window.Whider || {};
   function cheer(f, text) {
     return send(f.uid, 'cheers', { name: myName(), text: text, at: Date.now(), id: U.uid('c') }).then(function () {
       S().setMeta('cheersSent', (S().meta.cheersSent || 0) + 1);
-      W.Toast.show({ text: 'Ánimo enviado a ' + (f.name || 'tu contacto'), icon: 'send' });
+      W.Toast.show({ text: W.t('Ánimo enviado a {name}', { name: f.name || W.t('tu contacto') }), icon: 'send' });
       W.Audio.boop();
     }).catch(function (e) { try { fail(e); } catch (x) { /* ya avisado */ } });
   }
@@ -284,7 +284,7 @@ window.Whider = window.Whider || {};
     var inv = S().social.invites;
     Object.keys(inv).forEach(function (t) { inv[t].off = true; inv[t].at = Date.now(); });
     S().notify('social');
-    W.Toast.show({ text: 'Enlaces renovados: los anteriores ya no conectan solos', icon: 'refresh' });
+    W.Toast.show({ text: W.t('Enlaces renovados: los anteriores ya no conectan solos'), icon: 'refresh' });
   }
 
   /* ---------- Equipos ---------- */
@@ -452,27 +452,27 @@ window.Whider = window.Whider || {};
   }
 
   var REASONS = [
-    { value: 'spam', label: 'Spam o publicidad' }, { value: 'acoso', label: 'Acoso o insultos' },
-    { value: 'inapropiado', label: 'Contenido inapropiado' }, { value: 'suplantacion', label: 'Se hace pasar por otra persona' },
-    { value: 'otro', label: 'Otro motivo' }
+    { value: 'spam', label: W.t('Spam o publicidad') }, { value: 'acoso', label: W.t('Acoso o insultos') },
+    { value: 'inapropiado', label: W.t('Contenido inapropiado') }, { value: 'suplantacion', label: W.t('Se hace pasar por otra persona') },
+    { value: 'otro', label: W.t('Otro motivo') }
   ];
   /** Hoja para denunciar: el motivo y, si quieres, bloquear a la vez */
   function reportSheet(o) {
-    return W.Sheet.choose({ title: 'Denunciar' + (o.name ? ' a ' + o.name : ''), options: REASONS }).then(function (reason) {
+    return W.Sheet.choose({ title: o.name ? W.t('Denunciar a {name}', { name: o.name }) : W.t('Denunciar'), options: REASONS }).then(function (reason) {
       if (!reason) return false;
       return report({ who: o.who, reason: reason, where: o.where || '', excerpt: o.excerpt || '' }).then(function () {
-        W.Toast.show({ text: 'Gracias. La denuncia queda registrada para revisarla.', icon: 'shield', type: 'success', duration: 6000,
-          action: blockedMap()[o.who] ? null : { label: 'Bloquear', fn: function () { blockConfirm(o.who, o.name); } } });
+        W.Toast.show({ text: W.t('Gracias. La denuncia queda registrada para revisarla.'), icon: 'shield', type: 'success', duration: 6000,
+          action: blockedMap()[o.who] ? null : { label: W.t('Bloquear'), fn: function () { blockConfirm(o.who, o.name); } } });
         return true;
-      }).catch(function () { W.Toast.show({ text: 'No se pudo enviar la denuncia. Inténtalo con conexión.', type: 'danger' }); return false; });
+      }).catch(function () { W.Toast.show({ text: W.t('No se pudo enviar la denuncia. Inténtalo con conexión.'), type: 'danger' }); return false; });
     });
   }
   function blockConfirm(who, name) {
-    return W.Sheet.confirm({ title: '¿Bloquear' + (name ? ' a ' + name : '') + '?', text: 'No podrá enviarte solicitudes, ánimos ni mensajes en vuestro chat, y sale de tus contactos. No se le avisa. Puedes desbloquearlo en Ajustes → Privacidad.', ok: 'Bloquear', danger: true })
+    return W.Sheet.confirm({ title: name ? W.t('¿Bloquear a {name}?', { name: name }) : W.t('¿Bloquear?'), text: W.t('No podrá enviarte solicitudes, ánimos ni mensajes en vuestro chat, y sale de tus contactos. No se le avisa. Puedes desbloquearlo en Ajustes → Privacidad.'), ok: W.t('Bloquear'), danger: true })
       .then(function (ok) {
         if (!ok) return false;
-        return block(who, name).then(function () { W.Toast.show({ text: (name || 'La persona') + ' está bloqueada', icon: 'hand' }); return true; })
-          .catch(function () { W.Toast.show({ text: 'Bloqueada en este dispositivo; se guardará en la nube al volver la conexión', icon: 'hand' }); return true; });
+        return block(who, name).then(function () { W.Toast.show({ text: W.t('{name} está bloqueada', { name: name || W.t('La persona') }), icon: 'hand' }); return true; })
+          .catch(function () { W.Toast.show({ text: W.t('Bloqueada en este dispositivo; se guardará en la nube al volver la conexión'), icon: 'hand' }); return true; });
       });
   }
 

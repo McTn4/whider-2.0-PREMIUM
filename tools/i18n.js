@@ -108,9 +108,7 @@ function legible(s) {
   if (/^<(svg|path|polyline|use|g)\b/.test(s) || /^[A-Z]{2,5}$/.test(s)) return false;
   if (
     /^[a-z][a-zA-Z0-9_-]*$/.test(s) &&
-    !/^(sí|no|de|y|o|ok|hoy|ayer|nada|todo|todas|todos|ninguno|ninguna|nunca|siempre|ahora|antes|después|mañana)$/.test(
-      s
-    )
+    !/^(sí|no|de|y|o|ok|hoy|ayer|nada|todas|todos|ninguno|ninguna|nunca|siempre|ahora|antes|después|mañana)$/.test(s)
   )
     return false;
   if (/^[a-z0-9_-]+(\.[a-z0-9_-]+)+$/.test(s)) return false;

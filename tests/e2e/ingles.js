@@ -9,7 +9,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0;
 const ok = (c, m, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (!c && extra !== undefined ? '  → ' + JSON.stringify(extra, null, 1).slice(0, 3000) : '')); if (!c) fails++; };
 // «calendar:week» abre el calendario en esa vista (en el móvil no hay vista de día)
-const PANTALLAS = ['home', 'tasks', 'calendar:month', 'calendar:week', 'calendar:day', 'calendar:agenda', 'focus', 'progress', 'records', 'more', 'stats', 'reports'];
+const PANTALLAS = ['home', 'tasks', 'calendar:month', 'calendar:week', 'calendar:day', 'calendar:agenda', 'focus', 'progress', 'records', 'more', 'stats', 'reports', 'friends', 'chats', 'automations'];
 // Hojas que se abren encima (Ajustes y sus páginas, la ayuda, los atajos, el importador, el editor de tareas…)
 const HOJAS = [
   ['ajustes', () => Whider.Settings.open()],
@@ -20,9 +20,11 @@ const HOJAS = [
   ['importar', () => Whider.ImportWizard.open()],
   ['plantilla nueva', () => Whider.Templates.edit()],
   ['tarea nueva', () => Whider.Editor.open()],
+  ['regla nueva', () => Whider.Screens.automations.edit(null)],
+  ['editar regla', () => Whider.Screens.automations.edit(Whider.State.rules[0])],
   ['editar tarea', () => Whider.Editor.open(Whider.State.tasks.find((t) => t.text === 'Prepare the proposal').id)]
 ];
-const ESPANOL = /[áéíóúñ¿¡]|\b(de|del|la|las|el|los|que|y|en|con|sin|para|por|una|un|tu|tus|más|hoy|mañana|tarea|tareas|hábito|hábitos|ajustes|cuaderno|nueva|nuevo|ver|todo|nada|semana|día|días|añadir|hecha|hechas|pendientes?|vencidas?)\b/i;
+const ESPANOL = /[áéíóúñ¿¡]|\b(de|del|la|las|el|los|que|y|en|con|sin|para|por|una|un|tu|tus|más|hoy|mañana|tarea|tareas|hábito|hábitos|ajustes|cuaderno|nueva|nuevo|ver|todo|nada|semana|día|días|añadir|hecha|hechas|pendientes?|vencidas?|fecha|lugar|objetivo|asignatura|nombre|estado|página|páginas)\b/i;
 
 async function abrir(b, movil) {
   const ctx = await b.newContext(movil ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } : { viewport: { width: 1440, height: 900 } });
@@ -45,6 +47,9 @@ async function abrir(b, movil) {
     add('Send the invoice', 'none', '17:00'); add('Old report', 'none', null, { date: Whider.U.addDays(t, -2) });
     const d = S.addTask({ text: 'Water the plants', date: t }); S.setDone(d.id, true);
     S.addTask({ text: 'Plan the trip', date: Whider.U.addDays(t, 2) });
+    // Una regla propia, para ver su resumen («Every day at 7:00, if date: is overdue → date today»)
+    const tp = Whider.Auto.TEMPLATES[0];
+    S.saveRule(Object.assign({ name: 'Morning sweep', enabled: true }, JSON.parse(JSON.stringify(tp.rule))));
   });
   return p;
 }
@@ -94,6 +99,35 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
       ok(texto.length > 2 && !restos.length, donde + ': hoja «' + nombre + '» sin textos en español', restos.length ? restos : texto);
       await p.evaluate(() => { let n = 0; while (Whider.Sheet.isOpen() && n++ < 10) Whider.Sheet.closeTop(); });
       await sleep(450);
+    }
+    // El Cuaderno: la portada, una página de cada plantilla (con sus bases de datos) y la papelera
+    await p.evaluate(() => { Whider.Router.go('notes'); });
+    await sleep(1500);
+    const paginas = await p.evaluate(() => ['meeting', 'project', 'journal', 'class', 'weekly', 'reading', 'roadmap', 'wiki', 'contacts']
+      .map((t) => { const m = Whider.Pages.fromTemplate(t); return [t, m && (m.id || m)]; }));
+    for (const [plantilla, id] of paginas) {
+      await p.evaluate((x) => Whider.Notes.openPage(x), id);
+      await sleep(800);
+      const restos = (await leer(p, 'notes')).filter((l) => ESPANOL.test(l));
+      ok(!restos.length, donde + ': Cuaderno, plantilla «' + plantilla + '» sin textos en español', restos);
+    }
+    // El menú «/» de bloques
+    await p.evaluate((x) => Whider.Notes.openPage(x), paginas[0][1]);
+    await sleep(800);
+    await p.evaluate(() => { const b = document.querySelector('#screen-notes .bk-plus'); if (b) b.click(); });
+    await sleep(500);
+    const menu = await leerHojas(p, '.bk-menu');
+    ok(menu.length > 10 && !menu.filter((l) => ESPANOL.test(l)).length, donde + ': menú de bloques sin textos en español', menu.length > 10 ? menu.filter((l) => ESPANOL.test(l)) : menu);
+    await p.keyboard.press('Escape');
+    // La pantalla de acceso: crear cuenta, iniciar sesión y verificar el correo
+    for (const [modo, vista] of [['register', 'form'], ['login', 'form'], ['login', 'verify']]) {
+      await p.evaluate(([m, v]) => Whider.AuthScreen.open({ mode: m, view: v }), [modo, vista]);
+      await sleep(400);
+      const texto = await leerHojas(p, '#authRoot');
+      const restos = texto.filter((l) => ESPANOL.test(l));
+      ok(texto.length > 2 && !restos.length, donde + ': acceso (' + modo + ', ' + vista + ') sin textos en español', restos.length ? restos : texto);
+      await p.evaluate(() => Whider.AuthScreen.close());
+      await sleep(500);
     }
     // La presentación inicial, paso a paso (sin terminarla, para no cambiar el nombre ni el personaje)
     await p.evaluate(() => Whider.Onboarding.start());

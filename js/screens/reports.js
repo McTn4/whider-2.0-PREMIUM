@@ -159,7 +159,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       var controls = [U.el('div.rp-row', [periodSeg])];
       if (desk && ui.period === 'custom') {
         var mk = function (val, set) { var i = U.el('input.input.rp-date', { attrs: { type: 'date', 'aria-label': W.t('Fecha') } }); i.value = val; i.addEventListener('change', function () { if (i.value) { set(i.value); W.Router.refresh(); } }); return i; };
-        controls.push(U.el('div.rp-row', [U.el('span.muted', { text: W.t('Del') }), mk(r[0], function (v) { ui.from = v; }), U.el('span.muted', { text: 'al' }), mk(r[1], function (v) { ui.to = v; })]));
+        controls.push(U.el('div.rp-row', [U.el('span.muted', { text: W.t('Del') }), mk(r[0], function (v) { ui.from = v; }), U.el('span.muted', { text: W.t('al') }), mk(r[1], function (v) { ui.to = v; })]));
       }
       if (desk) {
         controls.push(U.el('div.chips.wrap.rp-secs', SECTIONS.map(function (s) {

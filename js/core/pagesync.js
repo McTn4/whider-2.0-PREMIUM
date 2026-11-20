@@ -49,7 +49,7 @@ window.Whider = window.Whider || {};
   /** Nota con la versión que no ganó (id fijo: si los dos dispositivos la crean, es la misma) */
   function conflictCopy(bl) {
     var id = (String(bl.id) + '-v' + (bl.at || 0).toString(36)).slice(0, 60);
-    return { id: id, t: 'callout', ic: 'alert', x: 'Otra versión (se editó a la vez en otro sitio): ' + (bl.x || ''), at: bl.at || 0 };
+    return { id: id, t: 'callout', ic: 'alert', x: W.t('Otra versión (se editó a la vez en otro sitio):') + ' ' + (bl.x || ''), at: bl.at || 0 };
   }
   /**
    * mergeContent(a, b, since): fusión de dos versiones de una página. `since` es cuándo vio este
@@ -150,7 +150,7 @@ window.Whider = window.Whider || {};
             var size = fp(out).length;
             if (size > 950000) {
               out.blocks = out.blocks.map(function (b) { return b.t === 'img' && /^data:/.test(b.src || '') ? Object.assign({}, b, { src: '' }) : b; });
-              if (!warnedBig[m.id]) { warnedBig[m.id] = 1; W.Toast.show({ text: 'Las imágenes de «' + P().title(m) + '» son muy grandes para la nube: se quedan en este dispositivo.', icon: 'cloud', duration: 6000 }); }
+              if (!warnedBig[m.id]) { warnedBig[m.id] = 1; W.Toast.show({ text: W.t('Las imágenes de «{name}» son muy grandes para la nube: se quedan en este dispositivo.', { name: P().title(m) }), icon: 'cloud', duration: 6000 }); }
             }
             tx.set(pageRef(team, m.id), out);
             if (merged.items[m.id]) merged.items[m.id].cv = Math.max(merged.items[m.id].cv || 0, out.cv);

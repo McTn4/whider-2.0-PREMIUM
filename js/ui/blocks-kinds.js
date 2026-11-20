@@ -21,40 +21,40 @@ window.Whider = window.Whider || {};
       var m = b.ref ? P().get(b.ref) : null;
       var a = U.el('button.bk-pagelink' + (m && m.trash ? '.gone' : ''), { attrs: { type: 'button' } }, [
         U.el('span.bk-pl-ic', [U.icon(m ? (m.icon || (m.kind === 'db' ? 'database' : 'page')) : 'page')]),
-        U.el('span.bk-pl-t', { text: m ? P().title(m) : 'Página no encontrada' }),
-        m && m.trash ? U.el('small', { text: 'En la papelera' }) : U.icon('right', 'bk-pl-go')
+        U.el('span.bk-pl-t', { text: m ? P().title(m) : W.t('Página no encontrada') }),
+        m && m.trash ? U.el('small', { text: W.t('En la papelera') }) : U.icon('right', 'bk-pl-go')
       ]);
       a.addEventListener('click', function () { if (m && !m.trash && o.onOpenPage) { save(true); o.onOpenPage(m.id); } });
       return a;
     }
     function dbBlock(b) {
       var host = U.el('div.bk-db', { attrs: { contenteditable: 'false' } });
-      if (!b.ref || !P().get(b.ref) || P().get(b.ref).trash) { host.appendChild(U.el('div.bk-missing', { text: 'Esta base de datos ya no existe.' })); return host; }
+      if (!b.ref || !P().get(b.ref) || P().get(b.ref).trash) { host.appendChild(U.el('div.bk-missing', { text: W.t('Esta base de datos ya no existe.') })); return host; }
       if (W.DbView) host.appendChild(W.DbView.render(b.ref, { inline: true, view: b.view, readOnly: ro, onOpenPage: o.onOpenPage, onView: function (v) { b.view = v; save(); } }));
       return host;
     }
     function taskBlock(b) {
       var t = b.ref ? W.State.find(b.ref) : null;
       if (!t) {
-        if (ro) return U.el('div.bk-missing', { text: 'Tarea' });
-        var input = U.el('input.bk-task-input', { attrs: { type: 'text', maxlength: 200, placeholder: 'Escribe la tarea: «Llamar a Ana mañana a las 10 #trabajo»', 'aria-label': 'Nueva tarea' } });
+        if (ro) return U.el('div.bk-missing', { text: W.t('Tarea') });
+        var input = U.el('input.bk-task-input', { attrs: { type: 'text', maxlength: 200, placeholder: W.t('Escribe la tarea: «Llamar a Ana mañana a las 10 #trabajo»'), 'aria-label': W.t('Nueva tarea') } });
         var create = function () {
           var v = input.value.trim(); if (!v) return;
           var pr = W.Parse.task(v);
-          var task = W.State.addTask({ text: pr.text || v, date: pr.date !== undefined ? pr.date : U.today(), time: pr.time || null, listId: pr.listId || null, highlight: pr.highlight || 'none', repeat: pr.repeat || 'none', warn: W.State.settings.defaultWarn, notes: 'Desde el Cuaderno: ' + P().title(pageId) });
+          var task = W.State.addTask({ text: pr.text || v, date: pr.date !== undefined ? pr.date : U.today(), time: pr.time || null, listId: pr.listId || null, highlight: pr.highlight || 'none', repeat: pr.repeat || 'none', warn: W.State.settings.defaultWarn, notes: W.t('Desde el Cuaderno: {name}', { name: P().title(pageId) }) });
           structural(); b.ref = task.id; save(true);
           var fresh = renderBlock(b); ed.els()[b.id].parentNode.replaceChild(fresh, ed.els()[b.id]); decorate();
-          W.Toast.show({ text: 'Tarea creada' + (task.date ? ' para ' + U.fmtDay(task.date) : ''), icon: 'check', type: 'success' });
+          W.Toast.show({ text: task.date ? W.t('Tarea creada para {day}', { day: U.inline(U.fmtDay(task.date)) }) : W.t('Tarea creada'), icon: 'check', type: 'success' });
           var nb = newBlock('p'); insertAt(indexOf(b) + 1, nb); focusBlock(nb, 'start');
         };
         input.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); create(); } else if (ev.key === 'Escape') input.blur(); });
         setTimeout(function () { if (document.activeElement === document.body) input.focus(); }, 0);
-        return U.el('div.bk-taskrow.new', [U.icon('tasks'), input, U.el('button.btn.xs.primary', { text: 'Crear', on: { click: create } })]);
+        return U.el('div.bk-taskrow.new', [U.icon('tasks'), input, U.el('button.btn.xs.primary', { text: W.t('Crear'), on: { click: create } })]);
       }
-      var chk = U.el('button.check.sm' + (t.done ? '.on' : ''), { attrs: { 'aria-label': t.done ? 'Desmarcar' : 'Completar' } });
+      var chk = U.el('button.check.sm' + (t.done ? '.on' : ''), { attrs: { 'aria-label': t.done ? W.t('Desmarcar') : W.t('Completar') } });
       chk.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
       chk.addEventListener('click', function () { W.State.setDone(t.id, !t.done); if (!t.done) W.Audio.success(); refreshBlock(b); });
-      var when = t.date ? U.fmtDay(t.date) + (t.time ? ' · ' + U.fmtTime(t.time) : '') : 'Sin fecha';
+      var when = t.date ? U.fmtDay(t.date) + (t.time ? ' · ' + U.fmtTime(t.time) : '') : W.t('Sin fecha');
       return U.el('div.bk-taskrow' + (t.done ? '.done' : ''), [chk, U.el('button.bk-task-t', { attrs: { type: 'button' }, text: t.text, on: { click: function () { W.Editor.open(t.id); } } }),
         U.el('span.bk-task-when' + (W.State.isOverdue(t) ? '.late' : ''), [U.icon('calendar', 'xs'), when]), W.UI.prio(t.highlight)]);
     }
@@ -62,24 +62,24 @@ window.Whider = window.Whider || {};
       var td = U.today(), st = W.State;
       var list = st.tasks.filter(function (t) { return t.date === td || (!t.done && st.isOverdue(t)); }).sort(function (a, c) { return (a.done - c.done) || ((st.PRIORITIES[a.highlight] || {}).rank - (st.PRIORITIES[c.highlight] || {}).rank) || String(a.time || '99').localeCompare(String(c.time || '99')); });
       var rows = list.slice(0, 12).map(function (t) {
-        var chk = U.el('button.check.sm' + (t.done ? '.on' : ''), { attrs: { 'aria-label': t.done ? 'Desmarcar' : 'Completar' } });
+        var chk = U.el('button.check.sm' + (t.done ? '.on' : ''), { attrs: { 'aria-label': t.done ? W.t('Desmarcar') : W.t('Completar') } });
         chk.appendChild(U.svg('svg', { viewBox: '0 0 24 24' }, [U.svg('path', { d: 'm5 12.6 4.5 4.5L19 7.6' })]));
         chk.addEventListener('click', function () { st.setDone(t.id, !t.done); if (!t.done) W.Audio.success(); refreshBlock(b); });
         return U.el('div.bk-ag-row' + (t.done ? '.done' : ''), [chk, U.el('button.bk-task-t', { attrs: { type: 'button' }, text: t.text, on: { click: function () { W.Editor.open(t.id); } } }), t.time ? U.el('small', { text: U.fmtTime(t.time) }) : null, W.UI.prio(t.highlight)]);
       });
       return U.el('div.bk-agenda', { attrs: { contenteditable: 'false' } }, [
-        U.el('div.bk-ag-head', [U.icon('sun'), U.el('strong', { text: 'Hoy · ' + U.cap(U.fmtDay(td)) }), U.el('span', { text: list.filter(function (t) { return t.done; }).length + '/' + list.length })]),
-        rows.length ? U.el('div.bk-ag-list', rows) : U.el('p.bk-ag-none', { text: 'No tienes nada para hoy.' }),
-        ro ? null : U.el('button.btn.xs.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), 'Añadir para hoy'])
+        U.el('div.bk-ag-head', [U.icon('sun'), U.el('strong', { text: W.t('Hoy') + ' · ' + U.cap(U.fmtDay(td)) }), U.el('span', { text: list.filter(function (t) { return t.done; }).length + '/' + list.length })]),
+        rows.length ? U.el('div.bk-ag-list', rows) : U.el('p.bk-ag-none', { text: W.t('No tienes nada para hoy.') }),
+        ro ? null : U.el('button.btn.xs.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), W.t('Añadir para hoy')])
       ]);
     }
     function fillToc(e) {
       var host = e.querySelector('.bk-toc'); if (!host) return;
       U.clear(host);
       var hs = ed.blocks().filter(function (x) { return x.t === 'h1' || x.t === 'h2' || x.t === 'h3'; });
-      if (!hs.length) { host.appendChild(U.el('span.bk-toc-none', { text: 'Añade títulos y aparecerán aquí.' })); return; }
+      if (!hs.length) { host.appendChild(U.el('span.bk-toc-none', { text: W.t('Añade títulos y aparecerán aquí.') })); return; }
       hs.forEach(function (h) {
-        host.appendChild(U.el('button.bk-toc-i.l' + h.t.slice(1), { attrs: { type: 'button' }, text: P().plain(h.x) || 'Sin título', on: { click: function () { var t = ed.els()[h.id]; if (t) { t.scrollIntoView({ behavior: U.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); t.classList.add('flash'); setTimeout(function () { t.classList.remove('flash'); }, 1200); } } } }));
+        host.appendChild(U.el('button.bk-toc-i.l' + h.t.slice(1), { attrs: { type: 'button' }, text: P().plain(h.x) || W.t('Sin título'), on: { click: function () { var t = ed.els()[h.id]; if (t) { t.scrollIntoView({ behavior: U.reducedMotion() ? 'auto' : 'smooth', block: 'center' }); t.classList.add('flash'); setTimeout(function () { t.classList.remove('flash'); }, 1200); } } } }));
       });
     }
     /* -- Adjuntos: imágenes y archivos (W.Files los guarda aparte; el bloque lleva la referencia) -- */
@@ -88,26 +88,26 @@ window.Whider = window.Whider || {};
     function openAttachment(b) { if (W.Files && b.f) W.Files.open(fref(b), scope(), { onDelete: ro ? null : function () { removeAttachment(b); } }); }
     function imageBlock(b) {
       if (!b.src && !b.f) {
-        if (ro) return U.el('div.bk-missing', { text: 'Imagen' });
-        return U.el('div.bk-att-empty', [U.el('span.bk-att-empty-ic', [U.icon('image')]), U.el('span.bk-att-empty-t', [U.el('b', { text: 'Añade una imagen' }), U.el('small', { text: 'Desde tu dispositivo, arrastrándola aquí o con un enlace' })]),
+        if (ro) return U.el('div.bk-missing', { text: W.t('Imagen') });
+        return U.el('div.bk-att-empty', [U.el('span.bk-att-empty-ic', [U.icon('image')]), U.el('span.bk-att-empty-t', [U.el('b', { text: W.t('Añade una imagen') }), U.el('small', { text: W.t('Desde tu dispositivo, arrastrándola aquí o con un enlace') })]),
           U.el('span.bk-att-empty-acts', [
-            U.el('button.btn.xs.soft', { on: { click: function () { pickImage(b); } } }, [U.icon('upload', 'sm'), 'Elegir']),
-            U.el('button.btn.xs.ghost', { text: 'Pegar enlace', on: { click: function () {
-              W.Sheet.prompt({ title: 'Enlace de la imagen', placeholder: 'https://…', maxLength: 600, ok: 'Añadir' }).then(function (u) { if (!u) return; if (!/^https:\/\//.test(u)) { W.Toast.show({ text: 'El enlace debe empezar por https://', type: 'danger' }); return; } structural(); b.src = u; refreshBlock(b); save(); });
+            U.el('button.btn.xs.soft', { on: { click: function () { pickImage(b); } } }, [U.icon('upload', 'sm'), W.t('Elegir')]),
+            U.el('button.btn.xs.ghost', { text: W.t('Pegar enlace'), on: { click: function () {
+              W.Sheet.prompt({ title: W.t('Enlace de la imagen'), placeholder: 'https://…', maxLength: 600, ok: W.t('Añadir') }).then(function (u) { if (!u) return; if (!/^https:\/\//.test(u)) { W.Toast.show({ text: W.t('El enlace debe empezar por https://'), type: 'danger' }); return; } structural(); b.src = u; refreshBlock(b); save(); });
             } } })
           ])]);
       }
-      var cap = U.el('figcaption.bk-text', { attrs: { contenteditable: ro ? 'false' : 'true', 'data-ph': 'Añade un pie de foto' } });
+      var cap = U.el('figcaption.bk-text', { attrs: { contenteditable: ro ? 'false' : 'true', 'data-ph': W.t('Añade un pie de foto') } });
       cap.innerHTML = b.x || '';
-      var alt = P().plain(b.x || '') || b.n || 'Imagen';
+      var alt = P().plain(b.x || '') || b.n || W.t('Imagen');
       if (!b.f) return U.el('figure.bk-img', { style: { width: (b.w || 100) + '%' } }, [U.el('img', { attrs: { src: b.src, alt: alt, loading: 'lazy', draggable: 'false' } }), cap]);
       // Imagen guardada como adjunto: hueco con su proporción mientras se carga (sin saltos)
       var box = U.el('div.bk-img-box', { attrs: { 'data-file': b.f } });
       if (b.ar) box.style.aspectRatio = String(b.ar);
       var tools = U.el('span.bk-img-tools', [
-        U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': 'Ver en grande', title: 'Ver en grande' }, on: { click: function (e) { e.stopPropagation(); openAttachment(b); } } }, [U.icon('expand')]),
-        U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': 'Descargar', title: 'Descargar' }, on: { click: function (e) { e.stopPropagation(); W.Files.download(fref(b), scope()); } } }, [U.icon('download')]),
-        ro ? null : U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': 'Quitar la imagen', title: 'Quitar de la página' }, on: { click: function (e) { e.stopPropagation(); removeAttachment(b); } } }, [U.icon('trash')])
+        U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': W.t('Ver en grande'), title: W.t('Ver en grande') }, on: { click: function (e) { e.stopPropagation(); openAttachment(b); } } }, [U.icon('expand')]),
+        U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': W.t('Descargar'), title: W.t('Descargar') }, on: { click: function (e) { e.stopPropagation(); W.Files.download(fref(b), scope()); } } }, [U.icon('download')]),
+        ro ? null : U.el('button.bk-img-tool', { attrs: { type: 'button', 'aria-label': W.t('Quitar la imagen'), title: W.t('Quitar de la página') }, on: { click: function (e) { e.stopPropagation(); removeAttachment(b); } } }, [U.icon('trash')])
       ]);
       var show = function (u) {
         U.clear(box); box.classList.remove('error', 'wait'); box.classList.add('ready');
@@ -119,10 +119,10 @@ window.Whider = window.Whider || {};
         var ready = W.Files.peekUrl(b.f);
         if (ready) { show(ready); return; }
         U.clear(box); box.classList.add('wait'); box.classList.remove('error');
-        box.appendChild(U.el('span.bk-img-wait', { text: 'Cargando la imagen…' }));
+        box.appendChild(U.el('span.bk-img-wait', { text: W.t('Cargando la imagen…') }));
         W.Files.url(b.f, scope()).then(show, function (e) {
           U.clear(box); box.classList.remove('wait'); box.classList.add('error');
-          box.appendChild(U.el('div.bk-img-err', [U.icon('image'), U.el('span', { text: W.Files.explain(e, b.n) }), U.el('button.btn.xs.ghost', { text: 'Reintentar', on: { click: function (ev) { ev.stopPropagation(); load(); } } })]));
+          box.appendChild(U.el('div.bk-img-err', [U.icon('image'), U.el('span', { text: W.Files.explain(e, b.n) }), U.el('button.btn.xs.ghost', { text: W.t('Reintentar'), on: { click: function (ev) { ev.stopPropagation(); load(); } } })]));
           if (!ro) box.appendChild(tools);
         });
       };
@@ -132,20 +132,20 @@ window.Whider = window.Whider || {};
     }
     function fileBlock(b) {
       if (!b.f) {
-        if (ro) return U.el('div.bk-missing', { text: 'Archivo' });
-        return U.el('div.bk-att-empty', [U.el('span.bk-att-empty-ic', [U.icon('paperclip')]), U.el('span.bk-att-empty-t', [U.el('b', { text: 'Adjunta un archivo' }), U.el('small', { text: 'PDF, documentos, hojas de cálculo… hasta ' + W.Files.fmtSize(W.Files.MAX) })]),
-          U.el('span.bk-att-empty-acts', [U.el('button.btn.xs.soft', { on: { click: function () { pickInto(b); } } }, [U.icon('upload', 'sm'), 'Elegir archivo'])])]);
+        if (ro) return U.el('div.bk-missing', { text: W.t('Archivo') });
+        return U.el('div.bk-att-empty', [U.el('span.bk-att-empty-ic', [U.icon('paperclip')]), U.el('span.bk-att-empty-t', [U.el('b', { text: W.t('Adjunta un archivo') }), U.el('small', { text: W.t('PDF, documentos, hojas de cálculo… hasta {size}', { size: W.Files.fmtSize(W.Files.MAX) }) })]),
+          U.el('span.bk-att-empty-acts', [U.el('button.btn.xs.soft', { on: { click: function () { pickInto(b); } } }, [U.icon('upload', 'sm'), W.t('Elegir archivo')])])]);
       }
       var k = W.Files.kind(b.m, b.n);
       var meta = U.el('small.bkf-meta');
       var card = U.el('div.bkf.k-' + k.k, { attrs: { 'data-file': b.f } }, [
-        U.el('button.bkf-main', { attrs: { type: 'button', title: 'Abrir', 'aria-label': 'Abrir ' + (b.n || 'el archivo') }, on: { click: function () { openAttachment(b); } } }, [
+        U.el('button.bkf-main', { attrs: { type: 'button', title: W.t('Abrir'), 'aria-label': W.t('Abrir {name}', { name: b.n || W.t('el archivo') }) }, on: { click: function () { openAttachment(b); } } }, [
           U.el('span.bkf-ic', { attrs: { 'aria-hidden': 'true' } }, [U.icon('file'), U.el('b', { text: k.short })]),
-          U.el('span.bkf-t', [U.el('strong', { text: b.n || 'Archivo' }), meta])
+          U.el('span.bkf-t', [U.el('strong', { text: b.n || W.t('Archivo') }), meta])
         ]),
         U.el('span.bkf-acts', [
-          U.el('button.bkf-btn', { attrs: { type: 'button', 'aria-label': 'Descargar ' + (b.n || 'el archivo'), title: 'Descargar' }, on: { click: function () { W.Files.download(fref(b), scope()); } } }, [U.icon('download')]),
-          ro ? null : U.el('button.bkf-btn', { attrs: { type: 'button', 'aria-label': 'Quitar ' + (b.n || 'el archivo') + ' de la página', title: 'Quitar de la página' }, on: { click: function () { removeAttachment(b); } } }, [U.icon('trash')])
+          U.el('button.bkf-btn', { attrs: { type: 'button', 'aria-label': W.t('Descargar {name}', { name: b.n || W.t('el archivo') }), title: W.t('Descargar') }, on: { click: function () { W.Files.download(fref(b), scope()); } } }, [U.icon('download')]),
+          ro ? null : U.el('button.bkf-btn', { attrs: { type: 'button', 'aria-label': W.t('Quitar {name} de la página', { name: b.n || W.t('el archivo') }), title: W.t('Quitar de la página') }, on: { click: function () { removeAttachment(b); } } }, [U.icon('trash')])
         ])
       ]);
       paintStatus(card, b);
@@ -159,22 +159,22 @@ window.Whider = window.Whider || {};
       var meta = card.querySelector('.bkf-meta'); if (!meta) return;
       var st = W.Files.status(b.f, scope()), size = b.s ? W.Files.fmtSize(b.s) : '', note = '';
       card.classList.remove('busy', 'warn');
-      if (st.s === 'up') { note = 'Subiendo ' + Math.round((st.p || 0) * 100) + ' %'; card.classList.add('busy'); }
-      else if (st.s === 'down') { note = 'Descargando ' + Math.round((st.p || 0) * 100) + ' %'; card.classList.add('busy'); }
-      else if (st.s === 'local') note = W.Files.canSync() ? 'Pendiente de subir' : 'En este dispositivo';
+      if (st.s === 'up') { note = W.t('Subiendo {pct} %', { pct: Math.round((st.p || 0) * 100) }); card.classList.add('busy'); }
+      else if (st.s === 'down') { note = W.t('Descargando {pct} %', { pct: Math.round((st.p || 0) * 100) }); card.classList.add('busy'); }
+      else if (st.s === 'local') note = W.Files.canSync() ? W.t('Pendiente de subir') : W.t('En este dispositivo');
       else if (st.s === 'none') { note = W.Files.short(st.code); card.classList.add('warn'); }
       meta.textContent = (note ? [size, note] : [W.Files.kind(b.m, b.n).label, size]).filter(Boolean).join(' · ');
     }
     /** Quitar un adjunto: sin preguntar y con «Deshacer» (el archivo se borra días después si nadie lo usa) */
     function removeAttachment(b) {
       if (ro || indexOf(b) < 0) return;
-      var i = indexOf(b), copy = JSON.parse(JSON.stringify(b)), name = b.n || (b.t === 'img' ? 'La imagen' : 'El archivo');
+      var i = indexOf(b), copy = JSON.parse(JSON.stringify(b)), name = b.n || (b.t === 'img' ? W.t('La imagen') : W.t('El archivo'));
       structural();
       removeBlock(b);
       if (!ed.blocks().length) insertAt(0, newBlock('p'));
       // Acciones sueltas: se guardan al momento (no hay más escritura que esperar)
       save(true);
-      W.Toast.show({ text: (b.n ? '«' + name + '»' : name) + ' se ha quitado de la página', icon: 'trash', action: { label: 'Deshacer', fn: function () {
+      W.Toast.show({ text: b.n ? W.t('«{name}» se ha quitado de la página', { name: name }) : W.t('{name} se ha quitado de la página', { name: name }), icon: 'trash', action: { label: W.t('Deshacer'), fn: function () {
         if (ed.destroyed() || byId(copy.id)) return;
         structural(); insertAt(Math.min(i, ed.blocks().length), copy); save(true);
       } } });
@@ -208,12 +208,12 @@ window.Whider = window.Whider || {};
         return end && emptyText(end) ? indexOf(end) : ed.blocks().length;
       };
       var big = list.length > 1 || list[0].size > 1500000;
-      if (big) W.Toast.show({ text: list.length > 1 ? 'Añadiendo ' + list.length + ' archivos…' : 'Añadiendo «' + list[0].name + '»…', icon: 'paperclip', duration: 2200 });
+      if (big) W.Toast.show({ text: list.length > 1 ? W.t('Añadiendo {n} archivos…', { n: list.length }) : W.t('Añadiendo «{name}»…', { name: list[0].name }), icon: 'paperclip', duration: 2200 });
       return list.reduce(function (pr, file) {
         return pr.then(function () {
           return W.Files.add(file, { scope: scope(), image: opts.image !== false }).then(function (r) {
             if (ed.destroyed()) return;
-            if (opts.image && !r.image) W.Toast.show({ text: '«' + r.n + '» no se puede mostrar como imagen: se añade como archivo.', icon: 'paperclip' });
+            if (opts.image && !r.image) W.Toast.show({ text: W.t('«{name}» no se puede mostrar como imagen: se añade como archivo.', { name: r.n }), icon: 'paperclip' });
             var data = { f: r.f, n: r.n, m: r.m, s: r.s };
             if (r.image && r.ar) data.ar = r.ar;
             var type = r.image ? 'img' : 'file';
@@ -240,8 +240,8 @@ window.Whider = window.Whider || {};
     }
     function bookmarkBlock(b) {
       if (!b.url) {
-        if (ro) return U.el('div.bk-missing', { text: 'Enlace' });
-        var input = U.el('input.bk-task-input', { attrs: { type: 'url', placeholder: 'Pega un enlace (https://…) y pulsa Intro', 'aria-label': 'Enlace' } });
+        if (ro) return U.el('div.bk-missing', { text: W.t('Enlace') });
+        var input = U.el('input.bk-task-input', { attrs: { type: 'url', placeholder: W.t('Pega un enlace (https://…) y pulsa Intro'), 'aria-label': W.t('Enlace') } });
         input.addEventListener('keydown', function (ev) {
           if (ev.key !== 'Enter') return; ev.preventDefault();
           var v = input.value.trim(); if (!/^https?:\/\//.test(v)) v = 'https://' + v;
@@ -269,11 +269,11 @@ window.Whider = window.Whider || {};
         });
         wrap.appendChild(table);
         if (!ro) wrap.appendChild(U.el('div.bk-table-acts', [
-          U.el('button.btn.xs.ghost', { on: { click: function () { structural(); b.rows.push(b.rows[0].map(function () { return ''; })); draw(); save(); } } }, [U.icon('plus', 'sm'), 'Fila']),
-          U.el('button.btn.xs.ghost', { on: { click: function () { if (b.rows[0].length >= 12) return; structural(); b.rows.forEach(function (r) { r.push(''); }); draw(); save(); } } }, [U.icon('plus', 'sm'), 'Columna']),
-          U.el('button.btn.xs.ghost', { text: b.head ? 'Sin encabezado' : 'Con encabezado', on: { click: function () { structural(); b.head = !b.head; draw(); save(); } } }),
-          U.el('button.btn.xs.ghost', { attrs: { 'aria-label': 'Quitar la última fila' }, on: { click: function () { if (b.rows.length < 2) return; structural(); b.rows.pop(); draw(); save(); } } }, [U.icon('trash', 'sm'), 'Fila']),
-          U.el('button.btn.xs.ghost', { attrs: { 'aria-label': 'Quitar la última columna' }, on: { click: function () { if (b.rows[0].length < 2) return; structural(); b.rows.forEach(function (r) { r.pop(); }); draw(); save(); } } }, [U.icon('trash', 'sm'), 'Columna'])
+          U.el('button.btn.xs.ghost', { on: { click: function () { structural(); b.rows.push(b.rows[0].map(function () { return ''; })); draw(); save(); } } }, [U.icon('plus', 'sm'), W.t('Fila')]),
+          U.el('button.btn.xs.ghost', { on: { click: function () { if (b.rows[0].length >= 12) return; structural(); b.rows.forEach(function (r) { r.push(''); }); draw(); save(); } } }, [U.icon('plus', 'sm'), W.t('Columna')]),
+          U.el('button.btn.xs.ghost', { text: b.head ? W.t('Sin encabezado') : W.t('Con encabezado'), on: { click: function () { structural(); b.head = !b.head; draw(); save(); } } }),
+          U.el('button.btn.xs.ghost', { attrs: { 'aria-label': W.t('Quitar la última fila') }, on: { click: function () { if (b.rows.length < 2) return; structural(); b.rows.pop(); draw(); save(); } } }, [U.icon('trash', 'sm'), W.t('Fila')]),
+          U.el('button.btn.xs.ghost', { attrs: { 'aria-label': W.t('Quitar la última columna') }, on: { click: function () { if (b.rows[0].length < 2) return; structural(); b.rows.forEach(function (r) { r.pop(); }); draw(); save(); } } }, [U.icon('trash', 'sm'), W.t('Columna')])
         ]));
       };
       wrap.addEventListener('input', function (ev) {

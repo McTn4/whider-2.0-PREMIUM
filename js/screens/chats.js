@@ -17,7 +17,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   function openId() { return S().ui.chat || null; }
   function desk() { return W.Layout.desktop; }
   function fmtTime(ts) { var d = new Date(ts); return U.pad(d.getHours()) + ':' + U.pad(d.getMinutes()); }
-  function dayLabel(ts) { var d = U.ymd(new Date(ts)), td = U.today(); return d === td ? 'Hoy' : d === U.addDays(td, -1) ? 'Ayer' : U.cap(U.fmtDay(d)); }
+  function dayLabel(ts) { var d = U.ymd(new Date(ts)), td = U.today(); return d === td ? W.t('Hoy') : d === U.addDays(td, -1) ? W.t('Ayer') : U.cap(U.fmtDay(d)); }
   function avatarFor(c, size) {
     if (c.type === 'team') return U.el('span.av.av-team', { style: { '--s': size + 'px' } }, [U.el('span.av-in', [U.icon((S().social.spaces[c.sid] || {}).icon || 'team')])]);
     return W.Avatar.small(C().other(c), size);
@@ -26,8 +26,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (c.type === 'team') { var n = (c.memberIds || []).length; return U.plural(n, 'miembro', 'miembros'); }
     var p = W.People.profile(C().other(c));
     if (!p) return '';
-    if (p.status === 'focus' && Date.now() - (p.updatedAt || 0) < 3 * 3600000) return 'Concentrado ahora';
-    return p.updatedAt ? 'Activo ' + U.fmtRel(p.updatedAt - Date.now()) : '';
+    if (p.status === 'focus' && Date.now() - (p.updatedAt || 0) < 3 * 3600000) return W.t('Concentrado ahora');
+    return p.updatedAt ? W.t('Activo {when}', { when: U.fmtRel(p.updatedAt - Date.now()) }) : '';
   }
 
   /* ---------- Lista ---------- */
@@ -36,14 +36,14 @@ window.Whider.Screens = window.Whider.Screens || {};
     U.clear(listEl);
     var chats = C().list(), sel = openId();
     var head = U.el('div.ct-list-top', [
-      U.el('strong', { text: 'Chats' }),
-      U.el('button.nav-icon', { attrs: { 'aria-label': 'Nuevo chat', title: 'Nuevo chat' }, on: { click: function (e) { newChat(e.currentTarget); } } }, [U.icon('edit')])
+      U.el('strong', { text: W.t('Chats') }),
+      U.el('button.nav-icon', { attrs: { 'aria-label': W.t('Nuevo chat'), title: W.t('Nuevo chat') }, on: { click: function (e) { newChat(e.currentTarget); } } }, [U.icon('edit')])
     ]);
     if (desk()) listEl.appendChild(head);
     if (!chats.length) {
-      listEl.appendChild(U.el('div.ct-empty', [W.Character.illustration('friends', 'happy', 92), U.el('strong', { text: 'Aún no hay chats' }),
-        U.el('p', { text: W.People.contacts().length ? 'Escribe a uno de tus contactos o a tu equipo.' : 'Añade a tus amigos o a tu equipo con un enlace o un código QR.' }),
-        U.el('button.btn.sm.primary', { on: { click: function (e) { if (W.People.contacts().length || W.People.teams().length) newChat(e.currentTarget); else W.Router.go('friends'); } } }, [U.icon(W.People.contacts().length ? 'edit' : 'users', 'sm'), W.People.contacts().length ? 'Nuevo chat' : 'Añadir personas'])]));
+      listEl.appendChild(U.el('div.ct-empty', [W.Character.illustration('friends', 'happy', 92), U.el('strong', { text: W.t('Aún no hay chats') }),
+        U.el('p', { text: W.People.contacts().length ? W.t('Escribe a uno de tus contactos o a tu equipo.') : W.t('Añade a tus amigos o a tu equipo con un enlace o un código QR.') }),
+        U.el('button.btn.sm.primary', { on: { click: function (e) { if (W.People.contacts().length || W.People.teams().length) newChat(e.currentTarget); else W.Router.go('friends'); } } }, [U.icon(W.People.contacts().length ? 'edit' : 'users', 'sm'), W.People.contacts().length ? W.t('Nuevo chat') : W.t('Añadir personas')])]));
       return;
     }
     chats.forEach(function (c) {
@@ -52,7 +52,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         avatarFor(c, 46),
         U.el('span.ct-row-main', [
           U.el('span.ct-row-top', [U.el('b', { text: C().title(c) }), p.pinned ? U.icon('pin', 'xs') : null, p.muted ? U.icon('sound', 'xs mute') : null, U.el('small', { text: c.lastAt ? (U.ymd(new Date(c.lastAt)) === U.today() ? fmtTime(c.lastAt) : U.fmtShort(U.ymd(new Date(c.lastAt)))) : '' })]),
-          U.el('span.ct-row-sub', [U.el('span', { text: c.last ? (c.last.by === C().me() ? 'Tú: ' : c.type === 'team' ? (c.last.name || '').split(' ')[0] + ': ' : '') + c.last.text : 'Empieza la conversación' }), un ? U.el('i.ct-dot') : null])
+          U.el('span.ct-row-sub', [U.el('span', { text: c.last ? (c.last.by === C().me() ? W.t('Tú: {text}', { text: c.last.text }) : c.type === 'team' ? (c.last.name || '').split(' ')[0] + ': ' + c.last.text : c.last.text) : W.t('Empieza la conversación') }), un ? U.el('i.ct-dot') : null])
         ])
       ]);
       row.addEventListener('click', function () { openChat(c.id); });
@@ -63,12 +63,12 @@ window.Whider.Screens = window.Whider.Screens || {};
   function chatMenu(c, anchor) {
     var p = C().prefs(c.id);
     W.Menu.open(anchor, [
-      { value: 'pin', label: p.pinned ? 'Dejar de fijar' : 'Fijar arriba', icon: 'pin' },
-      { value: 'mute', label: p.muted ? 'Activar avisos' : 'Silenciar avisos', icon: 'sound' },
-      { value: 'read', label: 'Marcar como leído', icon: 'check' },
-      c.type === 'dm' ? { value: 'hide', label: 'Ocultar el chat', icon: 'eye', gap: true } : null,
-      c.type === 'dm' ? { value: 'report', label: 'Denunciar…', icon: 'flag' } : null,
-      c.type === 'dm' ? { value: 'block', label: 'Bloquear', icon: 'hand', destructive: true } : null
+      { value: 'pin', label: p.pinned ? W.t('Dejar de fijar') : W.t('Fijar arriba'), icon: 'pin' },
+      { value: 'mute', label: p.muted ? W.t('Activar avisos') : W.t('Silenciar avisos'), icon: 'sound' },
+      { value: 'read', label: W.t('Marcar como leído'), icon: 'check' },
+      c.type === 'dm' ? { value: 'hide', label: W.t('Ocultar el chat'), icon: 'eye', gap: true } : null,
+      c.type === 'dm' ? { value: 'report', label: W.t('Denunciar…'), icon: 'flag' } : null,
+      c.type === 'dm' ? { value: 'block', label: W.t('Bloquear'), icon: 'hand', destructive: true } : null
     ].filter(Boolean), { title: C().title(c) }).then(function (v) {
       var who = C().other(c);
       if (v === 'report') { W.People.reportSheet({ who: who, name: C().title(c), where: 'chat ' + c.id }); return; }
@@ -82,10 +82,10 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
   function newChat(anchor) {
     var people = W.People.contacts(), teams = W.People.teams();
-    var opts = people.map(function (f) { return { value: 'u:' + f.uid, label: f.name || 'Contacto', icon: f.kind === 'work' ? 'briefcase' : 'user', desc: f.pending ? 'Pendiente de confirmar' : (f.kind === 'work' ? 'Trabajo' : 'Amigo') }; })
-      .concat(teams.map(function (t) { return { value: 't:' + t.id, label: t.name, icon: 'team', desc: 'Chat del equipo' }; }));
+    var opts = people.map(function (f) { return { value: 'u:' + f.uid, label: f.name || W.t('Contacto'), icon: f.kind === 'work' ? 'briefcase' : 'user', desc: f.pending ? W.t('Pendiente de confirmar') : (f.kind === 'work' ? W.t('Trabajo') : W.t('Amigo')) }; })
+      .concat(teams.map(function (t) { return { value: 't:' + t.id, label: t.name, icon: 'team', desc: W.t('Chat del equipo') }; }));
     if (!opts.length) { W.Router.go('friends'); return; }
-    W.Sheet.choose({ title: 'Nuevo chat', options: opts }).then(function (v) {
+    W.Sheet.choose({ title: W.t('Nuevo chat'), options: opts }).then(function (v) {
       if (!v) return;
       C().openChat(v.indexOf('u:') === 0 ? { uid: v.slice(2) } : { team: v.slice(2) });
     });
@@ -102,14 +102,14 @@ window.Whider.Screens = window.Whider.Screens || {};
   function bubble(c, m, prev) {
     var mine = m.by === C().me(), grouped = prev && prev.by === m.by && m.at - prev.at < 5 * 60000 && !m.reply;
     var body = U.el('div.ct-bubble' + (mine ? '.mine' : '') + (m.del ? '.deleted' : ''));
-    if (c.type === 'team' && !mine && !grouped) body.appendChild(U.el('span.ct-author', { text: m.name || 'Alguien' }));
+    if (c.type === 'team' && !mine && !grouped) body.appendChild(U.el('span.ct-author', { text: m.name || W.t('Alguien') }));
     if (m.reply) body.appendChild(U.el('button.ct-quote', { attrs: { type: 'button' }, on: { click: function () { var t = convEl && convEl.querySelector('[data-mid="' + m.reply.id + '"]'); if (t) { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); t.classList.add('flash'); setTimeout(function () { t.classList.remove('flash'); }, 1100); } } } }, [U.el('b', { text: m.reply.name || '' }), U.el('span', { text: m.reply.text || '' })]));
-    if (m.del) body.appendChild(U.el('span.ct-text.muted', { text: 'Mensaje eliminado' }));
+    if (m.del) body.appendChild(U.el('span.ct-text.muted', { text: W.t('Mensaje eliminado') }));
     else if (m.kind === 'task' && m.ref) body.appendChild(taskCard(m));
     else if (m.kind === 'page' && m.ref) body.appendChild(pageCard(c, m));
     else if (m.kind === 'cheer') body.appendChild(U.el('span.ct-cheer', [U.icon('send', 'sm'), U.el('span', { text: m.text })]));
     if (!m.del && m.text && m.kind !== 'cheer') body.appendChild(U.el('span.ct-text', { text: m.text }));
-    var meta = U.el('span.ct-meta', [m.edited ? 'editado · ' : '', fmtTime(m.at), mine ? (m.pending ? U.icon('clock', 'xs') : m.failed ? U.icon('alert', 'xs') : U.icon('check', 'xs')) : null]);
+    var meta = U.el('span.ct-meta', [m.edited ? W.t('editado') + ' · ' : '', fmtTime(m.at), mine ? (m.pending ? U.icon('clock', 'xs') : m.failed ? U.icon('alert', 'xs') : U.icon('check', 'xs')) : null]);
     body.appendChild(meta);
     var reacts = m.react ? Object.keys(m.react).reduce(function (acc, k) { acc[m.react[k]] = (acc[m.react[k]] || 0) + 1; return acc; }, {}) : null;
     var row = U.el('div.ct-msg' + (mine ? '.mine' : '') + (grouped ? '.grouped' : ''), { attrs: { 'data-mid': m.id } }, [
@@ -133,33 +133,33 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
   function taskCard(m) {
     var t = m.ref;
-    return U.el('div.ct-card', [U.el('span.ct-card-ic', [U.icon('tasks')]), U.el('span.ct-card-main', [U.el('b', { text: t.text || 'Tarea' }), U.el('small', { text: t.date ? U.cap(U.fmtDay(t.date)) + (t.time ? ' · ' + U.fmtTime(t.time) : '') : 'Sin fecha' })]),
-      m.by !== C().me() ? U.el('button.btn.xs.soft', { text: 'Añadir', on: { click: function (e) {
+    return U.el('div.ct-card', [U.el('span.ct-card-ic', [U.icon('tasks')]), U.el('span.ct-card-main', [U.el('b', { text: t.text || W.t('Tarea') }), U.el('small', { text: t.date ? U.cap(U.fmtDay(t.date)) + (t.time ? ' · ' + U.fmtTime(t.time) : '') : W.t('Sin fecha') })]),
+      m.by !== C().me() ? U.el('button.btn.xs.soft', { text: W.t('Añadir'), on: { click: function (e) {
         e.stopPropagation();
-        W.State.addTask({ text: String(t.text || 'Tarea').slice(0, 200), date: t.date || null, time: t.time || null, highlight: t.highlight || 'none', warn: W.State.settings.defaultWarn, notes: 'De ' + (m.name || 'un contacto') + ' (chat)' });
-        W.Toast.show({ text: 'Añadida a tus tareas', icon: 'check', type: 'success' });
+        W.State.addTask({ text: String(t.text || W.t('Tarea')).slice(0, 200), date: t.date || null, time: t.time || null, highlight: t.highlight || 'none', warn: W.State.settings.defaultWarn, notes: W.t('De {name} (chat)', { name: m.name || W.t('un contacto') }) });
+        W.Toast.show({ text: W.t('Añadida a tus tareas'), icon: 'check', type: 'success' });
       } } }) : null]);
   }
   function pageCard(c, m) {
     var pg = m.ref, local = W.Pages.get(pg.id);
-    return U.el('div.ct-card', [U.el('span.ct-card-ic', [U.icon(pg.icon || 'page')]), U.el('span.ct-card-main', [U.el('b', { text: pg.title || 'Página' }), U.el('small', { text: local && !local.trash ? (local.team ? 'Página del equipo' : 'En tu Cuaderno') : 'Copia para tu Cuaderno' })]),
-      U.el('button.btn.xs.soft', { text: local && !local.trash ? 'Abrir' : 'Guardar copia', on: { click: function (e) {
+    return U.el('div.ct-card', [U.el('span.ct-card-ic', [U.icon(pg.icon || 'page')]), U.el('span.ct-card-main', [U.el('b', { text: pg.title || W.t('Página') }), U.el('small', { text: local && !local.trash ? (local.team ? W.t('Página del equipo') : W.t('En tu Cuaderno')) : W.t('Copia para tu Cuaderno') })]),
+      U.el('button.btn.xs.soft', { text: local && !local.trash ? W.t('Abrir') : W.t('Guardar copia'), on: { click: function (e) {
         e.stopPropagation();
         if (local && !local.trash) { W.Notes.openPage(pg.id); return; }
-        var np = W.Pages.create({ title: pg.title || 'Página compartida', icon: pg.icon || 'page', blocks: W.Pages.fromMarkdown(pg.md || '') });
-        W.Toast.show({ text: 'Guardada en tu Cuaderno', icon: 'notebook', type: 'success' });
+        var np = W.Pages.create({ title: pg.title || W.t('Página compartida'), icon: pg.icon || 'page', blocks: W.Pages.fromMarkdown(pg.md || '') });
+        W.Toast.show({ text: W.t('Guardada en tu Cuaderno'), icon: 'notebook', type: 'success' });
         W.Notes.openPage(np.id);
       } } })]);
   }
   function msgMenu(c, m, anchor) {
     var mine = m.by === C().me();
-    var items = [{ value: 'reply', label: 'Responder', icon: 'reply' }];
+    var items = [{ value: 'reply', label: W.t('Responder'), icon: 'reply' }];
     C().REACTIONS.forEach(function (r, i) { items.push({ value: 'r:' + r.id, label: r.label, icon: r.icon, gap: i === 0, on: m.react && m.react[C().me()] === r.id }); });
-    items.push({ value: 'copy', label: 'Copiar', icon: 'copy', gap: true });
-    if (m.text) items.push({ value: 'task', label: 'Crear una tarea', icon: 'tasks' });
-    if (mine && m.kind === 'text') items.push({ value: 'edit', label: 'Editar', icon: 'edit' });
-    if (mine) items.push({ value: 'del', label: 'Eliminar', icon: 'trash', destructive: true });
-    if (!mine) items.push({ value: 'report', label: 'Denunciar el mensaje…', icon: 'flag', gap: true });
+    items.push({ value: 'copy', label: W.t('Copiar'), icon: 'copy', gap: true });
+    if (m.text) items.push({ value: 'task', label: W.t('Crear una tarea'), icon: 'tasks' });
+    if (mine && m.kind === 'text') items.push({ value: 'edit', label: W.t('Editar'), icon: 'edit' });
+    if (mine) items.push({ value: 'del', label: W.t('Eliminar'), icon: 'trash', destructive: true });
+    if (!mine) items.push({ value: 'report', label: W.t('Denunciar el mensaje…'), icon: 'flag', gap: true });
     W.Menu.open(anchor, items).then(function (v) {
       if (!v) return;
       if (v === 'reply') { replyTo = m; editing = null; drawComposer(c); }
@@ -167,7 +167,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       else if (v === 'copy') W.Invite.copy(m.text || (m.ref && (m.ref.text || m.ref.title)) || '');
       else if (v === 'task') W.Editor.open(null, { text: String(m.text).slice(0, 200) });
       else if (v === 'edit') { editing = m; replyTo = null; drawComposer(c); }
-      else if (v === 'del') W.Sheet.confirm({ title: '¿Eliminar el mensaje?', text: 'Se borra para todos.', ok: 'Eliminar', danger: true }).then(function (ok) { if (ok) C().remove(c.id, m.id); });
+      else if (v === 'del') W.Sheet.confirm({ title: W.t('¿Eliminar el mensaje?'), text: W.t('Se borra para todos.'), ok: W.t('Eliminar'), danger: true }).then(function (ok) { if (ok) C().remove(c.id, m.id); });
       else if (v === 'report') W.People.reportSheet({ who: m.by, name: m.name || '', where: 'chat ' + c.id + ' · mensaje ' + m.id, excerpt: m.text || '' });
     });
   }
@@ -178,8 +178,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     var prevH = msgsHost.scrollHeight, prevTop = msgsHost.scrollTop;
     U.clear(msgsHost);
     var list = C().messages(c.id);
-    if (list.length >= 40) msgsHost.appendChild(U.el('button.ct-older', { text: 'Ver mensajes anteriores', on: { click: function () { C().loadMsgs(c.id, true).then(function () { drawMessages(c); }); } } }));
-    if (!list.length) msgsHost.appendChild(U.el('div.ct-hello', [avatarFor(c, 72), U.el('strong', { text: C().title(c) }), U.el('p', { text: c.type === 'team' ? 'El chat de vuestro equipo. Compartid tareas y páginas con el +.' : 'Escribe el primer mensaje. Con el + compartes tareas y páginas.' })]));
+    if (list.length >= 40) msgsHost.appendChild(U.el('button.ct-older', { text: W.t('Ver mensajes anteriores'), on: { click: function () { C().loadMsgs(c.id, true).then(function () { drawMessages(c); }); } } }));
+    if (!list.length) msgsHost.appendChild(U.el('div.ct-hello', [avatarFor(c, 72), U.el('strong', { text: C().title(c) }), U.el('p', { text: c.type === 'team' ? W.t('El chat de vuestro equipo. Compartid tareas y páginas con el +.') : W.t('Escribe el primer mensaje. Con el + compartes tareas y páginas.') })]));
     var lastDay = null;
     list.forEach(function (m, i) {
       var day = U.ymd(new Date(m.at));
@@ -193,7 +193,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   function drawComposer(c) {
     if (!composerHost) return;
     U.clear(composerHost);
-    var ta = U.el('textarea.ct-input', { attrs: { rows: '1', maxlength: '4000', placeholder: c.type === 'team' ? 'Mensaje al equipo' : 'Mensaje', 'aria-label': 'Escribe un mensaje', enterkeyhint: 'send' } });
+    var ta = U.el('textarea.ct-input', { attrs: { rows: '1', maxlength: '4000', placeholder: c.type === 'team' ? W.t('Mensaje al equipo') : W.t('Mensaje'), 'aria-label': W.t('Escribe un mensaje'), enterkeyhint: 'send' } });
     ta.value = editing ? editing.text : (draftFor[c.id] || '');
     var grow = function () { ta.style.height = 'auto'; ta.style.height = Math.min(160, ta.scrollHeight) + 'px'; };
     var submit = function () {
@@ -212,31 +212,31 @@ window.Whider.Screens = window.Whider.Screens || {};
     var bar = null;
     if (replyTo || editing) {
       var x = replyTo || editing;
-      bar = U.el('div.ct-replybar', [U.icon(replyTo ? 'reply' : 'edit', 'sm'), U.el('span', [U.el('b', { text: replyTo ? 'Respondiendo a ' + (x.by === C().me() ? 'ti' : x.name || 'alguien') : 'Editando' }), U.el('small', { text: C().preview(x) })]),
-        U.el('button.circle-btn', { attrs: { 'aria-label': 'Cancelar' }, on: { click: function () { replyTo = null; editing = null; drawComposer(c); } } }, [U.icon('close')])]);
+      bar = U.el('div.ct-replybar', [U.icon(replyTo ? 'reply' : 'edit', 'sm'), U.el('span', [U.el('b', { text: replyTo ? W.t('Respondiendo a {name}', { name: x.by === C().me() ? W.t('ti') : x.name || W.t('alguien') }) : W.t('Editando') }), U.el('small', { text: C().preview(x) })]),
+        U.el('button.circle-btn', { attrs: { 'aria-label': W.t('Cancelar') }, on: { click: function () { replyTo = null; editing = null; drawComposer(c); } } }, [U.icon('close')])]);
     }
     composerHost.appendChild(U.el('div.ct-compose', [bar,
       U.el('div.ct-compose-row', [
-        U.el('button.ct-plus', { attrs: { type: 'button', 'aria-label': 'Compartir', title: 'Compartir una tarea, una página o un ánimo' }, on: { click: function (e) { attach(c, e.currentTarget); } } }, [U.icon('plus')]),
+        U.el('button.ct-plus', { attrs: { type: 'button', 'aria-label': W.t('Compartir'), title: W.t('Compartir una tarea, una página o un ánimo') }, on: { click: function (e) { attach(c, e.currentTarget); } } }, [U.icon('plus')]),
         ta,
-        U.el('button.ct-send', { attrs: { type: 'button', 'aria-label': editing ? 'Guardar' : 'Enviar' }, on: { click: submit } }, [U.icon(editing ? 'check' : 'send')])
+        U.el('button.ct-send', { attrs: { type: 'button', 'aria-label': editing ? W.t('Guardar') : W.t('Enviar') }, on: { click: submit } }, [U.icon(editing ? 'check' : 'send')])
       ])]));
     grow();
     if (replyTo || editing) setTimeout(function () { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 30);
   }
   function attach(c, anchor) {
-    W.Menu.open(anchor, [{ value: 'task', label: 'Compartir una tarea', icon: 'tasks' }, { value: 'page', label: 'Compartir una página', icon: 'page' }, { value: 'cheer', label: 'Enviar un ánimo', icon: 'send' }]).then(function (v) {
+    W.Menu.open(anchor, [{ value: 'task', label: W.t('Compartir una tarea'), icon: 'tasks' }, { value: 'page', label: W.t('Compartir una página'), icon: 'page' }, { value: 'cheer', label: W.t('Enviar un ánimo'), icon: 'send' }]).then(function (v) {
       if (v === 'task') {
         var tasks = W.State.tasks.filter(function (t) { return !t.done; }).sort(W.State.compareDeadline).slice(0, 40);
-        if (!tasks.length) { W.Toast.show({ text: 'No tienes tareas pendientes', icon: 'info' }); return; }
-        W.Sheet.choose({ title: 'Compartir una tarea', options: tasks.map(function (t) { return { value: t.id, label: t.text, icon: 'tasks', desc: t.date ? U.cap(U.fmtDay(t.date)) : 'Sin fecha' }; }) }).then(function (id) {
+        if (!tasks.length) { W.Toast.show({ text: W.t('No tienes tareas pendientes'), icon: 'info' }); return; }
+        W.Sheet.choose({ title: W.t('Compartir una tarea'), options: tasks.map(function (t) { return { value: t.id, label: t.text, icon: 'tasks', desc: t.date ? U.cap(U.fmtDay(t.date)) : W.t('Sin fecha') }; }) }).then(function (id) {
           var t = id && W.State.find(id); if (!t) return;
           C().send(c.id, { kind: 'task', text: '', ref: { text: t.text, date: t.date || null, time: t.time || null, highlight: t.highlight || 'none' } }).catch(function () {});
         });
       } else if (v === 'page') {
         var pages = W.Pages.recent(30);
-        if (!pages.length) { W.Toast.show({ text: 'Tu Cuaderno está vacío', icon: 'info' }); return; }
-        W.Sheet.choose({ title: 'Compartir una página', options: pages.map(function (p) { return { value: p.id, label: W.Pages.title(p), icon: p.icon || 'page', desc: p.team ? 'Página del equipo' : '' }; }) }).then(function (id) {
+        if (!pages.length) { W.Toast.show({ text: W.t('Tu Cuaderno está vacío'), icon: 'info' }); return; }
+        W.Sheet.choose({ title: W.t('Compartir una página'), options: pages.map(function (p) { return { value: p.id, label: W.Pages.title(p), icon: p.icon || 'page', desc: p.team ? W.t('Página del equipo') : '' }; }) }).then(function (id) {
           var p = id && W.Pages.get(id); if (!p) return;
           var md = W.Pages.toMarkdown(id).slice(0, 20000);
           C().send(c.id, { kind: 'page', text: '', ref: { id: p.id, title: W.Pages.title(p), icon: p.icon || 'page', team: p.team || null, md: p.team === (c.sid || '__') ? '' : md } }).catch(function () {});
@@ -249,11 +249,11 @@ window.Whider.Screens = window.Whider.Screens || {};
   var headEl = null;
   function buildHead(c) {
     return U.el('div.ct-head', [
-      desk() ? null : U.el('button.nav-btn.back', { on: { click: function () { openChat(null); } } }, [U.icon('back'), U.el('span', { text: 'Chats' })]),
+      desk() ? null : U.el('button.nav-btn.back', { on: { click: function () { openChat(null); } } }, [U.icon('back'), U.el('span', { text: W.t('Chats') })]),
       avatarFor(c, 38),
       U.el('div.ct-head-t', [U.el('strong', { text: C().title(c) }), U.el('small', { text: statusText(c) })]),
-      c.type === 'team' ? U.el('button.nav-icon', { attrs: { 'aria-label': 'Ver el equipo', title: 'Ver el equipo' }, on: { click: function () { W.State.ui.peopleTab = 'teams'; W.State.ui.team = c.sid; W.Router.go('friends'); } } }, [U.icon('team')]) : null,
-      U.el('button.nav-icon', { attrs: { 'aria-label': 'Opciones del chat', title: 'Opciones' }, on: { click: function (e) { chatMenu(c, e.currentTarget); } } }, [U.icon('dots')])
+      c.type === 'team' ? U.el('button.nav-icon', { attrs: { 'aria-label': W.t('Ver el equipo'), title: W.t('Ver el equipo') }, on: { click: function () { W.State.ui.peopleTab = 'teams'; W.State.ui.team = c.sid; W.Router.go('friends'); } } }, [U.icon('team')]) : null,
+      U.el('button.nav-icon', { attrs: { 'aria-label': W.t('Opciones del chat'), title: W.t('Opciones') }, on: { click: function (e) { chatMenu(c, e.currentTarget); } } }, [U.icon('dots')])
     ]);
   }
   /** Al llegar los perfiles de los contactos: sus personajes en la lista, la cabecera y el chat del equipo */
@@ -273,7 +273,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     document.body.classList.toggle('chat-open', !desk() && !!c);
     C().setOpen(c ? cid : null);
     if (!c) {
-      if (desk()) convEl.appendChild(U.el('div.ct-none', [W.Character.illustration('friends', 'happy', 120), U.el('strong', { text: 'Elige un chat' }), U.el('p', { text: 'O empieza uno nuevo con tus contactos o con tu equipo.' })]));
+      if (desk()) convEl.appendChild(U.el('div.ct-none', [W.Character.illustration('friends', 'happy', 120), U.el('strong', { text: W.t('Elige un chat') }), U.el('p', { text: W.t('O empieza uno nuevo con tus contactos o con tu equipo.') })]));
       return;
     }
     headEl = buildHead(c);
@@ -286,7 +286,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   /* ---------- Pantalla ---------- */
   W.Screens.chats = {
-    title: 'Chats',
+    title: W.t('Chats'),
     back: function () { if (!desk() && openId()) { openChat(null); return true; } return false; },
     reset: function () { if (!desk() && openId()) { openChat(null); return true; } return false; },
     render: function (root, full) {
@@ -299,8 +299,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       var b = W.People.blocker();
       if (b && !b.soft) {
         listEl = convEl = null;
-        var head = W.UI.header({ title: 'Chats', profile: true });
-        W.UI.mount(root, head, [U.el('div.group', [W.UI.empty('buddy:friends', b.title, b.text, b.id === 'guest' && W.Auth.configured() ? U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open({ mode: 'login' }); } } }, [U.icon('user', 'sm'), 'Iniciar sesión']) : null)])]);
+        var head = W.UI.header({ title: W.t('Chats'), profile: true });
+        W.UI.mount(root, head, [U.el('div.group', [W.UI.empty('buddy:friends', b.title, b.text, b.id === 'guest' && W.Auth.configured() ? U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open({ mode: 'login' }); } } }, [U.icon('user', 'sm'), W.t('Iniciar sesión')]) : null)])]);
         return;
       }
       if (desk()) {
@@ -324,7 +324,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (!openId()) {
         convEl = null;
         document.body.classList.remove('chat-open');
-        var h = W.UI.header({ title: 'Chats', profile: true, sub: C().unreadCount() ? U.plural(C().unreadCount(), 'chat sin leer', 'chats sin leer') : '', actions: [{ icon: 'edit', label: 'Nuevo chat', onTap: function (e, btn) { newChat(btn); } }] });
+        var h = W.UI.header({ title: W.t('Chats'), profile: true, sub: C().unreadCount() ? U.plural(C().unreadCount(), 'chat sin leer', 'chats sin leer') : '', actions: [{ icon: 'edit', label: W.t('Nuevo chat'), onTap: function (e, btn) { newChat(btn); } }] });
         listEl = U.el('div.group.ct-list.mobile');
         W.UI.mount(root, h, [listEl]);
         drawList();

@@ -28,46 +28,46 @@ window.Whider = window.Whider || {};
 
   /* ---------- Vocabulario (para el editor y los resúmenes) ---------- */
   var TRIGGERS = [
-    { value: 'created', label: 'Se crea una tarea' },
-    { value: 'completed', label: 'Se completa una tarea' },
-    { value: 'overdue', label: 'Una tarea vence' },
-    { value: 'daily', label: 'Cada día, a una hora' }
+    { value: 'created', label: W.t('Se crea una tarea') },
+    { value: 'completed', label: W.t('Se completa una tarea') },
+    { value: 'overdue', label: W.t('Una tarea vence') },
+    { value: 'daily', label: W.t('Cada día, a una hora') }
   ];
   var FIELDS = {
-    list: { label: 'Categoría', ops: [{ value: 'is', label: 'es' }, { value: 'not', label: 'no es' }], kind: 'list' },
-    priority: { label: 'Prioridad', ops: [{ value: 'is', label: 'es' }, { value: 'not', label: 'no es' }], kind: 'prio' },
-    text: { label: 'Texto', ops: [{ value: 'contains', label: 'contiene' }, { value: 'not_contains', label: 'no contiene' }], kind: 'text' },
-    date: { label: 'Fecha', ops: [{ value: 'none', label: 'sin fecha' }, { value: 'any', label: 'con fecha' }, { value: 'today', label: 'es hoy' }, { value: 'overdue', label: 'ya venció' }, { value: 'future', label: 'es futura' }], kind: null },
-    time: { label: 'Hora', ops: [{ value: 'has', label: 'tiene hora' }, { value: 'none', label: 'sin hora' }], kind: null },
-    repeat: { label: 'Repetición', ops: [{ value: 'yes', label: 'se repite' }, { value: 'no', label: 'no se repite' }], kind: null },
-    done_age: { label: 'Completada hace', ops: [{ value: 'gt', label: 'más de' }], kind: 'days' },
-    weekday: { label: 'Hoy es', ops: [{ value: 'is', label: '' }], kind: 'weekday' }
+    list: { label: W.t('Categoría'), ops: [{ value: 'is', label: W.t('es') }, { value: 'not', label: W.t('no es') }], kind: 'list' },
+    priority: { label: W.t('Prioridad'), ops: [{ value: 'is', label: W.t('es') }, { value: 'not', label: W.t('no es') }], kind: 'prio' },
+    text: { label: W.t('Texto'), ops: [{ value: 'contains', label: W.t('contiene') }, { value: 'not_contains', label: W.t('no contiene') }], kind: 'text' },
+    date: { label: W.t('Fecha'), ops: [{ value: 'none', label: W.t('sin fecha') }, { value: 'any', label: W.t('con fecha') }, { value: 'today', label: W.t('es hoy') }, { value: 'overdue', label: W.t('ya venció') }, { value: 'future', label: W.t('es futura') }], kind: null },
+    time: { label: W.t('Hora'), ops: [{ value: 'has', label: W.t('tiene hora') }, { value: 'none', label: W.t('sin hora') }], kind: null },
+    repeat: { label: W.t('Repetición'), ops: [{ value: 'yes', label: W.t('se repite') }, { value: 'no', label: W.t('no se repite') }], kind: null },
+    done_age: { label: W.t('Completada hace'), ops: [{ value: 'gt', label: W.t('más de') }], kind: 'days' },
+    weekday: { label: W.t('Hoy es'), ops: [{ value: 'is', label: '' }], kind: 'weekday' }
   };
   var ACTIONS = {
-    set_date: { label: 'Poner fecha', kind: 'when' },
-    set_time: { label: 'Poner hora', kind: 'time' },
-    set_duration: { label: 'Poner duración', kind: 'duration' },
-    set_priority: { label: 'Poner prioridad', kind: 'prio' },
-    set_list: { label: 'Mover a la categoría', kind: 'list' },
-    set_warn: { label: 'Avisos', kind: 'onoff' },
-    complete: { label: 'Completarla', kind: null },
-    delete: { label: 'Eliminarla', kind: null },
-    notify: { label: 'Avisarme con el texto', kind: 'text' },
-    create_task: { label: 'Crear la tarea', kind: 'text' }
+    set_date: { label: W.t('Poner fecha'), kind: 'when' },
+    set_time: { label: W.t('Poner hora'), kind: 'time' },
+    set_duration: { label: W.t('Poner duración'), kind: 'duration' },
+    set_priority: { label: W.t('Poner prioridad'), kind: 'prio' },
+    set_list: { label: W.t('Mover a la categoría'), kind: 'list' },
+    set_warn: { label: W.t('Avisos'), kind: 'onoff' },
+    complete: { label: W.t('Completarla'), kind: null },
+    delete: { label: W.t('Eliminarla'), kind: null },
+    notify: { label: W.t('Avisarme con el texto'), kind: 'text' },
+    create_task: { label: W.t('Crear la tarea'), kind: 'text' }
   };
-  var WHEN = [{ value: 'today', label: 'Hoy' }, { value: 'tomorrow', label: 'Mañana' }, { value: 'monday', label: 'El lunes' }, { value: 'week', label: 'En una semana' }, { value: 'none', label: 'Sin fecha' }];
+  var WHEN = [{ value: 'today', label: W.t('Hoy') }, { value: 'tomorrow', label: W.t('Mañana') }, { value: 'monday', label: W.t('El lunes') }, { value: 'week', label: W.t('En una semana') }, { value: 'none', label: W.t('Sin fecha') }];
 
   /* ---------- Plantillas rápidas (también en el móvil) ---------- */
   var TEMPLATES = [
-    { id: 'tpl-overdue-today', icon: 'sun', name: 'Pasar lo vencido a hoy', desc: 'Cada mañana a las 7, lo que se quedó sin hacer pasa a hoy.',
+    { id: 'tpl-overdue-today', icon: 'sun', name: W.t('Pasar lo vencido a hoy'), desc: W.t('Cada mañana a las 7, lo que se quedó sin hacer pasa a hoy.'),
       rule: { trigger: { type: 'daily', time: '07:00' }, conditions: [{ field: 'date', op: 'overdue' }], actions: [{ type: 'set_date', value: 'today' }] } },
-    { id: 'tpl-new-today', icon: 'calendar', name: 'Lo nuevo sin fecha, para hoy', desc: 'Si creas una tarea sin fecha, se queda para hoy.',
+    { id: 'tpl-new-today', icon: 'calendar', name: W.t('Lo nuevo sin fecha, para hoy'), desc: W.t('Si creas una tarea sin fecha, se queda para hoy.'),
       rule: { trigger: { type: 'created' }, conditions: [{ field: 'date', op: 'none' }], actions: [{ type: 'set_date', value: 'today' }] } },
-    { id: 'tpl-urgent-warn', icon: 'bell', name: 'Avisos en lo urgente', desc: 'Las tareas urgentes siempre tienen avisos.',
+    { id: 'tpl-urgent-warn', icon: 'bell', name: W.t('Avisos en lo urgente'), desc: W.t('Las tareas urgentes siempre tienen avisos.'),
       rule: { trigger: { type: 'created' }, conditions: [{ field: 'priority', op: 'is', value: 'danger' }], actions: [{ type: 'set_warn', value: true }] } },
-    { id: 'tpl-clean-done', icon: 'trash', name: 'Limpiar completadas antiguas', desc: 'Borra las completadas hace más de 30 días (tus rachas se conservan).',
+    { id: 'tpl-clean-done', icon: 'trash', name: W.t('Limpiar completadas antiguas'), desc: W.t('Borra las completadas hace más de 30 días (tus rachas se conservan).'),
       rule: { trigger: { type: 'daily', time: '03:00' }, conditions: [{ field: 'done_age', op: 'gt', value: 30 }], actions: [{ type: 'delete' }] } },
-    { id: 'tpl-no-list', icon: 'tray', name: 'Sin categoría → la de por defecto', desc: 'Lo que crees sin categoría va a tu categoría por defecto.',
+    { id: 'tpl-no-list', icon: 'tray', name: W.t('Sin categoría → la de por defecto'), desc: W.t('Lo que crees sin categoría va a tu categoría por defecto.'),
       rule: { trigger: { type: 'created' }, conditions: [{ field: 'list', op: 'is', value: '' }], actions: [{ type: 'set_list', value: '@default' }] } }
   ];
 
@@ -150,7 +150,7 @@ window.Whider = window.Whider || {};
           if (a.type === 'create_task' && a.value) {
             var parsed = W.Parse.task(String(a.value), { lists: st.lists });
             var c = st.addTask({ text: parsed.text || String(a.value), date: parsed.date !== undefined ? parsed.date : U.today(), time: parsed.time || null,
-              listId: parsed.listId || st.settings.defaultList, highlight: parsed.highlight || 'none', warn: st.settings.defaultWarn, notes: 'Creada por «' + rule.name + '»', subtasks: [] });
+              listId: parsed.listId || st.settings.defaultList, highlight: parsed.highlight || 'none', warn: st.settings.defaultWarn, notes: W.t('Creada por «{name}»', { name: rule.name }), subtasks: [] });
             if (c) made.push(c.text);
           }
         });
@@ -159,10 +159,10 @@ window.Whider = window.Whider || {};
     var notes = rule.actions.filter(function (a) { return a.type === 'notify' && a.value; });
     notes.forEach(function (a) {
       W.Toast.show({ text: String(a.value), icon: 'bolt', duration: 5000 });
-      if (W.Notify) W.Notify.system('WHIDER · ' + rule.name, String(a.value), 'whider-rule-' + rule.id);
+      if (W.Notify) W.Notify.system(W.t('WHIDER · {name}', { name: rule.name }), String(a.value), 'whider-rule-' + rule.id);
     });
     var total = n + made.length + (notes.length && !n && !made.length ? 1 : 0);
-    if (total) record(rule, total, reason + (n ? ' · ' + U.plural(n, 'tarea', 'tareas') : '') + (made.length ? ' · creada: ' + made.join(', ') : ''));
+    if (total) record(rule, total, reason + (n ? ' · ' + U.plural(n, 'tarea', 'tareas') : '') + (made.length ? ' · ' + W.t('creada: {list}', { list: made.join(', ') }) : ''));
     return total;
   }
 
@@ -172,7 +172,7 @@ window.Whider = window.Whider || {};
     var rules = activeRules().filter(function (r) { return r.trigger.type === type; });
     rules.forEach(function (r) {
       var cur = S().find(t.id);
-      if (cur && matches(r, cur)) apply(r, [cur], type === 'created' ? 'Al crear «' + cur.text + '»' : 'Al completar «' + cur.text + '»');
+      if (cur && matches(r, cur)) apply(r, [cur], type === 'created' ? W.t('Al crear «{text}»', { text: cur.text }) : W.t('Al completar «{text}»', { text: cur.text }));
     });
   }
 
@@ -191,16 +191,16 @@ window.Whider = window.Whider || {};
         if (!list.length) return;
         list.forEach(function (t) { seen[t.id] = U.deadlineTs(t.date, t.time); });
         persist();
-        apply(r, list, 'Al vencer');
+        apply(r, list, W.t('Al vencer'));
       } else if (r.trigger.type === 'daily') {
         var at = r.trigger.time || '07:00';
         if (hm < at || log.daily[r.id] === td) return;
         log.daily[r.id] = td; persist();
         if (needsTask(r)) {
           var pool = st.tasks.filter(function (t) { return (targetsDone(r) ? t.done : !t.done) && matches(r, t); });
-          if (pool.length) apply(r, pool, 'Cada día a las ' + U.fmtTime(at));
-          else if (r.actions.some(function (a) { return a.type === 'notify' || a.type === 'create_task'; }) && matches(r, { text: '', done: false, highlight: 'none', repeat: 'none' })) apply(r, [], 'Cada día a las ' + U.fmtTime(at));
-        } else if (matches(r, { text: '', done: false, highlight: 'none', repeat: 'none', listId: null })) apply(r, [], 'Cada día a las ' + U.fmtTime(at));
+          if (pool.length) apply(r, pool, W.t('Cada día a las {time}', { time: U.fmtTime(at) }));
+          else if (r.actions.some(function (a) { return a.type === 'notify' || a.type === 'create_task'; }) && matches(r, { text: '', done: false, highlight: 'none', repeat: 'none' })) apply(r, [], W.t('Cada día a las {time}', { time: U.fmtTime(at) }));
+        } else if (matches(r, { text: '', done: false, highlight: 'none', repeat: 'none', listId: null })) apply(r, [], W.t('Cada día a las {time}', { time: U.fmtTime(at) }));
       }
     });
   }
@@ -218,37 +218,39 @@ window.Whider = window.Whider || {};
   }
 
   /* ---------- Descripciones ---------- */
-  function listName(id) { if (id === '@default') return 'la de por defecto'; var l = S().getList(id); return l ? l.name : 'sin categoría'; }
+  function listName(id) { if (id === '@default') return W.t('la de por defecto'); var l = S().getList(id); return l ? l.name : W.t('sin categoría'); }
+  // A mitad de frase: en español todo en minúscula; en inglés solo la primera letra («on Monday»)
+  function low(s) { s = String(s || ''); return W.I18n.lang === 'en' ? s.charAt(0).toLowerCase() + s.slice(1) : s.toLowerCase(); }
   function describeCond(c) {
     var F = FIELDS[c.field]; if (!F) return '';
     var op = (F.ops.filter(function (o) { return o.value === c.op; })[0] || F.ops[0]).label;
-    if (c.field === 'list') return 'categoría ' + op + ' ' + listName(c.value);
-    if (c.field === 'priority') return 'prioridad ' + op + ' ' + (S().PRIORITIES[c.value] || {}).label.toLowerCase();
-    if (c.field === 'text') return 'el texto ' + op + ' «' + (c.value || '') + '»';
-    if (c.field === 'done_age') return 'completada hace más de ' + (+c.value || 0) + ' días';
-    if (c.field === 'weekday') return 'hoy es ' + U.WEEKDAYS[+c.value || 0];
-    return (c.field === 'date' ? 'fecha: ' : c.field === 'time' ? '' : '') + op;
+    if (c.field === 'list') return W.t('categoría {op} {name}', { op: op, name: listName(c.value) });
+    if (c.field === 'priority') return W.t('prioridad {op} {name}', { op: op, name: low((S().PRIORITIES[c.value] || {}).label) });
+    if (c.field === 'text') return W.t('el texto {op} «{text}»', { op: op, text: c.value || '' });
+    if (c.field === 'done_age') return W.t('completada hace más de {n} días', { n: +c.value || 0 });
+    if (c.field === 'weekday') return W.t('hoy es {day}', { day: U.WEEKDAYS[+c.value || 0] });
+    return c.field === 'date' ? W.t('fecha: {op}', { op: op }) : op;
   }
   function describeAction(a) {
     switch (a.type) {
-      case 'set_date': return 'fecha ' + ((WHEN.filter(function (w) { return w.value === a.value; })[0] || {}).label || '').toLowerCase();
-      case 'set_time': return a.value && a.value !== 'none' ? 'a las ' + U.fmtTime(a.value) : 'sin hora';
-      case 'set_duration': return 'dura ' + W.Editor.durLabel(+a.value);
-      case 'set_priority': return 'prioridad ' + (S().PRIORITIES[a.value] || {}).label.toLowerCase();
-      case 'set_list': return 'a ' + listName(a.value);
-      case 'set_warn': return a.value === true || a.value === 'true' || a.value === 'on' ? 'con avisos' : 'sin avisos';
-      case 'complete': return 'completarla';
-      case 'delete': return 'eliminarla';
-      case 'notify': return 'avisarme: «' + (a.value || '') + '»';
-      case 'create_task': return 'crear «' + (a.value || '') + '»';
+      case 'set_date': return W.t('fecha {when}', { when: low((WHEN.filter(function (w) { return w.value === a.value; })[0] || {}).label) });
+      case 'set_time': return a.value && a.value !== 'none' ? W.t('a las {time}', { time: U.fmtTime(a.value) }) : W.t('sin hora');
+      case 'set_duration': return W.t('dura {time}', { time: W.Editor.durLabel(+a.value) });
+      case 'set_priority': return W.t('prioridad {name}', { name: low((S().PRIORITIES[a.value] || {}).label) });
+      case 'set_list': return W.t('a {name}', { name: listName(a.value) });
+      case 'set_warn': return a.value === true || a.value === 'true' || a.value === 'on' ? W.t('con avisos') : W.t('sin avisos');
+      case 'complete': return W.t('completarla');
+      case 'delete': return W.t('eliminarla');
+      case 'notify': return W.t('avisarme: «{text}»', { text: a.value || '' });
+      case 'create_task': return W.t('crear «{text}»', { text: a.value || '' });
       default: return '';
     }
   }
   function describe(rule) {
     var t = (TRIGGERS.filter(function (x) { return x.value === rule.trigger.type; })[0] || {}).label || '';
-    if (rule.trigger.type === 'daily') t = 'Cada día a las ' + U.fmtTime(rule.trigger.time || '07:00');
-    var c = rule.conditions.map(describeCond).filter(Boolean).join(' y ');
-    return t + (c ? ', si ' + c : '') + ' → ' + rule.actions.map(describeAction).filter(Boolean).join(', ');
+    if (rule.trigger.type === 'daily') t = W.t('Cada día a las {time}', { time: U.fmtTime(rule.trigger.time || '07:00') });
+    var c = rule.conditions.map(describeCond).filter(Boolean).join(' ' + W.t('y') + ' ');
+    return t + (c ? W.t(', si {cond}', { cond: c }) : '') + ' → ' + rule.actions.map(describeAction).filter(Boolean).join(', ');
   }
 
   var Auto = {

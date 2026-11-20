@@ -59,10 +59,14 @@ Se prueba abriendo la app con `?lang=en` (`?lang=es` para volver); no aparece en
   recorre en inglés las pantallas y las hojas ya traducidas, en el ordenador y en el móvil, y falla si queda algo en
   español o sin traducir. Hoy cubre: Hoy (con la barra lateral, la inferior, el personaje, los hábitos de hoy, los
   primeros pasos y las novedades), Tareas (filtros, selección, paleta de órdenes), Calendario (mes, semana, día y
-  agenda), Enfoque, «Más», Perfil con Actividad y Marcas, Estadísticas, Informes, la presentación inicial, Ajustes
-  con todas sus páginas y el texto de privacidad, la ayuda y los comentarios, los atajos de teclado, el importador,
-  las plantillas, los dispositivos, el perfil, las actualizaciones, la instalación, las copias, los avisos y el
-  editor de tareas.
+  agenda), Enfoque, «Más», Perfil con Actividad y Marcas, Estadísticas, Informes, Personas, Chats,
+  Automatizaciones (con el editor de reglas y sus resúmenes), el Cuaderno (portada, una página de cada plantilla con
+  sus bases de datos y el menú «/» de bloques), la presentación inicial, la pantalla de acceso, Ajustes con todas
+  sus páginas y el texto de privacidad, la ayuda y los comentarios, los atajos de teclado, el importador, las
+  plantillas, los dispositivos, el perfil, las actualizaciones, la instalación, las copias, los avisos y el editor
+  de tareas. En `js/` solo quedan en español, a propósito, la gramática española de «Nueva tarea»
+  (`js/core/parse.js`), los nombres de meses y días en español (`js/core/util.js`) y las notas de versiones
+  anteriores (`js/core/version.js`).
 - **Fechas**: lo que antes se componía a mano en español (semanas, periodos, «16 de noviembre») sale de
   `js/core/util.js` (`fmtRange`, `fmtSpan`, `fmtDate`, `fmtDayMonth`, `fmtDayMon`, `fmtLongYear`, `fmtHour`), que
   en español da lo mismo que antes. Las frases con un enlace o una negrita dentro usan `W.tp`.
@@ -78,7 +82,9 @@ Se prueba abriendo la app con `?lang=en` (`?lang=es` para volver); no aparece en
   por funciones); `node tools/i18n.js datos <archivo> <VARIABLE>` envuelve los textos de una tabla (preguntas
   frecuentes, plantillas…); `node tools/i18n.js faltan` da lo que falta en el catálogo; se añade la pantalla a
   `PANTALLAS` (o la hoja a `HOJAS`) en `tests/e2e/ingles.js`.
-- **Falta**: Cuaderno (páginas, bloques, bases de datos, archivos y plantillas), Personas y chats,
-  automatizaciones y la pantalla de inicio de sesión; después, los menús de la app de escritorio y los textos
-  nativos de Android, y por último la opción de idioma en Ajustes.
+- **Lo que se crea en un idioma se queda en ese idioma**: las plantillas del Cuaderno, los métodos de
+  Automatizaciones, las categorías por defecto o los nombres por defecto de las bases de datos se crean con los
+  textos del idioma de la app en ese momento y después son datos del usuario, como cualquier otro.
+- **Falta**: los menús de la app de escritorio y los textos nativos de Android; después, la opción de idioma en
+  Ajustes y las notas de versión en inglés de la versión que lo traiga.
 

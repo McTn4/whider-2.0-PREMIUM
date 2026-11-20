@@ -139,7 +139,7 @@ window.Whider = window.Whider || {};
     if (s.todayTotal > 0 && s.todayDone === s.todayTotal && S.meta.celebrated !== U.today()) {
       S.setMeta('celebrated', U.today());
       W.Audio.success();
-      W.Toast.show({ text: 'Todo lo de hoy está hecho.', type: 'success', icon: 'check', duration: 3500 });
+      W.Toast.show({ text: W.t('Todo lo de hoy está hecho.'), type: 'success', icon: 'check', duration: 3500 });
       W.Router.refresh();
     }
   }
@@ -222,7 +222,7 @@ window.Whider = window.Whider || {};
       applyAppearance();
       W.Router.go('home');
       W.AuthScreen.open({ mode: 'register' });
-      W.Toast.show({ text: 'Tu cuenta y sus datos se han eliminado', icon: 'trash' });
+      W.Toast.show({ text: W.t('Tu cuenta y sus datos se han eliminado'), icon: 'trash' });
     }).catch(function (e) {
       W.Toast.show({ text: W.Auth.message(e), type: 'danger', duration: 6000 });
       if (e && e.code === 'auth/requires-recent-login') { W.Sync.restart(); logout(); }
@@ -306,7 +306,7 @@ window.Whider = window.Whider || {};
     // Estado de la nube: el engranaje dice si hay cambios sin subir y la barra lateral se pone al día
     W.Sync.onStatus(function () {
       var unsaved = W.Sync.unsaved();
-      U.$$('.gear-btn').forEach(function (b) { b.setAttribute('aria-label', unsaved ? 'Ajustes (hay cambios sin guardar en la nube)' : 'Ajustes'); });
+      U.$$('.gear-btn').forEach(function (b) { b.setAttribute('aria-label', unsaved ? W.t('Ajustes (hay cambios sin guardar en la nube)') : W.t('Ajustes')); });
       if (W.Sidebar) W.Sidebar.refresh();
     });
     // Android: el widget «Hoy» recibe las tareas de hoy cada vez que cambian

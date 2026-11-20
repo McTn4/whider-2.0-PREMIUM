@@ -27,57 +27,57 @@ window.Whider = window.Whider || {};
 
   /* ---------- Tipos de bloque ---------- */
   var BLOCKS = {
-    p: { label: 'Texto', icon: 'type', desc: 'Un párrafo normal', text: true, keys: ['texto', 'parrafo', 'text'] },
-    h1: { label: 'Título 1', icon: 'h1', desc: 'Título grande de sección', text: true, md: '#', keys: ['titulo', 'h1', 'encabezado'] },
-    h2: { label: 'Título 2', icon: 'h2', desc: 'Título mediano', text: true, md: '##', keys: ['titulo2', 'h2', 'subtitulo'] },
-    h3: { label: 'Título 3', icon: 'h3', desc: 'Título pequeño', text: true, md: '###', keys: ['titulo3', 'h3'] },
-    ul: { label: 'Lista con viñetas', icon: 'bullets', desc: 'Una lista sencilla', text: true, md: '-', keys: ['lista', 'vinetas', 'bullet'] },
-    ol: { label: 'Lista numerada', icon: 'numbers', desc: 'Una lista con números', text: true, md: '1.', keys: ['numerada', 'numeros', 'ol'] },
-    todo: { label: 'Lista de tareas', icon: 'checklist', desc: 'Casillas para marcar', text: true, md: '[]', keys: ['tareas', 'casilla', 'todo', 'checklist'] },
-    toggle: { label: 'Desplegable', icon: 'toggle', desc: 'Oculta contenido dentro', text: true, md: '>', keys: ['desplegable', 'toggle', 'acordeon'] },
-    quote: { label: 'Cita', icon: 'quote', desc: 'Para destacar una frase', text: true, md: '"', keys: ['cita', 'quote'] },
-    callout: { label: 'Aviso', icon: 'callout', desc: 'Un recuadro para destacar', text: true, keys: ['aviso', 'callout', 'nota', 'destacado'] },
-    code: { label: 'Código', icon: 'code', desc: 'Texto con formato de código', text: true, md: '```', keys: ['codigo', 'code'] },
-    hr: { label: 'Separador', icon: 'divider', desc: 'Una línea para separar', md: '---', keys: ['separador', 'linea', 'divider'] },
-    table: { label: 'Tabla', icon: 'table', desc: 'Una tabla sencilla', keys: ['tabla', 'table'] },
-    img: { label: 'Imagen', icon: 'image', desc: 'Una foto de tu dispositivo o de un enlace', keys: ['imagen', 'foto', 'image', 'galeria'] },
-    file: { label: 'Archivo', icon: 'paperclip', desc: 'PDF, documento, hoja de cálculo o cualquier archivo', keys: ['archivo', 'adjunto', 'adjuntar', 'documento', 'pdf', 'subir', 'file'] },
-    bookmark: { label: 'Enlace web', icon: 'link', desc: 'Una tarjeta con un enlace', keys: ['enlace', 'web', 'url', 'link'] },
-    page: { label: 'Página', icon: 'page', desc: 'Una subpágina dentro de esta', keys: ['pagina', 'subpagina', 'page'] },
-    db: { label: 'Base de datos', icon: 'database', desc: 'Tabla, tablero, calendario…', keys: ['base', 'datos', 'database', 'tablero'] },
-    task: { label: 'Tarea de WHIDER', icon: 'tasks', desc: 'Crea una tarea real con aviso', keys: ['tarea', 'whider', 'aviso'] },
-    agenda: { label: 'Agenda de hoy', icon: 'sun', desc: 'Tus tareas de hoy, siempre al día', keys: ['agenda', 'hoy'] },
-    toc: { label: 'Índice', icon: 'list', desc: 'Los títulos de esta página', keys: ['indice', 'contenido', 'toc'] }
+    p: { label: W.t('Texto'), icon: 'type', desc: W.t('Un párrafo normal'), text: true, keys: ['texto', 'parrafo', 'text'] },
+    h1: { label: W.t('Título 1'), icon: 'h1', desc: W.t('Título grande de sección'), text: true, md: '#', keys: ['titulo', 'h1', 'encabezado'] },
+    h2: { label: W.t('Título 2'), icon: 'h2', desc: W.t('Título mediano'), text: true, md: '##', keys: ['titulo2', 'h2', 'subtitulo'] },
+    h3: { label: W.t('Título 3'), icon: 'h3', desc: W.t('Título pequeño'), text: true, md: '###', keys: ['titulo3', 'h3'] },
+    ul: { label: W.t('Lista con viñetas'), icon: 'bullets', desc: W.t('Una lista sencilla'), text: true, md: '-', keys: ['lista', 'vinetas', 'bullet'] },
+    ol: { label: W.t('Lista numerada'), icon: 'numbers', desc: W.t('Una lista con números'), text: true, md: '1.', keys: ['numerada', 'numeros', 'ol'] },
+    todo: { label: W.t('Lista de tareas'), icon: 'checklist', desc: W.t('Casillas para marcar'), text: true, md: '[]', keys: ['tareas', 'casilla', 'todo', 'checklist'] },
+    toggle: { label: W.t('Desplegable'), icon: 'toggle', desc: W.t('Oculta contenido dentro'), text: true, md: '>', keys: ['desplegable', 'toggle', 'acordeon'] },
+    quote: { label: W.t('Cita'), icon: 'quote', desc: W.t('Para destacar una frase'), text: true, md: '"', keys: ['cita', 'quote'] },
+    callout: { label: W.t('Aviso'), icon: 'callout', desc: W.t('Un recuadro para destacar'), text: true, keys: ['aviso', 'callout', 'nota', 'destacado'] },
+    code: { label: W.t('Código'), icon: 'code', desc: W.t('Texto con formato de código'), text: true, md: '```', keys: ['codigo', 'code'] },
+    hr: { label: W.t('Separador'), icon: 'divider', desc: W.t('Una línea para separar'), md: '---', keys: ['separador', 'linea', 'divider'] },
+    table: { label: W.t('Tabla'), icon: 'table', desc: W.t('Una tabla sencilla'), keys: ['tabla', 'table'] },
+    img: { label: W.t('Imagen'), icon: 'image', desc: W.t('Una foto de tu dispositivo o de un enlace'), keys: ['imagen', 'foto', 'image', 'galeria'] },
+    file: { label: W.t('Archivo'), icon: 'paperclip', desc: W.t('PDF, documento, hoja de cálculo o cualquier archivo'), keys: ['archivo', 'adjunto', 'adjuntar', 'documento', 'pdf', 'subir', 'file'] },
+    bookmark: { label: W.t('Enlace web'), icon: 'link', desc: W.t('Una tarjeta con un enlace'), keys: ['enlace', 'web', 'url', 'link'] },
+    page: { label: W.t('Página'), icon: 'page', desc: W.t('Una subpágina dentro de esta'), keys: ['pagina', 'subpagina', 'page'] },
+    db: { label: W.t('Base de datos'), icon: 'database', desc: W.t('Tabla, tablero, calendario…'), keys: ['base', 'datos', 'database', 'tablero'] },
+    task: { label: W.t('Tarea de WHIDER'), icon: 'tasks', desc: W.t('Crea una tarea real con aviso'), keys: ['tarea', 'whider', 'aviso'] },
+    agenda: { label: W.t('Agenda de hoy'), icon: 'sun', desc: W.t('Tus tareas de hoy, siempre al día'), keys: ['agenda', 'hoy'] },
+    toc: { label: W.t('Índice'), icon: 'list', desc: W.t('Los títulos de esta página'), keys: ['indice', 'contenido', 'toc'] }
   };
   var TEXT_TYPES = {};
   Object.keys(BLOCKS).forEach(function (k) { if (BLOCKS[k].text) TEXT_TYPES[k] = true; });
 
   /* ---------- Propiedades y vistas de las bases de datos ---------- */
   var PROPS = {
-    title: { label: 'Nombre', icon: 'type' },
-    text: { label: 'Texto', icon: 'type' },
-    number: { label: 'Número', icon: 'hash' },
-    select: { label: 'Selección', icon: 'down' },
-    multi: { label: 'Varias opciones', icon: 'layers' },
-    status: { label: 'Estado', icon: 'target' },
-    date: { label: 'Fecha', icon: 'calendar' },
-    check: { label: 'Casilla', icon: 'check' },
-    url: { label: 'Enlace', icon: 'link' },
-    person: { label: 'Persona', icon: 'user' },
-    created: { label: 'Creada', icon: 'clock' },
-    updated: { label: 'Editada', icon: 'clock' }
+    title: { label: W.t('Nombre'), icon: 'type' },
+    text: { label: W.t('Texto'), icon: 'type' },
+    number: { label: W.t('Número'), icon: 'hash' },
+    select: { label: W.t('Selección'), icon: 'down' },
+    multi: { label: W.t('Varias opciones'), icon: 'layers' },
+    status: { label: W.t('Estado'), icon: 'target' },
+    date: { label: W.t('Fecha'), icon: 'calendar' },
+    check: { label: W.t('Casilla'), icon: 'check' },
+    url: { label: W.t('Enlace'), icon: 'link' },
+    person: { label: W.t('Persona'), icon: 'user' },
+    created: { label: W.t('Creada'), icon: 'clock' },
+    updated: { label: W.t('Editada'), icon: 'clock' }
   };
   var VIEWS = {
-    table: { label: 'Tabla', icon: 'table' },
-    board: { label: 'Tablero', icon: 'board' },
-    list: { label: 'Lista', icon: 'list' },
-    calendar: { label: 'Calendario', icon: 'calendar' },
-    gallery: { label: 'Galería', icon: 'grid' }
+    table: { label: W.t('Tabla'), icon: 'table' },
+    board: { label: W.t('Tablero'), icon: 'board' },
+    list: { label: W.t('Lista'), icon: 'list' },
+    calendar: { label: W.t('Calendario'), icon: 'calendar' },
+    gallery: { label: W.t('Galería'), icon: 'grid' }
   };
   var COVERS = [
-    { id: 'lines', name: 'Líneas' }, { id: 'dots', name: 'Puntos' }, { id: 'grid', name: 'Cuadrícula' },
-    { id: 'waves', name: 'Ondas' }, { id: 'fade', name: 'Degradado' }, { id: 'night', name: 'Noche' },
-    { id: 'paper', name: 'Papel' }, { id: 'rays', name: 'Rayos' }
+    { id: 'lines', name: W.t('Líneas') }, { id: 'dots', name: W.t('Puntos') }, { id: 'grid', name: W.t('Cuadrícula') },
+    { id: 'waves', name: W.t('Ondas') }, { id: 'fade', name: W.t('Degradado') }, { id: 'night', name: W.t('Noche') },
+    { id: 'paper', name: W.t('Papel') }, { id: 'rays', name: W.t('Rayos') }
   ];
   var ICONS = ['page', 'notebook', 'book', 'briefcase', 'target', 'star', 'bolt', 'flag', 'heart', 'leaf', 'sun', 'moon', 'code',
     'music', 'cart', 'wallet', 'dumbbell', 'gift', 'paw', 'users', 'chat', 'calendar', 'clock', 'pin', 'gem', 'trophy', 'crown',
@@ -96,7 +96,7 @@ window.Whider = window.Whider || {};
     var out = { id: String(p.id), name: str(p.name, 40) || PROPS[type].label, type: type };
     if (type === 'select' || type === 'multi' || type === 'status') {
       out.opts = (Array.isArray(p.opts) ? p.opts : []).filter(function (o) { return o && ID_RE.test(String(o.id || '')); }).slice(0, 40)
-        .map(function (o) { return { id: String(o.id), name: str(o.name, 40) || 'Opción', tone: Math.max(0, Math.min(4, num(o.tone, 0))), group: o.group === 'doing' || o.group === 'done' ? o.group : 'todo' }; });
+        .map(function (o) { return { id: String(o.id), name: str(o.name, 40) || W.t('Opción'), tone: Math.max(0, Math.min(4, num(o.tone, 0))), group: o.group === 'doing' || o.group === 'done' ? o.group : 'todo' }; });
     }
     if (type === 'number') out.fmt = p.fmt === 'euro' || p.fmt === 'percent' ? p.fmt : 'plain';
     return out;
@@ -104,7 +104,7 @@ window.Whider = window.Whider || {};
   function cleanView(v) {
     if (!v || !ID_RE.test(String(v.id || ''))) return null;
     return {
-      id: String(v.id), name: str(v.name, 40) || 'Vista', type: VIEWS[v.type] ? v.type : 'table',
+      id: String(v.id), name: str(v.name, 40) || W.t('Vista'), type: VIEWS[v.type] ? v.type : 'table',
       sort: (Array.isArray(v.sort) ? v.sort : []).slice(0, 4).filter(function (x) { return x && x.p; }).map(function (x) { return { p: String(x.p), d: x.d < 0 ? -1 : 1 }; }),
       filter: (Array.isArray(v.filter) ? v.filter : []).slice(0, 8).filter(function (x) { return x && x.p && x.op; }).map(function (x) { return { p: String(x.p), op: String(x.op).slice(0, 12), v: x.v == null ? null : (Array.isArray(x.v) ? x.v.slice(0, 10) : x.v) }; }),
       group: typeof v.group === 'string' ? v.group : null,
@@ -116,9 +116,9 @@ window.Whider = window.Whider || {};
   function cleanDb(d) {
     if (!d || typeof d !== 'object') return null;
     var props = (Array.isArray(d.props) ? d.props : []).map(cleanProp).filter(Boolean);
-    if (!props.some(function (p) { return p.id === 'title'; })) props.unshift({ id: 'title', name: 'Nombre', type: 'title' });
+    if (!props.some(function (p) { return p.id === 'title'; })) props.unshift({ id: 'title', name: W.t('Nombre'), type: 'title' });
     var views = (Array.isArray(d.views) ? d.views : []).map(cleanView).filter(Boolean);
-    if (!views.length) views = [{ id: 'v_table', name: 'Tabla', type: 'table', sort: [], filter: [], group: null, date: null, hide: [], wide: {} }];
+    if (!views.length) views = [{ id: 'v_table', name: W.t('Tabla'), type: 'table', sort: [], filter: [], group: null, date: null, hide: [], wide: {} }];
     return { props: props.slice(0, 40), views: views.slice(0, 12) };
   }
   function cleanMeta(m) {
@@ -345,7 +345,7 @@ window.Whider = window.Whider || {};
   /** Página → Markdown */
   function toMarkdown(id, depth) {
     var m = meta(id); if (!m) return '';
-    var c = content(id), lines = ['# ' + (m.title || 'Sin título'), ''], n = 0;
+    var c = content(id), lines = ['# ' + (m.title || W.t('Sin título')), ''], n = 0;
     c.blocks.forEach(function (b, i) {
       var pad = new Array((b.i || 0) + 1).join('  '), x = toInlineMd(b.x || '');
       n = b.t === 'ol' ? (i > 0 && c.blocks[i - 1].t === 'ol' && (c.blocks[i - 1].i || 0) === (b.i || 0) ? n + 1 : 1) : 0;
@@ -363,11 +363,11 @@ window.Whider = window.Whider || {};
         case 'hr': lines.push('---'); break;
         case 'table': (b.rows || []).forEach(function (r, ri) { lines.push('| ' + r.map(function (cell) { return toInlineMd(cell).replace(/\|/g, '\\|'); }).join(' | ') + ' |'); if (ri === 0) lines.push('|' + r.map(function () { return ' --- '; }).join('|') + '|'); }); break;
         case 'img': lines.push('![' + (plain(b.x) || b.n || '') + '](' + (/^https/.test(b.src || '') ? b.src : 'imagen') + ')'); break;
-        case 'file': if (b.n) lines.push(pad + '[Archivo: ' + b.n + ']'); break;
+        case 'file': if (b.n) lines.push(pad + '[' + W.t('Archivo: {name}', { name: b.n }) + ']'); break;
         case 'bookmark': lines.push('[' + (plain(b.x) || b.url) + '](' + b.url + ')'); break;
-        case 'page': var sm = meta(b.ref); lines.push(pad + '- ' + (sm ? (sm.title || 'Sin título') : 'Página')); break;
-        case 'db': var dm = meta(b.ref); if (dm) lines.push('', '**' + (dm.title || 'Base de datos') + '**', dbMarkdown(dm.id)); break;
-        case 'task': var t = W.State.find(b.ref); lines.push(pad + '- [' + (t && t.done ? 'x' : ' ') + '] ' + (t ? t.text : 'Tarea')); break;
+        case 'page': var sm = meta(b.ref); lines.push(pad + '- ' + (sm ? (sm.title || W.t('Sin título')) : W.t('Página'))); break;
+        case 'db': var dm = meta(b.ref); if (dm) lines.push('', '**' + (dm.title || W.t('Base de datos')) + '**', dbMarkdown(dm.id)); break;
+        case 'task': var t = W.State.find(b.ref); lines.push(pad + '- [' + (t && t.done ? 'x' : ' ') + '] ' + (t ? t.text : W.t('Tarea'))); break;
         default: if (x) lines.push(pad + x);
       }
     });
@@ -403,7 +403,7 @@ window.Whider = window.Whider || {};
     while (m && guard++ < 20) { out.unshift(m); m = m.parent ? meta(m.parent) : null; }
     return out;
   }
-  function title(m) { m = typeof m === 'string' ? meta(m) : m; return m ? (m.title || (m.kind === 'db' ? 'Base de datos sin título' : 'Sin título')) : 'Página'; }
+  function title(m) { m = typeof m === 'string' ? meta(m) : m; return m ? (m.title || (m.kind === 'db' ? W.t('Base de datos sin título') : W.t('Sin título'))) : W.t('Página'); }
   function descendants(id) {
     var out = [], walk = function (pid) { all({}).concat(all({ trash: true })).forEach(function (m) { if (m.parent === pid && out.indexOf(m) < 0) { out.push(m); walk(m.id); } }); };
     walk(id);
@@ -427,7 +427,7 @@ window.Whider = window.Whider || {};
       case 'select': case 'status': return optName(p, v);
       case 'multi': return (Array.isArray(v) ? v : []).map(function (x) { return optName(p, x); }).filter(Boolean).join(', ');
       case 'date': return typeof v === 'string' ? U.fmtShort(v) : '';
-      case 'check': return v ? 'Sí' : 'No';
+      case 'check': return v ? W.t('Sí') : W.t('No');
       case 'number': return fmtNumber(v, p.fmt);
       case 'created': case 'updated': return U.fmtShort(U.ymd(new Date(v)));
       case 'person': return personName(v);
@@ -441,9 +441,9 @@ window.Whider = window.Whider || {};
   }
   function personName(v) {
     if (!v) return '';
-    if (v === 'me' || v === me()) return myName() || 'Yo';
+    if (v === 'me' || v === me()) return myName() || W.t('Yo');
     var f = W.State.social && W.State.social.friends[v];
-    return f ? f.name || 'Contacto' : 'Persona';
+    return f ? f.name || W.t('Contacto') : W.t('Persona');
   }
   function cmp(a, b) { if (a == null || a === '') return b == null || b === '' ? 0 : 1; if (b == null || b === '') return -1; return a < b ? -1 : a > b ? 1 : 0; }
   function sortKey(row, p) {
@@ -494,12 +494,12 @@ window.Whider = window.Whider || {};
     if (!p) return [{ id: null, name: '', rows: list }];
     var out = [];
     if (p.type === 'check') {
-      out = [{ id: true, name: 'Hecho', rows: [] }, { id: false, name: 'Sin hacer', rows: [] }];
+      out = [{ id: true, name: W.t('Hecho'), rows: [] }, { id: false, name: W.t('Sin hacer'), rows: [] }];
       list.forEach(function (r) { (r.props[p.id] ? out[0] : out[1]).rows.push(r); });
       return out;
     }
     out = (p.opts || []).map(function (o) { return { id: o.id, name: o.name, tone: o.tone, rows: [] }; });
-    var none = { id: null, name: 'Sin ' + p.name.toLowerCase(), rows: [] };
+    var none = { id: null, name: W.t('Sin {name}', { name: W.I18n.lang === 'en' ? p.name : p.name.toLowerCase() }), rows: [] };
     list.forEach(function (r) {
       var v = r.props[p.id], key = p.type === 'multi' ? (Array.isArray(v) && v[0]) : v;
       var g = out.filter(function (x) { return x.id === key; })[0];
@@ -513,15 +513,15 @@ window.Whider = window.Whider || {};
     var stId = 'p_estado';
     var db = {
       props: [
-        { id: 'title', name: 'Nombre', type: 'title' },
-        { id: stId, name: 'Estado', type: 'status', opts: [{ id: 'o_todo', name: 'Sin empezar', tone: 0, group: 'todo' }, { id: 'o_doing', name: 'En curso', tone: 2, group: 'doing' }, { id: 'o_done', name: 'Hecho', tone: 4, group: 'done' }] },
-        { id: 'p_fecha', name: 'Fecha', type: 'date' },
-        { id: 'p_tags', name: 'Etiquetas', type: 'multi', opts: [] }
+        { id: 'title', name: W.t('Nombre'), type: 'title' },
+        { id: stId, name: W.t('Estado'), type: 'status', opts: [{ id: 'o_todo', name: W.t('Sin empezar'), tone: 0, group: 'todo' }, { id: 'o_doing', name: W.t('En curso'), tone: 2, group: 'doing' }, { id: 'o_done', name: W.t('Hecho'), tone: 4, group: 'done' }] },
+        { id: 'p_fecha', name: W.t('Fecha'), type: 'date' },
+        { id: 'p_tags', name: W.t('Etiquetas'), type: 'multi', opts: [] }
       ],
       views: [
-        { id: 'v_table', name: 'Tabla', type: 'table' },
-        { id: 'v_board', name: 'Tablero', type: 'board', group: stId },
-        { id: 'v_cal', name: 'Calendario', type: 'calendar', date: 'p_fecha' }
+        { id: 'v_table', name: W.t('Tabla'), type: 'table' },
+        { id: 'v_board', name: W.t('Tablero'), type: 'board', group: stId },
+        { id: 'v_cal', name: W.t('Calendario'), type: 'calendar', date: 'p_fecha' }
       ]
     };
     if (opts.db) db = opts.db;
@@ -531,81 +531,81 @@ window.Whider = window.Whider || {};
   /* ---------- Plantillas ---------- */
   function mention(type, id, label) { return '<span class="mention" data-' + type + '="' + id + '" contenteditable="false">' + escapeHtml(label) + '</span>'; }
   var TEMPLATES = [
-    { id: 'blank', name: 'Página en blanco', icon: 'page', desc: 'Empieza desde cero', build: function () { return { blocks: [] }; } },
-    { id: 'meeting', name: 'Reunión', icon: 'users', desc: 'Asistentes, temas, acuerdos y próximos pasos', build: function () {
+    { id: 'blank', name: W.t('Página en blanco'), icon: 'page', desc: W.t('Empieza desde cero'), build: function () { return { blocks: [] }; } },
+    { id: 'meeting', name: W.t('Reunión'), icon: 'users', desc: W.t('Asistentes, temas, acuerdos y próximos pasos'), build: function () {
       var td = U.today();
-      return { title: 'Reunión · ' + U.fmtShort(td), icon: 'users', blocks: [
-        block('callout', '<b>Fecha:</b> ' + mention('date', td, U.fmtDay(td)) + ' · <b>Lugar:</b> ', { ic: 'calendar' }),
-        block('h2', 'Asistentes'), block('ul', ''),
-        block('h2', 'Temas'), block('ol', ''), block('ol', ''),
-        block('h2', 'Notas'), block('p', ''),
-        block('h2', 'Acuerdos'), block('todo', ''),
-        block('h2', 'Próximos pasos'), block('todo', '')
+      return { title: W.t('Reunión · {date}', { date: U.fmtShort(td) }), icon: 'users', blocks: [
+        block('callout', '<b>' + W.t('Fecha:') + '</b> ' + mention('date', td, U.fmtDay(td)) + ' · <b>' + W.t('Lugar:') + '</b> ', { ic: 'calendar' }),
+        block('h2', W.t('Asistentes')), block('ul', ''),
+        block('h2', W.t('Temas')), block('ol', ''), block('ol', ''),
+        block('h2', W.t('Notas')), block('p', ''),
+        block('h2', W.t('Acuerdos')), block('todo', ''),
+        block('h2', W.t('Próximos pasos')), block('todo', '')
       ] };
     } },
-    { id: 'project', name: 'Proyecto', icon: 'briefcase', desc: 'Objetivo, hitos y tablero de tareas', build: function (page) {
-      var db = newDb('Tareas del proyecto', page.id, { team: page.team });
-      return { title: 'Nuevo proyecto', icon: 'briefcase', cover: 'rays', blocks: [
-        block('callout', '<b>Objetivo:</b> describe en una frase qué quieres conseguir.', { ic: 'target' }),
-        block('h2', 'Hitos'), block('todo', 'Primer hito'), block('todo', 'Entrega final'),
-        block('h2', 'Tareas'), block('db', '', { ref: db.id, view: 'v_board' }),
-        block('h2', 'Recursos'), block('ul', '')
+    { id: 'project', name: W.t('Proyecto'), icon: 'briefcase', desc: W.t('Objetivo, hitos y tablero de tareas'), build: function (page) {
+      var db = newDb(W.t('Tareas del proyecto'), page.id, { team: page.team });
+      return { title: W.t('Nuevo proyecto'), icon: 'briefcase', cover: 'rays', blocks: [
+        block('callout', '<b>' + W.t('Objetivo:') + '</b> ' + W.t('describe en una frase qué quieres conseguir.'), { ic: 'target' }),
+        block('h2', W.t('Hitos')), block('todo', W.t('Primer hito')), block('todo', W.t('Entrega final')),
+        block('h2', W.t('Tareas')), block('db', '', { ref: db.id, view: 'v_board' }),
+        block('h2', W.t('Recursos')), block('ul', '')
       ] };
     } },
-    { id: 'journal', name: 'Diario', icon: 'moon', desc: 'Cómo ha ido el día y qué has aprendido', build: function () {
+    { id: 'journal', name: W.t('Diario'), icon: 'moon', desc: W.t('Cómo ha ido el día y qué has aprendido'), build: function () {
       var td = U.today();
       return { title: U.cap(U.fmtLong(td)), icon: 'moon', blocks: [
-        block('h3', '¿Cómo me siento?'), block('p', ''),
-        block('h3', 'Tres cosas buenas de hoy'), block('ol', ''), block('ol', ''), block('ol', ''),
-        block('h3', 'Qué he aprendido'), block('p', ''),
-        block('h3', 'Mañana quiero…'), block('todo', '')
+        block('h3', W.t('¿Cómo me siento?')), block('p', ''),
+        block('h3', W.t('Tres cosas buenas de hoy')), block('ol', ''), block('ol', ''), block('ol', ''),
+        block('h3', W.t('Qué he aprendido')), block('p', ''),
+        block('h3', W.t('Mañana quiero…')), block('todo', '')
       ] };
     } },
-    { id: 'class', name: 'Apuntes de clase', icon: 'book', desc: 'Conceptos clave, resumen y dudas', build: function () {
-      return { title: 'Tema 1', icon: 'book', blocks: [
-        block('callout', '<b>Asignatura:</b>  · <b>Fecha:</b> ' + mention('date', U.today(), U.fmtDay(U.today())), { ic: 'book' }),
-        block('h2', 'Conceptos clave'), block('toggle', 'Concepto 1'), block('p', '', { i: 1 }), block('toggle', 'Concepto 2'), block('p', '', { i: 1 }),
-        block('h2', 'Resumen'), block('p', ''),
-        block('h2', 'Dudas para preguntar'), block('todo', '')
+    { id: 'class', name: W.t('Apuntes de clase'), icon: 'book', desc: W.t('Conceptos clave, resumen y dudas'), build: function () {
+      return { title: W.t('Tema 1'), icon: 'book', blocks: [
+        block('callout', '<b>' + W.t('Asignatura:') + '</b>  · <b>' + W.t('Fecha:') + '</b> ' + mention('date', U.today(), U.fmtDay(U.today())), { ic: 'book' }),
+        block('h2', W.t('Conceptos clave')), block('toggle', W.t('Concepto 1')), block('p', '', { i: 1 }), block('toggle', W.t('Concepto 2')), block('p', '', { i: 1 }),
+        block('h2', W.t('Resumen')), block('p', ''),
+        block('h2', W.t('Dudas para preguntar')), block('todo', '')
       ] };
     } },
-    { id: 'weekly', name: 'Plan semanal', icon: 'calendar', desc: 'Un desplegable por día con sus tareas', build: function () {
-      var ws = W.State.settings.weekStart || 1, td = U.today(), start = U.addDays(td, -((U.weekday(td) - ws + 7) % 7)), out = [block('callout', 'Prioridad de la semana: ', { ic: 'flag' })];
+    { id: 'weekly', name: W.t('Plan semanal'), icon: 'calendar', desc: W.t('Un desplegable por día con sus tareas'), build: function () {
+      var ws = W.State.settings.weekStart || 1, td = U.today(), start = U.addDays(td, -((U.weekday(td) - ws + 7) % 7)), out = [block('callout', W.t('Prioridad de la semana:') + ' ', { ic: 'flag' })];
       for (var i = 0; i < 7; i++) { var d = U.addDays(start, i); out.push(block('toggle', '<b>' + U.cap(U.fmtDay(d)) + '</b>')); out.push(block('todo', '', { i: 1 })); }
-      return { title: 'Semana del ' + U.fmtShort(start), icon: 'calendar', blocks: out };
+      return { title: W.t('Semana del {date}', { date: U.fmtShort(start) }), icon: 'calendar', blocks: out };
     } },
-    { id: 'reading', name: 'Lista de lectura', icon: 'book', desc: 'Base de datos de libros con estado y nota', build: function (page) {
-      return { kind: 'db', title: 'Lista de lectura', icon: 'book', db: {
-        props: [{ id: 'title', name: 'Título', type: 'title' }, { id: 'p_autor', name: 'Autor', type: 'text' },
-          { id: 'p_estado', name: 'Estado', type: 'status', opts: [{ id: 'o_q', name: 'Pendiente', tone: 0, group: 'todo' }, { id: 'o_r', name: 'Leyendo', tone: 2, group: 'doing' }, { id: 'o_d', name: 'Leído', tone: 4, group: 'done' }] },
-          { id: 'p_nota', name: 'Nota', type: 'select', opts: [{ id: 'o_1', name: '★', tone: 1 }, { id: 'o_2', name: '★★', tone: 2 }, { id: 'o_3', name: '★★★', tone: 3 }, { id: 'o_4', name: '★★★★', tone: 4 }] },
-          { id: 'p_fin', name: 'Terminado', type: 'date' }],
-        views: [{ id: 'v_board', name: 'Por estado', type: 'board', group: 'p_estado' }, { id: 'v_table', name: 'Todos', type: 'table' }, { id: 'v_gal', name: 'Galería', type: 'gallery' }]
+    { id: 'reading', name: W.t('Lista de lectura'), icon: 'book', desc: W.t('Base de datos de libros con estado y nota'), build: function (page) {
+      return { kind: 'db', title: W.t('Lista de lectura'), icon: 'book', db: {
+        props: [{ id: 'title', name: W.t('Título'), type: 'title' }, { id: 'p_autor', name: W.t('Autor'), type: 'text' },
+          { id: 'p_estado', name: W.t('Estado'), type: 'status', opts: [{ id: 'o_q', name: W.t('Pendiente'), tone: 0, group: 'todo' }, { id: 'o_r', name: W.t('Leyendo'), tone: 2, group: 'doing' }, { id: 'o_d', name: W.t('Leído'), tone: 4, group: 'done' }] },
+          { id: 'p_nota', name: W.t('Nota'), type: 'select', opts: [{ id: 'o_1', name: '★', tone: 1 }, { id: 'o_2', name: '★★', tone: 2 }, { id: 'o_3', name: '★★★', tone: 3 }, { id: 'o_4', name: '★★★★', tone: 4 }] },
+          { id: 'p_fin', name: W.t('Terminado'), type: 'date' }],
+        views: [{ id: 'v_board', name: W.t('Por estado'), type: 'board', group: 'p_estado' }, { id: 'v_table', name: W.t('Todos'), type: 'table' }, { id: 'v_gal', name: W.t('Galería'), type: 'gallery' }]
       } };
     } },
-    { id: 'roadmap', name: 'Hoja de ruta', icon: 'flag', desc: 'Iniciativas por trimestre en un tablero', build: function () {
-      return { kind: 'db', title: 'Hoja de ruta', icon: 'flag', db: {
-        props: [{ id: 'title', name: 'Iniciativa', type: 'title' },
-          { id: 'p_q', name: 'Trimestre', type: 'select', opts: [{ id: 'o_t1', name: 'T1', tone: 1 }, { id: 'o_t2', name: 'T2', tone: 2 }, { id: 'o_t3', name: 'T3', tone: 3 }, { id: 'o_t4', name: 'T4', tone: 4 }] },
-          { id: 'p_estado', name: 'Estado', type: 'status', opts: [{ id: 'o_idea', name: 'Idea', tone: 0, group: 'todo' }, { id: 'o_plan', name: 'Planificada', tone: 1, group: 'todo' }, { id: 'o_doing', name: 'En marcha', tone: 2, group: 'doing' }, { id: 'o_done', name: 'Lanzada', tone: 4, group: 'done' }] },
-          { id: 'p_owner', name: 'Responsable', type: 'person' }, { id: 'p_fecha', name: 'Fecha', type: 'date' }],
-        views: [{ id: 'v_board', name: 'Por trimestre', type: 'board', group: 'p_q' }, { id: 'v_state', name: 'Por estado', type: 'board', group: 'p_estado' }, { id: 'v_cal', name: 'Calendario', type: 'calendar', date: 'p_fecha' }, { id: 'v_table', name: 'Tabla', type: 'table' }]
+    { id: 'roadmap', name: W.t('Hoja de ruta'), icon: 'flag', desc: W.t('Iniciativas por trimestre en un tablero'), build: function () {
+      return { kind: 'db', title: W.t('Hoja de ruta'), icon: 'flag', db: {
+        props: [{ id: 'title', name: W.t('Iniciativa'), type: 'title' },
+          { id: 'p_q', name: W.t('Trimestre'), type: 'select', opts: [{ id: 'o_t1', name: 'T1', tone: 1 }, { id: 'o_t2', name: 'T2', tone: 2 }, { id: 'o_t3', name: 'T3', tone: 3 }, { id: 'o_t4', name: 'T4', tone: 4 }] },
+          { id: 'p_estado', name: W.t('Estado'), type: 'status', opts: [{ id: 'o_idea', name: W.t('Idea'), tone: 0, group: 'todo' }, { id: 'o_plan', name: W.t('Planificada'), tone: 1, group: 'todo' }, { id: 'o_doing', name: W.t('En marcha'), tone: 2, group: 'doing' }, { id: 'o_done', name: W.t('Lanzada'), tone: 4, group: 'done' }] },
+          { id: 'p_owner', name: W.t('Responsable'), type: 'person' }, { id: 'p_fecha', name: W.t('Fecha'), type: 'date' }],
+        views: [{ id: 'v_board', name: W.t('Por trimestre'), type: 'board', group: 'p_q' }, { id: 'v_state', name: W.t('Por estado'), type: 'board', group: 'p_estado' }, { id: 'v_cal', name: W.t('Calendario'), type: 'calendar', date: 'p_fecha' }, { id: 'v_table', name: W.t('Tabla'), type: 'table' }]
       } };
     } },
-    { id: 'wiki', name: 'Wiki del equipo', icon: 'system', desc: 'Índice, normas y enlaces importantes', build: function () {
-      return { title: 'Wiki del equipo', icon: 'system', cover: 'grid', blocks: [
-        block('callout', 'Todo lo que el equipo necesita saber, en un solo sitio.', { ic: 'info' }), block('toc'),
-        block('h1', 'Cómo trabajamos'), block('ul', 'Horario y reuniones'), block('ul', 'Herramientas'),
-        block('h1', 'Normas'), block('ol', ''),
-        block('h1', 'Enlaces importantes'), block('bookmark', '', { url: '' })
+    { id: 'wiki', name: W.t('Wiki del equipo'), icon: 'system', desc: W.t('Índice, normas y enlaces importantes'), build: function () {
+      return { title: W.t('Wiki del equipo'), icon: 'system', cover: 'grid', blocks: [
+        block('callout', W.t('Todo lo que el equipo necesita saber, en un solo sitio.'), { ic: 'info' }), block('toc'),
+        block('h1', W.t('Cómo trabajamos')), block('ul', W.t('Horario y reuniones')), block('ul', W.t('Herramientas')),
+        block('h1', W.t('Normas')), block('ol', ''),
+        block('h1', W.t('Enlaces importantes')), block('bookmark', '', { url: '' })
       ] };
     } },
-    { id: 'contacts', name: 'Contactos y clientes', icon: 'users', desc: 'Una base de datos para seguir a cada cliente', build: function () {
-      return { kind: 'db', title: 'Clientes', icon: 'users', db: {
-        props: [{ id: 'title', name: 'Nombre', type: 'title' }, { id: 'p_empresa', name: 'Empresa', type: 'text' }, { id: 'p_mail', name: 'Correo', type: 'url' },
-          { id: 'p_fase', name: 'Fase', type: 'status', opts: [{ id: 'o_lead', name: 'Contacto', tone: 0, group: 'todo' }, { id: 'o_prop', name: 'Propuesta', tone: 2, group: 'doing' }, { id: 'o_won', name: 'Cliente', tone: 4, group: 'done' }] },
-          { id: 'p_valor', name: 'Valor', type: 'number', fmt: 'euro' }, { id: 'p_next', name: 'Próximo contacto', type: 'date' }],
-        views: [{ id: 'v_board', name: 'Embudo', type: 'board', group: 'p_fase' }, { id: 'v_table', name: 'Todos', type: 'table' }]
+    { id: 'contacts', name: W.t('Contactos y clientes'), icon: 'users', desc: W.t('Una base de datos para seguir a cada cliente'), build: function () {
+      return { kind: 'db', title: W.t('Clientes'), icon: 'users', db: {
+        props: [{ id: 'title', name: W.t('Nombre'), type: 'title' }, { id: 'p_empresa', name: W.t('Empresa'), type: 'text' }, { id: 'p_mail', name: W.t('Correo'), type: 'url' },
+          { id: 'p_fase', name: W.t('Fase'), type: 'status', opts: [{ id: 'o_lead', name: W.t('Contacto'), tone: 0, group: 'todo' }, { id: 'o_prop', name: W.t('Propuesta'), tone: 2, group: 'doing' }, { id: 'o_won', name: W.t('Cliente'), tone: 4, group: 'done' }] },
+          { id: 'p_valor', name: W.t('Valor'), type: 'number', fmt: 'euro' }, { id: 'p_next', name: W.t('Próximo contacto'), type: 'date' }],
+        views: [{ id: 'v_board', name: W.t('Embudo'), type: 'board', group: 'p_fase' }, { id: 'v_table', name: W.t('Todos'), type: 'table' }]
       } };
     } }
   ];
@@ -618,7 +618,7 @@ window.Whider = window.Whider || {};
       if (idx.migrated[note.id] || idx.items[id] || idx.del[id]) { idx.migrated[note.id] = idx.migrated[note.id] || Date.now(); return; }
       var blocks = fromMarkdown(note.body);
       var list = note.listId ? W.State.getList(note.listId) : null;
-      idx.items[id] = cleanMeta({ id: id, title: note.title || (blocks[0] ? plain(blocks[0].x).slice(0, 60) : 'Apunte'), icon: list && list.icon ? list.icon : 'page', parent: null, kind: 'page', order: lastOrder(null, null), fav: !!note.pinned, at: note.updatedAt || Date.now(), cat: note.createdAt || Date.now(), cv: note.updatedAt || Date.now(), src: 'note:' + note.id });
+      idx.items[id] = cleanMeta({ id: id, title: note.title || (blocks[0] ? plain(blocks[0].x).slice(0, 60) : W.t('Apunte')), icon: list && list.icon ? list.icon : 'page', parent: null, kind: 'page', order: lastOrder(null, null), fav: !!note.pinned, at: note.updatedAt || Date.now(), cat: note.createdAt || Date.now(), cv: note.updatedAt || Date.now(), src: 'note:' + note.id });
       cache[id] = { blocks: blocks, del: {} };
       writeContent(id); analyze(id);
       markDirty(id, 'meta'); markDirty(id, 'content');
@@ -800,7 +800,7 @@ window.Whider = window.Whider || {};
     duplicate: function (id, parent) {
       var m = meta(id); if (!m) return null;
       var c = content(id);
-      var copy = Pages.create({ title: (m.title || 'Sin título') + ' (copia)', parent: parent !== undefined ? parent : m.parent, kind: m.kind, icon: m.icon, cover: m.cover, db: m.db, props: m.props, team: m.team,
+      var copy = Pages.create({ title: W.t('{name} (copia)', { name: m.title || W.t('Sin título') }), parent: parent !== undefined ? parent : m.parent, kind: m.kind, icon: m.icon, cover: m.cover, db: m.db, props: m.props, team: m.team,
         blocks: c.blocks.map(function (b) { return Object.assign({}, b, { id: newId('b') }); }), order: m.order + 0.01 });
       if (m.kind === 'db') rows(id).forEach(function (r) { Pages.duplicate(r.id, copy.id); });
       children(id).filter(function (ch) { return m.kind !== 'db'; }).forEach(function (ch) { Pages.duplicate(ch.id, copy.id); });
@@ -827,7 +827,7 @@ window.Whider = window.Whider || {};
     },
     addOption: function (dbId, propId, name) {
       var oid = newId('o');
-      Pages.setDb(dbId, function (db) { db.props.forEach(function (p) { if (p.id === propId) { p.opts = p.opts || []; p.opts.push({ id: oid, name: String(name || 'Opción').slice(0, 40), tone: p.opts.length % 5 }); } }); });
+      Pages.setDb(dbId, function (db) { db.props.forEach(function (p) { if (p.id === propId) { p.opts = p.opts || []; p.opts.push({ id: oid, name: String(name || W.t('Opción')).slice(0, 40), tone: p.opts.length % 5 }); } }); });
       return oid;
     },
 

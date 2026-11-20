@@ -17,7 +17,13 @@ async function device(browser, viewport, mobile, hash) {
   await ctx.addInitScript(c => { window.WHIDER_CONFIG = c; }, cfg);
   const p = await ctx.newPage(); p.errs = []; p.setDefaultTimeout(8000);
   p.on('pageerror', e => p.errs.push(e.message));
-  p.on('console', m => { if (m.type() === 'error' && !/400|401|403|404|ERR_|permission|Missing or insufficient/i.test(m.text())) p.errs.push(m.text()); });
+  p.on('console', m => {
+    if (m.type() !== 'error') return;
+    // Un 409 al confirmar una transacción es que los dos dispositivos guardaron a la vez: Firestore la repite sola,
+    // y «cambios a la vez de los dos se conservan» comprueba que no se pierde nada
+    if (/\b409\b/.test(m.text()) && /documents:commit/.test((m.location() && m.location().url) || '')) return;
+    if (!/400|401|403|404|ERR_|permission|Missing or insufficient/i.test(m.text())) p.errs.push(m.text());
+  });
   await p.goto(base + (hash || '')); await sleep(2300);
   return p;
 }

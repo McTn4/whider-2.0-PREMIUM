@@ -57,7 +57,7 @@ window.Whider = window.Whider || {};
     if (!q) return null;
     var p = {};
     q.split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) { try { p[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); } catch (e) { /* mal escrito */ } } });
-    if (p.s && p.k) return { type: 'team', sid: p.s, key: p.k, name: (p.n || 'Equipo').slice(0, 40), by: (p.by || '').slice(0, 40) };
+    if (p.s && p.k) return { type: 'team', sid: p.s, key: p.k, name: (p.n || W.t('Equipo')).slice(0, 40), by: (p.by || '').slice(0, 40) };
     if (p.c) return { type: 'person', code: String(p.c).toUpperCase(), key: p.k || '', kind: p.t === 'w' ? 'work' : 'friend', name: (p.n || '').slice(0, 40), buddy: buddyFrom(p.b) };
     return null;
   }
@@ -71,7 +71,7 @@ window.Whider = window.Whider || {};
   /** Abre una invitación (enlace, QR, whider:// o código) */
   function open(raw) {
     var inv = typeof raw === 'object' && raw ? raw : parse(raw);
-    if (!inv) { W.Toast.show({ text: 'Ese código no es una invitación de WHIDER', type: 'danger', icon: 'qr' }); return; }
+    if (!inv) { W.Toast.show({ text: W.t('Ese código no es una invitación de WHIDER'), type: 'danger', icon: 'qr' }); return; }
     if (!appReady) { queue = inv; return; }
     if (inv.type === 'code') { if (!needAccount(inv)) W.People.addByCode(inv.code); return; }
     if (needAccount(inv)) return;
@@ -83,70 +83,70 @@ window.Whider = window.Whider || {};
     if (!b || b.soft) return false;
     savePending(inv);
     if (b.id === 'guest' && W.AuthScreen && W.Auth.configured()) {
-      W.Toast.show({ text: 'Entra o crea tu cuenta y te conectamos enseguida', icon: 'users', duration: 5000 });
+      W.Toast.show({ text: W.t('Entra o crea tu cuenta y te conectamos enseguida'), icon: 'users', duration: 5000 });
       W.AuthScreen.open({ mode: 'register' });
     } else W.Toast.show({ text: b.title + '. ' + b.text, icon: 'info', duration: 6000 });
     return true;
   }
   function personSheet(inv) {
-    if (inv.code === S().social.code) { W.Toast.show({ text: 'Es tu propia invitación: compártela con otra persona', icon: 'info' }); return; }
+    if (inv.code === S().social.code) { W.Toast.show({ text: W.t('Es tu propia invitación: compártela con otra persona'), icon: 'info' }); return; }
     var kind = inv.kind || 'friend';
-    var who = inv.name || 'Alguien';
-    var seg = W.UI.segmented([{ value: 'friend', label: 'Amigo' }, { value: 'work', label: 'Trabajo' }], kind, function (v) { kind = v; });
-    var s = W.Sheet.open({ title: 'Invitación', className: 'invite-sheet', body: [
+    var who = inv.name || W.t('Alguien');
+    var seg = W.UI.segmented([{ value: 'friend', label: W.t('Amigo') }, { value: 'work', label: W.t('Trabajo') }], kind, function (v) { kind = v; });
+    var s = W.Sheet.open({ title: W.t('Invitación'), className: 'invite-sheet', body: [
       U.el('div.inv-hero', [
         W.Avatar.buddy(inv.buddy || null, 112, { live: true, cls: 'inv-av' }),
-        U.el('strong', { text: who + ' te invita a conectar' }),
-        U.el('p', { text: kind === 'work' ? 'Para trabajar juntos: chats, equipos y páginas compartidas.' : 'Para animaros, comparar rachas y chatear.' })
+        U.el('strong', { text: W.t('{name} te invita a conectar', { name: who }) }),
+        U.el('p', { text: kind === 'work' ? W.t('Para trabajar juntos: chats, equipos y páginas compartidas.') : W.t('Para animaros, comparar rachas y chatear.') })
       ]),
-      W.UI.section({ header: 'Guardar como', items: [U.el('div.cell', [seg])] })
-    ], foot: [U.el('button.btn.ghost', { text: 'Ahora no', on: { click: function () { s.close(); } } }), U.el('button.btn.primary', { on: { click: function (e) {
+      W.UI.section({ header: W.t('Guardar como'), items: [U.el('div.cell', [seg])] })
+    ], foot: [U.el('button.btn.ghost', { text: W.t('Ahora no'), on: { click: function () { s.close(); } } }), U.el('button.btn.primary', { on: { click: function (e) {
       e.currentTarget.disabled = true;
       accept(inv, kind).then(function (okk) { s.close(); if (okk) W.Router.go('friends'); });
-    } } }, [U.icon('users', 'sm'), 'Conectar'])] });
+    } } }, [U.icon('users', 'sm'), W.t('Conectar')])] });
   }
   function accept(inv, kind) {
     var F = W.Auth.sdk(), db = W.Auth.db();
     return W.People.ensureEnabled().then(function () {
       return F.getDoc(F.doc(db, 'codes', inv.code));
     }).then(function (snap) {
-      if (!snap.exists()) { W.Toast.show({ text: 'Esa invitación ya no es válida. Pídele a ' + (inv.name || 'quien te invitó') + ' un enlace nuevo.', type: 'danger', duration: 5000 }); return false; }
+      if (!snap.exists()) { W.Toast.show({ text: W.t('Esa invitación ya no es válida. Pídele a {name} un enlace nuevo.', { name: inv.name || W.t('quien te invitó') }), type: 'danger', duration: 5000 }); return false; }
       var to = snap.data().uid, f = S().social.friends[to];
-      if (to === W.People.uid()) { W.Toast.show({ text: 'Es tu propia invitación', icon: 'info' }); return false; }
-      if (f && !f.removed && !f.pending) { W.Toast.show({ text: (inv.name || 'Esa persona') + ' ya está en tus contactos', icon: 'users' }); return true; }
+      if (to === W.People.uid()) { W.Toast.show({ text: W.t('Es tu propia invitación'), icon: 'info' }); return false; }
+      if (f && !f.removed && !f.pending) { W.Toast.show({ text: W.t('{name} ya está en tus contactos', { name: inv.name || W.t('Esa persona') }), icon: 'users' }); return true; }
       return W.People.send(to, 'links', { token: inv.key || '', name: W.People.myName(), code: S().social.code, kind: kind, at: Date.now() }).then(function () {
         S().setFriend(to, { name: inv.name || '', code: inv.code, removed: false, pending: true, kind: kind });
         W.People.loadProfiles([to]);
-        W.Toast.show({ text: 'Conectado con ' + (inv.name || 'tu contacto') + '. Ya podéis chatear.', type: 'success', icon: 'users', duration: 4500 });
+        W.Toast.show({ text: W.t('Conectado con {name}. Ya podéis chatear.', { name: inv.name || W.t('tu contacto') }), type: 'success', icon: 'users', duration: 4500 });
         W.Audio.complete();
         return true;
       });
     }).catch(function (e) {
       console.warn('Invitación:', e && (e.code || e.message));
       var b = W.People.blocker();
-      W.Toast.show({ text: b ? b.title : 'No se pudo conectar. Inténtalo de nuevo.', type: 'danger' });
+      W.Toast.show({ text: b ? b.title : W.t('No se pudo conectar. Inténtalo de nuevo.'), type: 'danger' });
       return false;
     });
   }
   function teamSheet(inv) {
-    if (S().social.spaces[inv.sid] && !S().social.spaces[inv.sid].left) { W.Toast.show({ text: 'Ya estás en «' + inv.name + '»', icon: 'team' }); W.Router.go('friends'); return; }
-    var s = W.Sheet.open({ title: 'Invitación a un equipo', className: 'invite-sheet', body: [
-      U.el('div.inv-hero', [U.el('span.inv-team', [U.icon('team')]), U.el('strong', { text: (inv.by ? inv.by + ' te invita al equipo' : 'Te invitan al equipo') + ' «' + inv.name + '»' }),
-        U.el('p', { text: 'Tendréis un chat de equipo, tareas en común y páginas del Cuaderno que editáis a la vez.' })])
-    ], foot: [U.el('button.btn.ghost', { text: 'Ahora no', on: { click: function () { s.close(); } } }), U.el('button.btn.primary', { on: { click: function (e) {
+    if (S().social.spaces[inv.sid] && !S().social.spaces[inv.sid].left) { W.Toast.show({ text: W.t('Ya estás en «{team}»', { team: inv.name }), icon: 'team' }); W.Router.go('friends'); return; }
+    var s = W.Sheet.open({ title: W.t('Invitación a un equipo'), className: 'invite-sheet', body: [
+      U.el('div.inv-hero', [U.el('span.inv-team', [U.icon('team')]), U.el('strong', { text: inv.by ? W.t('{name} te invita al equipo «{team}»', { name: inv.by, team: inv.name }) : W.t('Te invitan al equipo «{team}»', { team: inv.name }) }),
+        U.el('p', { text: W.t('Tendréis un chat de equipo, tareas en común y páginas del Cuaderno que editáis a la vez.') })])
+    ], foot: [U.el('button.btn.ghost', { text: W.t('Ahora no'), on: { click: function () { s.close(); } } }), U.el('button.btn.primary', { on: { click: function (e) {
       e.currentTarget.disabled = true;
       W.People.joinTeam(inv.sid, inv.key, inv.name).then(function () {
         s.close();
-        W.Toast.show({ text: 'Ya formas parte de «' + inv.name + '»', type: 'success', icon: 'team' });
+        W.Toast.show({ text: W.t('Ya formas parte de «{team}»', { team: inv.name }), type: 'success', icon: 'team' });
         W.Audio.complete();
         W.State.ui.peopleTab = 'teams';
         W.Router.go('friends');
       }).catch(function (err) {
         console.warn('Equipo:', err && (err.code || err.message));
         s.close();
-        W.Toast.show({ text: err && err.code === 'permission-denied' ? 'El enlace del equipo ya no es válido. Pide uno nuevo.' : 'No se pudo entrar en el equipo. Inténtalo de nuevo.', type: 'danger', duration: 5000 });
+        W.Toast.show({ text: err && err.code === 'permission-denied' ? W.t('El enlace del equipo ya no es válido. Pide uno nuevo.') : W.t('No se pudo entrar en el equipo. Inténtalo de nuevo.'), type: 'danger', duration: 5000 });
       });
-    } } }, [U.icon('team', 'sm'), 'Unirme al equipo'])] });
+    } } }, [U.icon('team', 'sm'), W.t('Unirme al equipo')])] });
   }
 
   /* ---------- Código QR ---------- */
@@ -166,7 +166,7 @@ window.Whider = window.Whider || {};
   /** SVG nítido del código (módulos negros sobre blanco) con un hueco en el centro para el personaje */
   function qrNode(text, o) {
     o = o || {};
-    if (!window.qrcode) return U.el('div.qr-missing', { text: 'QR no disponible' });
+    if (!window.qrcode) return U.el('div.qr-missing', { text: W.t('QR no disponible') });
     var qr = window.qrcode(0, 'Q'); qr.addData(text); qr.make();
     var n = qr.getModuleCount(), pad = 2, size = n + pad * 2, d = '';
     var hole = o.center ? Math.ceil(n * 0.22) | 1 : 0, h0 = Math.floor((n - hole) / 2), h1 = h0 + hole;
@@ -186,34 +186,34 @@ window.Whider = window.Whider || {};
     var host = U.el('div.qr-host');
     var draw = function () {
       U.clear(host);
-      if (!window.qrcode) { host.appendChild(U.el('p.hint', { text: 'Preparando tu código…' })); loadQR().then(draw).catch(function () { U.clear(host); host.appendChild(U.el('p.hint', { text: 'No se pudo crear el código QR.' })); }); return; }
+      if (!window.qrcode) { host.appendChild(U.el('p.hint', { text: W.t('Preparando tu código…') })); loadQR().then(draw).catch(function () { U.clear(host); host.appendChild(U.el('p.hint', { text: W.t('No se pudo crear el código QR.') })); }); return; }
       var link = opts.team ? W.People.teamLink(opts.team) : personLink(kind);
-      if (!link) { host.appendChild(U.el('p.hint', { text: 'Activa la comunidad para tener tu código.' })); return; }
+      if (!link) { host.appendChild(U.el('p.hint', { text: W.t('Activa la comunidad para tener tu código.') })); return; }
       host.appendChild(U.el('div.qr-card', [
         qrNode(link, { center: opts.team ? U.el('span.qr-team', [U.icon('team')]) : W.Avatar.me(54) }),
-        U.el('strong', { text: opts.team ? (W.People.team(opts.team) || {}).name || 'Equipo' : W.People.myName() }),
-        U.el('small', { text: opts.team ? 'Escanéalo para unirte al equipo' : (kind === 'work' ? 'Escanéalo para conectar conmigo (trabajo)' : 'Escanéalo para conectar conmigo') })
+        U.el('strong', { text: opts.team ? (W.People.team(opts.team) || {}).name || W.t('Equipo') : W.People.myName() }),
+        U.el('small', { text: opts.team ? W.t('Escanéalo para unirte al equipo') : (kind === 'work' ? W.t('Escanéalo para conectar conmigo (trabajo)') : W.t('Escanéalo para conectar conmigo')) })
       ]));
       host.appendChild(U.el('div.qr-acts', [
-        U.el('button.btn.soft', { on: { click: function () { share(link, opts.team); } } }, [U.icon('share', 'sm'), 'Compartir enlace']),
-        U.el('button.btn.ghost', { on: { click: function () { copy(link); } } }, [U.icon('copy', 'sm'), 'Copiar'])
+        U.el('button.btn.soft', { on: { click: function () { share(link, opts.team); } } }, [U.icon('share', 'sm'), W.t('Compartir enlace')]),
+        U.el('button.btn.ghost', { on: { click: function () { copy(link); } } }, [U.icon('copy', 'sm'), W.t('Copiar')])
       ]));
     };
     var body = [host];
-    if (!opts.team) body.unshift(U.el('div.qr-kind', [W.UI.segmented([{ value: 'friend', label: 'Amigos' }, { value: 'work', label: 'Trabajo' }], kind, function (v) { kind = v; draw(); })]));
+    if (!opts.team) body.unshift(U.el('div.qr-kind', [W.UI.segmented([{ value: 'friend', label: W.t('Amigos') }, { value: 'work', label: W.t('Trabajo') }], kind, function (v) { kind = v; draw(); })]));
     draw();
-    return W.Sheet.open({ title: opts.team ? 'Invitar al equipo' : 'Tu código QR', className: 'qr-sheet', body: body });
+    return W.Sheet.open({ title: opts.team ? W.t('Invitar al equipo') : W.t('Tu código QR'), className: 'qr-sheet', body: body });
   }
   function copy(text) {
-    var done = function () { W.Toast.show({ text: 'Enlace copiado', icon: 'copy' }); };
+    var done = function () { W.Toast.show({ text: W.t('Enlace copiado'), icon: 'copy' }); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); });
     else { fallbackCopy(text); done(); }
   }
   function fallbackCopy(text) { var t = U.el('textarea', { style: { position: 'fixed', left: '-9999px' } }); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { /* sin portapapeles */ } t.parentNode.removeChild(t); }
   function share(link, team) {
-    var text = team ? 'Únete a nuestro equipo en WHIDER' : 'Conecta conmigo en WHIDER';
+    var text = team ? W.t('Únete a nuestro equipo en WHIDER') : W.t('Conecta conmigo en WHIDER');
     if (window.WhiderAndroid && typeof window.WhiderAndroid.shareText === 'function') window.WhiderAndroid.shareText(text + ': ' + link);
-    else if (navigator.share && !W.Layout.desktop) navigator.share({ title: 'WHIDER', text: text, url: link }).catch(function () {});
+    else if (navigator.share && !W.Layout.desktop) navigator.share({ title: W.t('WHIDER'), text: text, url: link }).catch(function () {});
     else copy(link);
   }
 
@@ -232,16 +232,16 @@ window.Whider = window.Whider || {};
   }
   function scan() {
     var video = U.el('video.scan-video', { attrs: { playsinline: 'true', muted: 'true', autoplay: 'true' } });
-    var status = U.el('p.scan-status', { text: 'Apunta al código QR' });
-    var input = U.el('input.input', { attrs: { type: 'text', placeholder: 'O pega aquí el enlace o el código (WH-…)', 'aria-label': 'Enlace o código' } });
+    var status = U.el('p.scan-status', { text: W.t('Apunta al código QR') });
+    var input = U.el('input.input', { attrs: { type: 'text', placeholder: W.t('O pega aquí el enlace o el código (WH-…)'), 'aria-label': W.t('Enlace o código') } });
     var stream = null, timer = null, done = false, detector = null, canvas = document.createElement('canvas');
     var stop = function () { clearInterval(timer); if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; };
     var found = function (text) { if (done) return; done = true; stop(); W.Audio.success(); W.Audio.vibrate([20]); s.close(); setTimeout(function () { open(text); }, 250); };
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var v = input.value.trim(); if (v) found(v); } });
-    var s = W.Sheet.open({ title: 'Escanear', className: 'scan-sheet', body: [U.el('div.scan-frame', [video, U.el('span.scan-target')]), status, U.el('div.group', [U.el('label.cell', [input])])],
-      foot: [U.el('button.btn.primary', { text: 'Conectar', on: { click: function () { var v = input.value.trim(); if (v) found(v); else input.focus(); } } })],
+    var s = W.Sheet.open({ title: W.t('Escanear'), className: 'scan-sheet', body: [U.el('div.scan-frame', [video, U.el('span.scan-target')]), status, U.el('div.group', [U.el('label.cell', [input])])],
+      foot: [U.el('button.btn.primary', { text: W.t('Conectar'), on: { click: function () { var v = input.value.trim(); if (v) found(v); else input.focus(); } } })],
       onClose: function () { done = true; stop(); } });
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { status.textContent = 'Este dispositivo no permite usar la cámara aquí. Pega el enlace o el código.'; return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { status.textContent = W.t('Este dispositivo no permite usar la cámara aquí. Pega el enlace o el código.'); return; }
     navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false }).then(function (st) {
       if (done) { st.getTracks().forEach(function (t) { t.stop(); }); return; }
       stream = st; video.srcObject = st;
@@ -262,7 +262,7 @@ window.Whider = window.Whider || {};
         }, 260);
       });
     }).catch(function (e) {
-      status.textContent = e && e.name === 'NotAllowedError' ? 'Permite el acceso a la cámara para escanear (o pega el enlace abajo).' : 'No se pudo abrir la cámara. Pega el enlace o el código abajo.';
+      status.textContent = e && e.name === 'NotAllowedError' ? W.t('Permite el acceso a la cámara para escanear (o pega el enlace abajo).') : W.t('No se pudo abrir la cámara. Pega el enlace o el código abajo.');
     });
   }
 
