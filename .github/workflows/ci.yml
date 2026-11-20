@@ -39,6 +39,8 @@ jobs:
         run: npm run typecheck
       - name: Versión única y CHANGELOG
         run: npm run version:check
+      - name: Traducciones (todo texto de la app, también en js/i18n/en.js)
+        run: npm run i18n:check
       - name: Pruebas unitarias
         run: npm run test:unit
 

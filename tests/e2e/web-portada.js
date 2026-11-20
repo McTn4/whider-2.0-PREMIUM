@@ -93,7 +93,8 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
     } else {
       ok(s.newsVersion === minor, 'en: las novedades traducidas son de la ' + minor + ' (' + s.newsVersion + ')');
       ok(/\/$/.test(s.other) && !/\/en\/$/.test(s.other) && /Download for Windows/.test(s.cta), 'en: enlace «ES» y descarga en inglés («' + s.cta + '»)');
-      ok(/the app is in Spanish for now/i.test(s.text), 'en: avisa de que la app está en español');
+      ok(/already in English/i.test(s.text), 'en: dice que la app ya está en inglés en el navegador');
+      ok(!/the app is in Spanish for now/i.test(s.text), 'en: ya no dice que la app solo está en español');
       ok(!/Descargar|Próximamente|Preguntas/.test(s.text), 'en: sin textos en español sueltos');
     }
     ok(!errs.length, lang + ': sin errores ' + JSON.stringify(errs));

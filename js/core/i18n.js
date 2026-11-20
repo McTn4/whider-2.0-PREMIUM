@@ -7,8 +7,8 @@
  *  - W.tn(n, 'una tarea', '{n} tareas'): plurales con las reglas de cada idioma (Intl.PluralRules). U.plural ya
  *    traduce sus dos formas, así que sus llamadas no cambian.
  *  - El catálogo solo se descarga si se usa ese idioma, antes de pintar la app (W.I18n.ready()).
- *  - El idioma se guarda en este dispositivo (whider.lang). Mientras el inglés no cubra toda la app, no se ofrece en
- *    Ajustes: se prueba abriendo la app con ?lang=en (y ?lang=es para volver).
+ *  - El idioma se elige en Ajustes → Idioma y se guarda en este dispositivo (whider.lang). Con ?lang=en (o ?lang=es)
+ *    en la dirección, la app se abre en ese idioma y lo recuerda (lo usa la portada en inglés).
  *  - Con otro idioma, lo que se pide y no está en su catálogo se apunta (W.I18n.missing()): lo usan las pruebas.
  */
 window.Whider = window.Whider || {};

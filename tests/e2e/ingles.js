@@ -143,6 +143,35 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
     ok(!p.errs.length, donde + ': sin errores', p.errs);
     await p.context().close();
   }
+  // Cambiar de idioma desde Ajustes: de español a inglés y vuelta (la app se vuelve a abrir en el idioma elegido)
+  {
+    const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
+    await ctx.addInitScript(() => {
+      window.WHIDER_CONFIG = { firebase: null };
+      localStorage.setItem('whider.meta.v1', JSON.stringify({ onboarded: true, createdAt: Date.now(), seenAchievements: [] }));
+    });
+    const p = await ctx.newPage();
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(e.message));
+    await p.goto(APP);
+    await sleep(1500);
+    const elegir = async (celda, idioma) => {
+      await p.evaluate(() => Whider.Settings.open());
+      await sleep(500);
+      await p.locator('.sheet-layer .cell', { hasText: celda }).first().click();
+      await sleep(400);
+      await p.getByText(idioma, { exact: true }).last().click();
+      await p.waitForLoadState('load');
+      await sleep(1800);
+    };
+    ok(await p.evaluate(() => Whider.I18n.lang === 'es' && /Idioma/.test(document.body.innerText) === false), 'por defecto, en español');
+    await elegir('Idioma', 'English');
+    ok(await p.evaluate(() => Whider.I18n.lang === 'en' && document.documentElement.lang === 'en' && /Today/.test(document.getElementById('sidebar').innerText)), 'Ajustes → Idioma → English: la app pasa a inglés');
+    await elegir('Language', 'Español');
+    ok(await p.evaluate(() => Whider.I18n.lang === 'es' && /Hoy/.test(document.getElementById('sidebar').innerText)), 'Settings → Language → Español: vuelve a español');
+    ok(!errs.length, 'cambio de idioma sin errores', errs);
+    await ctx.close();
+  }
   await b.close();
   console.log(fails ? fails + ' FALLOS' : 'TODO OK');
   process.exit(fails ? 1 : 0);

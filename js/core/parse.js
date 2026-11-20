@@ -197,7 +197,8 @@ window.Whider = window.Whider || {};
       return true;
     };
     var wday = function (w) { return DAYS_EN[String(w).toLowerCase()]; };
-    var plural = function (n, one, many) { return n + ' ' + (n === 1 ? one : many); };
+    // «3 days»: ya en inglés (no pasa por el catálogo, por eso no se llama «plural»)
+    var howMany = function (n, one, many) { return n + ' ' + (n === 1 ? one : many); };
 
     /* ----- Priority: !!! urgent · !! important · ! starred ----- */
     take(new RegExp(B + '(!{1,3})' + E), 'prio', function (m) {
@@ -278,7 +279,7 @@ window.Whider = window.Whider || {};
         [new RegExp(B + 'in\\s+(\\d{1,3}|a|an|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(days?|weeks?|months?)' + E, 'i'), function (m) {
           var n = NUM_EN[m[1].toLowerCase()] != null ? NUM_EN[m[1].toLowerCase()] : parseInt(m[1], 10), u = m[2].toLowerCase();
           out.date = /^d/.test(u) ? U.addDays(td, n) : /^w/.test(u) ? U.addDays(td, n * 7) : U.addMonths(td, n);
-          return 'In ' + (/^d/.test(u) ? plural(n, 'day', 'days') : /^w/.test(u) ? plural(n, 'week', 'weeks') : plural(n, 'month', 'months'));
+          return 'In ' + (/^d/.test(u) ? howMany(n, 'day', 'days') : /^w/.test(u) ? howMany(n, 'week', 'weeks') : howMany(n, 'month', 'months'));
         }],
         [new RegExp(B + '(?:(?:on |this |next |on next )' + DAY_RE_EN + '|' + DAY_FULL_EN + ')' + E, 'i'), function (m) {
           var wd = wday(m[1] || m[2]), next = /next/i.test(m[0]);

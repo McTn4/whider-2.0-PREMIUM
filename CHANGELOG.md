@@ -10,7 +10,14 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-Lo que cambias en un dispositivo llega a los demás al momento, y WHIDER consulta mucho menos la nube.
+WHIDER, también en inglés. Y lo que cambias en un dispositivo llega a los demás al momento, consultando mucho menos la
+nube.
+
+### Novedades
+
+- **WHIDER, también en inglés**: Ajustes → Idioma. Toda la app: las pantallas, los avisos, las fechas y «Nueva tarea»,
+  que entiende frases en inglés («Call Anna tomorrow at 10 #work»), además de los menús del ordenador y el widget y los
+  avisos de Android. Lo que ya habías creado (tareas, categorías, páginas) se queda como estaba.
 
 ### Mejoras
 
@@ -40,10 +47,17 @@ Lo que cambias en un dispositivo llega a los demás al momento, y WHIDER consult
   usa): 251 → 516 KB (75 → 157 KB comprimido). Se sigue cargando después de mostrar la app.
 - Prueba nueva `tests/e2e/tiempo-real.js` (grupo «nube»): tareas, Cuaderno, pausa, sin escuchas, solicitudes, chat y
   reacciones entre dispositivos y cuentas.
-- **La app en inglés, en marcha** (aún oculta: se prueba con `?lang=en`): base de idiomas (`js/core/i18n.js`,
-  `js/i18n/en.js`), fechas y plurales por idioma, gramática inglesa de «Nueva tarea», `tools/i18n.js` y
-  `tests/e2e/ingles.js`. Traducido: Hoy y lo que comparten todas las pantallas. Ver
-  [docs/decisiones/0003](docs/decisiones/0003-idiomas.md).
+- **Idiomas** ([docs/decisiones/0003](docs/decisiones/0003-idiomas.md)): `W.t('texto en español')` (el propio texto
+  es la clave), `W.tn` para plurales y `W.tp` para frases con un enlace o una negrita dentro; el catálogo
+  `js/i18n/en.js` (≈ 2.400 textos) solo se carga en inglés. Fechas y números por idioma (`js/core/util.js`), gramática
+  inglesa de «Nueva tarea» (`js/core/parse.js`), menús del ordenador (`desktop/lib/i18n.js`) y textos nativos de
+  Android (`res/values-en`, `Lang.java`), que siguen el idioma de la app y no el del sistema.
+- `tools/i18n.js` envuelve textos, lista los pendientes y lo que falta en el catálogo; `npm run i18n:check` (dentro de
+  `npm run check` y en la integración continua) falla si un texto de la app no está traducido. `tests/e2e/ingles.js` recorre en inglés todas las
+  pantallas y hojas, el Cuaderno con cada plantilla y el cambio de idioma desde Ajustes, y falla si queda algo en
+  español.
+- Con `?lang=en` (o `?lang=es`) en la dirección, la app se abre en ese idioma y lo recuerda: lo usan los botones de la
+  portada en inglés.
 
 ## [1.1.0] · 2026-11-18
 

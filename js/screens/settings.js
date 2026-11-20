@@ -71,7 +71,9 @@ window.Whider = window.Whider || {};
       body: [
         U.el('div.group', [profileCell]),
         W.UI.section({ header: W.t('Cómo se ve y suena'), items: [
-          W.UI.cell({ icon: 'type', title: W.t('Apariencia'), value: W.t('Texto {size}', { size: labelOf(TEXT, cfg.textSize).toLowerCase() }), onTap: function () { nav.push(appearancePage); } }),
+          W.UI.cell({ icon: 'type', title: W.t('Apariencia'), value: U.cap(W.t('Texto {size}', { size: labelOf(TEXT, cfg.textSize).toLowerCase() })), onTap: function () { nav.push(appearancePage); } }),
+          // El nombre de cada idioma, en ese idioma (así lo encuentra quien no entiende el actual)
+          W.UI.cell({ icon: 'globe', title: W.t('Idioma'), value: LANGS[W.I18n.lang] || 'Español', onTap: function (e, node) { chooseLang(node && node.querySelector('.cell-value')); } }),
           W.UI.cell({ icon: 'palette', title: W.t('Personalización'), value: desk ? W.t('Barra, Hoy y calendario') : W.t('Qué ves en Hoy'), onTap: function () { nav.push(customPage); } }),
           W.UI.cell({ icon: 'smile', title: W.t('Tu personaje'), value: W.Character.config().name, onTap: function () { nav.close(); setTimeout(function () { W.Character.edit(); }, 200); } }),
           W.UI.cell({ icon: 'sound', title: W.t('Sonidos y vibración'), value: cfg.sound ? W.t('Activados') : W.t('Desactivados'), onTap: function () { nav.push(soundsPage); } })
@@ -618,6 +620,14 @@ window.Whider = window.Whider || {};
     W.t('<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>'),
     W.t('<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>')
   ].join('');
+
+  /* ---------- Idioma ---------- */
+  var LANGS = { es: 'Español', en: 'English' };
+  /** Cambiar el idioma vuelve a abrir la app (los textos se preparan al cargarla); los datos no cambian */
+  function chooseLang(anchor) {
+    W.Sheet.choose({ anchor: anchor, title: W.t('Idioma'), value: W.I18n.lang, options: Object.keys(LANGS).map(function (l) { return { value: l, label: LANGS[l] }; }) })
+      .then(function (l) { if (l && l !== W.I18n.lang) W.I18n.set(l); });
+  }
 
   var PAGES = { desktop: desktopPage, account: accountPage, appearance: appearancePage, tasks: tasksPage, lists: listsPage, alerts: alertsPage, focus: focusPage, start: startPage,
     data: dataPage, privacy: privacyPage, sounds: soundsPage, custom: customPage, habits: habitsPage };

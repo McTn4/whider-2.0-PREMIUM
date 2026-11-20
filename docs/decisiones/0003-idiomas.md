@@ -1,6 +1,7 @@
 # 0003 · Idiomas: el inglés empieza por la web; la app, cuando pueda estar entera
 
-- **Estado**: aceptada (1.1). Hecha la parte de la web; la de la app, en curso (ver «Avance» al final).
+- **Estado**: aceptada (1.1). Hecha: la web (1.1) y la app entera, con la opción en Ajustes → Idioma (ver «Avance» al
+  final). En el navegador, ya; en el ordenador y en Android, desde su próxima versión.
 - **Fecha**: noviembre de 2026
 
 ## Contexto
@@ -51,7 +52,7 @@ Se pidió preparar WHIDER para otros idiomas, empezando por el inglés. Medido e
 
 ## Avance de la app en inglés
 
-Se prueba abriendo la app con `?lang=en` (`?lang=es` para volver); no aparece en Ajustes hasta que esté entera.
+Mientras se hacía se probaba con `?lang=en` (`?lang=es` para volver); con la app entera, el idioma se elige en Ajustes.
 
 - **Hecho**: la base (`js/core/i18n.js`: `W.t`, `W.tn`, `U.plural` traducible, fechas y horas en inglés en
   `js/core/util.js`, `U.inline` para las fechas a mitad de frase), el catálogo `js/i18n/en.js`, la gramática inglesa
@@ -90,6 +91,15 @@ Se prueba abriendo la app con `?lang=en` (`?lang=es` para volver); no aparece en
   actualizaciones y la página para entrar con Google (`desktop/lib/i18n.js`); se recuerda, así que al abrir la app
   los menús ya salen en ese idioma. En Android, el canal de avisos, el widget «Hoy» y los mensajes breves
   (`res/values-en` y `Lang.java`), que siguen al idioma de la app y no al del teléfono. Solo lo que pinta el propio
-  sistema (el nombre del widget en el selector de widgets) sigue el idioma del teléfono.
-- **Falta**: la opción de idioma en Ajustes y las notas de versión en inglés de la versión que lo traiga.
+  sistema (el nombre del widget en el selector de widgets) sigue el idioma del teléfono. Tampoco cambian la
+  descripción y el atajo «Nueva tarea» de la app instalada desde el navegador (`manifest.json`): el navegador los lee
+  una vez, al instalarla, y no admite uno por idioma.
+- **Ajustes → Idioma** (con el nombre de cada idioma en ese idioma): cambiarlo vuelve a abrir la app, porque los
+  textos se preparan al cargarla. Los botones de la portada en inglés abren `/app?lang=en`. No se elige solo por el
+  idioma del navegador: quien ya usaba WHIDER en español la seguiría viendo igual, y las pruebas en español no
+  dependen del idioma de la máquina.
+- **Para mantenerlo**: cada texto nuevo va en `W.t()` y en `js/i18n/en.js`; `npm run i18n:check` (dentro de
+  `npm run check` y de la integración continua) falla si falta alguno. Las notas de cada versión nueva se traducen en
+  el catálogo al publicarla (la clave es el texto del CHANGELOG): si no, en inglés esa versión no sale en «What's
+  new».
 
