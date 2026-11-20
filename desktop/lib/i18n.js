@@ -5,7 +5,6 @@
  * (js/i18n/en.js), la clave es el propio texto en español; lo que no esté en el catálogo sale en español.
  */
 'use strict';
-const prefs = require('./prefs');
 
 const EN = {
   // Bandeja
@@ -104,7 +103,8 @@ const CATALOGS = { en: EN };
 function lang() {
   let l = null;
   try {
-    l = prefs.get('lang');
+    // Al usarlo, no al cargar el archivo: las preferencias necesitan Electron, que las pruebas unitarias no tienen
+    l = require('./prefs').get('lang');
   } catch (e) {
     /* fuera de Electron (pruebas unitarias): español */
   }
