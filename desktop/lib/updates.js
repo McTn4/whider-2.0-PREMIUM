@@ -12,6 +12,7 @@
  * Se comprueba al poco de abrir la app, cada 6 horas y al pulsar «Buscar».
  */
 'use strict';
+const { t } = require('./i18n');
 const REPO = 'McTn4/whider-2.0-PREMIUM';
 const PAGE = 'https://github.com/' + REPO + '/releases/latest';
 const API = 'https://api.github.com/repos/' + REPO + '/releases/latest';
@@ -51,11 +52,11 @@ function pickAsset(assets, platform, arch) {
 /** Un error dicho para personas */
 function errorText(e) {
   const msg = String((e && (e.message || e.code)) || e || '');
-  if (/ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ECONNRESET|ETIMEDOUT|net::ERR_|network|socket/i.test(msg)) return 'Sin conexión: se volverá a mirar más tarde.';
-  if (/\b404\b|Cannot find .*latest|No published versions|ERR_UPDATER_CHANNEL_FILE_NOT_FOUND|ERR_UPDATER_NO_PUBLISHED_VERSIONS/i.test(msg)) return 'Todavía no hay una versión publicada para este sistema.';
-  if (/\b403\b|rate limit/i.test(msg)) return 'GitHub no responde ahora mismo: se volverá a mirar más tarde.';
-  if (/sha512|checksum/i.test(msg)) return 'La descarga no pasó la comprobación de seguridad: se volverá a intentar.';
-  return 'No se pudo comprobar (' + msg.split('\n')[0].slice(0, 120) + ').';
+  if (/ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ECONNRESET|ETIMEDOUT|net::ERR_|network|socket/i.test(msg)) return t('Sin conexión: se volverá a mirar más tarde.');
+  if (/\b404\b|Cannot find .*latest|No published versions|ERR_UPDATER_CHANNEL_FILE_NOT_FOUND|ERR_UPDATER_NO_PUBLISHED_VERSIONS/i.test(msg)) return t('Todavía no hay una versión publicada para este sistema.');
+  if (/\b403\b|rate limit/i.test(msg)) return t('GitHub no responde ahora mismo: se volverá a mirar más tarde.');
+  if (/sha512|checksum/i.test(msg)) return t('La descarga no pasó la comprobación de seguridad: se volverá a intentar.');
+  return t('No se pudo comprobar ({error}).', { error: msg.split('\n')[0].slice(0, 120) });
 }
 
 /**
@@ -102,7 +103,7 @@ function create(opts) {
     updater.on('download-progress', (p) => set({ percent: Math.round((p && p.percent) || 0) }));
     updater.on('update-downloaded', (i) => {
       set({ state: 'ready', version: i.version, percent: 100 });
-      tell('Actualización lista', 'WHIDER ' + i.version + ' se instalará al cerrar la app.', 'ready:' + i.version);
+      tell(t('Actualización lista'), t('WHIDER {version} se instalará al cerrar la app.', { version: i.version }), 'ready:' + i.version);
     });
     updater.on('error', (e) => { if (state.state !== 'ready') set({ state: 'error', error: errorText(e) }); });
   }
@@ -120,7 +121,7 @@ function create(opts) {
         }
         const page = String(rel.html_url || '').indexOf('https://github.com/' + REPO + '/') === 0 ? rel.html_url : PAGE;
         set({ state: 'available', version: v, url: pickAsset(rel.assets, process.platform, process.arch) || page, checkedAt: Date.now() });
-        tell('Hay una versión nueva de WHIDER', 'La ' + v + ' ya se puede descargar.', 'available:' + v);
+        tell(t('Hay una versión nueva de WHIDER'), t('La {version} ya se puede descargar.', { version: v }), 'available:' + v);
       })
       .catch((e) => set({ state: 'error', error: errorText(e) }));
   }

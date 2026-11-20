@@ -20,6 +20,8 @@ const prefs = require('./lib/prefs');
 const google = require('./lib/google');
 const updatesLib = require('./lib/updates');
 const backupsLib = require('./lib/backups');
+const i18n = require('./lib/i18n');
+const t = i18n.t;
 
 const SCHEME = 'app';
 const HOST = 'whider';
@@ -120,7 +122,7 @@ function createWindow(show) {
     win.hide();
     if (!prefs.get('trayHintShown') && Notification.isSupported()) {
       prefs.set('trayHintShown', true);
-      new Notification({ title: 'WHIDER sigue abierta', body: 'Te avisará de tus tareas desde ' + (IS_MAC ? 'el Dock' : 'la bandeja del sistema') + '. Para salir, usa «Salir de WHIDER» en su menú.', silent: true }).show();
+      new Notification({ title: t('WHIDER sigue abierta'), body: t('Te avisará de tus tareas desde {where}. Para salir, usa «Salir de WHIDER» en su menú.', { where: IS_MAC ? t('el Dock') : t('la bandeja del sistema') }), silent: true }).show();
     }
   });
   ['resize', 'move', 'maximize', 'unmaximize', 'enter-full-screen', 'leave-full-screen'].forEach(function (ev) { win.on(ev, saveBounds); });
@@ -201,57 +203,61 @@ function createTray() {
   if (IS_MAC) icon.setTemplateImage(true);
   tray = new Tray(icon);
   tray.setToolTip('WHIDER');
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'Abrir WHIDER', click: showWindow },
-    { label: 'Nueva tarea', click: function () { command('new-task'); } },
-    { label: 'Buscar', click: function () { command('search'); } },
-    { type: 'separator' },
-    { label: 'Hábitos de hoy', click: function () { command('go:habits'); } },
-    { label: 'Nuevo apunte', click: function () { command('new-note'); } },
-    { label: 'Empezar o pausar el enfoque', click: function () { command('focus-toggle', false); } },
-    { type: 'separator' },
-    { label: 'Buscar actualizaciones', click: checkUpdates },
-    { label: 'Salir de WHIDER', click: quit }
-  ]));
+  tray.setContextMenu(trayMenu());
   if (!IS_MAC) tray.on('click', toggleWindow);
+}
+/** Menú de la bandeja (en el idioma de la app) */
+function trayMenu() {
+  return Menu.buildFromTemplate([
+    { label: t('Abrir WHIDER'), click: showWindow },
+    { label: t('Nueva tarea'), click: function () { command('new-task'); } },
+    { label: t('Buscar'), click: function () { command('search'); } },
+    { type: 'separator' },
+    { label: t('Hábitos de hoy'), click: function () { command('go:habits'); } },
+    { label: t('Nuevo apunte'), click: function () { command('new-note'); } },
+    { label: t('Empezar o pausar el enfoque'), click: function () { command('focus-toggle', false); } },
+    { type: 'separator' },
+    { label: t('Buscar actualizaciones'), click: checkUpdates },
+    { label: t('Salir de WHIDER'), click: quit }
+  ]);
 }
 
 function buildMenu() {
   const go = function (label, id, key) { return { label: label, accelerator: 'CmdOrCtrl+' + key, click: function () { command('go:' + id); } }; };
   const template = [];
   if (IS_MAC) template.push({ label: 'WHIDER', submenu: [
-    { role: 'about', label: 'Acerca de WHIDER' }, { type: 'separator' },
-    { label: 'Ajustes…', accelerator: 'Cmd+,', click: function () { command('settings'); } }, { type: 'separator' },
-    { role: 'hide', label: 'Ocultar WHIDER' }, { role: 'hideOthers', label: 'Ocultar otras' }, { role: 'unhide', label: 'Mostrar todas' }, { type: 'separator' },
-    { label: 'Salir de WHIDER', accelerator: 'Cmd+Q', click: quit }
+    { role: 'about', label: t('Acerca de WHIDER') }, { type: 'separator' },
+    { label: t('Ajustes…'), accelerator: 'Cmd+,', click: function () { command('settings'); } }, { type: 'separator' },
+    { role: 'hide', label: t('Ocultar WHIDER') }, { role: 'hideOthers', label: t('Ocultar otras') }, { role: 'unhide', label: t('Mostrar todas') }, { type: 'separator' },
+    { label: t('Salir de WHIDER'), accelerator: 'Cmd+Q', click: quit }
   ] });
-  template.push({ label: 'Archivo', submenu: [
-    { label: 'Nueva tarea', accelerator: 'CmdOrCtrl+N', click: function () { command('new-task'); } },
-    { label: 'Buscar…', click: function () { command('search'); } },
+  template.push({ label: t('Archivo'), submenu: [
+    { label: t('Nueva tarea'), accelerator: 'CmdOrCtrl+N', click: function () { command('new-task'); } },
+    { label: t('Buscar…'), click: function () { command('search'); } },
     { type: 'separator' },
-    { label: 'Informe en PDF…', accelerator: 'CmdOrCtrl+P', click: function () { command('report-pdf'); } },
-    { label: 'Importar o exportar tareas…', click: function () { command('data'); } },
+    { label: t('Informe en PDF…'), accelerator: 'CmdOrCtrl+P', click: function () { command('report-pdf'); } },
+    { label: t('Importar o exportar tareas…'), click: function () { command('data'); } },
     { type: 'separator' },
-    IS_MAC ? { role: 'close', label: 'Cerrar ventana' } : { label: 'Salir de WHIDER', accelerator: 'Ctrl+Q', click: quit }
+    IS_MAC ? { role: 'close', label: t('Cerrar ventana') } : { label: t('Salir de WHIDER'), accelerator: 'Ctrl+Q', click: quit }
   ] });
-  template.push({ label: 'Edición', submenu: [
-    { role: 'undo', label: 'Deshacer' }, { role: 'redo', label: 'Rehacer' }, { type: 'separator' },
-    { role: 'cut', label: 'Cortar' }, { role: 'copy', label: 'Copiar' }, { role: 'paste', label: 'Pegar' }, { role: 'selectAll', label: 'Seleccionar todo' }
+  template.push({ label: t('Edición'), submenu: [
+    { role: 'undo', label: t('Deshacer') }, { role: 'redo', label: t('Rehacer') }, { type: 'separator' },
+    { role: 'cut', label: t('Cortar') }, { role: 'copy', label: t('Copiar') }, { role: 'paste', label: t('Pegar') }, { role: 'selectAll', label: t('Seleccionar todo') }
   ] });
-  template.push({ label: 'Ver', submenu: [
-    go('Hoy', 'home', '1'), go('Tareas', 'tasks', '2'), go('Calendario', 'calendar', '3'), go('Cuaderno', 'notes', '4'), { type: 'separator' },
-    go('Chats', 'chats', '5'), go('Personas', 'friends', '6'), { type: 'separator' },
-    go('Hábitos', 'habits', '7'), go('Enfoque', 'focus', '8'), go('Estadísticas', 'stats', '9'),
-    { label: 'Informes', click: function () { command('go:reports'); } }, { label: 'Automatizaciones', click: function () { command('go:automations'); } }, { type: 'separator' },
-    { role: 'resetZoom', label: 'Tamaño real' }, { role: 'zoomIn', label: 'Ampliar' }, { role: 'zoomOut', label: 'Reducir' }, { type: 'separator' },
-    { role: 'togglefullscreen', label: 'Pantalla completa' }
+  template.push({ label: t('Ver'), submenu: [
+    go(t('Hoy'), 'home', '1'), go(t('Tareas'), 'tasks', '2'), go(t('Calendario'), 'calendar', '3'), go(t('Cuaderno'), 'notes', '4'), { type: 'separator' },
+    go(t('Chats'), 'chats', '5'), go(t('Personas'), 'friends', '6'), { type: 'separator' },
+    go(t('Hábitos'), 'habits', '7'), go(t('Enfoque'), 'focus', '8'), go(t('Estadísticas'), 'stats', '9'),
+    { label: t('Informes'), click: function () { command('go:reports'); } }, { label: t('Automatizaciones'), click: function () { command('go:automations'); } }, { type: 'separator' },
+    { role: 'resetZoom', label: t('Tamaño real') }, { role: 'zoomIn', label: t('Ampliar') }, { role: 'zoomOut', label: t('Reducir') }, { type: 'separator' },
+    { role: 'togglefullscreen', label: t('Pantalla completa') }
   ] });
-  template.push({ label: 'Ventana', submenu: IS_MAC ? [{ role: 'minimize', label: 'Minimizar' }, { role: 'zoom', label: 'Zoom' }, { type: 'separator' }, { role: 'front', label: 'Traer todo al frente' }] : [{ role: 'minimize', label: 'Minimizar' }] });
-  template.push({ label: 'Ayuda', submenu: [
-    { label: 'Atajos de teclado', click: function () { command('shortcuts'); } },
-    { label: 'Novedades', click: function () { command('whats-new'); } },
+  template.push({ label: t('Ventana'), submenu: IS_MAC ? [{ role: 'minimize', label: t('Minimizar') }, { role: 'zoom', label: t('Zoom') }, { type: 'separator' }, { role: 'front', label: t('Traer todo al frente') }] : [{ role: 'minimize', label: t('Minimizar') }] });
+  template.push({ label: t('Ayuda'), submenu: [
+    { label: t('Atajos de teclado'), click: function () { command('shortcuts'); } },
+    { label: t('Novedades'), click: function () { command('whats-new'); } },
     { type: 'separator' },
-    { label: 'Buscar actualizaciones…', click: checkUpdates }
+    { label: t('Buscar actualizaciones…'), click: checkUpdates }
   ] });
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
@@ -301,6 +307,14 @@ ipcMain.on('whider:set-theme', function (_e, th, sys) {
   win.setBackgroundColor(themeColors(light).bg);
   if (IS_WIN) { try { win.setTitleBarOverlay({ color: themeColors(light).bg, symbolColor: themeColors(light).symbol }); } catch (e) { /* sin barra propia */ } }
 });
+// Idioma de la app (js/app.js): se guarda para abrir la próxima vez con los menús ya en ese idioma
+ipcMain.on('whider:set-lang', function (_e, l) {
+  const lang = l === 'en' ? 'en' : 'es';
+  if (prefs.get('lang') === lang) return;
+  prefs.set('lang', lang);
+  buildMenu();
+  if (tray) tray.setContextMenu(trayMenu());
+});
 ipcMain.handle('whider:backup-write', function (_e, name, json) { return copias().write(String(name), String(json)); });
 ipcMain.handle('whider:backup-list', function () { return copias().list(); });
 ipcMain.handle('whider:backup-read', function (_e, name) { return copias().read(String(name)); });
@@ -339,7 +353,7 @@ function askPath(name, kind) {
     fs.mkdirSync(dir, { recursive: true });
     return Promise.resolve(path.join(dir, file));
   }
-  return dialog.showSaveDialog(win, { defaultPath: path.join(app.getPath('documents'), file), filters: [SAVE_KINDS[kind]] })
+  return dialog.showSaveDialog(win, { defaultPath: path.join(app.getPath('documents'), file), filters: [{ name: t(SAVE_KINDS[kind].name), extensions: SAVE_KINDS[kind].extensions }] })
     .then(function (r) { return r.canceled || !r.filePath ? null : r.filePath; });
 }
 ipcMain.handle('whider:save-file', function (_e, name, content, kind) {

@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('WhiderDesktop', {
   showWindow: function () { ipcRenderer.send('whider:show-window'); },
   /** Tema de la app ('dark' o 'light') y si sigue al del sistema: la ventana y la barra de título lo siguen */
   setTheme: function (th, sys) { ipcRenderer.send('whider:set-theme', th === 'light' ? 'light' : 'dark', !!sys); },
+  setLang: function (lang) { ipcRenderer.send('whider:set-lang', lang === 'en' ? 'en' : 'es'); },
   setBadge: function (n) { ipcRenderer.send('whider:set-badge', n | 0); },
   openExternal: function (url) { ipcRenderer.send('whider:open-external', String(url)); },
   /** Guarda un archivo donde elija el usuario → { ok, path } · kind: 'csv' | 'json' | 'txt' */

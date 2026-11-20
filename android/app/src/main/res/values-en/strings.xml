@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">WHIDER</string>
+    <string name="channel_warnings">Task reminders</string>
+    <string name="channel_warnings_desc">Reminders before the deadline and alerts when a task isn\'t done</string>
+    <string name="widget_label">WHIDER · Today</string>
+    <string name="widget_description">Your tasks for today and a button to add one</string>
+    <string name="widget_title">Today</string>
+    <string name="widget_add">New task</string>
+    <string name="widget_empty">Nothing to do today</string>
+    <string name="widget_count">%1$d of %2$d done</string>
+    <string name="file_saved">File saved</string>
+    <string name="file_save_failed">Couldn\'t save the file</string>
+    <string name="saved_downloads">Saved to Downloads › WHIDER</string>
+    <string name="share_invite">Share invitation</string>
+    <string name="open_with">Open “%1$s” with</string>
+    <string name="no_app">There\'s no app to open this file</string>
+    <string name="file_open_failed">Couldn\'t open the file</string>
+    <string name="open_settings_hint">Open it in System settings → Apps → WHIDER</string>
+</resources>

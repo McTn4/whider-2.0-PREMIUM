@@ -31,6 +31,13 @@ public class TodayWidget extends AppWidgetProvider {
         for (int id : m.getAppWidgetIds(new ComponentName(ctx, TodayWidget.class))) render(ctx, m, id);
     }
 
+    /** Repinta los widgets (al cambiar el idioma de la app) */
+    static void refresh(Context ctx) {
+        AppWidgetManager m = AppWidgetManager.getInstance(ctx);
+        if (m == null) return;
+        for (int id : m.getAppWidgetIds(new ComponentName(ctx, TodayWidget.class))) render(ctx, m, id);
+    }
+
     @Override
     public void onUpdate(Context ctx, AppWidgetManager m, int[] ids) {
         for (int id : ids) render(ctx, m, id);
@@ -66,7 +73,12 @@ public class TodayWidget extends AppWidgetProvider {
         } catch (Exception e) {
             for (int r : ROWS) v.setViewVisibility(r, View.GONE);
         }
-        v.setTextViewText(R.id.w_count, total > 0 ? ctx.getString(R.string.widget_count, done, total) : "");
+        // Los textos fijos, en el idioma de la app (el diseño los trae en el del teléfono)
+        Context lc = Lang.ctx(ctx);
+        v.setTextViewText(R.id.w_title, lc.getString(R.string.widget_title));
+        v.setTextViewText(R.id.w_empty, lc.getString(R.string.widget_empty));
+        v.setContentDescription(R.id.w_add, lc.getString(R.string.widget_add));
+        v.setTextViewText(R.id.w_count, total > 0 ? lc.getString(R.string.widget_count, done, total) : "");
         v.setViewVisibility(R.id.w_empty, shown == 0 ? View.VISIBLE : View.GONE);
         v.setOnClickPendingIntent(R.id.w_root, open(ctx, "home", 1));
         v.setOnClickPendingIntent(R.id.w_add, open(ctx, "newtask", 2));

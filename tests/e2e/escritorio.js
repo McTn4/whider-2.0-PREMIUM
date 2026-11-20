@@ -51,6 +51,16 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   ok(n.src === 'system', '«Como el sistema»: lo nativo sigue al sistema, así la página ve sus cambios (' + n.src + ')');
   await win.evaluate(() => Whider.State.setSetting('theme', 'light')); await sleep(500);
   await win.screenshot({ path: path.join(OUT, 'electron-hoy-claro.png') });
+  // Los menús siguen el idioma de la app: en español por defecto, en inglés al cambiarlo (y se recuerda)
+  const menus = () => app.evaluate(({ Menu }) => Menu.getApplicationMenu().items.map((i) => i.label));
+  ok((await menus()).includes('Archivo'), 'menús en español ' + JSON.stringify(await menus()));
+  await win.evaluate(() => { localStorage.setItem('whider.lang', 'en'); location.reload(); });
+  await win.waitForLoadState(); await sleep(1500);
+  const en = await menus();
+  ok(en.includes('File') && en.includes('Edit') && en.includes('View') && !en.includes('Archivo'), 'menús en inglés al cambiar el idioma ' + JSON.stringify(en));
+  await win.evaluate(() => { localStorage.setItem('whider.lang', 'es'); location.reload(); });
+  await win.waitForLoadState(); await sleep(1500);
+  ok((await menus()).includes('Archivo'), 'y de vuelta en español');
   ok(!errs.length, 'sin errores ' + JSON.stringify(errs.slice(0, 3)));
   await app.close();
   // Se recuerda: al abrir de nuevo, la ventana nace ya clara (sin destello oscuro antes de cargar la página)

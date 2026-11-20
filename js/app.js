@@ -289,6 +289,10 @@ window.Whider = window.Whider || {};
     if (migrateFromFileOrigin()) return;
     // En otro idioma, los textos fijos de la página (barra inferior, nombres de cada pantalla…)
     if (W.I18n && W.I18n.lang !== 'es') W.I18n.dom(document.body);
+    // La app de escritorio (menús, bandeja y avisos) y Android (canal de avisos, widget y mensajes), en el mismo idioma
+    var Dk = window.WhiderDesktop, An = window.WhiderAndroid;
+    try { if (Dk && Dk.setLang && W.I18n) Dk.setLang(W.I18n.lang); } catch (e) { /* sin puente */ }
+    try { if (An && typeof An.setLang === 'function' && W.I18n) An.setLang(W.I18n.lang); } catch (e) { /* sin puente */ }
     adoptSystemFontScale();
     applyAppearance();
 

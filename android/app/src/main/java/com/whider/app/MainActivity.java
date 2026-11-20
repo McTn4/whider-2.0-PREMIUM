@@ -180,9 +180,9 @@ public class MainActivity extends AppCompatActivity {
                 try (OutputStream out = getContentResolver().openOutputStream(uri)) {
                     if (out == null) throw new IllegalStateException("sin destino");
                     out.write(data);
-                    runOnUiThread(() -> toast("Archivo guardado"));
+                    runOnUiThread(() -> toast(Lang.str(MainActivity.this, R.string.file_saved)));
                 } catch (Exception e) {
-                    runOnUiThread(() -> toast("No se pudo guardar el archivo"));
+                    runOnUiThread(() -> toast(Lang.str(MainActivity.this, R.string.file_save_failed)));
                 }
             });
         });
@@ -630,6 +630,14 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        /** Idioma de la app (js/core/i18n.js): el canal de avisos, el widget y los mensajes nativos, a juego */
+        @JavascriptInterface
+        public void setLang(String lang) {
+            if (!Lang.set(MainActivity.this, lang)) return;
+            Notifier.ensureChannel(MainActivity.this);
+            TodayWidget.refresh(MainActivity.this);
+        }
+
         /** Tamaño de letra del sistema (1 = normal): la app adapta su tamaño de texto la primera vez */
         @JavascriptInterface
         public float fontScale() {
@@ -705,7 +713,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent send = new Intent(Intent.ACTION_SEND);
                 send.setType("text/plain");
                 send.putExtra(Intent.EXTRA_TEXT, text);
-                try { startActivity(Intent.createChooser(send, "Compartir invitación")); } catch (ActivityNotFoundException ignored) { }
+                try { startActivity(Intent.createChooser(send, Lang.str(MainActivity.this, R.string.share_invite))); } catch (ActivityNotFoundException ignored) { }
             });
         }
 
@@ -781,11 +789,11 @@ public class MainActivity extends AppCompatActivity {
                         Intent view = new Intent(Intent.ACTION_VIEW);
                         view.setDataAndType(uri, type);
                         view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        try { startActivity(Intent.createChooser(view, "Abrir «" + fileName + "» con")); }
-                        catch (ActivityNotFoundException e) { toast("No hay ninguna aplicación para abrir este archivo"); }
+                        try { startActivity(Intent.createChooser(view, Lang.str(MainActivity.this, R.string.open_with, fileName))); }
+                        catch (ActivityNotFoundException e) { toast(Lang.str(MainActivity.this, R.string.no_app)); }
                     });
                 } catch (Exception e) {
-                    runOnUiThread(() -> toast("No se pudo abrir el archivo"));
+                    runOnUiThread(() -> toast(Lang.str(MainActivity.this, R.string.file_open_failed)));
                 }
             });
         }
@@ -798,11 +806,11 @@ public class MainActivity extends AppCompatActivity {
             if (Build.VERSION.SDK_INT < 29) {
                 io.execute(() -> {
                     byte[] data;
-                    try { data = Base64.decode(base64, Base64.DEFAULT); } catch (Exception e) { runOnUiThread(() -> toast("No se pudo guardar el archivo")); return; }
+                    try { data = Base64.decode(base64, Base64.DEFAULT); } catch (Exception e) { runOnUiThread(() -> toast(Lang.str(MainActivity.this, R.string.file_save_failed))); return; }
                     runOnUiThread(() -> {
                         pendingSave = data;
                         pendingSaveMime = type;
-                        try { saveDocument.launch(fileName); } catch (Exception e) { pendingSave = null; toast("No se pudo guardar el archivo"); }
+                        try { saveDocument.launch(fileName); } catch (Exception e) { pendingSave = null; toast(Lang.str(MainActivity.this, R.string.file_save_failed)); }
                     });
                 });
                 return;
@@ -825,10 +833,10 @@ public class MainActivity extends AppCompatActivity {
                     v.clear();
                     v.put(MediaStore.MediaColumns.IS_PENDING, 0);
                     cr.update(item, v, null, null);
-                    runOnUiThread(() -> toast("Guardado en Descargas › WHIDER"));
+                    runOnUiThread(() -> toast(Lang.str(MainActivity.this, R.string.saved_downloads)));
                 } catch (Exception e) {
                     if (item != null) { try { cr.delete(item, null, null); } catch (Exception ignored) { } }
-                    runOnUiThread(() -> toast("No se pudo guardar el archivo"));
+                    runOnUiThread(() -> toast(Lang.str(MainActivity.this, R.string.file_save_failed)));
                 }
             });
         }
@@ -860,7 +868,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getPackageName())));
                 } catch (ActivityNotFoundException e) {
-                    Toast.makeText(MainActivity.this, "Ábrelo en Ajustes del sistema → Aplicaciones → WHIDER", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, Lang.str(MainActivity.this, R.string.open_settings_hint), Toast.LENGTH_LONG).show();
                 }
             });
         }

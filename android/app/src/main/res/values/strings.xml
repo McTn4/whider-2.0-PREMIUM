@@ -8,4 +8,12 @@
     <string name="widget_add">Nueva tarea</string>
     <string name="widget_empty">Nada pendiente para hoy</string>
     <string name="widget_count">%1$d de %2$d hechas</string>
+    <string name="file_saved">Archivo guardado</string>
+    <string name="file_save_failed">No se pudo guardar el archivo</string>
+    <string name="saved_downloads">Guardado en Descargas › WHIDER</string>
+    <string name="share_invite">Compartir invitación</string>
+    <string name="open_with">Abrir «%1$s» con</string>
+    <string name="no_app">No hay ninguna aplicación para abrir este archivo</string>
+    <string name="file_open_failed">No se pudo abrir el archivo</string>
+    <string name="open_settings_hint">Ábrelo en Ajustes del sistema → Aplicaciones → WHIDER</string>
 </resources>

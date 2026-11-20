@@ -85,6 +85,11 @@ Se prueba abriendo la app con `?lang=en` (`?lang=es` para volver); no aparece en
 - **Lo que se crea en un idioma se queda en ese idioma**: las plantillas del Cuaderno, los métodos de
   Automatizaciones, las categorías por defecto o los nombres por defecto de las bases de datos se crean con los
   textos del idioma de la app en ese momento y después son datos del usuario, como cualquier otro.
-- **Falta**: los menús de la app de escritorio y los textos nativos de Android; después, la opción de idioma en
-  Ajustes y las notas de versión en inglés de la versión que lo traiga.
+- **Escritorio y Android**: la ventana dice su idioma al arrancar (`WhiderDesktop.setLang`, `WhiderAndroid.setLang`).
+  En el ordenador, los menús, la bandeja, el aviso de «sigue abierta», los diálogos de guardar, los mensajes de las
+  actualizaciones y la página para entrar con Google (`desktop/lib/i18n.js`); se recuerda, así que al abrir la app
+  los menús ya salen en ese idioma. En Android, el canal de avisos, el widget «Hoy» y los mensajes breves
+  (`res/values-en` y `Lang.java`), que siguen al idioma de la app y no al del teléfono. Solo lo que pinta el propio
+  sistema (el nombre del widget en el selector de widgets) sigue el idioma del teléfono.
+- **Falta**: la opción de idioma en Ajustes y las notas de versión en inglés de la versión que lo traiga.
 

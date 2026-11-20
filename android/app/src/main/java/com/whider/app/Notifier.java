@@ -23,10 +23,20 @@ final class Notifier {
     static void ensureChannel(Context ctx) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager nm = ctx.getSystemService(NotificationManager.class);
-        if (nm == null || nm.getNotificationChannel(CHANNEL_ID) != null) return;
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID, ctx.getString(R.string.channel_warnings), NotificationManager.IMPORTANCE_HIGH);
-        channel.setDescription(ctx.getString(R.string.channel_warnings_desc));
+        if (nm == null) return;
+        String name = Lang.str(ctx, R.string.channel_warnings), desc = Lang.str(ctx, R.string.channel_warnings_desc);
+        NotificationChannel existing = nm.getNotificationChannel(CHANNEL_ID);
+        if (existing != null) {
+            // Ya creado: solo se le cambian el nombre y la descripción si cambió el idioma de la app
+            if (!name.contentEquals(existing.getName()) || !desc.equals(existing.getDescription())) {
+                existing.setName(name);
+                existing.setDescription(desc);
+                nm.createNotificationChannel(existing);
+            }
+            return;
+        }
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription(desc);
         channel.enableVibration(true);
         channel.setVibrationPattern(new long[]{0, 70, 60, 70, 60, 140});
         nm.createNotificationChannel(channel);
