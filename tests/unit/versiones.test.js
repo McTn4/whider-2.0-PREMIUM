@@ -142,7 +142,9 @@ test('todo el repositorio lleva la misma versión (lo que comprueba la integraci
 
 /* ---------- Novedades en la app ---------- */
 function app(opts) {
-  const W = cargar(['js/core/util.js', 'js/core/version.js', 'js/ui/whatsnew.js'], { ahora: '2026-11-18T09:00:00' });
+  const W = cargar(['js/core/i18n.js', 'js/core/util.js', 'js/core/version.js', 'js/ui/whatsnew.js'], {
+    ahora: '2026-11-18T09:00:00'
+  });
   W.State = { meta: { onboarded: !!opts.onboarded } };
   if (opts.seen) W.__win.localStorage.setItem('whider.seenVersion', opts.seen);
   if (opts.version) W.VERSION = opts.version;

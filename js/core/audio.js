@@ -13,7 +13,7 @@ window.Whider = window.Whider || {};
   'use strict';
 
   var ctx = null, master = null, unlocked = false, pending = null, lastClick = 0;
-  var STYLES = { soft: 'Suave', click: 'Mecánico', crystal: 'Cristal', pop: 'Burbuja' };
+  var STYLES = { soft: W.t('Suave'), click: W.t('Mecánico'), crystal: W.t('Cristal'), pop: W.t('Burbuja') };
 
   function settings() { return W.State ? W.State.settings : { sound: true, vibrate: true, sounds: { buttons: true, notify: true, events: true, volume: 70, style: 'soft' } }; }
   function cfg() { return settings().sounds || { buttons: true, notify: true, events: true, volume: 70, style: 'soft' }; }

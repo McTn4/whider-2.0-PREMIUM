@@ -123,32 +123,32 @@ window.Whider = window.Whider || {};
   var GROUPS = function () {
     var K = W.Layout.keys;
     return [
-      { title: 'General', rows: [
-        ['Nueva tarea', ['N']], ['Nueva página del Cuaderno', ['Alt', 'N']], ['Buscar en todo', [K('K'), '/']],
-        ['Hoy · Tareas · Calendario · Cuaderno', ['1', '2', '3', '4']], ['Chats · Personas', ['5', '6']], ['Hábitos · Enfoque · Estadísticas', ['7', '8', '9']],
-        ['Perfil y resumen', ['P']], ['Ajustes', [K(',')]], ['Atajos de teclado', ['?']], ['Cerrar o volver', ['Esc']]
+      { title: W.t('General'), rows: [
+        [W.t('Nueva tarea'), ['N']], [W.t('Nueva página del Cuaderno'), ['Alt', 'N']], [W.t('Buscar en todo'), [K('K'), '/']],
+        [W.t('Hoy · Tareas · Calendario · Cuaderno'), ['1', '2', '3', '4']], [W.t('Chats · Personas'), ['5', '6']], [W.t('Hábitos · Enfoque · Estadísticas'), ['7', '8', '9']],
+        [W.t('Perfil y resumen'), ['P']], [W.t('Ajustes'), [K(',')]], [W.t('Atajos de teclado'), ['?']], [W.t('Cerrar o volver'), ['Esc']]
       ] },
-      { title: 'En el Cuaderno', rows: [
-        ['Insertar un bloque', ['/']], ['Mencionar una página, persona o fecha', ['@']], ['Títulos, listas y casillas', null, '#, -, 1., [] y espacio'],
-        ['Sangrar o quitar sangría', ['Tab', 'Mayús Tab']], ['Negrita · cursiva · subrayado', [K('B'), K('I'), K('U')]], ['Código · enlace', [K('E'), K('K')]],
-        ['Deshacer · rehacer', [K('Z'), K('Mayús Z')]], ['Duplicar el bloque', [K('D')]], ['Subir o bajar el bloque', [K('Mayús ↑'), K('Mayús ↓')]],
-        ['Marcar la casilla', [K('Intro')]], ['Mover un bloque', null, 'Arrastra su asa ⋮⋮']
+      { title: W.t('En el Cuaderno'), rows: [
+        [W.t('Insertar un bloque'), ['/']], [W.t('Mencionar una página, persona o fecha'), ['@']], [W.t('Títulos, listas y casillas'), null, W.t('#, -, 1., [] y espacio')],
+        [W.t('Sangrar o quitar sangría'), ['Tab', W.t('Mayús Tab')]], [W.t('Negrita · cursiva · subrayado'), [K('B'), K('I'), K('U')]], [W.t('Código · enlace'), [K('E'), K('K')]],
+        [W.t('Deshacer · rehacer'), [K('Z'), K(W.t('Mayús Z'))]], [W.t('Duplicar el bloque'), [K('D')]], [W.t('Subir o bajar el bloque'), [K(W.t('Mayús ↑')), K(W.t('Mayús ↓'))]],
+        [W.t('Marcar la casilla'), [K(W.t('Intro'))]], [W.t('Mover un bloque'), null, W.t('Arrastra su asa ⋮⋮')]
       ] },
-      { title: 'En una página de tareas', rows: [
-        ['Moverse entre tareas', ['↑', '↓']], ['Completar o desmarcar', ['Espacio']], ['Abrir el editor', ['Intro']],
-        ['Eliminar', ['Supr']], ['Más opciones', null, 'Clic derecho'], ['Cambiar de categoría o pasar a hoy', null, 'Arrástrala a la barra lateral']
+      { title: W.t('En una página de tareas'), rows: [
+        [W.t('Moverse entre tareas'), ['↑', '↓']], [W.t('Completar o desmarcar'), [W.t('Espacio')]], [W.t('Abrir el editor'), [W.t('Intro')]],
+        [W.t('Eliminar'), [W.t('Supr')]], [W.t('Más opciones'), null, W.t('Clic derecho')], [W.t('Cambiar de categoría o pasar a hoy'), null, W.t('Arrástrala a la barra lateral')]
       ] },
-      { title: 'Varias tareas a la vez', rows: [
-        ['Añadir o quitar de la selección', [K('clic')]], ['Seleccionar un tramo', ['Mayús', 'clic']], ['Seleccionar todas', [K('A')]],
-        ['Completar las seleccionadas', ['Espacio']], ['Eliminar las seleccionadas', ['Supr']], ['Quitar la selección', ['Esc']],
-        ['Mover todas a otra categoría o día', null, 'Arrastra cualquiera de ellas']
+      { title: W.t('Varias tareas a la vez'), rows: [
+        [W.t('Añadir o quitar de la selección'), [K(W.t('clic'))]], [W.t('Seleccionar un tramo'), [W.t('Mayús'), W.t('clic')]], [W.t('Seleccionar todas'), [K('A')]],
+        [W.t('Completar las seleccionadas'), [W.t('Espacio')]], [W.t('Eliminar las seleccionadas'), [W.t('Supr')]], [W.t('Quitar la selección'), ['Esc']],
+        [W.t('Mover todas a otra categoría o día'), null, W.t('Arrastra cualquiera de ellas')]
       ] },
-      { title: 'En el calendario', rows: [
-        ['Anterior y siguiente', ['←', '→']], ['Ir a hoy', ['T']], ['Mes · semana · día · agenda', ['M', 'S', 'D', 'A']],
-        ['Cambiar de día o de hora una tarea', null, 'Arrástrala'], ['Cambiar la duración', null, 'Estira el bloque por abajo']
+      { title: W.t('En el calendario'), rows: [
+        [W.t('Anterior y siguiente'), ['←', '→']], [W.t('Ir a hoy'), ['T']], [W.t('Mes · semana · día · agenda'), W.I18n.lang === 'en' ? ['M', 'W', 'D', 'A'] : ['M', 'S', 'D', 'A']],
+        [W.t('Cambiar de día o de hora una tarea'), null, W.t('Arrástrala')], [W.t('Cambiar la duración'), null, W.t('Estira el bloque por abajo')]
       ] },
-      { title: 'Al escribir una tarea', rows: [
-        ['Guardar', [K('Intro')]], ['Añadir y seguir escribiendo', ['Intro']], ['Cerrar', ['Esc']]
+      { title: W.t('Al escribir una tarea'), rows: [
+        [W.t('Guardar'), [K(W.t('Intro'))]], [W.t('Añadir y seguir escribiendo'), [W.t('Intro')]], [W.t('Cerrar'), ['Esc']]
       ] }
     ];
   };
@@ -162,7 +162,7 @@ window.Whider = window.Whider || {};
             r[1] ? U.el('span.keys', r[1].map(function (key) { return U.el('kbd', { text: key }); })) : U.el('span.keys-text', { text: r[2] })]);
         }) });
       });
-      W.Sheet.open({ title: 'Atajos de teclado', className: 'shortcuts', body: body });
+      W.Sheet.open({ title: W.t('Atajos de teclado'), className: 'shortcuts', body: body });
     }
   };
 

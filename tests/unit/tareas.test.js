@@ -4,7 +4,9 @@ const assert = require('node:assert/strict');
 const { cargar } = require('./_cargar');
 
 const nuevo = () =>
-  cargar(['js/core/util.js', 'js/core/schema.js', 'js/core/store.js'], { ahora: '2026-11-20T09:40:00' }).State; // viernes
+  cargar(['js/core/i18n.js', 'js/core/util.js', 'js/core/schema.js', 'js/core/store.js'], {
+    ahora: '2026-11-20T09:40:00'
+  }).State; // viernes
 
 test('una tarea nueva se guarda limpia y marcada como propia', () => {
   const S = nuevo();

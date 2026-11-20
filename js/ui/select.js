@@ -62,7 +62,7 @@ window.Whider = window.Whider || {};
     var n = st.bulkUpdate(list, fields);
     W.Audio.success();
     W.Toast.show({ text: U.plural(n, 'tarea', 'tareas') + ' · ' + label, icon: icon || 'check',
-      action: { label: 'Deshacer', fn: function () { st.bulkUpdate(Object.keys(before), function (t) { return before[t.id]; }); } } });
+      action: { label: W.t('Deshacer'), fn: function () { st.bulkUpdate(Object.keys(before), function (t) { return before[t.id]; }); } } });
   }
 
   function complete() {
@@ -72,8 +72,8 @@ window.Whider = window.Whider || {};
     var target = !allDone, changed = list.filter(function (id) { return st.find(id).done !== target; });
     st.batch(function () { changed.forEach(function (id) { st.setDone(id, target); }); });
     if (target) { W.Audio.success(); W.Audio.vibrate([12]); } else W.Audio.select();
-    W.Toast.show({ text: U.plural(changed.length, 'tarea', 'tareas') + (target ? ' completadas' : ' pendientes de nuevo'), icon: target ? 'check' : 'reset',
-      action: { label: 'Deshacer', fn: function () { st.batch(function () { changed.forEach(function (id) { st.setDone(id, !target); }); }); } } });
+    W.Toast.show({ text: target ? U.plural(changed.length, 'tarea completada', 'tareas completadas') : U.plural(changed.length, 'tarea pendiente de nuevo', 'tareas pendientes de nuevo'), icon: target ? 'check' : 'reset',
+      action: { label: W.t('Deshacer'), fn: function () { st.batch(function () { changed.forEach(function (id) { st.setDone(id, !target); }); }); } } });
     clear();
   }
 
@@ -84,12 +84,12 @@ window.Whider = window.Whider || {};
       var snaps = st.bulkRemove(list);
       W.Audio.select();
       W.Toast.show({ text: U.plural(snaps.length, 'tarea eliminada', 'tareas eliminadas'), icon: 'trash',
-        action: { label: 'Deshacer', fn: function () { st.bulkRestore(snaps); } } });
+        action: { label: W.t('Deshacer'), fn: function () { st.bulkRestore(snaps); } } });
       clear();
       return true;
     };
     if (!st.settings.confirmDelete) return Promise.resolve(go());
-    return W.Sheet.confirm({ title: '¿Eliminar ' + U.plural(list.length, 'tarea', 'tareas') + '?', text: 'Podrás deshacerlo justo después.', ok: 'Eliminar', danger: true })
+    return W.Sheet.confirm({ title: W.t('¿Eliminar {n}?', { n: U.plural(list.length, 'tarea', 'tareas') }), text: W.t('Podrás deshacerlo justo después.'), ok: W.t('Eliminar'), danger: true })
       .then(function (ok) { return ok ? go() : false; });
   }
 
@@ -110,36 +110,36 @@ window.Whider = window.Whider || {};
   function pickDate(anchorEl) {
     var td = U.today(), wd = new Date().getDay(), monday = U.addDays(td, (8 - wd) % 7 || 7);
     return W.Menu.open(anchorEl, [
-      { value: td, label: 'Hoy', icon: 'sun' },
-      { value: U.addDays(td, 1), label: 'Mañana', icon: 'calendar' },
-      { value: monday, label: 'El lunes', desc: U.fmtLong(monday), icon: 'week' },
-      { value: U.addDays(td, 7), label: 'Dentro de una semana', icon: 'calendar' },
-      { value: 'pick', label: 'Elegir un día…', icon: 'edit', gap: true },
-      { value: 'none', label: 'Sin fecha', icon: 'close' }
+      { value: td, label: W.t('Hoy'), icon: 'sun' },
+      { value: U.addDays(td, 1), label: W.t('Mañana'), icon: 'calendar' },
+      { value: monday, label: W.t('El lunes'), desc: U.fmtLong(monday), icon: 'week' },
+      { value: U.addDays(td, 7), label: W.t('Dentro de una semana'), icon: 'calendar' },
+      { value: 'pick', label: W.t('Elegir un día…'), icon: 'edit', gap: true },
+      { value: 'none', label: W.t('Sin fecha'), icon: 'close' }
     ]).then(function (v) {
       if (!v) return;
-      if (v === 'none') return apply({ date: null, time: null }, 'sin fecha', 'calendar');
+      if (v === 'none') return apply({ date: null, time: null }, W.t('sin fecha'), 'calendar');
       if (v !== 'pick') return apply({ date: v }, U.inline(U.fmtDay(v)), 'calendar');
       var chosen = td;
-      var s = W.Sheet.open({ title: 'Elegir un día', body: [U.el('div.group', [W.UI.datePicker(td, function (ds) { chosen = ds; })])],
-        foot: [U.el('button.btn.primary', { text: 'Aplicar', on: { click: function () { s.close(); apply({ date: chosen }, U.inline(U.fmtDay(chosen)), 'calendar'); } } })] });
+      var s = W.Sheet.open({ title: W.t('Elegir un día'), body: [U.el('div.group', [W.UI.datePicker(td, function (ds) { chosen = ds; })])],
+        foot: [U.el('button.btn.primary', { text: W.t('Aplicar'), on: { click: function () { s.close(); apply({ date: chosen }, U.inline(U.fmtDay(chosen)), 'calendar'); } } })] });
     });
   }
 
   function pickTime(anchorEl) {
     var opts = ['09:00', '12:00', '15:00', '18:00', '20:00'].map(function (t) { return { value: t, label: U.fmtTime(t), icon: 'clock' }; });
-    opts.push({ value: 'pick', label: 'Otra hora…', icon: 'edit', gap: true });
-    opts.push({ value: 'none', label: 'Sin hora', icon: 'close' });
+    opts.push({ value: 'pick', label: W.t('Otra hora…'), icon: 'edit', gap: true });
+    opts.push({ value: 'none', label: W.t('Sin hora'), icon: 'close' });
     return W.Menu.open(anchorEl, opts).then(function (v) {
       if (!v) return;
-      if (v === 'none') return apply({ time: null }, 'sin hora', 'clock');
-      if (v !== 'pick') return apply(function (t) { return { time: v, date: t.date || U.today() }; }, 'a las ' + U.fmtTime(v), 'clock');
-      var input = U.el('input.input', { attrs: { type: 'time', 'aria-label': 'Hora' } });
+      if (v === 'none') return apply({ time: null }, W.t('sin hora'), 'clock');
+      if (v !== 'pick') return apply(function (t) { return { time: v, date: t.date || U.today() }; }, W.t('a las {time}', { time: U.fmtTime(v) }), 'clock');
+      var input = U.el('input.input', { attrs: { type: 'time', 'aria-label': W.t('Hora') } });
       input.value = '10:00';
-      var s = W.Sheet.open({ title: 'Elegir la hora', body: [input],
-        foot: [U.el('button.btn.primary', { text: 'Aplicar', on: { click: function () {
+      var s = W.Sheet.open({ title: W.t('Elegir la hora'), body: [input],
+        foot: [U.el('button.btn.primary', { text: W.t('Aplicar'), on: { click: function () {
           var hm = input.value; s.close();
-          if (hm) apply(function (t) { return { time: hm, date: t.date || U.today() }; }, 'a las ' + U.fmtTime(hm), 'clock');
+          if (hm) apply(function (t) { return { time: hm, date: t.date || U.today() }; }, W.t('a las {time}', { time: U.fmtTime(hm) }), 'clock');
         } } })] });
       setTimeout(function () { input.focus(); }, 60);
     });
@@ -147,17 +147,17 @@ window.Whider = window.Whider || {};
 
   function pickPrio(anchorEl) {
     return W.Menu.open(anchorEl, W.Editor.PRIO_OPTS.map(function (o) { return { value: o.value, label: o.label, prio: o.value }; })).then(function (v) {
-      if (v) apply({ highlight: v }, 'prioridad ' + S().PRIORITIES[v].label.toLowerCase(), 'flag');
+      if (v) apply({ highlight: v }, W.t('prioridad {name}', { name: S().PRIORITIES[v].label.toLowerCase() }), 'flag');
     });
   }
 
   function pickList(anchorEl) {
     var st = S();
     return W.Menu.open(anchorEl, st.lists.map(function (l) { return { value: l.id, label: l.name, icon: W.Lists.icon(l) }; })
-      .concat([{ value: '-', label: 'Sin categoría', icon: 'close', gap: true }])).then(function (v) {
+      .concat([{ value: '-', label: W.t('Sin categoría'), icon: 'close', gap: true }])).then(function (v) {
       if (!v) return;
       var l = st.getList(v);
-      apply({ listId: v === '-' ? null : v }, l ? 'en ' + l.name : 'sin categoría', 'list');
+      apply({ listId: v === '-' ? null : v }, l ? W.t('en {name}', { name: l.name }) : W.t('sin categoría'), 'list');
     });
   }
 
@@ -169,8 +169,8 @@ window.Whider = window.Whider || {};
   }
 
   function pickWarn(anchorEl) {
-    return W.Menu.open(anchorEl, [{ value: 'on', label: 'Activar los avisos', icon: 'bell' }, { value: 'off', label: 'Quitar los avisos', icon: 'close' }]).then(function (v) {
-      if (v) apply({ warn: v === 'on' }, v === 'on' ? 'con avisos' : 'sin avisos', 'bell');
+    return W.Menu.open(anchorEl, [{ value: 'on', label: W.t('Activar los avisos'), icon: 'bell' }, { value: 'off', label: W.t('Quitar los avisos'), icon: 'close' }]).then(function (v) {
+      if (v) apply({ warn: v === 'on' }, v === 'on' ? W.t('con avisos') : W.t('sin avisos'), 'bell');
     });
   }
 
@@ -185,7 +185,7 @@ window.Whider = window.Whider || {};
     var n = count(), on = mode || n > 0;
     if (!bar) {
       if (!on) return;
-      bar = U.el('div.bulkbar', { attrs: { role: 'toolbar', 'aria-label': 'Acciones para las tareas seleccionadas' } });
+      bar = U.el('div.bulkbar', { attrs: { role: 'toolbar', 'aria-label': W.t('Acciones para las tareas seleccionadas') } });
       document.body.appendChild(bar);
     }
     U.clear(bar);
@@ -194,27 +194,27 @@ window.Whider = window.Whider || {};
     if (!on) return;
     var st = S(), list = ids(), allDone = n > 0 && list.every(function (id) { return st.find(id).done; });
     var head = U.el('div.bb-head', [
-      U.el('button.bb-close', { attrs: { type: 'button', 'aria-label': 'Quitar la selección', title: 'Quitar la selección · Esc' }, on: { click: function () { clear(); } } }, [U.icon('close')]),
-      U.el('strong', { text: n ? U.plural(n, 'seleccionada', 'seleccionadas') : 'Toca las tareas' }),
-      U.el('button.link-btn.bb-all', { text: 'Todas', on: { click: function () { Select.all(); } } })
+      U.el('button.bb-close', { attrs: { type: 'button', 'aria-label': W.t('Quitar la selección'), title: W.t('Quitar la selección · Esc') }, on: { click: function () { clear(); } } }, [U.icon('close')]),
+      U.el('strong', { text: n ? U.plural(n, 'seleccionada', 'seleccionadas') : W.t('Toca las tareas') }),
+      U.el('button.link-btn.bb-all', { text: W.t('Todas'), on: { click: function () { Select.all(); } } })
     ]);
     var acts = U.el('div.bb-acts');
     var dis = !n;
     var add = function (b) { if (dis) b.disabled = true; acts.appendChild(b); };
-    add(btn(allDone ? 'reset' : 'check', allDone ? 'Pendientes' : 'Completar', complete, 'main'));
+    add(btn(allDone ? 'reset' : 'check', allDone ? W.t('Pendientes') : W.t('Completar'), complete, 'main'));
     if (desk()) {
-      add(btn('calendar', 'Fecha', pickDate));
-      add(btn('clock', 'Hora', pickTime));
-      add(btn('flag', 'Prioridad', pickPrio));
-      add(btn('list', 'Categoría', pickList));
-      add(btn('repeat', 'Repetir', pickRepeat));
-      add(btn('bell', 'Avisos', pickWarn));
-      add(btn('layers', 'Duplicar', duplicate));
+      add(btn('calendar', W.t('Fecha'), pickDate));
+      add(btn('clock', W.t('Hora'), pickTime));
+      add(btn('flag', W.t('Prioridad'), pickPrio));
+      add(btn('list', W.t('Categoría'), pickList));
+      add(btn('repeat', W.t('Repetir'), pickRepeat));
+      add(btn('bell', W.t('Avisos'), pickWarn));
+      add(btn('layers', W.t('Duplicar'), duplicate));
     } else {
-      add(btn('calendar', 'Para hoy', function () { apply({ date: U.today() }, 'para hoy', 'sun'); }));
-      add(btn('list', 'Mover', pickList));
+      add(btn('calendar', W.t('Para hoy'), function () { apply({ date: U.today() }, W.t('para hoy'), 'sun'); }));
+      add(btn('list', W.t('Mover'), pickList));
     }
-    add(btn('trash', 'Eliminar', function () { remove(); }, 'danger'));
+    add(btn('trash', W.t('Eliminar'), function () { remove(); }, 'danger'));
     bar.appendChild(head);
     bar.appendChild(acts);
   }

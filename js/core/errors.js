@@ -26,13 +26,13 @@ window.Whider = window.Whider || {};
   /** «Escritorio · Windows», «Android», «Navegador · Chrome 140 · macOS» */
   function platform() {
     var w = /** @type {any} */ (window);
-    if (w.WhiderDesktop) return 'Escritorio · ' + ({ win32: 'Windows', darwin: 'macOS', linux: 'Linux' }[w.WhiderDesktop.platform] || w.WhiderDesktop.platform);
+    if (w.WhiderDesktop) return W.t('Escritorio') + ' · ' + ({ win32: 'Windows', darwin: 'macOS', linux: 'Linux' }[w.WhiderDesktop.platform] || w.WhiderDesktop.platform);
     if (w.WhiderAndroid) return 'Android';
     var ua = navigator.userAgent || '';
     var b = /Edg\/(\d+)/.exec(ua) ? 'Edge ' + /Edg\/(\d+)/.exec(ua)[1] : /Firefox\/(\d+)/.exec(ua) ? 'Firefox ' + /Firefox\/(\d+)/.exec(ua)[1]
-      : /Chrome\/(\d+)/.exec(ua) ? 'Chrome ' + /Chrome\/(\d+)/.exec(ua)[1] : /Version\/(\d+).*Safari/.exec(ua) ? 'Safari ' + /Version\/(\d+).*Safari/.exec(ua)[1] : 'otro';
+      : /Chrome\/(\d+)/.exec(ua) ? 'Chrome ' + /Chrome\/(\d+)/.exec(ua)[1] : /Version\/(\d+).*Safari/.exec(ua) ? 'Safari ' + /Version\/(\d+).*Safari/.exec(ua)[1] : W.t('otro');
     var os = /iPhone|iPad/.test(ua) ? 'iOS' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : '';
-    return 'Navegador · ' + b + (os ? ' · ' + os : '');
+    return W.t('Navegador') + ' · ' + b + (os ? ' · ' + os : '');
   }
   /** Quita lo que pueda ser personal: correos y textos largos entre comillas */
   function clean(s, max) {

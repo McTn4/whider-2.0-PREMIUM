@@ -22,10 +22,10 @@ window.Whider = window.Whider || {};
   }
   function info() {
     var D = window.WhiderDesktop, ua = navigator.userAgent || '';
-    if (D) return { kind: 'pc', name: 'Ordenador · ' + ({ win32: 'Windows', darwin: 'Mac', linux: 'Linux' }[D.platform] || 'escritorio') };
-    if (window.WhiderAndroid) return { kind: 'mobile', name: 'Móvil · Android' };
-    if (/Android|iPhone|iPad|Mobile/i.test(ua)) return { kind: 'mobile', name: 'Móvil · navegador' };
-    return { kind: 'pc', name: 'Ordenador · navegador' };
+    if (D) return { kind: 'pc', name: W.t('Ordenador') + ' · ' + ({ win32: 'Windows', darwin: 'Mac', linux: 'Linux' }[D.platform] || W.t('escritorio')) };
+    if (window.WhiderAndroid) return { kind: 'mobile', name: W.t('Móvil') + ' · Android' };
+    if (/Android|iPhone|iPad|Mobile/i.test(ua)) return { kind: 'mobile', name: W.t('Móvil') + ' · ' + W.t('navegador') };
+    return { kind: 'pc', name: W.t('Ordenador') + ' · ' + W.t('navegador') };
   }
   /** Con cuenta: cada dispositivo se anuncia y el enfoque se comparte entre todos */
   function active() { return !!(W.Auth && W.Auth.user); }
@@ -55,20 +55,20 @@ window.Whider = window.Whider || {};
         var f = W.Screens.focus.status(), shared = S().social.focus;
         var from = shared && shared.device ? (S().social.devices[shared.device] || {}).name : null;
         host.appendChild(U.el('div.group.card.dev-focus', [
-          U.el('div.card-head', [U.el('strong', { text: 'Enfoque en tus dispositivos' }), U.el('span.muted', { text: f.running ? f.label + ' en marcha' : 'En pausa' })]),
+          U.el('div.card-head', [U.el('strong', { text: W.t('Enfoque en tus dispositivos') }), U.el('span.muted', { text: f.running ? W.t('{label} en marcha', { label: f.label }) : W.t('En pausa') })]),
           U.el('div.dev-time', { text: f.text }),
-          U.el('small.muted', { text: from && shared.device !== deviceId() ? 'Último cambio desde: ' + from : 'Lo que hagas aquí se ve en tus otros dispositivos' }),
-          U.el('div.dev-acts', [U.el('button.btn.primary', { on: { click: function () { W.Screens.focus.toggle(); setTimeout(draw, 60); } } }, [U.icon(f.running ? 'pause' : 'play', 'sm'), f.running ? 'Pausar' : 'Empezar o reanudar']),
-            U.el('button.btn.ghost', { on: { click: function () { W.Sheet.closeTop(); W.Router.go('focus'); } } }, ['Abrir Enfoque'])])
+          U.el('small.muted', { text: from && shared.device !== deviceId() ? W.t('Último cambio desde: {from}', { from: from }) : W.t('Lo que hagas aquí se ve en tus otros dispositivos') }),
+          U.el('div.dev-acts', [U.el('button.btn.primary', { on: { click: function () { W.Screens.focus.toggle(); setTimeout(draw, 60); } } }, [U.icon(f.running ? 'pause' : 'play', 'sm'), f.running ? W.t('Pausar') : W.t('Empezar o reanudar')]),
+            U.el('button.btn.ghost', { on: { click: function () { W.Sheet.closeTop(); W.Router.go('focus'); } } }, [W.t('Abrir Enfoque')])])
         ]));
         var list = Devices.list();
-        host.appendChild(W.UI.section({ header: 'Conectados con tu cuenta', items: list.length ? list.map(function (d) {
+        host.appendChild(W.UI.section({ header: W.t('Conectados con tu cuenta'), items: list.length ? list.map(function (d) {
           var mins = Math.round((Date.now() - d.seen) / 60000);
-          return W.UI.cell({ icon: d.kind === 'pc' ? 'monitor' : 'phone', title: d.name + (d.me ? ' (este)' : ''), sub: d.me ? 'Ahora' : mins < 3 ? 'Conectado ahora' : 'Visto ' + U.fmtRel(d.seen - Date.now()) });
-        }) : [W.UI.cell({ title: 'Solo este dispositivo', sub: 'Abre WHIDER con tu cuenta en el ordenador o en el móvil' })],
-          footer: 'Tus tareas, tu Cuaderno y tus hábitos se sincronizan al instante entre todos ellos.' }));
+          return W.UI.cell({ icon: d.kind === 'pc' ? 'monitor' : 'phone', title: d.name + (d.me ? ' (' + W.t('este') + ')' : ''), sub: d.me ? W.t('Ahora') : mins < 3 ? W.t('Conectado ahora') : W.t('Visto {0}', { 0: U.fmtRel(d.seen - Date.now()) }) });
+        }) : [W.UI.cell({ title: W.t('Solo este dispositivo'), sub: W.t('Abre WHIDER con tu cuenta en el ordenador o en el móvil') })],
+          footer: W.t('Tus tareas, tu Cuaderno y tus hábitos se sincronizan al instante entre todos ellos.') }));
       };
-      var s = W.Sheet.open({ title: 'Mis dispositivos', className: 'devices-sheet', body: [host], onClose: function () { clearInterval(timer); } });
+      var s = W.Sheet.open({ title: W.t('Mis dispositivos'), className: 'devices-sheet', body: [host], onClose: function () { clearInterval(timer); } });
       draw();
       timer = setInterval(function () { var t = host.querySelector('.dev-time'); if (t) t.textContent = W.Screens.focus.status().text; }, 500);
       if (W.Sync) W.Sync.push();
@@ -85,9 +85,9 @@ window.Whider = window.Whider || {};
 
   /* ---------- Plantillas de un toque ---------- */
   var SUGGEST = [
-    { name: 'Rutina de mañana', icon: 'sun', lines: ['Desayunar con calma', 'Revisar el día', 'Ejercicio 20 minutos'] },
-    { name: 'Cierre del día', icon: 'moon', lines: ['Repasar lo hecho', 'Planificar mañana', 'Ordenar el escritorio'] },
-    { name: 'Inicio de semana', icon: 'week', lines: ['Revisar el calendario de la semana', 'Elegir las 3 prioridades', 'Responder correos pendientes'] }
+    { name: W.t('Rutina de mañana'), icon: 'sun', lines: [W.t('Desayunar con calma'), W.t('Revisar el día'), W.t('Ejercicio 20 minutos')] },
+    { name: W.t('Cierre del día'), icon: 'moon', lines: [W.t('Repasar lo hecho'), W.t('Planificar mañana'), W.t('Ordenar el escritorio')] },
+    { name: W.t('Inicio de semana'), icon: 'week', lines: [W.t('Revisar el calendario de la semana'), W.t('Elegir las 3 prioridades'), W.t('Responder correos pendientes')] }
   ];
   function applyTemplate(t) {
     var st = S(), n = 0;
@@ -104,17 +104,17 @@ window.Whider = window.Whider || {};
   }
   function editTemplate(t, preset) {
     var st = S(), src = t || preset || { name: '', lines: [] };
-    var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 40, placeholder: 'Nombre (p. ej. Rutina de mañana)', 'aria-label': 'Nombre de la plantilla' } });
+    var name = U.el('input.cell-input.title', { attrs: { type: 'text', maxlength: 40, placeholder: W.t('Nombre (p. ej. Rutina de mañana)'), 'aria-label': W.t('Nombre de la plantilla') } });
     name.value = src.name || '';
-    var lines = U.el('textarea.cell-input', { attrs: { rows: 6, placeholder: 'Una tarea por línea:\nRevisar el correo a las 9\nLlamar al cliente #trabajo !!', 'aria-label': 'Tareas de la plantilla' } });
+    var lines = U.el('textarea.cell-input', { attrs: { rows: 6, placeholder: W.t('Una tarea por línea:\nRevisar el correo a las 9\nLlamar al cliente #trabajo !!'), 'aria-label': W.t('Tareas de la plantilla') } });
     lines.value = t ? t.tasks.map(function (x) { return x.text; }).join('\n') : (src.lines || []).join('\n');
     var body = [U.el('div.group', [U.el('label.cell', [name]), U.el('label.cell', [lines])]),
-      U.el('p.hint', { text: 'Cada línea entiende la fecha, la hora, la #categoría y la prioridad, como la creación rápida.' })];
-    if (t) body.push(U.el('div.group', [W.UI.cell({ title: 'Eliminar la plantilla', center: true, danger: true, onTap: function () { st.removeTemplate(t.id); s.close(); } })]));
-    var s = W.Sheet.open({ title: t ? 'Editar plantilla' : 'Nueva plantilla', className: 'editor', body: body,
-      foot: [U.el('button.btn.primary', { text: 'Guardar', on: { click: function () {
+      U.el('p.hint', { text: W.t('Cada línea entiende la fecha, la hora, la #categoría y la prioridad, como la creación rápida.') })];
+    if (t) body.push(U.el('div.group', [W.UI.cell({ title: W.t('Eliminar la plantilla'), center: true, danger: true, onTap: function () { st.removeTemplate(t.id); s.close(); } })]));
+    var s = W.Sheet.open({ title: t ? W.t('Editar plantilla') : W.t('Nueva plantilla'), className: 'editor', body: body,
+      foot: [U.el('button.btn.primary', { text: W.t('Guardar'), on: { click: function () {
         var tasks = lines.value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) { return { text: l }; });
-        if (!name.value.trim() || !tasks.length) { W.Toast.show({ text: 'Pon un nombre y al menos una tarea', type: 'danger' }); return; }
+        if (!name.value.trim() || !tasks.length) { W.Toast.show({ text: W.t('Pon un nombre y al menos una tarea'), type: 'danger' }); return; }
         st.saveTemplate({ id: t ? t.id : undefined, name: name.value.trim(), icon: (t && t.icon) || src.icon || 'bolt', tasks: tasks });
         s.close();
       } } })] });
@@ -134,10 +134,10 @@ window.Whider = window.Whider || {};
       c.addEventListener('click', function () { editTemplate(null, sg); });
       chips.push(c);
     });
-    var add = U.el('button.chip.tpl-chip', { attrs: { type: 'button', 'aria-label': 'Nueva plantilla' } }, [U.icon('plus'), U.el('span', { text: list.length ? '' : 'Plantilla' })]);
+    var add = U.el('button.chip.tpl-chip', { attrs: { type: 'button', 'aria-label': W.t('Nueva plantilla') } }, [U.icon('plus'), U.el('span', { text: list.length ? '' : W.t('Plantilla') })]);
     add.addEventListener('click', function () { editTemplate(null); });
     chips.push(add);
-    return U.el('div.tpl-row', [U.el('span.tpl-h', [U.icon('bolt', 'xs'), 'De un toque']), U.el('div.chips', chips)]);
+    return U.el('div.tpl-row', [U.el('span.tpl-h', [U.icon('bolt', 'xs'), W.t('De un toque')]), U.el('div.chips', chips)]);
   }
 
   W.Devices = Devices;

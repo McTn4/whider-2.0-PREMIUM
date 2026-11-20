@@ -11,11 +11,11 @@ window.Whider = window.Whider || {};
   /** «1.1.0», «1.1.0 beta 1» (la versión sale de package.json vía js/core/version.js) */
   function versionText() { return W.WhatsNew ? W.WhatsNew.label(W.VERSION) : String(W.VERSION || ''); }
   var SCREENS = [
-    { value: 'home', label: 'Hoy' }, { value: 'tasks', label: 'Tareas' }, { value: 'calendar', label: 'Calendario' },
-    { value: 'notes', label: 'Cuaderno' }, { value: 'chats', label: 'Chats' }, { value: 'habits', label: 'Hábitos' }, { value: 'focus', label: 'Enfoque' }
+    { value: 'home', label: W.t('Hoy') }, { value: 'tasks', label: W.t('Tareas') }, { value: 'calendar', label: W.t('Calendario') },
+    { value: 'notes', label: W.t('Cuaderno') }, { value: 'chats', label: W.t('Chats') }, { value: 'habits', label: W.t('Hábitos') }, { value: 'focus', label: W.t('Enfoque') }
   ];
-  var REWARN = [{ value: 0, label: 'Solo una vez' }, { value: 10, label: 'Cada 10 minutos' }, { value: 20, label: 'Cada 20 minutos' }, { value: 60, label: 'Cada hora' }];
-  var TEXT = [{ value: 's', label: 'Pequeño' }, { value: 'm', label: 'Normal' }, { value: 'l', label: 'Grande' }, { value: 'xl', label: 'Enorme' }];
+  var REWARN = [{ value: 0, label: W.t('Solo una vez') }, { value: 10, label: W.t('Cada 10 minutos') }, { value: 20, label: W.t('Cada 20 minutos') }, { value: 60, label: W.t('Cada hora') }];
+  var TEXT = [{ value: 's', label: W.t('Pequeño') }, { value: 'm', label: W.t('Normal') }, { value: 'l', label: W.t('Grande') }, { value: 'xl', label: W.t('Enorme') }];
 
   function labelOf(arr, v) { for (var i = 0; i < arr.length; i++) if (arr[i].value === v) return arr[i].label; return ''; }
   /** Celda con menú: muestra el valor y al tocarla abre las opciones junto a él */
@@ -31,7 +31,7 @@ window.Whider = window.Whider || {};
   }
   function timePill(value, onChange) {
     var pill = U.el('span.pill.accent', { text: U.fmtTime(value) });
-    var input = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': 'Hora' } });
+    var input = U.el('input.overlay-input', { attrs: { type: 'time', 'aria-label': W.t('Hora') } });
     input.value = value;
     input.addEventListener('change', function () { if (input.value) { pill.firstChild.textContent = U.fmtTime(input.value); onChange(input.value); } });
     input.addEventListener('click', function () { try { if (input.showPicker) input.showPicker(); } catch (e) { /* lo abre el sistema */ } });
@@ -43,7 +43,7 @@ window.Whider = window.Whider || {};
   function versionLine() {
     return U.el('p.version', [
       U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
-      'WHIDER ' + versionText()
+      W.t('WHIDER {0}', { 0: versionText() })
     ]);
   }
 
@@ -53,8 +53,8 @@ window.Whider = window.Whider || {};
     var name = st.displayName();
     var profileCell = W.UI.cell({
       lead: W.Profile.avatar('lg'), cls: 'profile-cell',
-      title: name || (u ? u.displayName || 'Tu cuenta' : 'Tu perfil'),
-      sub: u ? 'Cuenta: sesión, contraseña y copia en la nube' : accounts ? 'Inicia sesión para guardar tus datos en la nube' : 'Nombre y foto',
+      title: name || (u ? u.displayName || W.t('Tu cuenta') : W.t('Tu perfil')),
+      sub: u ? W.t('Cuenta: sesión, contraseña y copia en la nube') : accounts ? W.t('Inicia sesión para guardar tus datos en la nube') : W.t('Nombre y foto'),
       onTap: function () {
         if (u) nav.push(accountPage);
         else if (accounts) { nav.close(); W.AuthScreen.open({ mode: 'register' }); }
@@ -67,46 +67,46 @@ window.Whider = window.Whider || {};
      * cómo organiza tu trabajo; lo de este ordenador; y al final privacidad y datos.
      */
     return {
-      title: 'Ajustes',
+      title: W.t('Ajustes'),
       body: [
         U.el('div.group', [profileCell]),
-        W.UI.section({ header: 'Cómo se ve y suena', items: [
-          W.UI.cell({ icon: 'type', title: 'Apariencia', value: 'Texto ' + labelOf(TEXT, cfg.textSize).toLowerCase(), onTap: function () { nav.push(appearancePage); } }),
-          W.UI.cell({ icon: 'palette', title: 'Personalización', value: desk ? 'Barra, Hoy y calendario' : 'Qué ves en Hoy', onTap: function () { nav.push(customPage); } }),
-          W.UI.cell({ icon: 'smile', title: 'Tu personaje', value: W.Character.config().name, onTap: function () { nav.close(); setTimeout(function () { W.Character.edit(); }, 200); } }),
-          W.UI.cell({ icon: 'sound', title: 'Sonidos y vibración', value: cfg.sound ? 'Activados' : 'Desactivados', onTap: function () { nav.push(soundsPage); } })
+        W.UI.section({ header: W.t('Cómo se ve y suena'), items: [
+          W.UI.cell({ icon: 'type', title: W.t('Apariencia'), value: W.t('Texto {size}', { size: labelOf(TEXT, cfg.textSize).toLowerCase() }), onTap: function () { nav.push(appearancePage); } }),
+          W.UI.cell({ icon: 'palette', title: W.t('Personalización'), value: desk ? W.t('Barra, Hoy y calendario') : W.t('Qué ves en Hoy'), onTap: function () { nav.push(customPage); } }),
+          W.UI.cell({ icon: 'smile', title: W.t('Tu personaje'), value: W.Character.config().name, onTap: function () { nav.close(); setTimeout(function () { W.Character.edit(); }, 200); } }),
+          W.UI.cell({ icon: 'sound', title: W.t('Sonidos y vibración'), value: cfg.sound ? W.t('Activados') : W.t('Desactivados'), onTap: function () { nav.push(soundsPage); } })
         ] }),
-        W.UI.section({ header: 'Avisos y organización', items: [
-          W.UI.cell({ icon: 'bell', title: 'Avisos', sub: 'Recordatorios, vencidas y horas de silencio', onTap: function () { nav.push(alertsPage); } }),
-          W.UI.cell({ icon: 'tasks', title: 'Tareas y categorías', onTap: function () { nav.push(tasksPage); } }),
-          W.UI.cell({ icon: 'target', title: 'Hábitos', onTap: function () { nav.push(habitsPage); } }),
-          W.UI.cell({ icon: 'timer', title: 'Enfoque', value: cfg.focus.work + ' min', onTap: function () { nav.push(focusPage); } }),
-          W.UI.cell({ icon: 'home', title: 'Pantalla al abrir', value: labelOf(SCREENS, cfg.startScreen), onTap: function () { nav.push(startPage); } })
+        W.UI.section({ header: W.t('Avisos y organización'), items: [
+          W.UI.cell({ icon: 'bell', title: W.t('Avisos'), sub: W.t('Recordatorios, vencidas y horas de silencio'), onTap: function () { nav.push(alertsPage); } }),
+          W.UI.cell({ icon: 'tasks', title: W.t('Tareas y categorías'), onTap: function () { nav.push(tasksPage); } }),
+          W.UI.cell({ icon: 'target', title: W.t('Hábitos'), onTap: function () { nav.push(habitsPage); } }),
+          W.UI.cell({ icon: 'timer', title: W.t('Enfoque'), value: cfg.focus.work + ' min', onTap: function () { nav.push(focusPage); } }),
+          W.UI.cell({ icon: 'home', title: W.t('Pantalla al abrir'), value: labelOf(SCREENS, cfg.startScreen), onTap: function () { nav.push(startPage); } })
         ] }),
-        W.Layout.desktop || W.Layout.app ? W.UI.section({ header: 'Este ordenador', items: [
-          W.Layout.app ? W.UI.cell({ icon: 'monitor', title: 'App de escritorio', sub: 'Abrir al iniciar, bandeja y versión', onTap: function () { nav.push(desktopPage); } }) : null,
-          W.Layout.desktop ? W.UI.cell({ icon: 'keyboard', title: 'Atajos de teclado', value: '?', onTap: function () { nav.close(); setTimeout(function () { W.Keys.help(); }, 120); } }) : null
+        W.Layout.desktop || W.Layout.app ? W.UI.section({ header: W.t('Este ordenador'), items: [
+          W.Layout.app ? W.UI.cell({ icon: 'monitor', title: W.t('App de escritorio'), sub: W.t('Abrir al iniciar, bandeja y versión'), onTap: function () { nav.push(desktopPage); } }) : null,
+          W.Layout.desktop ? W.UI.cell({ icon: 'keyboard', title: W.t('Atajos de teclado'), value: '?', onTap: function () { nav.close(); setTimeout(function () { W.Keys.help(); }, 120); } }) : null
         ].filter(Boolean) }) : null,
-        W.UI.section({ header: 'Privacidad y datos', items: [
-          W.UI.cell({ icon: 'hand', title: 'Privacidad', onTap: function () { nav.push(privacyPage); } }),
-          W.UI.cell({ icon: 'shield', title: 'Datos', sub: 'Copia de seguridad, importar y exportar', onTap: function () { nav.push(dataPage); } })
+        W.UI.section({ header: W.t('Privacidad y datos'), items: [
+          W.UI.cell({ icon: 'hand', title: W.t('Privacidad'), onTap: function () { nav.push(privacyPage); } }),
+          W.UI.cell({ icon: 'shield', title: W.t('Datos'), sub: W.t('Copia de seguridad, importar y exportar'), onTap: function () { nav.push(dataPage); } })
         ] }),
         // Solo en el navegador: la sección de descarga de la portada (en las apps ya la tienes)
         !W.Layout.app && !window.WhiderAndroid && /^https?:$/.test(location.protocol) ? W.UI.section({ items: [
           // Instalar esta web como app (iPhone: los pasos; Chrome o Edge: su botón)
           W.Install ? W.Install.cell() : null,
-          W.UI.cell({ icon: 'monitor', title: 'Descargar la app', sub: desk ? 'Para Windows, macOS y Linux' : 'Para ordenador · Android, pronto en Google Play',
+          W.UI.cell({ icon: 'monitor', title: W.t('Descargar la app'), sub: desk ? W.t('Para Windows, macOS y Linux') : W.t('Para ordenador · Android, pronto en Google Play'),
             onTap: function () { U.openExternal(location.origin + '/#descargar'); } })
         ].filter(Boolean) }) : null,
-        W.UI.section({ header: 'Ayuda', items: [
-          W.UI.cell({ icon: 'info', title: 'Primeros pasos', sub: 'Lo esencial de WHIDER en cinco pasos', onTap: function () {
+        W.UI.section({ header: W.t('Ayuda'), items: [
+          W.UI.cell({ icon: 'info', title: W.t('Primeros pasos'), sub: W.t('Lo esencial de WHIDER en cinco pasos'), onTap: function () {
             W.FirstSteps.show();
-            if (W.FirstSteps.visible()) { nav.close(); W.Router.go('home'); W.Router.refresh(); } else W.Toast.show({ text: 'Ya has completado los primeros pasos', icon: 'check' });
+            if (W.FirstSteps.visible()) { nav.close(); W.Router.go('home'); W.Router.refresh(); } else W.Toast.show({ text: W.t('Ya has completado los primeros pasos'), icon: 'check' });
           } }),
-          W.UI.cell({ icon: 'star', title: 'Novedades', sub: 'Qué ha cambiado en cada versión', onTap: function () { W.WhatsNew.open(); } }),
-          W.UI.cell({ icon: 'book', title: 'Preguntas frecuentes', onTap: function () { W.Help.faq(); } }),
-          W.UI.cell({ icon: 'send', title: 'Enviar comentarios', sub: 'Una idea, algo que no funciona u otra cosa', onTap: function () { W.Help.feedback(); } }),
-          W.Errors && W.Errors.list().length ? W.UI.cell({ icon: 'alert', title: 'Errores recientes', value: String(W.Errors.list().length), onTap: function () { nav.push(W.Help.errorsPage); } }) : null,
+          W.UI.cell({ icon: 'star', title: W.t('Novedades'), sub: W.t('Qué ha cambiado en cada versión'), onTap: function () { W.WhatsNew.open(); } }),
+          W.UI.cell({ icon: 'book', title: W.t('Preguntas frecuentes'), onTap: function () { W.Help.faq(); } }),
+          W.UI.cell({ icon: 'send', title: W.t('Enviar comentarios'), sub: W.t('Una idea, algo que no funciona u otra cosa'), onTap: function () { W.Help.feedback(); } }),
+          W.Errors && W.Errors.list().length ? W.UI.cell({ icon: 'alert', title: W.t('Errores recientes'), value: String(W.Errors.list().length), onTap: function () { nav.push(W.Help.errorsPage); } }) : null,
           // En el ordenador y en el APK de GitHub: la versión y si hay otra más nueva
           W.Updates && W.Updates.state().mode === 'android' ? W.Updates.cell(nav) : null
         ].filter(Boolean) }),
@@ -120,7 +120,7 @@ window.Whider = window.Whider || {};
     if (!u) return rootPage(nav);
     var verified = A.isVerified();
     var err = W.Sync.lastError;
-    var syncCell = W.UI.cell({ icon: 'cloud', title: 'Copia en la nube', sub: W.Sync.statusText(), subCls: W.Sync.unsaved() ? 'warn' : null, onTap: function () {
+    var syncCell = W.UI.cell({ icon: 'cloud', title: W.t('Copia en la nube'), sub: W.Sync.statusText(), subCls: W.Sync.unsaved() ? 'warn' : null, onTap: function () {
       if (!verified) { nav.close(); W.AuthScreen.showVerify(); return; }
       // Cada fallo, con lo que hay que hacer
       if (err && err.kind === 'auth') { nav.close(); W.App.logout(); return; }
@@ -128,25 +128,25 @@ window.Whider = window.Whider || {};
       W.Sync.push().then(function () { nav.refresh(); });
     } });
     var rows = [syncCell];
-    if (!verified) rows.push(W.UI.cell({ icon: 'mail', title: 'Verificar el correo', sub: 'Abre el enlace que te enviamos', onTap: function () { nav.close(); W.AuthScreen.showVerify(); } }));
-    if (A.provider() === 'password') rows.push(W.UI.cell({ icon: 'key', title: 'Cambiar la contraseña', onTap: function () {
-      A.resetPassword(u.email).then(function () { W.Toast.show({ text: 'Te hemos enviado un enlace a ' + u.email, type: 'success', icon: 'mail' }); })
+    if (!verified) rows.push(W.UI.cell({ icon: 'mail', title: W.t('Verificar el correo'), sub: W.t('Abre el enlace que te enviamos'), onTap: function () { nav.close(); W.AuthScreen.showVerify(); } }));
+    if (A.provider() === 'password') rows.push(W.UI.cell({ icon: 'key', title: W.t('Cambiar la contraseña'), onTap: function () {
+      A.resetPassword(u.email).then(function () { W.Toast.show({ text: W.t('Te hemos enviado un enlace a {email}', { email: u.email }), type: 'success', icon: 'mail' }); })
         .catch(function (e) { W.Toast.show({ text: A.message(e), type: 'danger' }); });
     } }));
     return {
-      title: 'Cuenta',
+      title: W.t('Cuenta'),
       body: [
-        U.el('div.profile-head', [W.Profile.avatar('xl'), U.el('strong', { text: st.displayName() || u.displayName || 'Tu cuenta' }), U.el('span', { text: u.email || '' }),
-          U.el('button.link-btn', { text: 'Editar nombre y foto', on: { click: function () { W.Profile.edit(function () { nav.refresh(); }); } } })]),
-        W.UI.section({ items: rows, footer: A.provider() === 'google' ? 'Has iniciado sesión con Google.' : verified ? 'Tus datos se guardan en tu cuenta y en este dispositivo.' : null }),
-        W.UI.group([W.UI.cell({ title: 'Cerrar sesión', center: true, danger: true, onTap: function () {
-          W.Sheet.confirm({ title: '¿Cerrar sesión?', text: 'Tus datos quedan guardados en tu cuenta.', ok: 'Cerrar sesión', danger: true })
+        U.el('div.profile-head', [W.Profile.avatar('xl'), U.el('strong', { text: st.displayName() || u.displayName || W.t('Tu cuenta') }), U.el('span', { text: u.email || '' }),
+          U.el('button.link-btn', { text: W.t('Editar nombre y foto'), on: { click: function () { W.Profile.edit(function () { nav.refresh(); }); } } })]),
+        W.UI.section({ items: rows, footer: A.provider() === 'google' ? W.t('Has iniciado sesión con Google.') : verified ? W.t('Tus datos se guardan en tu cuenta y en este dispositivo.') : null }),
+        W.UI.group([W.UI.cell({ title: W.t('Cerrar sesión'), center: true, danger: true, onTap: function () {
+          W.Sheet.confirm({ title: W.t('¿Cerrar sesión?'), text: W.t('Tus datos quedan guardados en tu cuenta.'), ok: W.t('Cerrar sesión'), danger: true })
             .then(function (ok) { if (ok) { nav.close(); W.App.logout(); } });
         } })]),
-        W.UI.section({ items: [W.UI.cell({ title: 'Eliminar la cuenta', center: true, danger: true, onTap: function () {
-          W.Sheet.confirm({ title: '¿Eliminar tu cuenta?', text: 'Se borrarán tu cuenta y todos sus datos de la nube. No se puede deshacer.', ok: 'Eliminar', danger: true })
+        W.UI.section({ items: [W.UI.cell({ title: W.t('Eliminar la cuenta'), center: true, danger: true, onTap: function () {
+          W.Sheet.confirm({ title: W.t('¿Eliminar tu cuenta?'), text: W.t('Se borrarán tu cuenta y todos sus datos de la nube. No se puede deshacer.'), ok: W.t('Eliminar'), danger: true })
             .then(function (ok) { if (ok) { nav.close(); W.App.deleteAccount(); } });
-        } })], footer: 'Se borra la cuenta y todo lo que contiene, también en otros dispositivos.' })
+        } })], footer: W.t('Se borra la cuenta y todo lo que contiene, también en otros dispositivos.') })
       ]
     };
   }
@@ -154,18 +154,18 @@ window.Whider = window.Whider || {};
   function appearancePage(nav) {
     var st = S(), cfg = st.settings, set = st.setSetting;
     return {
-      title: 'Apariencia',
+      title: W.t('Apariencia'),
       body: [
-        W.UI.section({ header: 'Tema', items: U.el('div', [W.UI.segmented([{ value: 'dark', label: 'Oscuro' }, { value: 'light', label: 'Claro' }, { value: 'system', label: 'Como el sistema' }], cfg.theme || 'dark', function (v) { set('theme', v); })]),
-          footer: '«Como el sistema» cambia solo cuando el dispositivo pasa de modo claro a oscuro.' }),
-        W.UI.section({ header: 'Tamaño del texto', items: U.el('div', [W.UI.segmented(TEXT, cfg.textSize, function (v) { set('textSize', v); })]) }),
-        W.UI.section({ header: 'Densidad', items: U.el('div', [W.UI.segmented([{ value: 'comfortable', label: 'Cómoda' }, { value: 'compact', label: 'Compacta' }], cfg.density, function (v) { set('density', v); })]) }),
-        W.UI.section({ items: [toggleCell({ title: 'Reducir movimiento', value: cfg.reduceMotion, onChange: function (v) { set('reduceMotion', v); } })],
-          footer: 'Quita las transiciones y animaciones de la interfaz.' }),
-        W.UI.section({ items: [toggleCell({ title: 'Alto contraste', value: cfg.contrast === 'high', onChange: function (v) { set('contrast', v ? 'high' : 'normal'); } })],
-          footer: 'Textos secundarios y líneas más marcados, para leer mejor.' }),
-        W.UI.section({ items: [toggleCell({ title: 'Prioridad en color', value: !!cfg.prioColor, onChange: function (v) { set('prioColor', v); } })],
-          footer: 'Urgente en rojo e importante en ámbar. Sin color, la prioridad se sigue viendo por sus barras y su nombre.' })
+        W.UI.section({ header: W.t('Tema'), items: U.el('div', [W.UI.segmented([{ value: 'dark', label: W.t('Oscuro') }, { value: 'light', label: W.t('Claro') }, { value: 'system', label: W.t('Como el sistema') }], cfg.theme || 'dark', function (v) { set('theme', v); })]),
+          footer: W.t('«Como el sistema» cambia solo cuando el dispositivo pasa de modo claro a oscuro.') }),
+        W.UI.section({ header: W.t('Tamaño del texto'), items: U.el('div', [W.UI.segmented(TEXT, cfg.textSize, function (v) { set('textSize', v); })]) }),
+        W.UI.section({ header: W.t('Densidad'), items: U.el('div', [W.UI.segmented([{ value: 'comfortable', label: W.t('Cómoda') }, { value: 'compact', label: W.t('Compacta') }], cfg.density, function (v) { set('density', v); })]) }),
+        W.UI.section({ items: [toggleCell({ title: W.t('Reducir movimiento'), value: cfg.reduceMotion, onChange: function (v) { set('reduceMotion', v); } })],
+          footer: W.t('Quita las transiciones y animaciones de la interfaz.') }),
+        W.UI.section({ items: [toggleCell({ title: W.t('Alto contraste'), value: cfg.contrast === 'high', onChange: function (v) { set('contrast', v ? 'high' : 'normal'); } })],
+          footer: W.t('Textos secundarios y líneas más marcados, para leer mejor.') }),
+        W.UI.section({ items: [toggleCell({ title: W.t('Prioridad en color'), value: !!cfg.prioColor, onChange: function (v) { set('prioColor', v); } })],
+          footer: W.t('Urgente en rojo e importante en ámbar. Sin color, la prioridad se sigue viendo por sus barras y su nombre.') })
       ]
     };
   }
@@ -174,18 +174,18 @@ window.Whider = window.Whider || {};
     var st = S(), cfg = st.settings, set = st.setSetting;
     var lists = st.lists.map(function (l) { return { value: l.id, label: l.name }; });
     return {
-      title: 'Tareas y categorías',
+      title: W.t('Tareas y categorías'),
       body: [
         W.UI.group([
-          W.UI.cell({ icon: 'list', title: 'Categorías', value: String(st.lists.length), onTap: function () { nav.push(listsPage); } }),
-          menuCell({ icon: 'tray', title: 'Categoría por defecto', value: cfg.defaultList, options: lists, onChange: function (v) { set('defaultList', v); } }, nav),
-          W.UI.cell({ icon: 'edit', title: 'Escribir tareas rápido', sub: 'Fecha, hora y categoría en el propio texto', onTap: function () { nav.push(quickHelpPage); } })
+          W.UI.cell({ icon: 'list', title: W.t('Categorías'), value: String(st.lists.length), onTap: function () { nav.push(listsPage); } }),
+          menuCell({ icon: 'tray', title: W.t('Categoría por defecto'), value: cfg.defaultList, options: lists, onChange: function (v) { set('defaultList', v); } }, nav),
+          W.UI.cell({ icon: 'edit', title: W.t('Escribir tareas rápido'), sub: W.t('Fecha, hora y categoría en el propio texto'), onTap: function () { nav.push(quickHelpPage); } })
         ]),
-        W.UI.section({ items: [toggleCell({ icon: 'trash', title: 'Confirmar antes de eliminar', value: cfg.confirmDelete, onChange: function (v) { set('confirmDelete', v); } })],
-          footer: 'Al deslizar para eliminar siempre puedes deshacer.' }),
+        W.UI.section({ items: [toggleCell({ icon: 'trash', title: W.t('Confirmar antes de eliminar'), value: cfg.confirmDelete, onChange: function (v) { set('confirmDelete', v); } })],
+          footer: W.t('Al deslizar para eliminar siempre puedes deshacer.') }),
         W.UI.group([
-          menuCell({ icon: 'calendar', title: 'La semana empieza el', value: cfg.weekStart, options: [{ value: 1, label: 'Lunes' }, { value: 0, label: 'Domingo' }], onChange: function (v) { set('weekStart', v); } }, nav),
-          menuCell({ icon: 'clock', title: 'Formato de hora', value: cfg.timeFormat, options: [{ value: '24', label: '24 horas' }, { value: '12', label: '12 horas' }], onChange: function (v) { set('timeFormat', v); } }, nav)
+          menuCell({ icon: 'calendar', title: W.t('La semana empieza el'), value: cfg.weekStart, options: [{ value: 1, label: W.t('Lunes') }, { value: 0, label: W.t('Domingo') }], onChange: function (v) { set('weekStart', v); } }, nav),
+          menuCell({ icon: 'clock', title: W.t('Formato de hora'), value: cfg.timeFormat, options: [{ value: '24', label: W.t('24 horas') }, { value: '12', label: W.t('12 horas') }], onChange: function (v) { set('timeFormat', v); } }, nav)
         ])
       ]
     };
@@ -196,22 +196,22 @@ window.Whider = window.Whider || {};
   }
   function quickHelpPage() {
     var ex = [
-      ['Llamar a Ana mañana a las 10', 'Mañana · 10:00'],
-      ['Dentista el 15 a las 5 de la tarde', 'Día 15 · 17:00'],
-      ['Reunión el lunes #trabajo', 'Próximo lunes · categoría Trabajo'],
-      ['Pagar el alquiler cada mes', 'Se repite cada mes'],
-      ['Entregar informe 20/11 !!!', '20 de noviembre · urgente'],
-      ['Gimnasio entre semana a las 7', 'Días laborables · 07:00']
+      [W.t('Llamar a Ana mañana a las 10'), W.t('Mañana · 10:00')],
+      [W.t('Dentista el 15 a las 5 de la tarde'), W.t('Día 15 · 17:00')],
+      [W.t('Reunión el lunes #trabajo'), W.t('Próximo lunes · categoría Trabajo')],
+      [W.t('Pagar el alquiler cada mes'), W.t('Se repite cada mes')],
+      [W.t('Entregar informe 20/11 !!!'), W.t('20 de noviembre · urgente')],
+      [W.t('Gimnasio entre semana a las 7'), W.t('Días laborables · 07:00')]
     ];
     return {
-      title: 'Escribir tareas rápido',
+      title: W.t('Escribir tareas rápido'),
       body: [
-        U.el('p.sheet-lead-text', { text: 'Con el botón + se puede escribir la fecha, la hora, la categoría y la prioridad en el propio texto: se detectan y se quitan del título. Si algo no era una fecha, toca la × de su etiqueta.' }),
-        W.UI.section({ header: 'Ejemplos', items: ex.map(function (e) { return helpRow(e[0], e[1]); }) }),
-        W.UI.section({ header: 'Atajos', items: [
-          helpRow('#nombre', 'Categoría (por ejemplo #trabajo)'),
-          helpRow('!  ·  !!  ·  !!!', 'Destacada · importante · urgente'),
-          helpRow('cada día · cada semana · cada lunes', 'Repeticiones')
+        U.el('p.sheet-lead-text', { text: W.t('Con el botón + se puede escribir la fecha, la hora, la categoría y la prioridad en el propio texto: se detectan y se quitan del título. Si algo no era una fecha, toca la × de su etiqueta.') }),
+        W.UI.section({ header: W.t('Ejemplos'), items: ex.map(function (e) { return helpRow(e[0], e[1]); }) }),
+        W.UI.section({ header: W.t('Atajos'), items: [
+          helpRow(W.t('#nombre'), W.t('Categoría (por ejemplo #trabajo)')),
+          helpRow('!  ·  !!  ·  !!!', W.t('Destacada · importante · urgente')),
+          helpRow(W.t('cada día · cada semana · cada lunes'), W.t('Repeticiones'))
         ] })
       ]
     };
@@ -225,9 +225,9 @@ window.Whider = window.Whider || {};
         W.Lists.edit(l, function () { nav.refresh(); }, function () { nav.refresh(); });
       } });
     });
-    rows.push(W.UI.cell({ icon: 'plus', title: 'Nueva categoría', accent: true, chevron: false,
+    rows.push(W.UI.cell({ icon: 'plus', title: W.t('Nueva categoría'), accent: true, chevron: false,
       onTap: function () { W.Lists.edit(null, function () { nav.refresh(); }); } }));
-    return { title: 'Categorías', body: [W.UI.section({ items: rows, footer: 'Toca una categoría para cambiarle el nombre, el icono o eliminarla.' })] };
+    return { title: W.t('Categorías'), body: [W.UI.section({ items: rows, footer: W.t('Toca una categoría para cambiarle el nombre, el icono o eliminarla.') })] };
   }
 
   /** Android 12+: avisos a la hora exacta (permiso «Alarmas y recordatorios») */
@@ -238,35 +238,35 @@ window.Whider = window.Whider || {};
     try { state = b.exactAlarms(); } catch (e) { return null; }
     if (state === 'unneeded') return null;
     var on = state === 'granted';
-    return W.UI.section({ items: [W.UI.cell({ icon: 'alarm', title: 'Avisos a la hora exacta', value: on ? 'Permitidos' : 'Sin permiso',
+    return W.UI.section({ items: [W.UI.cell({ icon: 'alarm', title: W.t('Avisos a la hora exacta'), value: on ? W.t('Permitidos') : W.t('Sin permiso'),
       onTap: on ? null : function () { b.requestExactAlarms(); setTimeout(function () { nav.refresh(); }, 2500); } })],
-      footer: on ? 'Los recordatorios suenan a su hora aunque el teléfono esté ahorrando batería.' : 'Sin este permiso, Android puede retrasar los avisos unos minutos. Tócalo y activa «Permitir alarmas y recordatorios».' });
+      footer: on ? W.t('Los recordatorios suenan a su hora aunque el teléfono esté ahorrando batería.') : W.t('Sin este permiso, Android puede retrasar los avisos unos minutos. Tócalo y activa «Permitir alarmas y recordatorios».') });
   }
 
   function alertsPage(nav) {
     var st = S(), cfg = st.settings, set = st.setSetting, q = cfg.quietHours;
     var perm = W.Notify.permission();
-    var permText = { granted: 'Activadas', denied: 'Bloqueadas', unsupported: 'No disponibles', 'default': 'Desactivadas' }[perm] || perm;
-    var quiet = [toggleCell({ icon: 'moon', title: 'Horas de silencio', value: q.enabled, onChange: function (v) { q.enabled = v; st.saveSettings('settings:quiet'); nav.refresh(); } })];
+    var permText = { granted: W.t('Activadas'), denied: W.t('Bloqueadas'), unsupported: W.t('No disponibles'), 'default': W.t('Desactivadas') }[perm] || perm;
+    var quiet = [toggleCell({ icon: 'moon', title: W.t('Horas de silencio'), value: q.enabled, onChange: function (v) { q.enabled = v; st.saveSettings('settings:quiet'); nav.refresh(); } })];
     if (q.enabled) {
-      quiet.push(W.UI.cell({ title: 'Desde', right: timePill(q.from, function (v) { q.from = v; st.saveSettings('settings:quiet'); }) }));
-      quiet.push(W.UI.cell({ title: 'Hasta', right: timePill(q.to, function (v) { q.to = v; st.saveSettings('settings:quiet'); }) }));
+      quiet.push(W.UI.cell({ title: W.t('Desde'), right: timePill(q.from, function (v) { q.from = v; st.saveSettings('settings:quiet'); }) }));
+      quiet.push(W.UI.cell({ title: W.t('Hasta'), right: timePill(q.to, function (v) { q.to = v; st.saveSettings('settings:quiet'); }) }));
     }
     return {
-      title: 'Avisos',
+      title: W.t('Avisos'),
       body: [
-        W.UI.section({ items: [W.UI.cell({ icon: 'bell', title: 'Notificaciones', value: permText,
+        W.UI.section({ items: [W.UI.cell({ icon: 'bell', title: W.t('Notificaciones'), value: permText,
           onTap: perm === 'default' ? function () { W.Notify.request(); setTimeout(function () { nav.refresh(); }, 1500); } : null })],
-          footer: perm === 'denied' ? 'Están bloqueadas: actívalas en los ajustes del teléfono para recibir los avisos.' : null }),
+          footer: perm === 'denied' ? W.t('Están bloqueadas: actívalas en los ajustes del teléfono para recibir los avisos.') : null }),
         exactCell(nav),
         W.UI.group([
-          toggleCell({ icon: 'alert', title: 'Avisar en las tareas nuevas', value: cfg.defaultWarn, onChange: function (v) { set('defaultWarn', v); } }),
-          menuCell({ icon: 'alarm', title: 'Recordatorio previo', value: cfg.remindBefore, options: W.Editor.REMIND_OPTS, onChange: function (v) { set('remindBefore', v); } }, nav),
-          menuCell({ icon: 'repeat', title: 'Repetir alerta vencida', value: cfg.rewarn, options: REWARN, onChange: function (v) { set('rewarn', v); } }, nav)
+          toggleCell({ icon: 'alert', title: W.t('Avisar en las tareas nuevas'), value: cfg.defaultWarn, onChange: function (v) { set('defaultWarn', v); } }),
+          menuCell({ icon: 'alarm', title: W.t('Recordatorio previo'), value: cfg.remindBefore, options: W.Editor.REMIND_OPTS, onChange: function (v) { set('remindBefore', v); } }, nav),
+          menuCell({ icon: 'repeat', title: W.t('Repetir alerta vencida'), value: cfg.rewarn, options: REWARN, onChange: function (v) { set('rewarn', v); } }, nav)
         ]),
-        W.UI.group([W.UI.cell({ icon: 'sound', title: 'Sonidos de los avisos', value: cfg.sound && cfg.sounds.notify ? 'Activados' : 'Desactivados', onTap: function () { nav.push(soundsPage); } })]),
-        W.UI.section({ items: quiet, footer: 'Durante las horas de silencio no suenan avisos ni llegan notificaciones.' }),
-        W.UI.group([W.UI.cell({ title: 'Probar el aviso', accent: true, center: true, onTap: function () { W.Audio.warning(); W.Audio.vibrate([70, 60, 70]); } })])
+        W.UI.group([W.UI.cell({ icon: 'sound', title: W.t('Sonidos de los avisos'), value: cfg.sound && cfg.sounds.notify ? W.t('Activados') : W.t('Desactivados'), onTap: function () { nav.push(soundsPage); } })]),
+        W.UI.section({ items: quiet, footer: W.t('Durante las horas de silencio no suenan avisos ni llegan notificaciones.') }),
+        W.UI.group([W.UI.cell({ title: W.t('Probar el aviso'), accent: true, center: true, onTap: function () { W.Audio.warning(); W.Audio.vibrate([70, 60, 70]); } })])
       ]
     };
   }
@@ -276,32 +276,32 @@ window.Whider = window.Whider || {};
     var st = S(), cfg = st.settings, snd = cfg.sounds;
     var setS = function (k, v) { snd[k] = v; st.saveSettings('settings:sounds'); };
     var styles = Object.keys(W.Audio.STYLES).map(function (k) { return { value: k, label: W.Audio.STYLES[k] }; });
-    var vol = U.el('input.range', { attrs: { type: 'range', min: 0, max: 100, step: 5, 'aria-label': 'Volumen' } });
+    var vol = U.el('input.range', { attrs: { type: 'range', min: 0, max: 100, step: 5, 'aria-label': W.t('Volumen') } });
     vol.value = snd.volume;
     var volVal = U.el('span.range-val', { text: snd.volume + ' %' });
     vol.addEventListener('input', function () { volVal.textContent = vol.value + ' %'; });
     vol.addEventListener('change', function () { setS('volume', +vol.value); W.Audio.success(); });
     var rows = cfg.sound ? [
-      W.UI.section({ header: 'Qué suena', items: [
-        toggleCell({ icon: 'hand', title: 'Botones', sub: 'Un toque breve al pulsar', value: snd.buttons, onChange: function (v) { setS('buttons', v); if (v) W.Audio.click(); } }),
-        toggleCell({ icon: 'bell', title: 'Avisos y notificaciones', sub: 'Recordatorios, vencidas, hábitos y enfoque', value: snd.notify, onChange: function (v) { setS('notify', v); if (v) W.Audio.chime(); } }),
-        toggleCell({ icon: 'check', title: 'Confirmaciones', sub: 'Completar tareas, terminar el día y nuevas marcas', value: snd.events !== false, onChange: function (v) { setS('events', v); if (v) W.Audio.complete(); } })
+      W.UI.section({ header: W.t('Qué suena'), items: [
+        toggleCell({ icon: 'hand', title: W.t('Botones'), sub: W.t('Un toque breve al pulsar'), value: snd.buttons, onChange: function (v) { setS('buttons', v); if (v) W.Audio.click(); } }),
+        toggleCell({ icon: 'bell', title: W.t('Avisos y notificaciones'), sub: W.t('Recordatorios, vencidas, hábitos y enfoque'), value: snd.notify, onChange: function (v) { setS('notify', v); if (v) W.Audio.chime(); } }),
+        toggleCell({ icon: 'check', title: W.t('Confirmaciones'), sub: W.t('Completar tareas, terminar el día y nuevas marcas'), value: snd.events !== false, onChange: function (v) { setS('events', v); if (v) W.Audio.complete(); } })
       ] }),
-      W.UI.section({ header: 'Estilo de los botones', items: U.el('div', [W.UI.segmented(styles, snd.style, function (v) { setS('style', v); W.Audio.click(v); })]) }),
-      W.UI.section({ header: 'Volumen', items: U.el('div.group', [U.el('div.cell.range-row', [U.icon('sound', 'sm'), vol, volVal])]) }),
+      W.UI.section({ header: W.t('Estilo de los botones'), items: U.el('div', [W.UI.segmented(styles, snd.style, function (v) { setS('style', v); W.Audio.click(v); })]) }),
+      W.UI.section({ header: W.t('Volumen'), items: U.el('div.group', [U.el('div.cell.range-row', [U.icon('sound', 'sm'), vol, volVal])]) }),
       W.UI.group([
-        W.UI.cell({ title: 'Probar un aviso', accent: true, center: true, onTap: function () { W.Audio.chime(); } }),
-        W.UI.cell({ title: 'Probar una confirmación', accent: true, center: true, onTap: function () { W.Audio.complete(); } })
+        W.UI.cell({ title: W.t('Probar un aviso'), accent: true, center: true, onTap: function () { W.Audio.chime(); } }),
+        W.UI.cell({ title: W.t('Probar una confirmación'), accent: true, center: true, onTap: function () { W.Audio.complete(); } })
       ])
     ] : [];
     return {
-      title: 'Sonidos y vibración',
+      title: W.t('Sonidos y vibración'),
       body: [
-        W.UI.section({ items: [toggleCell({ icon: 'sound', title: 'Sonidos', value: cfg.sound, onChange: function (v) { st.setSetting('sound', v); nav.refresh(); if (v) W.Audio.success(); } })],
-          footer: cfg.sound ? null : 'Sin sonidos: ni botones, ni avisos, ni confirmaciones.' })
+        W.UI.section({ items: [toggleCell({ icon: 'sound', title: W.t('Sonidos'), value: cfg.sound, onChange: function (v) { st.setSetting('sound', v); nav.refresh(); if (v) W.Audio.success(); } })],
+          footer: cfg.sound ? null : W.t('Sin sonidos: ni botones, ni avisos, ni confirmaciones.') })
       ].concat(rows).concat([
-        W.UI.section({ items: [toggleCell({ icon: 'vibrate', title: 'Vibración', value: cfg.vibrate, onChange: function (v) { st.setSetting('vibrate', v); if (v) W.Audio.vibrate([20]); } })],
-          footer: 'Las horas de silencio (en Avisos) también callan los sonidos de los avisos.' })
+        W.UI.section({ items: [toggleCell({ icon: 'vibrate', title: W.t('Vibración'), value: cfg.vibrate, onChange: function (v) { st.setSetting('vibrate', v); if (v) W.Audio.vibrate([20]); } })],
+          footer: W.t('Las horas de silencio (en Avisos) también callan los sonidos de los avisos.') })
       ])
     };
   }
@@ -309,13 +309,13 @@ window.Whider = window.Whider || {};
   function habitsPage(nav) {
     var st = S(), cfg = st.settings;
     return {
-      title: 'Hábitos',
+      title: W.t('Hábitos'),
       body: [
-        W.UI.section({ items: [toggleCell({ icon: 'home', title: 'Mostrar los hábitos en Hoy', value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })],
-          footer: 'En el ordenador se eligen los bloques de Hoy en Personalización.' }),
+        W.UI.section({ items: [toggleCell({ icon: 'home', title: W.t('Mostrar los hábitos en Hoy'), value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })],
+          footer: W.t('En el ordenador se eligen los bloques de Hoy en Personalización.') }),
         W.UI.group([
-          W.UI.cell({ icon: 'target', title: 'Ver mis hábitos', value: String(W.Habits.list().length), onTap: function () { nav.close(); setTimeout(function () { W.Router.go('habits'); }, 150); } }),
-          W.UI.cell({ icon: 'plus', title: 'Nuevo hábito', accent: true, chevron: false, onTap: function () { nav.close(); setTimeout(function () { W.HabitView.edit(null); }, 200); } })
+          W.UI.cell({ icon: 'target', title: W.t('Ver mis hábitos'), value: String(W.Habits.list().length), onTap: function () { nav.close(); setTimeout(function () { W.Router.go('habits'); }, 150); } }),
+          W.UI.cell({ icon: 'plus', title: W.t('Nuevo hábito'), accent: true, chevron: false, onTap: function () { nav.close(); setTimeout(function () { W.HabitView.edit(null); }, 200); } })
         ])
       ]
     };
@@ -324,60 +324,60 @@ window.Whider = window.Whider || {};
   /** Personalización: básica en el móvil; completa en el ordenador */
   function customPage(nav) {
     var st = S(), cfg = st.settings, dk = cfg.desk, desk = W.Layout.desktop;
-    var basic = W.UI.section({ header: 'Qué ves en Hoy', items: [
-      toggleCell({ icon: 'smile', title: 'Tu personaje', value: cfg.homeBuddy, onChange: function (v) { st.setSetting('homeBuddy', v); } }),
-      toggleCell({ icon: 'target', title: 'Hábitos de hoy', value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })
+    var basic = W.UI.section({ header: W.t('Qué ves en Hoy'), items: [
+      toggleCell({ icon: 'smile', title: W.t('Tu personaje'), value: cfg.homeBuddy, onChange: function (v) { st.setSetting('homeBuddy', v); } }),
+      toggleCell({ icon: 'target', title: W.t('Hábitos de hoy'), value: cfg.homeHabits, onChange: function (v) { st.setSetting('homeHabits', v); } })
     ] });
     // Móvil: solo lo que se decide aquí (Apariencia y Tu personaje ya están en la portada de Ajustes)
-    if (!desk) return { title: 'Personalización', body: [
-      W.UI.section({ items: [W.UI.cell({ icon: 'apps', title: 'Barra inferior', sub: W.Dock.summary(), onTap: function () { W.Dock.edit(function () { nav.refresh(); }); } })],
-        footer: 'Elige tres pestañas: por ejemplo, el Cuaderno o los chats a un toque.' }),
-      basic, U.el('p.hint', { text: 'En el ordenador también eliges la barra lateral, los bloques junto a Hoy y el calendario.' })] };
+    if (!desk) return { title: W.t('Personalización'), body: [
+      W.UI.section({ items: [W.UI.cell({ icon: 'apps', title: W.t('Barra inferior'), sub: W.Dock.summary(), onTap: function () { W.Dock.edit(function () { nav.refresh(); }); } })],
+        footer: W.t('Elige tres pestañas: por ejemplo, el Cuaderno o los chats a un toque.') }),
+      basic, U.el('p.hint', { text: W.t('En el ordenador también eliges la barra lateral, los bloques junto a Hoy y el calendario.') })] };
     var saveDesk = function () { st.saveSettings('settings:desk'); };
     var sb = dk.sidebar;
     var sbItem = function (key, label, icon) { return toggleCell({ icon: icon, title: label, value: sb[key] !== false, onChange: function (v) { sb[key] = v; saveDesk(); } }); };
     // Bloques de Hoy con su orden
-    var order = W.Screens.home.widgetOrder(st), names = { buddy: 'Tu personaje', summary: 'Resumen del día', messages: 'Mensajes y solicitudes', habits: 'Hábitos de hoy', upcoming: 'Próximos días', pages: 'Cuaderno', focus: 'Enfoque' };
+    var order = W.Screens.home.widgetOrder(st), names = { buddy: W.t('Tu personaje'), summary: W.t('Resumen del día'), messages: W.t('Mensajes y solicitudes'), habits: W.t('Hábitos de hoy'), upcoming: W.t('Próximos días'), pages: W.t('Cuaderno'), focus: W.t('Enfoque') };
     var widgets = order.map(function (k, i) {
       var move = function (d) { var o = order.slice(), j = i + d; if (j < 0 || j >= o.length) return; o[i] = o[j]; o[j] = k; dk.widgetOrder = o.join(','); saveDesk(); nav.refresh(); };
       return U.el('div.cell.order-row', [U.el('span.cell-title', { text: names[k] }),
-        U.el('span.order-btns', [U.el('button.circle-btn', { attrs: { 'aria-label': 'Subir', disabled: i === 0 }, on: { click: function () { move(-1); } } }, [U.icon('up')]),
-          U.el('button.circle-btn', { attrs: { 'aria-label': 'Bajar', disabled: i === order.length - 1 }, on: { click: function () { move(1); } } }, [U.icon('down')])]),
+        U.el('span.order-btns', [U.el('button.circle-btn', { attrs: { 'aria-label': W.t('Subir'), disabled: i === 0 }, on: { click: function () { move(-1); } } }, [U.icon('up')]),
+          U.el('button.circle-btn', { attrs: { 'aria-label': W.t('Bajar'), disabled: i === order.length - 1 }, on: { click: function () { move(1); } } }, [U.icon('down')])]),
         W.UI.toggle(dk.widgets[k] !== false, function (v) { dk.widgets[k] = v; saveDesk(); }, names[k])]);
     });
     var lists = st.lists.map(function (l, i) {
       return U.el('div.cell.order-row', [W.UI.cellIcon(W.Lists.icon(l)), U.el('span.cell-title', { text: l.name }),
-        U.el('span.order-btns', [U.el('button.circle-btn', { attrs: { 'aria-label': 'Subir', disabled: i === 0 }, on: { click: function () { st.moveList(l.id, -1); nav.refresh(); } } }, [U.icon('up')]),
-          U.el('button.circle-btn', { attrs: { 'aria-label': 'Bajar', disabled: i === st.lists.length - 1 }, on: { click: function () { st.moveList(l.id, 1); nav.refresh(); } } }, [U.icon('down')])])]);
+        U.el('span.order-btns', [U.el('button.circle-btn', { attrs: { 'aria-label': W.t('Subir'), disabled: i === 0 }, on: { click: function () { st.moveList(l.id, -1); nav.refresh(); } } }, [U.icon('up')]),
+          U.el('button.circle-btn', { attrs: { 'aria-label': W.t('Bajar'), disabled: i === st.lists.length - 1 }, on: { click: function () { st.moveList(l.id, 1); nav.refresh(); } } }, [U.icon('down')])])]);
     });
-    var calViews = [{ value: 'month', label: 'Mes' }, { value: 'week', label: 'Semana' }, { value: 'day', label: 'Día' }, { value: 'agenda', label: 'Agenda' }];
+    var calViews = [{ value: 'month', label: W.t('Mes') }, { value: 'week', label: W.t('Semana') }, { value: 'day', label: W.t('Día') }, { value: 'agenda', label: W.t('Agenda') }];
     var hour = function (v) { return U.pad(v) + ':00'; };
     return {
-      title: 'Personalización',
+      title: W.t('Personalización'),
       body: [
-        W.UI.section({ header: 'Barra lateral', items: [
-          sbItem('notes', 'Cuaderno', 'notebook'), sbItem('chats', 'Chats', 'chat'), sbItem('friends', 'Personas', 'users'),
-          sbItem('habits', 'Hábitos', 'target'), sbItem('focus', 'Enfoque', 'timer'), sbItem('automations', 'Automatizaciones', 'system'),
-          sbItem('stats', 'Estadísticas', 'chart'), sbItem('reports', 'Informes', 'print'),
-          sbItem('filters', 'Filtros', 'filter'),
-          toggleCell({ icon: 'hash', title: 'Mostrar los contadores', value: sb.counts !== false, onChange: function (v) { sb.counts = v; saveDesk(); } }),
-          toggleCell({ icon: 'list', title: 'Barra compacta', value: !!sb.compact, onChange: function (v) { sb.compact = v; saveDesk(); } })
+        W.UI.section({ header: W.t('Barra lateral'), items: [
+          sbItem('notes', W.t('Cuaderno'), 'notebook'), sbItem('chats', W.t('Chats'), 'chat'), sbItem('friends', W.t('Personas'), 'users'),
+          sbItem('habits', W.t('Hábitos'), 'target'), sbItem('focus', W.t('Enfoque'), 'timer'), sbItem('automations', W.t('Automatizaciones'), 'system'),
+          sbItem('stats', W.t('Estadísticas'), 'chart'), sbItem('reports', W.t('Informes'), 'print'),
+          sbItem('filters', W.t('Filtros'), 'filter'),
+          toggleCell({ icon: 'hash', title: W.t('Mostrar los contadores'), value: sb.counts !== false, onChange: function (v) { sb.counts = v; saveDesk(); } }),
+          toggleCell({ icon: 'list', title: W.t('Barra compacta'), value: !!sb.compact, onChange: function (v) { sb.compact = v; saveDesk(); } })
         ] }),
-        W.UI.section({ header: 'Lateral de Hoy', items: widgets, footer: 'Elige qué bloques ves junto a tus tareas de hoy y en qué orden.' }),
-        W.UI.section({ header: 'Calendario', items: [
-          menuCell({ icon: 'calendar', title: 'Vista al abrir', value: dk.calView, options: calViews, onChange: function (v) { dk.calView = v; st.ui.calView = v; saveDesk(); } }, nav),
-          W.UI.cell({ icon: 'clock', title: 'La semana empieza a las', right: W.UI.stepper(dk.calStartH, 0, 12, 1, function (v) { dk.calStartH = v; saveDesk(); }, hour) }),
-          W.UI.cell({ icon: 'moon', title: 'Y termina a las', right: W.UI.stepper(dk.calEndH, 13, 23, 1, function (v) { dk.calEndH = v; saveDesk(); }, hour) }),
-          toggleCell({ icon: 'week', title: 'Mostrar los fines de semana', value: dk.weekends !== false, onChange: function (v) { dk.weekends = v; saveDesk(); } })
+        W.UI.section({ header: W.t('Lateral de Hoy'), items: widgets, footer: W.t('Elige qué bloques ves junto a tus tareas de hoy y en qué orden.') }),
+        W.UI.section({ header: W.t('Calendario'), items: [
+          menuCell({ icon: 'calendar', title: W.t('Vista al abrir'), value: dk.calView, options: calViews, onChange: function (v) { dk.calView = v; st.ui.calView = v; saveDesk(); } }, nav),
+          W.UI.cell({ icon: 'clock', title: W.t('La semana empieza a las'), right: W.UI.stepper(dk.calStartH, 0, 12, 1, function (v) { dk.calStartH = v; saveDesk(); }, hour) }),
+          W.UI.cell({ icon: 'moon', title: W.t('Y termina a las'), right: W.UI.stepper(dk.calEndH, 13, 23, 1, function (v) { dk.calEndH = v; saveDesk(); }, hour) }),
+          toggleCell({ icon: 'week', title: W.t('Mostrar los fines de semana'), value: dk.weekends !== false, onChange: function (v) { dk.weekends = v; saveDesk(); } })
         ] }),
-        W.UI.section({ header: 'Pantalla', items: [
-          toggleCell({ icon: 'monitor', title: 'Contenido a todo el ancho', sub: 'Aprovecha las pantallas grandes', value: !!dk.wide, onChange: function (v) { dk.wide = v; saveDesk(); } })
+        W.UI.section({ header: W.t('Pantalla'), items: [
+          toggleCell({ icon: 'monitor', title: W.t('Contenido a todo el ancho'), sub: W.t('Aprovecha las pantallas grandes'), value: !!dk.wide, onChange: function (v) { dk.wide = v; saveDesk(); } })
         ] }),
         basic,
-        W.UI.section({ header: 'Orden de las categorías', items: lists }),
-        W.UI.section({ header: 'Filtros guardados', items: st.filters.map(function (f) {
+        W.UI.section({ header: W.t('Orden de las categorías'), items: lists }),
+        W.UI.section({ header: W.t('Filtros guardados'), items: st.filters.map(function (f) {
           return W.UI.cell({ icon: 'filter', title: f.name, sub: W.Filters.describe(f), onTap: function () { W.Filters.edit(f, function () { nav.refresh(); }); } });
-        }).concat([W.UI.cell({ icon: 'plus', title: 'Nuevo filtro', accent: true, chevron: false, onTap: function () { W.Filters.edit(null, function () { nav.refresh(); }); } })]) })
+        }).concat([W.UI.cell({ icon: 'plus', title: W.t('Nuevo filtro'), accent: true, chevron: false, onTap: function () { W.Filters.edit(null, function () { nav.refresh(); }); } })]) })
       ]
     };
   }
@@ -386,16 +386,16 @@ window.Whider = window.Whider || {};
     var st = S(), f = st.settings.focus, setF = function (k) { return function (v) { f[k] = v; st.saveSettings('settings:focus'); }; };
     var mins = function (v) { return v + ' min'; };
     return {
-      title: 'Enfoque',
+      title: W.t('Enfoque'),
       body: [
-        W.UI.section({ header: 'Duración', items: [
-          W.UI.cell({ title: 'Sesión', right: W.UI.stepper(f.work, 5, 120, 5, setF('work'), mins) }),
-          W.UI.cell({ title: 'Pausa corta', right: W.UI.stepper(f.short, 1, 30, 1, setF('short'), mins) }),
-          W.UI.cell({ title: 'Pausa larga', right: W.UI.stepper(f.long, 5, 60, 5, setF('long'), mins) })
+        W.UI.section({ header: W.t('Duración'), items: [
+          W.UI.cell({ title: W.t('Sesión'), right: W.UI.stepper(f.work, 5, 120, 5, setF('work'), mins) }),
+          W.UI.cell({ title: W.t('Pausa corta'), right: W.UI.stepper(f.short, 1, 30, 1, setF('short'), mins) }),
+          W.UI.cell({ title: W.t('Pausa larga'), right: W.UI.stepper(f.long, 5, 60, 5, setF('long'), mins) })
         ] }),
         W.UI.section({ items: [
-          W.UI.cell({ title: 'Sesiones antes de la pausa larga', right: W.UI.stepper(f.rounds, 2, 8, 1, setF('rounds')) }),
-          toggleCell({ title: 'Empezar las pausas automáticamente', value: f.autoBreaks, onChange: setF('autoBreaks') })
+          W.UI.cell({ title: W.t('Sesiones antes de la pausa larga'), right: W.UI.stepper(f.rounds, 2, 8, 1, setF('rounds')) }),
+          toggleCell({ title: W.t('Empezar las pausas automáticamente'), value: f.autoBreaks, onChange: setF('autoBreaks') })
         ] })
       ]
     };
@@ -404,11 +404,11 @@ window.Whider = window.Whider || {};
   function startPage(nav) {
     var st = S();
     return {
-      title: 'Pantalla al abrir',
+      title: W.t('Pantalla al abrir'),
       body: [W.UI.section({ items: SCREENS.map(function (o) {
         return W.UI.cell({ title: o.label, right: o.value === st.settings.startScreen ? U.icon('check', 'sm') : null, cls: o.value === st.settings.startScreen ? 'accent' : null,
           onTap: function () { st.setSetting('startScreen', o.value); nav.pop(); } });
-      }), footer: 'La pestaña que verás cada vez que abras WHIDER.' })]
+      }), footer: W.t('La pestaña que verás cada vez que abras WHIDER.') })]
     };
   }
 
@@ -430,10 +430,10 @@ window.Whider = window.Whider || {};
 
   function exportCsv() {
     var st = S(), cell = function (v) { var s = v == null ? '' : String(v); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    var rows = [['Tarea', 'Categoría', 'Prioridad', 'Fecha', 'Hora', 'Duración (min)', 'Repetición', 'Estado', 'Completada el', 'Notas']];
+    var rows = [[W.t('Tarea'), W.t('Categoría'), W.t('Prioridad'), W.t('Fecha'), W.t('Hora'), W.t('Duración (min)'), W.t('Repetición'), W.t('Estado'), W.t('Completada el'), W.t('Notas')]];
     st.tasks.forEach(function (t) {
       var l = st.getList(t.listId);
-      rows.push([t.text, l ? l.name : '', st.PRIORITIES[t.highlight].label, t.date || '', t.time || '', t.duration || '', st.REPEATS[t.repeat], t.done ? 'Completada' : st.isOverdue(t) ? 'Vencida' : 'Pendiente', t.doneAt ? new Date(t.doneAt).toLocaleString('es-ES') : '', t.notes || '']);
+      rows.push([t.text, l ? l.name : '', st.PRIORITIES[t.highlight].label, t.date || '', t.time || '', t.duration || '', st.REPEATS[t.repeat], t.done ? W.t('Completada') : st.isOverdue(t) ? W.t('Vencida') : W.t('Pendiente'), t.doneAt ? new Date(t.doneAt).toLocaleString(W.I18n.locale) : '', t.notes || '']);
     });
     U.saveFile('whider-tareas-' + U.today(), rows.map(function (r) { return r.map(cell).join(';'); }).join('\r\n'), 'csv');
   }
@@ -462,42 +462,42 @@ window.Whider = window.Whider || {};
     (function () {
       var data = null;
       try { data = JSON.parse(text); } catch (e) { data = null; }
-      if (!data || !Array.isArray(data.tasks)) { W.Toast.show({ text: 'No es una copia de WHIDER', type: 'danger' }); return; }
-      W.Sheet.confirm({ title: '¿Recuperar la copia?', text: 'Se juntará con lo que ya tienes (' + U.plural(data.tasks.length, 'tarea', 'tareas') + (data.pages ? ', ' + U.plural(data.pages.length, 'página', 'páginas') : data.notes ? ', ' + U.plural(data.notes.length, 'apunte', 'apuntes') : '') + '). Gana siempre lo más reciente.', ok: 'Recuperar' }).then(function (ok) {
+      if (!data || !Array.isArray(data.tasks)) { W.Toast.show({ text: W.t('No es una copia de WHIDER'), type: 'danger' }); return; }
+      W.Sheet.confirm({ title: W.t('¿Recuperar la copia?'), text: W.t('Se juntará con lo que ya tienes ({what}). Gana siempre lo más reciente.', { what: U.plural(data.tasks.length, 'tarea', 'tareas') + (data.pages ? ', ' + U.plural(data.pages.length, 'página', 'páginas') : data.notes ? ', ' + U.plural(data.notes.length, 'apunte', 'apuntes') : '') }), ok: W.t('Recuperar') }).then(function (ok) {
         if (!ok) return;
         var merged = W.Sync.merge(S().snapshot(), data);
         S().applySnapshot(merged, 'import');
         var np = W.Pages && data.pages ? importPages(data.pages) : 0;
-        W.Toast.show({ text: 'Copia recuperada' + (np ? ' (' + U.plural(np, 'página', 'páginas') + ' del Cuaderno)' : ''), type: 'success', icon: 'upload' });
+        W.Toast.show({ text: np ? W.t('Copia recuperada ({n} del Cuaderno)', { n: U.plural(np, 'página', 'páginas') }) : W.t('Copia recuperada'), type: 'success', icon: 'upload' });
       });
     })();
   }
   /** Ordenador: las copias automáticas guardadas, para recuperar una o abrir la carpeta */
   function backupsPage(nav) {
-    var D = W.Backup.desktop(), host = U.el('div', [U.el('p.hint', { text: 'Cargando…' })]);
+    var D = W.Backup.desktop(), host = U.el('div', [U.el('p.hint', { text: W.t('Cargando…') })]);
     D.list().then(function (list) {
       U.clear(host);
       host.appendChild(list.length ? W.UI.section({ items: list.map(function (f) {
         var day = /(\d{4}-\d{2}-\d{2})/.exec(f.name)[1];
-        return W.UI.cell({ icon: 'shield', title: U.cap(U.fmtDay(day)), sub: Math.max(1, Math.round(f.size / 1000)) + ' KB',
-          right: U.el('button.btn.xs.soft', { text: 'Recuperar', attrs: { type: 'button', 'aria-label': 'Recuperar la copia del ' + U.fmtDay(day) }, on: { click: function () {
-            D.read(f.name).then(function (text) { if (text) restoreText(text); else W.Toast.show({ text: 'No se pudo leer la copia', type: 'danger' }); });
+        return W.UI.cell({ icon: 'shield', title: U.cap(U.fmtDay(day)), sub: W.t('{0} KB', { 0: Math.max(1, Math.round(f.size / 1000)) }),
+          right: U.el('button.btn.xs.soft', { text: W.t('Recuperar'), attrs: { type: 'button', 'aria-label': W.t('Recuperar la copia del {0}', { 0: U.fmtDay(day) }) }, on: { click: function () {
+            D.read(f.name).then(function (text) { if (text) restoreText(text); else W.Toast.show({ text: W.t('No se pudo leer la copia'), type: 'danger' }); });
           } } }) });
-      }), footer: 'Se guardan las 10 últimas. Recuperar una copia la junta con lo que tienes: gana lo más reciente.' }) : U.el('p.hint', { text: 'Todavía no hay copias automáticas.' }));
-    }).catch(function () { U.clear(host); host.appendChild(U.el('p.hint', { text: 'No se pudieron leer las copias.' })); });
-    return { title: 'Copias automáticas', body: [host, U.el('div.cell-row', { style: { justifyContent: 'center', padding: '8px 0' } }, [
-      U.el('button.btn.sm.soft', { text: 'Abrir la carpeta', attrs: { type: 'button' }, on: { click: function () { D.open(); } } })])] };
+      }), footer: W.t('Se guardan las 10 últimas. Recuperar una copia la junta con lo que tienes: gana lo más reciente.') }) : U.el('p.hint', { text: W.t('Todavía no hay copias automáticas.') }));
+    }).catch(function () { U.clear(host); host.appendChild(U.el('p.hint', { text: W.t('No se pudieron leer las copias.') })); });
+    return { title: W.t('Copias automáticas'), body: [host, U.el('div.cell-row', { style: { justifyContent: 'center', padding: '8px 0' } }, [
+      U.el('button.btn.sm.soft', { text: W.t('Abrir la carpeta'), attrs: { type: 'button' }, on: { click: function () { D.open(); } } })])] };
   }
 
   /** Archivar a mano las completadas antiguas (elige desde cuándo) */
   function archiveNow(nav) {
     var day = 86400000;
-    W.Sheet.choose({ title: 'Archivar las tareas completadas…', options: [
-      { value: 365, label: 'Hace más de un año' }, { value: 180, label: 'Hace más de 6 meses' }, { value: 90, label: 'Hace más de 3 meses' }
+    W.Sheet.choose({ title: W.t('Archivar las tareas completadas…'), options: [
+      { value: 365, label: W.t('Hace más de un año') }, { value: 180, label: W.t('Hace más de 6 meses') }, { value: 90, label: W.t('Hace más de 3 meses') }
     ] }).then(function (days) {
       if (!days) return;
       var gone = S().archiveDone(Date.now() - days * day);
-      if (!gone.length) { W.Toast.show({ text: 'No hay tareas completadas tan antiguas', icon: 'info' }); return; }
+      if (!gone.length) { W.Toast.show({ text: W.t('No hay tareas completadas tan antiguas'), icon: 'info' }); return; }
       if (W.Sync) W.Sync.archiveRemote(gone);
       W.Toast.show({ text: U.plural(gone.length, 'tarea archivada', 'tareas archivadas'), icon: 'inbox' });
       nav.refresh();
@@ -507,21 +507,21 @@ window.Whider = window.Whider || {};
   function archiveView() {
     var list = S().archived().slice().reverse(), groups = {}, order = [];
     list.forEach(function (t) {
-      var d = new Date(t.doneAt || t.createdAt || 0), k = U.cap(U.MONTHS[d.getMonth()]) + ' de ' + d.getFullYear();
+      var d = new Date(t.doneAt || t.createdAt || 0), k = W.t('{month} de {year}', { month: U.cap(U.MONTHS[d.getMonth()]), year: d.getFullYear() });
       if (!groups[k]) { groups[k] = []; order.push(k); }
       groups[k].push(t);
     });
     var body = order.slice(0, 24).map(function (k) {
-      return W.UI.section({ header: k + ' · ' + groups[k].length, items: groups[k].slice(0, 60).map(function (t) { return W.UI.cell({ title: t.text, sub: t.doneOn ? 'Completada ' + U.inline(U.fmtDay(t.doneOn)) : null }); }) });
+      return W.UI.section({ header: k + ' · ' + groups[k].length, items: groups[k].slice(0, 60).map(function (t) { return W.UI.cell({ title: t.text, sub: t.doneOn ? W.t('Completada {0}', { 0: U.inline(U.fmtDay(t.doneOn)) }) : null }); }) });
     });
-    if (order.length > 24) body.push(U.el('p.hint', { text: 'Y más meses: exporta el archivo para verlo entero.' }));
+    if (order.length > 24) body.push(U.el('p.hint', { text: W.t('Y más meses: exporta el archivo para verlo entero.') }));
     var csv = function () {
       var esc = function (v) { v = String(v == null ? '' : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-      var rows = [['Tarea', 'Completada', 'Fecha', 'Hora', 'Notas']].concat(S().archived().map(function (t) { return [t.text, t.doneOn || '', t.date || '', t.time || '', t.notes || '']; }));
+      var rows = [[W.t('Tarea'), W.t('Completada'), W.t('Fecha'), W.t('Hora'), W.t('Notas')]].concat(S().archived().map(function (t) { return [t.text, t.doneOn || '', t.date || '', t.time || '', t.notes || '']; }));
       U.saveFile('whider-archivo.csv', '\ufeff' + rows.map(function (r) { return r.map(esc).join(','); }).join('\r\n'), 'text/csv');
     };
-    W.Sheet.open({ title: 'Archivo · ' + U.plural(list.length, 'tarea', 'tareas'), body: body.length ? body : [U.el('p.hint', { text: 'Todavía no hay nada archivado.' })],
-      foot: [U.el('button.btn.primary', { text: 'Exportar (CSV)', on: { click: csv } })] });
+    W.Sheet.open({ title: W.t('Archivo') + ' · ' + U.plural(list.length, 'tarea', 'tareas'), body: body.length ? body : [U.el('p.hint', { text: W.t('Todavía no hay nada archivado.') })],
+      foot: [U.el('button.btn.primary', { text: W.t('Exportar (CSV)'), on: { click: csv } })] });
   }
 
   function dataPage(nav) {
@@ -529,34 +529,34 @@ window.Whider = window.Whider || {};
     var signed = !!(W.Auth && W.Auth.user), size = W.Sync ? W.Sync.size : 0, archived = st.archived().length;
     var kb = function (b) { return b >= 1000 * 1000 ? (b / 1000000).toFixed(2).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1000)) + ' KB'; };
     return {
-      title: 'Datos',
+      title: W.t('Datos'),
       body: [
-        W.UI.section({ header: 'Espacio y archivo', items: [
-          signed ? W.UI.cell({ icon: 'cloud', title: 'Copia en la nube', value: size ? kb(size) + ' de 1 MB' : 'Se mide al sincronizar' }) : null,
-          W.UI.cell({ icon: 'inbox', title: 'Archivar completadas antiguas', sub: 'Salen de las listas; las estadísticas no cambian', onTap: function () { archiveNow(nav); } }),
-          W.UI.cell({ icon: 'tray', title: 'Archivo', value: archived ? String(archived) : 'Vacío', onTap: archiveView })
+        W.UI.section({ header: W.t('Espacio y archivo'), items: [
+          signed ? W.UI.cell({ icon: 'cloud', title: W.t('Copia en la nube'), value: size ? W.t('{size} de 1 MB', { size: kb(size) }) : W.t('Se mide al sincronizar') }) : null,
+          W.UI.cell({ icon: 'inbox', title: W.t('Archivar completadas antiguas'), sub: W.t('Salen de las listas; las estadísticas no cambian'), onTap: function () { archiveNow(nav); } }),
+          W.UI.cell({ icon: 'tray', title: W.t('Archivo'), value: archived ? String(archived) : W.t('Vacío'), onTap: archiveView })
         ].filter(Boolean), footer: signed && size > (W.Sync.SIZE_WARN || 0)
-          ? 'Tu copia en la nube se acerca al límite de 1 MB: WHIDER archiva sola las tareas completadas hace más de un año.'
-          : 'Las tareas completadas hace más de un año se archivan solas si la copia en la nube se acerca a su límite.' }),
-        W.UI.section({ header: 'Copia de seguridad', items: [
-          W.Backup.where() ? toggleCell({ icon: 'shield', title: 'Copia automática cada día', sub: W.Backup.status(), value: W.Backup.enabled(), onChange: function (v) { W.Backup.setEnabled(v); setTimeout(function () { nav.refresh(); }, 400); } }) : null,
-          W.Backup.where() === 'desktop' ? W.UI.cell({ icon: 'tray', title: 'Copias guardadas', sub: 'Recuperar una o abrir la carpeta', onTap: function () { nav.push(backupsPage); } }) : null,
-          W.UI.cell({ icon: 'download', title: 'Guardar una copia', sub: W.Backup.where() ? 'Todo: tareas, Cuaderno, hábitos, sistemas y ajustes (JSON)' : W.Backup.status(), onTap: function () { exportBackup(); setTimeout(function () { nav.refresh(); }, 300); } }),
-          W.UI.cell({ icon: 'upload', title: 'Recuperar una copia', sub: 'Se junta con lo que ya tienes', onTap: importBackup })
-        ].filter(Boolean), footer: W.Backup.where() === 'android' ? 'La copia automática va a Descargas › WHIDER › Copias (las 7 últimas) y sigue ahí aunque desinstales la app.'
-          : W.Backup.where() === 'desktop' ? 'La copia automática va a la carpeta de datos de WHIDER (las 10 últimas).'
-          : W.Auth && W.Auth.user ? 'Con tu cuenta, todo se guarda además en la nube.' : 'Sin cuenta, tus datos solo están en este navegador: guarda una copia de vez en cuando (te lo recordaremos cada semana).' }),
-        W.UI.section({ header: 'Importar y exportar', items: [
-          W.UI.cell({ icon: 'upload', title: 'Importar desde otras apps', sub: 'Todoist, Google Tasks, Notion, calendarios (.ics) u hojas de cálculo', onTap: function () { nav.close(); setTimeout(function () { W.ImportWizard.open(); }, 250); } }),
-          W.ImportWizard.last() ? W.UI.cell({ icon: 'undo', title: 'Deshacer la última importación', sub: U.plural(W.ImportWizard.last().ids.length, 'tarea', 'tareas') + ' de ' + W.ImportWizard.last().from + ' · ' + U.fmtRel(W.ImportWizard.last().at - Date.now()),
+          ? W.t('Tu copia en la nube se acerca al límite de 1 MB: WHIDER archiva sola las tareas completadas hace más de un año.')
+          : W.t('Las tareas completadas hace más de un año se archivan solas si la copia en la nube se acerca a su límite.') }),
+        W.UI.section({ header: W.t('Copia de seguridad'), items: [
+          W.Backup.where() ? toggleCell({ icon: 'shield', title: W.t('Copia automática cada día'), sub: W.Backup.status(), value: W.Backup.enabled(), onChange: function (v) { W.Backup.setEnabled(v); setTimeout(function () { nav.refresh(); }, 400); } }) : null,
+          W.Backup.where() === 'desktop' ? W.UI.cell({ icon: 'tray', title: W.t('Copias guardadas'), sub: W.t('Recuperar una o abrir la carpeta'), onTap: function () { nav.push(backupsPage); } }) : null,
+          W.UI.cell({ icon: 'download', title: W.t('Guardar una copia'), sub: W.Backup.where() ? W.t('Todo: tareas, Cuaderno, hábitos, sistemas y ajustes (JSON)') : W.Backup.status(), onTap: function () { exportBackup(); setTimeout(function () { nav.refresh(); }, 300); } }),
+          W.UI.cell({ icon: 'upload', title: W.t('Recuperar una copia'), sub: W.t('Se junta con lo que ya tienes'), onTap: importBackup })
+        ].filter(Boolean), footer: W.Backup.where() === 'android' ? W.t('La copia automática va a Descargas › WHIDER › Copias (las 7 últimas) y sigue ahí aunque desinstales la app.')
+          : W.Backup.where() === 'desktop' ? W.t('La copia automática va a la carpeta de datos de WHIDER (las 10 últimas).')
+          : W.Auth && W.Auth.user ? W.t('Con tu cuenta, todo se guarda además en la nube.') : W.t('Sin cuenta, tus datos solo están en este navegador: guarda una copia de vez en cuando (te lo recordaremos cada semana).') }),
+        W.UI.section({ header: W.t('Importar y exportar'), items: [
+          W.UI.cell({ icon: 'upload', title: W.t('Importar desde otras apps'), sub: W.t('Todoist, Google Tasks, Notion, calendarios (.ics) u hojas de cálculo'), onTap: function () { nav.close(); setTimeout(function () { W.ImportWizard.open(); }, 250); } }),
+          W.ImportWizard.last() ? W.UI.cell({ icon: 'undo', title: W.t('Deshacer la última importación'), sub: W.t('{n} de {from}', { n: U.plural(W.ImportWizard.last().ids.length, 'tarea', 'tareas'), from: W.ImportWizard.last().from }) + ' · ' + U.fmtRel(W.ImportWizard.last().at - Date.now()),
             onTap: function () { W.ImportWizard.undo(); nav.refresh(); } }) : null,
-          desk ? W.UI.cell({ icon: 'download', title: 'Exportar las tareas (CSV)', sub: 'Para Excel, Numbers o Google Sheets', onTap: exportCsv }) : null
+          desk ? W.UI.cell({ icon: 'download', title: W.t('Exportar las tareas (CSV)'), sub: W.t('Para Excel, Numbers o Google Sheets'), onTap: exportCsv }) : null
         ].filter(Boolean) }),
-        W.UI.section({ items: [W.UI.cell({ title: 'Ver la presentación', onTap: function () { nav.close(); setTimeout(function () { W.Onboarding.start(); }, 300); } })] }),
-        W.UI.section({ items: [W.UI.cell({ title: 'Restablecer todo', center: true, danger: true, onTap: function () {
-          W.Sheet.confirm({ title: '¿Restablecer WHIDER?', text: 'Se borrarán tus tareas, tu Cuaderno, tus hábitos, sesiones de enfoque y marcas. No se puede deshacer.', ok: 'Restablecer', danger: true })
-            .then(function (ok) { if (ok) { st.resetAll(); nav.close(); W.Toast.show({ text: 'Se han borrado todos los datos', icon: 'trash' }); } });
-        } })], footer: 'Borra tareas, Cuaderno, hábitos, enfoque y marcas' + (W.Auth && W.Auth.user ? ', también en tu cuenta.' : '.') + ' Tus categorías, sistemas y ajustes se conservan.' })
+        W.UI.section({ items: [W.UI.cell({ title: W.t('Ver la presentación'), onTap: function () { nav.close(); setTimeout(function () { W.Onboarding.start(); }, 300); } })] }),
+        W.UI.section({ items: [W.UI.cell({ title: W.t('Restablecer todo'), center: true, danger: true, onTap: function () {
+          W.Sheet.confirm({ title: W.t('¿Restablecer WHIDER?'), text: W.t('Se borrarán tus tareas, tu Cuaderno, tus hábitos, sesiones de enfoque y marcas. No se puede deshacer.'), ok: W.t('Restablecer'), danger: true })
+            .then(function (ok) { if (ok) { st.resetAll(); nav.close(); W.Toast.show({ text: W.t('Se han borrado todos los datos'), icon: 'trash' }); } });
+        } })], footer: (W.Auth && W.Auth.user ? W.t('Borra tareas, Cuaderno, hábitos, enfoque y marcas, también en tu cuenta.') : W.t('Borra tareas, Cuaderno, hábitos, enfoque y marcas.')) + ' ' + W.t('Tus categorías, sistemas y ajustes se conservan.') })
       ]
     };
   }
@@ -565,17 +565,17 @@ window.Whider = window.Whider || {};
   function desktopPage(nav) {
     var D = window.WhiderDesktop, prefs = W.DesktopPrefs || {};
     var set = function (k, v) { prefs[k] = v; W.DesktopPrefs = prefs; if (D) D.setSetting(k, v); nav.refresh(); };
-    var tray = D && D.platform === 'darwin' ? 'el Dock' : 'la bandeja del sistema';
+    var tray = D && D.platform === 'darwin' ? W.t('el Dock') : W.t('la bandeja del sistema');
     return {
-      title: 'App de escritorio',
+      title: W.t('App de escritorio'),
       body: [
-        W.UI.section({ items: [toggleCell({ icon: 'power', title: 'Abrir WHIDER al iniciar el ordenador', value: !!prefs.openAtLogin, onChange: function (v) { set('openAtLogin', v); } })],
-          footer: 'Se abre en segundo plano, sin ventana, para que los avisos lleguen desde el primer momento.' }),
-        W.UI.section({ items: [toggleCell({ icon: 'bell', title: 'Seguir abierta al cerrar la ventana', value: prefs.closeToTray !== false, onChange: function (v) { set('closeToTray', v); } })],
-          footer: 'WHIDER sigue en ' + tray + ' y te avisa de tus tareas aunque no tengas la ventana abierta. Para salir del todo, usa «Salir» en su menú.' }),
-        W.UI.section({ header: 'Actualizaciones', items: [W.Updates.cell(nav)],
-          footer: D && D.platform === 'darwin' ? 'En el Mac, WHIDER te avisa cuando hay una versión nueva y la descargas tú (sin la firma de pago de Apple no puede instalarse sola).'
-            : 'Las versiones nuevas se descargan solas y se instalan al cerrar WHIDER. Si la instalaste con el paquete .deb, te avisa y la descargas tú.' })
+        W.UI.section({ items: [toggleCell({ icon: 'power', title: W.t('Abrir WHIDER al iniciar el ordenador'), value: !!prefs.openAtLogin, onChange: function (v) { set('openAtLogin', v); } })],
+          footer: W.t('Se abre en segundo plano, sin ventana, para que los avisos lleguen desde el primer momento.') }),
+        W.UI.section({ items: [toggleCell({ icon: 'bell', title: W.t('Seguir abierta al cerrar la ventana'), value: prefs.closeToTray !== false, onChange: function (v) { set('closeToTray', v); } })],
+          footer: W.t('WHIDER sigue en {tray} y te avisa de tus tareas aunque no tengas la ventana abierta. Para salir del todo, usa «Salir» en su menú.', { tray: tray }) }),
+        W.UI.section({ header: W.t('Actualizaciones'), items: [W.Updates.cell(nav)],
+          footer: D && D.platform === 'darwin' ? W.t('En el Mac, WHIDER te avisa cuando hay una versión nueva y la descargas tú (sin la firma de pago de Apple no puede instalarse sola).')
+            : W.t('Las versiones nuevas se descargan solas y se instalan al cerrar WHIDER. Si la instalaste con el paquete .deb, te avisa y la descargas tú.') })
       ]
     };
   }
@@ -584,11 +584,11 @@ window.Whider = window.Whider || {};
   function blockedPage(nav) {
     var m = W.People ? W.People.blocked() : {}, ids = Object.keys(m);
     return {
-      title: 'Personas bloqueadas',
+      title: W.t('Personas bloqueadas'),
       body: [ids.length ? W.UI.section({ items: ids.map(function (id) {
-        return W.UI.cell({ icon: 'hand', title: m[id].name || 'Persona bloqueada', sub: 'Desde ' + U.fmtRel(m[id].at - Date.now()),
-          right: U.el('button.btn.xs.soft', { text: 'Desbloquear', on: { click: function () { W.People.unblock(id).catch(function () {}).then(function () { nav.refresh(); }); } } }) });
-      }), footer: 'Quien está bloqueado no puede enviarte solicitudes, ánimos ni mensajes en un chat de dos.' }) : U.el('p.hint', { text: 'No has bloqueado a nadie.' })]
+        return W.UI.cell({ icon: 'hand', title: m[id].name || W.t('Persona bloqueada'), sub: W.t('Desde {0}', { 0: U.fmtRel(m[id].at - Date.now()) }),
+          right: U.el('button.btn.xs.soft', { text: W.t('Desbloquear'), on: { click: function () { W.People.unblock(id).catch(function () {}).then(function () { nav.refresh(); }); } } }) });
+      }), footer: W.t('Quien está bloqueado no puede enviarte solicitudes, ánimos ni mensajes en un chat de dos.') }) : U.el('p.hint', { text: W.t('No has bloqueado a nadie.') })]
     };
   }
 
@@ -596,26 +596,28 @@ window.Whider = window.Whider || {};
     var base = ((window.WHIDER_CONFIG || {}).links || {}).base || 'https://whider-red.vercel.app';
     var nBlocked = W.People ? Object.keys(W.People.blocked()).length : 0;
     return {
-      title: 'Privacidad',
+      title: W.t('Privacidad'),
       body: [
-        W.UI.group([W.UI.cell({ icon: 'hand', title: 'Personas bloqueadas', value: nBlocked ? String(nBlocked) : 'Nadie', onTap: function () { nav.push(blockedPage); } })]),
-        W.UI.section({ items: [toggleCell({ icon: 'alert', title: 'Enviar informes de errores', value: W.Errors.enabled(), onChange: function (v) { W.Errors.setEnabled(v); nav.refresh(); } })],
-          footer: 'Si algo falla, WHIDER envía qué falló, la versión y el sistema, sin tu nombre ni tu cuenta y nunca tus tareas ni tu Cuaderno. Necesita cuenta. Apagado, los errores solo se guardan en este dispositivo (Ajustes → Ayuda).' }),
+        W.UI.group([W.UI.cell({ icon: 'hand', title: W.t('Personas bloqueadas'), value: nBlocked ? String(nBlocked) : W.t('Nadie'), onTap: function () { nav.push(blockedPage); } })]),
+        W.UI.section({ items: [toggleCell({ icon: 'alert', title: W.t('Enviar informes de errores'), value: W.Errors.enabled(), onChange: function (v) { W.Errors.setEnabled(v); nav.refresh(); } })],
+          footer: W.t('Si algo falla, WHIDER envía qué falló, la versión y el sistema, sin tu nombre ni tu cuenta y nunca tus tareas ni tu Cuaderno. Necesita cuenta. Apagado, los errores solo se guardan en este dispositivo (Ajustes → Ayuda).') }),
         U.el('div.legal', { html: W.PRIVACY_HTML }),
-        W.UI.group([W.UI.cell({ icon: 'external', title: 'Política de privacidad completa', sub: 'Qué datos se guardan, para qué y tus derechos', onTap: function () { U.openExternal(base + '/privacidad/'); } })])
+        W.UI.group([W.UI.cell({ icon: 'external', title: W.t('Política de privacidad completa'), sub: W.t('Qué datos se guardan, para qué y tus derechos'), onTap: function () { U.openExternal(base + '/privacidad/'); } })])
       ]
     };
   }
 
-  W.PRIVACY_HTML =
-    '<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas, categorías, tu Cuaderno, hábitos, enfoque, marcas, tu personaje, tus chats y ajustes.</p>' +
-    '<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>' +
-    '<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros. Los chats van cifrados en tránsito y en los servidores, pero no de extremo a extremo.</p>' +
-    '<p><b>Bloquear y denunciar.</b> Quien bloqueas no puede escribirte ni mandarte mensajes en vuestro chat. Si denuncias, se guarda el motivo y, si es un mensaje, un extracto, para revisarlo.</p>' +
-    '<p><b>Comentarios e informes de errores.</b> Son opcionales y van sin tu nombre ni tu cuenta: el texto que escribas, la versión de WHIDER, el sistema y, si lo permites, los errores de la app. Nunca tus tareas ni tu Cuaderno.</p>' +
-    '<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>' +
-    '<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>' +
-    '<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>';
+  // Cada párrafo, entero y con su HTML, es una clave del catálogo (js/i18n/en.js)
+  W.PRIVACY_HTML = [
+    W.t('<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas, categorías, tu Cuaderno, hábitos, enfoque, marcas, tu personaje, tus chats y ajustes.</p>'),
+    W.t('<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>'),
+    W.t('<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros. Los chats van cifrados en tránsito y en los servidores, pero no de extremo a extremo.</p>'),
+    W.t('<p><b>Bloquear y denunciar.</b> Quien bloqueas no puede escribirte ni mandarte mensajes en vuestro chat. Si denuncias, se guarda el motivo y, si es un mensaje, un extracto, para revisarlo.</p>'),
+    W.t('<p><b>Comentarios e informes de errores.</b> Son opcionales y van sin tu nombre ni tu cuenta: el texto que escribas, la versión de WHIDER, el sistema y, si lo permites, los errores de la app. Nunca tus tareas ni tu Cuaderno.</p>'),
+    W.t('<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>'),
+    W.t('<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>'),
+    W.t('<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>')
+  ].join('');
 
   var PAGES = { desktop: desktopPage, account: accountPage, appearance: appearancePage, tasks: tasksPage, lists: listsPage, alerts: alertsPage, focus: focusPage, start: startPage,
     data: dataPage, privacy: privacyPage, sounds: soundsPage, custom: customPage, habits: habitsPage };

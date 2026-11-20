@@ -428,7 +428,7 @@ window.Whider = window.Whider || {};
     return U.el('span.buddy-illus', [svg({ size: size || 96, mood: mood0 || 'happy', prop: prop })]);
   }
 
-  var KIND = { body: W.t('Especie'), tone: 'Acabado', eyes: 'Ojos', mouth: 'Boca', head: 'Cabeza', acc: 'Accesorio', fx: 'Efecto', bg: 'Fondo', frame: 'Marco' };
+  var KIND = { body: W.t('Especie'), tone: W.t('Acabado'), eyes: W.t('Ojos'), mouth: W.t('Boca'), head: W.t('Cabeza'), acc: W.t('Accesorio'), fx: W.t('Efecto'), bg: W.t('Fondo'), frame: W.t('Marco') };
   var TABS = [{ value: 'body', label: W.t('Especie') }, { value: 'face', label: W.t('Cara') }, { value: 'head', label: W.t('Cabeza') }, { value: 'acc', label: W.t('Accesorios') }, { value: 'avatar', label: W.t('Perfil') }];
 
   /* ---------- Editor ---------- */

@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { cargar } = require('./_cargar');
 
-const W = cargar(['js/core/util.js', 'js/core/pagesync.js']);
+const W = cargar(['js/core/i18n.js', 'js/core/util.js', 'js/core/pagesync.js']);
 const merge = (a, b, since) => JSON.parse(JSON.stringify(W.PageSync.mergeContent(a, b, since)));
 const blk = (id, x, at) => ({ id, t: 'p', x, at });
 

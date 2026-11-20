@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { cargar } = require('./_cargar');
 
-const W = cargar(['js/core/util.js', 'js/core/parse.js'], { ahora: '2026-11-16T09:40:00' });
+const W = cargar(['js/core/i18n.js', 'js/core/util.js', 'js/core/parse.js'], { ahora: '2026-11-16T09:40:00' });
 const listas = [
   { id: 'l1', name: 'Trabajo' },
   { id: 'l2', name: 'Casa' }

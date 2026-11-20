@@ -17,36 +17,36 @@ window.Whider = window.Whider || {};
     var focus = W.Screens.focus.status();
     var K = W.Layout.keys;
     return [
-      { icon: 'plus', label: 'Nueva tarea', hint: 'N', run: function () { W.App.newTask(); } },
-      { icon: 'sun', label: 'Ir a Hoy', hint: '1', run: function () { W.Router.go('home'); } },
-      { icon: 'tasks', label: 'Ir a Tareas', hint: '2', run: function () { W.Router.go('tasks'); } },
-      { icon: 'calendar', label: 'Ir al Calendario', hint: '3', run: function () { W.Router.go('calendar'); } },
-      { icon: 'notebook', label: 'Ir al Cuaderno', hint: '4', run: function () { W.Router.go('notes'); } },
-      { icon: 'chat', label: 'Ir a Chats', hint: '5', run: function () { W.Router.go('chats'); } },
-      { icon: 'users', label: 'Ir a Personas', hint: '6', run: function () { W.Router.go('friends'); } },
-      { icon: 'target', label: 'Ir a Hábitos', hint: '7', run: function () { W.Router.go('habits'); } },
-      { icon: 'timer', label: 'Ir a Enfoque', hint: '8', run: function () { W.Router.go('focus'); } },
-      { icon: 'chart', label: 'Estadísticas', hint: '9', run: function () { W.Router.go('stats'); } },
-      { icon: 'print', label: 'Informes', run: function () { W.Router.go('reports'); } },
-      { icon: 'system', label: 'Automatizaciones', run: function () { W.Router.go('automations'); } },
-      { icon: 'plus', label: 'Nueva página del Cuaderno', hint: 'Alt N', run: function () { W.Notes.open(null); } },
-      { icon: 'database', label: 'Nueva base de datos', run: function () { W.Notes.newPage({ kind: 'db' }); } },
-      { icon: 'qr', label: 'Mi código QR para invitar', run: function () { W.Invite.qrSheet({}); } },
-      { icon: 'scan', label: 'Escanear una invitación', run: function () { W.Invite.scan(); } },
-      { icon: 'team', label: 'Nuevo equipo', run: function () { W.State.ui.peopleTab = 'teams'; W.Router.go('friends'); } },
-      { icon: 'plus', label: 'Nuevo hábito', run: function () { W.HabitView.edit(null); } },
-      { icon: 'smile', label: 'Personalizar tu personaje', run: function () { W.Character.edit(); } },
-      { icon: focus.running ? 'pause' : 'play', label: focus.running ? 'Pausar el enfoque' : 'Empezar una sesión de enfoque', run: function () { W.Screens.focus.toggle(); } },
-      { icon: 'user', label: 'Perfil y resumen', hint: 'P', run: function () { W.Router.go('progress'); } },
-      { icon: 'trophy', label: 'Marcas personales', run: function () { W.Router.go('records'); } },
-      { icon: 'list', label: 'Nueva categoría', run: function () { W.Lists.edit(null, function (l) { W.Sidebar && openList(l.id); }); } },
-      { icon: 'filter', label: 'Nuevo filtro', run: function () { W.Filters.edit(null, function (f) { W.Sidebar.openView({ type: 'filter', id: f.id }); }); } },
-      { icon: 'upload', label: 'Importar desde Todoist, Google Tasks, Notion o un calendario', run: function () { W.ImportWizard.open(); } },
-      { icon: 'layers', label: 'Copias, importar y exportar', run: function () { W.Settings.open('data'); } },
-      { icon: 'star', label: 'Novedades de WHIDER', run: function () { W.WhatsNew.open(); } },
-      { icon: 'sliders', label: 'Personalización', run: function () { W.Settings.open('custom'); } },
-      { icon: 'gear', label: 'Ajustes', hint: K(','), run: function () { W.Settings.open(); } },
-      { icon: 'type', label: 'Atajos de teclado', hint: '?', run: function () { W.Keys.help(); } }
+      { icon: 'plus', label: W.t('Nueva tarea'), hint: 'N', run: function () { W.App.newTask(); } },
+      { icon: 'sun', label: W.t('Ir a Hoy'), hint: '1', run: function () { W.Router.go('home'); } },
+      { icon: 'tasks', label: W.t('Ir a Tareas'), hint: '2', run: function () { W.Router.go('tasks'); } },
+      { icon: 'calendar', label: W.t('Ir al Calendario'), hint: '3', run: function () { W.Router.go('calendar'); } },
+      { icon: 'notebook', label: W.t('Ir al Cuaderno'), hint: '4', run: function () { W.Router.go('notes'); } },
+      { icon: 'chat', label: W.t('Ir a Chats'), hint: '5', run: function () { W.Router.go('chats'); } },
+      { icon: 'users', label: W.t('Ir a Personas'), hint: '6', run: function () { W.Router.go('friends'); } },
+      { icon: 'target', label: W.t('Ir a Hábitos'), hint: '7', run: function () { W.Router.go('habits'); } },
+      { icon: 'timer', label: W.t('Ir a Enfoque'), hint: '8', run: function () { W.Router.go('focus'); } },
+      { icon: 'chart', label: W.t('Estadísticas'), hint: '9', run: function () { W.Router.go('stats'); } },
+      { icon: 'print', label: W.t('Informes'), run: function () { W.Router.go('reports'); } },
+      { icon: 'system', label: W.t('Automatizaciones'), run: function () { W.Router.go('automations'); } },
+      { icon: 'plus', label: W.t('Nueva página del Cuaderno'), hint: W.t('Alt N'), run: function () { W.Notes.open(null); } },
+      { icon: 'database', label: W.t('Nueva base de datos'), run: function () { W.Notes.newPage({ kind: 'db' }); } },
+      { icon: 'qr', label: W.t('Mi código QR para invitar'), run: function () { W.Invite.qrSheet({}); } },
+      { icon: 'scan', label: W.t('Escanear una invitación'), run: function () { W.Invite.scan(); } },
+      { icon: 'team', label: W.t('Nuevo equipo'), run: function () { W.State.ui.peopleTab = 'teams'; W.Router.go('friends'); } },
+      { icon: 'plus', label: W.t('Nuevo hábito'), run: function () { W.HabitView.edit(null); } },
+      { icon: 'smile', label: W.t('Personalizar tu personaje'), run: function () { W.Character.edit(); } },
+      { icon: focus.running ? 'pause' : 'play', label: focus.running ? W.t('Pausar el enfoque') : W.t('Empezar una sesión de enfoque'), run: function () { W.Screens.focus.toggle(); } },
+      { icon: 'user', label: W.t('Perfil y resumen'), hint: 'P', run: function () { W.Router.go('progress'); } },
+      { icon: 'trophy', label: W.t('Marcas personales'), run: function () { W.Router.go('records'); } },
+      { icon: 'list', label: W.t('Nueva categoría'), run: function () { W.Lists.edit(null, function (l) { W.Sidebar && openList(l.id); }); } },
+      { icon: 'filter', label: W.t('Nuevo filtro'), run: function () { W.Filters.edit(null, function (f) { W.Sidebar.openView({ type: 'filter', id: f.id }); }); } },
+      { icon: 'upload', label: W.t('Importar desde Todoist, Google Tasks, Notion o un calendario'), run: function () { W.ImportWizard.open(); } },
+      { icon: 'layers', label: W.t('Copias, importar y exportar'), run: function () { W.Settings.open('data'); } },
+      { icon: 'star', label: W.t('Novedades de WHIDER'), run: function () { W.WhatsNew.open(); } },
+      { icon: 'sliders', label: W.t('Personalización'), run: function () { W.Settings.open('custom'); } },
+      { icon: 'gear', label: W.t('Ajustes'), hint: K(','), run: function () { W.Settings.open(); } },
+      { icon: 'type', label: W.t('Atajos de teclado'), hint: '?', run: function () { W.Keys.help(); } }
     ];
   }
 
@@ -57,20 +57,20 @@ window.Whider = window.Whider || {};
   }
 
   function taskSub(st, t) {
-    if (t.done) return 'Completada';
+    if (t.done) return W.t('Completada');
     var parts = [];
     if (t.date) parts.push(U.fmtDay(t.date) + (t.time ? ', ' + U.fmtTime(t.time) : ''));
     var l = t.listId ? st.getList(t.listId) : null;
     if (l) parts.push(l.name);
-    return parts.join(' · ') || 'Sin fecha';
+    return parts.join(' · ') || W.t('Sin fecha');
   }
 
   /** Grupos de resultados para un texto */
   function search(q) {
     var st = S(), words = fold(q).split(/\s+/).filter(Boolean), groups = [];
     if (!words.length) {
-      groups.push({ title: 'Acciones', items: actions() });
-      groups.push({ title: 'Categorías', items: st.lists.map(function (l) {
+      groups.push({ title: W.t('Acciones'), items: actions() });
+      groups.push({ title: W.t('Categorías'), items: st.lists.map(function (l) {
         return { icon: W.Lists.icon(l), label: l.name, sub: U.plural(st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length, 'pendiente', 'pendientes'), run: function () { openList(l.id); } };
       }) });
       return groups;
@@ -84,32 +84,32 @@ window.Whider = window.Whider || {};
       return { icon: t.done ? 'check' : 'note', label: t.text, sub: taskSub(st, t), done: t.done, run: function () { W.Editor.open(t.id); } };
     });
     var lists = st.lists.filter(function (l) { return matches(l.name, words); }).map(function (l) {
-      return { icon: W.Lists.icon(l), label: l.name, sub: 'Categoría', run: function () { openList(l.id); } };
+      return { icon: W.Lists.icon(l), label: l.name, sub: W.t('Categoría'), run: function () { openList(l.id); } };
     }).concat(st.filters.filter(function (f) { return matches(f.name, words); }).map(function (f) {
-      return { icon: 'filter', label: f.name, sub: 'Filtro', run: function () { W.Sidebar.openView({ type: 'filter', id: f.id }); } };
+      return { icon: 'filter', label: f.name, sub: W.t('Filtro'), run: function () { W.Sidebar.openView({ type: 'filter', id: f.id }); } };
     }));
     var notes = W.Pages ? W.Pages.search(q, 8).map(function (r) {
       var p = r.page;
-      return { icon: p.icon || (p.kind === 'db' ? 'database' : 'page'), label: W.Pages.title(p), sub: (r.hit ? r.hit.slice(0, 70) : 'Cuaderno · ' + U.fmtDay(U.ymd(new Date(Math.max(p.at, p.cv))))), run: function () { W.Notes.openPage(p.id); } };
+      return { icon: p.icon || (p.kind === 'db' ? 'database' : 'page'), label: W.Pages.title(p), sub: (r.hit ? r.hit.slice(0, 70) : W.t('Cuaderno · {0}', { 0: U.fmtDay(U.ymd(new Date(Math.max(p.at, p.cv)))) })), run: function () { W.Notes.openPage(p.id); } };
     }) : [];
     var people = W.People ? W.People.contacts().filter(function (f) { return matches(((W.People.profile(f.uid) || {}).name || f.name || ''), words); }).slice(0, 5).map(function (f) {
-      return { icon: f.kind === 'work' ? 'briefcase' : 'user', label: (W.People.profile(f.uid) || {}).name || f.name || 'Contacto', sub: 'Abrir el chat', run: function () { W.Chat.openChat({ uid: f.uid }); } };
+      return { icon: f.kind === 'work' ? 'briefcase' : 'user', label: (W.People.profile(f.uid) || {}).name || f.name || W.t('Contacto'), sub: W.t('Abrir el chat'), run: function () { W.Chat.openChat({ uid: f.uid }); } };
     }) : [];
     var habits = st.habits.filter(function (h) { return matches(h.name, words); }).map(function (h) {
       var done = W.Habits.isDone(h, U.today());
-      return { icon: h.icon || 'target', label: h.name, sub: (h.archived ? 'Archivado · ' : '') + W.Habits.freqLabel(h) + (done ? ' · hecho hoy' : ''), run: function () { W.HabitView.open(h.id); } };
+      return { icon: h.icon || 'target', label: h.name, sub: (h.archived ? W.t('Archivado') + ' · ' : '') + W.Habits.freqLabel(h) + (done ? ' · ' + W.t('hecho hoy') : ''), run: function () { W.HabitView.open(h.id); } };
     });
     var acts = actions().filter(function (a) { return matches(a.label, words); });
-    var create = { icon: 'plus', label: 'Crear «' + q.trim() + '»', sub: 'Nueva tarea con este texto', run: function () { createTask(q); } };
-    if (tasks.length) groups.push({ title: 'Tareas', items: tasks });
-    if (lists.length) groups.push({ title: 'Categorías y filtros', items: lists });
-    if (notes.length) groups.push({ title: 'Cuaderno', items: notes });
-    if (people.length) groups.push({ title: 'Personas', items: people });
-    if (habits.length) groups.push({ title: 'Hábitos', items: habits });
-    if (acts.length) groups.push({ title: 'Acciones', items: acts });
+    var create = { icon: 'plus', label: W.t('Crear «{0}»', { 0: q.trim() }), sub: W.t('Nueva tarea con este texto'), run: function () { createTask(q); } };
+    if (tasks.length) groups.push({ title: W.t('Tareas'), items: tasks });
+    if (lists.length) groups.push({ title: W.t('Categorías y filtros'), items: lists });
+    if (notes.length) groups.push({ title: W.t('Cuaderno'), items: notes });
+    if (people.length) groups.push({ title: W.t('Personas'), items: people });
+    if (habits.length) groups.push({ title: W.t('Hábitos'), items: habits });
+    if (acts.length) groups.push({ title: W.t('Acciones'), items: acts });
     // Sin coincidencias, crear la tarea es lo primero (Intro la crea)
-    if (!tasks.length && !lists.length && !acts.length && !habits.length && !notes.length) groups.unshift({ title: 'Nueva tarea', items: [create] });
-    else groups.push({ title: 'Nueva tarea', items: [create] });
+    if (!tasks.length && !lists.length && !acts.length && !habits.length && !notes.length) groups.unshift({ title: W.t('Nueva tarea'), items: [create] });
+    else groups.push({ title: W.t('Nueva tarea'), items: [create] });
     return groups;
   }
 
@@ -118,7 +118,7 @@ window.Whider = window.Whider || {};
     if (!p.text) return;
     var t = st.addTask({ text: p.text, date: p.date !== undefined ? p.date : U.today(), time: p.time || null, listId: p.listId || st.settings.defaultList,
       highlight: p.highlight || 'none', repeat: p.repeat || 'none', warn: st.settings.defaultWarn, notes: '', subtasks: [] });
-    if (t) W.Toast.show({ text: 'Tarea creada: ' + t.text, type: 'success', icon: 'check' });
+    if (t) W.Toast.show({ text: W.t('Tarea creada: {text}', { text: t.text }), type: 'success', icon: 'check' });
   }
 
   var Palette = {
@@ -126,7 +126,7 @@ window.Whider = window.Whider || {};
 
     open: function (initial) {
       if (current) return current;
-      var input = U.el('input.pal-input', { attrs: { type: 'text', placeholder: 'Busca tareas, páginas, personas o acciones…', 'aria-label': 'Buscar', autocomplete: 'off', spellcheck: 'false' } });
+      var input = U.el('input.pal-input', { attrs: { type: 'text', placeholder: W.t('Busca tareas, páginas, personas o acciones…'), 'aria-label': W.t('Buscar'), autocomplete: 'off', spellcheck: 'false' } });
       input.value = initial || '';
       var results = U.el('div.pal-results', { attrs: { role: 'listbox' } });
       var flat = [], active = 0;
@@ -160,7 +160,7 @@ window.Whider = window.Whider || {};
             results.appendChild(node);
           });
         });
-        if (!flat.length) results.appendChild(U.el('p.pal-empty', { text: 'Sin resultados.' }));
+        if (!flat.length) results.appendChild(U.el('p.pal-empty', { text: W.t('Sin resultados.') }));
         setActive(0);
       };
 
@@ -173,11 +173,11 @@ window.Whider = window.Whider || {};
 
       var foot = U.el('div.pal-foot', [
         U.el('span', [U.el('kbd', { text: '↑' }), U.el('kbd', { text: '↓' }), 'moverse']),
-        U.el('span', [U.el('kbd', { text: 'Intro' }), 'abrir']),
-        U.el('span', [U.el('kbd', { text: 'Esc' }), 'cerrar'])
+        U.el('span', [U.el('kbd', { text: W.t('Intro') }), 'abrir']),
+        U.el('span', [U.el('kbd', { text: W.t('Esc') }), 'cerrar'])
       ]);
       var sheet = W.Sheet.open({
-        title: 'Buscar', className: 'palette', trail: null,
+        title: W.t('Buscar'), className: 'palette', trail: null,
         body: [U.el('div.pal-box', [U.icon('search'), input]), results, foot],
         onClose: function () { current = null; }
       });

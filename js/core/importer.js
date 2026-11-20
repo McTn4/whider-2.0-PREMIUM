@@ -116,10 +116,10 @@ window.Whider = window.Whider || {};
   /* ---------------------------------------------------------------- Todoist (CSV) */
   function todoist(text, fileName) {
     var rows = csv(text), warnings = [], items = [];
-    if (!rows.length) return { items: items, warnings: ['El archivo está vacío.'] };
+    if (!rows.length) return { items: items, warnings: [W.t('El archivo está vacío.')] };
     var head = rows[0].map(function (h) { return String(h).trim().toUpperCase(); });
     var c = function (n) { return head.indexOf(n); };
-    if (c('CONTENT') < 0 || c('TYPE') < 0) return { items: items, warnings: ['No parece un CSV de Todoist: faltan las columnas TYPE y CONTENT.'], error: true };
+    if (c('CONTENT') < 0 || c('TYPE') < 0) return { items: items, warnings: [W.t('No parece un CSV de Todoist: faltan las columnas TYPE y CONTENT.')], error: true };
     var project = String(fileName || '').replace(/\.csv$/i, '').replace(/[_-]+/g, ' ').trim();
     var section = '', last = null, top = null, today = new Date();
     rows.slice(1).forEach(function (r) {
@@ -144,7 +144,7 @@ window.Whider = window.Whider || {};
         else if (rep !== 'none') t.date = ymd(today);
         else if (W.Parse && W.Parse.task) { var pp = W.Parse.task('x ' + raw, {}); t.date = pp.date || null; t.time = pp.time || null; }
         if (rep !== 'none') t.repeat = rep;
-        if (!t.date) warnings.push('«' + content.slice(0, 40) + '»: no se entendió la fecha «' + raw + '» (se importa sin fecha).');
+        if (!t.date) warnings.push(W.t('«{task}»: no se entendió la fecha «{date}» (se importa sin fecha).', { task: content.slice(0, 40), date: raw }));
       }
       t.listName = section ? (project ? project + ' · ' + section : section).slice(0, 24) : project.slice(0, 24);
       items.push(t);
@@ -156,9 +156,9 @@ window.Whider = window.Whider || {};
   /* ---------------------------------------------------------------- Google Tasks (Takeout JSON) */
   function gtasks(text) {
     var data, warnings = [], items = [];
-    try { data = JSON.parse(text); } catch (e) { return { items: items, warnings: ['El archivo no es un JSON válido.'], error: true }; }
+    try { data = JSON.parse(text); } catch (e) { return { items: items, warnings: [W.t('El archivo no es un JSON válido.')], error: true }; }
     var lists = data && Array.isArray(data.items) ? data.items : null;
-    if (!lists || (data.kind && data.kind !== 'tasks#taskLists')) return { items: items, warnings: ['No parece el archivo de Google Tasks de Google Takeout (Tasks.json).'], error: true };
+    if (!lists || (data.kind && data.kind !== 'tasks#taskLists')) return { items: items, warnings: [W.t('No parece el archivo de Google Tasks de Google Takeout (Tasks.json).')], error: true };
     lists.forEach(function (l) {
       var byId = {}, tasks = Array.isArray(l.items) ? l.items : [];
       tasks.forEach(function (x) {
@@ -177,7 +177,7 @@ window.Whider = window.Whider || {};
         if (!x || !x.parent || x.deleted || !String(x.title || '').trim()) return;
         var p = byId[x.parent];
         if (p) p.subtasks.push({ text: String(x.title).trim().slice(0, 120), done: x.status === 'completed' });
-        else { warnings.push('Subtarea sin su tarea: «' + String(x.title).slice(0, 40) + '» (se importa como tarea).'); var t = base(x.title); t.listName = String(l.title || '').slice(0, 24); items.push(t); }
+        else { warnings.push(W.t('Subtarea sin su tarea: «{task}» (se importa como tarea).', { task: String(x.title).slice(0, 40) })); var t = base(x.title); t.listName = String(l.title || '').slice(0, 24); items.push(t); }
       });
     });
     return { items: items, warnings: warnings };
@@ -222,7 +222,7 @@ window.Whider = window.Whider || {};
       var t = base(text);
       if (map.date >= 0 && String(r[map.date] || '').trim()) {
         var w = when(r[map.date]);
-        if (w.date) { t.date = w.date; t.time = w.time; } else warnings.push('Fila ' + (i + 2) + ': no se entendió la fecha «' + String(r[map.date]).slice(0, 30) + '».');
+        if (w.date) { t.date = w.date; t.time = w.time; } else warnings.push(W.t('Fila {n}: no se entendió la fecha «{date}».', { n: i + 2, date: String(r[map.date]).slice(0, 30) }));
       }
       if (map.time >= 0) { var tt = String(r[map.time] || '').match(/^(\d{1,2}):(\d{2})/); if (tt && +tt[1] < 24) t.time = pad(+tt[1]) + ':' + tt[2]; }
       if (map.list >= 0) t.listName = String(r[map.list] || '').split(',')[0].trim().slice(0, 24);
@@ -263,7 +263,7 @@ window.Whider = window.Whider || {};
   function ics(text, opts) {
     opts = opts || {};
     var warnings = [], items = [], lines = String(text || '').replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '').split(/\r?\n/);
-    if (!/BEGIN:VCALENDAR/i.test(lines.slice(0, 5).join('\n'))) return { items: items, warnings: ['No parece un calendario (.ics).'], error: true };
+    if (!/BEGIN:VCALENDAR/i.test(lines.slice(0, 5).join('\n'))) return { items: items, warnings: [W.t('No parece un calendario (.ics).')], error: true };
     var cal = '', cur = null, skippedPast = 0, today = ymd(new Date());
     lines.forEach(function (line) {
       var i = line.indexOf(':'); if (i < 0) return;
@@ -286,7 +286,7 @@ window.Whider = window.Whider || {};
         if (rr) {
           var freq = (rr.match(/FREQ=([A-Z]+)/) || [])[1];
           t.repeat = freq === 'DAILY' ? 'daily' : freq === 'WEEKLY' ? (/BYDAY=MO,TU,WE,TH,FR(;|$)/.test(rr) ? 'weekdays' : 'weekly') : freq === 'MONTHLY' ? 'monthly' : 'none';
-          if (t.repeat === 'none') warnings.push('«' + t.text.slice(0, 40) + '»: esa repetición no existe en WHIDER (se importa una vez).');
+          if (t.repeat === 'none') warnings.push(W.t('«{task}»: esa repetición no existe en WHIDER (se importa una vez).', { task: t.text.slice(0, 40) }));
         }
         var p = +((x.PRIORITY && x.PRIORITY.v) || 0);
         t.highlight = p >= 1 && p <= 2 ? 'danger' : p >= 3 && p <= 4 ? 'purple' : p === 5 ? 'star' : 'none';

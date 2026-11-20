@@ -47,14 +47,14 @@ window.Whider = window.Whider || {};
   function sheet() {
     var ipad = /iPad/.test(navigator.userAgent || '') || (/Mac/.test(navigator.platform || '') && navigator.maxTouchPoints > 1);
     return W.Sheet.open({
-      title: ipad ? 'Instalar en el iPad' : 'Instalar en el iPhone', className: 'install',
+      title: ipad ? W.t('Instalar en el iPad') : W.t('Instalar en el iPhone'), className: 'install',
       body: [
         U.el('ol.in-steps', [
-          step('share', 'Pulsa Compartir', 'El botón del cuadrado con una flecha hacia arriba, ' + (ipad ? 'arriba en Safari.' : 'abajo en Safari.')),
-          step('plus', 'Elige «Añadir a pantalla de inicio»', 'Si no lo ves, desliza la lista hacia arriba. Después, pulsa «Añadir».'),
-          step('bell', 'Abre WHIDER desde su icono', 'Se abre como una app, funciona sin conexión y, con iOS 16.4 o posterior, te avisa de tus tareas.')
+          step('share', W.t('Pulsa Compartir'), ipad ? W.t('El botón del cuadrado con una flecha hacia arriba, arriba en Safari.') : W.t('El botón del cuadrado con una flecha hacia arriba, abajo en Safari.')),
+          step('plus', W.t('Elige «Añadir a pantalla de inicio»'), W.t('Si no lo ves, desliza la lista hacia arriba. Después, pulsa «Añadir».')),
+          step('bell', W.t('Abre WHIDER desde su icono'), W.t('Se abre como una app, funciona sin conexión y, con iOS 16.4 o posterior, te avisa de tus tareas.'))
         ]),
-        U.el('p.hint', { text: 'En otros navegadores del iPhone, como Chrome, la opción también está en el menú Compartir. Tus datos siguen siendo los mismos.' })
+        U.el('p.hint', { text: W.t('En otros navegadores del iPhone, como Chrome, la opción también está en el menú Compartir. Tus datos siguen siendo los mismos.') })
       ]
     });
   }
@@ -75,17 +75,17 @@ window.Whider = window.Whider || {};
   /** Tarjeta en Hoy: solo a quien ya ha empezado (alguna tarea) y no la ha cerrado */
   function card() {
     if (!canInstall() || dismissed() || !S() || !S().tasks.length) return null;
-    var close = U.el('button.circle-btn', { attrs: { type: 'button', 'aria-label': 'Cerrar el aviso de instalar' }, on: { click: function () {
+    var close = U.el('button.circle-btn', { attrs: { type: 'button', 'aria-label': W.t('Cerrar el aviso de instalar') }, on: { click: function () {
       mark();
-      W.Toast.show({ text: 'Puedes instalarla cuando quieras desde Ajustes', icon: 'info' });
+      W.Toast.show({ text: W.t('Puedes instalarla cuando quieras desde Ajustes'), icon: 'info' });
       W.Router.refresh();
     } } }, [U.icon('close', 'xs')]);
-    var go = U.el('button.btn.sm.soft', { text: ios() ? 'Ver cómo' : 'Instalar', attrs: { type: 'button' }, on: { click: function () { install(); } } });
+    var go = U.el('button.btn.sm.soft', { text: ios() ? W.t('Ver cómo') : W.t('Instalar'), attrs: { type: 'button' }, on: { click: function () { install(); } } });
     return U.el('div.wn-card.in-card', { attrs: { role: 'status' } }, [
       U.el('span.wn-badge', { attrs: { 'aria-hidden': 'true' } }, [U.icon('download', 'xs')]),
       U.el('div.wn-text', [
-        U.el('b', { text: ios() ? 'Instala WHIDER en tu iPhone' : 'Instala WHIDER' }),
-        U.el('small', { text: ios() ? 'Se abre como una app, funciona sin conexión y te avisa de tus tareas.' : 'Se abre en su propia ventana y funciona sin conexión.' })
+        U.el('b', { text: ios() ? W.t('Instala WHIDER en tu iPhone') : W.t('Instala WHIDER') }),
+        U.el('small', { text: ios() ? W.t('Se abre como una app, funciona sin conexión y te avisa de tus tareas.') : W.t('Se abre en su propia ventana y funciona sin conexión.') })
       ]),
       go, close
     ]);
@@ -93,7 +93,7 @@ window.Whider = window.Whider || {};
   /** Celda de Ajustes (null si no toca) */
   function cell() {
     if (!canInstall()) return null;
-    return W.UI.cell({ icon: 'download', title: ios() ? 'Instalar en el iPhone' : 'Instalar WHIDER', sub: ios() ? 'Para que funcione como una app y te avise' : 'En su propia ventana y sin conexión', onTap: function () { install(); } });
+    return W.UI.cell({ icon: 'download', title: ios() ? W.t('Instalar en el iPhone') : W.t('Instalar WHIDER'), sub: ios() ? W.t('Para que funcione como una app y te avise') : W.t('En su propia ventana y sin conexión'), onTap: function () { install(); } });
   }
 
   W.Install = { ios: ios, standalone: standalone, isApp: isApp, canInstall: canInstall, install: install, sheet: sheet, card: card, cell: cell };

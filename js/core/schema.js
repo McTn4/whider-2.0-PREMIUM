@@ -18,18 +18,18 @@ window.Whider = window.Whider || {};
    * compatible con dispositivos que aún tengan una versión antigua.
    */
   var ACCENTS = {
-    iris:     { name: 'Iris',     a: '#7C83FF', on: '#FFFFFF' },
-    indigo:   { name: 'Azul',     a: '#4C8DFF', on: '#FFFFFF' },
-    violet:   { name: 'Violeta',  a: '#A98BFF', on: '#FFFFFF' },
-    rose:     { name: 'Rosa',     a: '#FF6B9A', on: '#FFFFFF' },
-    red:      { name: 'Coral',    a: '#FF6B5E', on: '#FFFFFF' },
-    ember:    { name: 'Naranja',  a: '#FF9A4D', on: '#1A1206' },
-    gold:     { name: 'Ámbar',    a: '#F5BE4B', on: '#1A1406' },
-    jade:     { name: 'Verde',    a: '#3DD68C', on: '#06180F' },
-    mint:     { name: 'Menta',    a: '#5EE0C8', on: '#061814' },
-    aqua:     { name: 'Cian',     a: '#3CC6E0', on: '#061418' },
-    brown:    { name: 'Arena',    a: '#C9A27C', on: '#1A1209' },
-    graphite: { name: 'Plata',    a: '#A3AAB9', on: '#101217' }
+    iris:     { name: W.t('Iris'),     a: '#7C83FF', on: '#FFFFFF' },
+    indigo:   { name: W.t('Azul'),     a: '#4C8DFF', on: '#FFFFFF' },
+    violet:   { name: W.t('Violeta'),  a: '#A98BFF', on: '#FFFFFF' },
+    rose:     { name: W.t('Rosa'),     a: '#FF6B9A', on: '#FFFFFF' },
+    red:      { name: W.t('Coral'),    a: '#FF6B5E', on: '#FFFFFF' },
+    ember:    { name: W.t('Naranja'),  a: '#FF9A4D', on: '#1A1206' },
+    gold:     { name: W.t('Ámbar'),    a: '#F5BE4B', on: '#1A1406' },
+    jade:     { name: W.t('Verde'),    a: '#3DD68C', on: '#06180F' },
+    mint:     { name: W.t('Menta'),    a: '#5EE0C8', on: '#061814' },
+    aqua:     { name: W.t('Cian'),     a: '#3CC6E0', on: '#061418' },
+    brown:    { name: W.t('Arena'),    a: '#C9A27C', on: '#1A1209' },
+    graphite: { name: W.t('Plata'),    a: '#A3AAB9', on: '#101217' }
   };
 
   /*
@@ -39,26 +39,26 @@ window.Whider = window.Whider || {};
    * El rojo y el ámbar quedan para la prioridad (urgente e importante).
    */
   var LIST_TINTS = {
-    verde:    { name: 'Verde',    hex: '#008300' },
-    azul:     { name: 'Azul',     hex: '#3987E5' },
-    turquesa: { name: 'Turquesa', hex: '#199E70' },
-    violeta:  { name: 'Violeta',  hex: '#9085E9' },
-    rosa:     { name: 'Rosa',     hex: '#D55181' }
+    verde:    { name: W.t('Verde'),    hex: '#008300' },
+    azul:     { name: W.t('Azul'),     hex: '#3987E5' },
+    turquesa: { name: W.t('Turquesa'), hex: '#199E70' },
+    violeta:  { name: W.t('Violeta'),  hex: '#9085E9' },
+    rosa:     { name: W.t('Rosa'),     hex: '#D55181' }
   };
 
   var PRIORITIES = {
-    danger: { label: 'Urgente', short: 'Urgente', rank: 0 },
-    purple: { label: 'Importante', short: 'Importante', rank: 1 },
-    star:   { label: 'Destacada', short: 'Destacada', rank: 2 },
-    none:   { label: 'Normal', short: 'Normal', rank: 3 }
+    danger: { label: W.t('Urgente'), short: W.t('Urgente'), rank: 0 },
+    purple: { label: W.t('Importante'), short: W.t('Importante'), rank: 1 },
+    star:   { label: W.t('Destacada'), short: W.t('Destacada'), rank: 2 },
+    none:   { label: W.t('Normal'), short: W.t('Normal'), rank: 3 }
   };
 
   var REPEATS = {
-    none: 'No se repite',
-    daily: 'Cada día',
-    weekdays: 'Días laborables',
-    weekly: 'Cada semana',
-    monthly: 'Cada mes'
+    none: W.t('No se repite'),
+    daily: W.t('Cada día'),
+    weekdays: W.t('Días laborables'),
+    weekly: W.t('Cada semana'),
+    monthly: W.t('Cada mes')
   };
 
   var DEFAULT_SETTINGS = {
@@ -104,9 +104,9 @@ window.Whider = window.Whider || {};
   };
 
   var DEFAULT_LISTS = [
-    { id: 'personal', name: 'Personal', color: 'iris', icon: 'user' },
-    { id: 'work', name: 'Trabajo', color: 'ember', icon: 'briefcase' },
-    { id: 'health', name: 'Salud', color: 'jade', icon: 'heart' }
+    { id: 'personal', name: W.t('Personal'), color: 'iris', icon: 'user' },
+    { id: 'work', name: W.t('Trabajo'), color: 'ember', icon: 'briefcase' },
+    { id: 'health', name: W.t('Salud'), color: 'jade', icon: 'heart' }
   ];
   var DEFAULT_LIST_ICON = { personal: 'user', work: 'briefcase', health: 'heart' };
   function cleanIcon(ic, id) { return typeof ic === 'string' && /^[a-z-]{2,20}$/.test(ic) ? ic : (DEFAULT_LIST_ICON[id] || 'list'); }
@@ -319,7 +319,7 @@ window.Whider = window.Whider || {};
     var simple = function (v) { return typeof v === 'string' ? v.slice(0, 160) : typeof v === 'number' && isFinite(v) ? v : typeof v === 'boolean' ? v : null; };
     return {
       id: r.id,
-      name: typeof r.name === 'string' && r.name.trim() ? r.name.trim().slice(0, 60) : 'Regla',
+      name: typeof r.name === 'string' && r.name.trim() ? r.name.trim().slice(0, 60) : W.t('Regla'),
       enabled: r.enabled !== false,
       trigger: { type: r.trigger.type, time: isTime(r.trigger.time) ? r.trigger.time : (r.trigger.type === 'daily' ? '07:00' : null) },
       conditions: (Array.isArray(r.conditions) ? r.conditions : []).slice(0, 10).filter(function (c) { return c && typeof c.field === 'string' && typeof c.op === 'string'; })
@@ -397,7 +397,7 @@ window.Whider = window.Whider || {};
     out.enabled = !!s.enabled; out.enabledAt = typeof s.enabledAt === 'number' ? s.enabledAt : 0;
     if (s.spaces && typeof s.spaces === 'object') Object.keys(s.spaces).forEach(function (id) {
       var x = s.spaces[id];
-      if (x && typeof x.at === 'number' && /^[A-Za-z0-9_-]{4,40}$/.test(id)) out.spaces[id] = { name: typeof x.name === 'string' ? x.name.slice(0, 40) : 'Espacio', at: x.at, left: !!x.left, icon: typeof x.icon === 'string' ? x.icon.slice(0, 20) : '' };
+      if (x && typeof x.at === 'number' && /^[A-Za-z0-9_-]{4,40}$/.test(id)) out.spaces[id] = { name: typeof x.name === 'string' ? x.name.slice(0, 40) : W.t('Espacio'), at: x.at, left: !!x.left, icon: typeof x.icon === 'string' ? x.icon.slice(0, 20) : '' };
     });
     if (s.friends && typeof s.friends === 'object') Object.keys(s.friends).forEach(function (uid) {
       var f = s.friends[uid];
@@ -405,7 +405,7 @@ window.Whider = window.Whider || {};
     });
     if (s.devices && typeof s.devices === 'object') Object.keys(s.devices).forEach(function (id) {
       var d = s.devices[id];
-      if (d && typeof d.seen === 'number') out.devices[id] = { name: typeof d.name === 'string' ? d.name.slice(0, 40) : 'Dispositivo', kind: d.kind === 'pc' ? 'pc' : 'mobile', seen: d.seen };
+      if (d && typeof d.seen === 'number') out.devices[id] = { name: typeof d.name === 'string' ? d.name.slice(0, 40) : W.t('Dispositivo'), kind: d.kind === 'pc' ? 'pc' : 'mobile', seen: d.seen };
     });
     if (s.focus && typeof s.focus === 'object' && typeof s.focus.at === 'number') {
       var f0 = s.focus;

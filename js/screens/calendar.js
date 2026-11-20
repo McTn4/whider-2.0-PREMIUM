@@ -696,7 +696,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     return U.el('div.cal-toolbar', [left, U.el('div.ct-right', [listChip, doneChip, exp, seg])]);
   }
 
-  /** Teclas del calendario (en el ordenador): ← → anterior y siguiente, T hoy, M S A vistas */
+  /** Teclas del calendario (en el ordenador): ← → anterior y siguiente, T hoy, M S D A vistas (en inglés, W para la semana) */
   function calendarKey(e) {
     var st = S(), v = ui(st), k = e.key;
     if (k === 'ArrowLeft' || k === 'ArrowRight') {
@@ -707,7 +707,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       return true;
     }
     if (k === 't' || k === 'T') { select(st, U.today()); rerender(); return true; }
-    var view = { m: 'month', M: 'month', s: 'week', S: 'week', d: 'day', D: 'day', a: 'agenda', A: 'agenda' }[k];
+    var view = { m: 'month', M: 'month', s: 'week', S: 'week', w: 'week', W: 'week', d: 'day', D: 'day', a: 'agenda', A: 'agenda' }[k];
     if (view) { if (v.calView !== view) { v.calView = view; rerender(); } return true; }
     return false;
   }

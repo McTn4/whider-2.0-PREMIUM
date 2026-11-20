@@ -87,22 +87,22 @@ window.Whider = window.Whider || {};
       var b = bridge();
       if (b) { try { b.requestNotificationPermission(); } catch (e) { /* sin puente */ } return Promise.resolve(Notify.permission()); }
       if (!('Notification' in window)) {
-        W.Toast.show({ text: 'Este dispositivo no admite notificaciones del sistema', type: 'danger' });
+        W.Toast.show({ text: W.t('Este dispositivo no admite notificaciones del sistema'), type: 'danger' });
         return Promise.resolve('unsupported');
       }
       return new Promise(function (resolve) {
         var r = Notification.requestPermission(resolve);
         if (r && r.then) r.then(resolve);
       }).then(function (res) {
-        if (res === 'granted') W.Toast.show({ text: 'Notificaciones activadas', type: 'success', icon: 'bell' });
-        else if (res === 'denied') W.Toast.show({ text: 'Bloqueadas: actívalas en los ajustes del navegador', type: 'danger' });
+        if (res === 'granted') W.Toast.show({ text: W.t('Notificaciones activadas'), type: 'success', icon: 'bell' });
+        else if (res === 'denied') W.Toast.show({ text: W.t('Bloqueadas: actívalas en los ajustes del navegador'), type: 'danger' });
         Notify.emit();
         return res;
       });
     },
     /** La app Android llama aquí tras el diálogo de permiso */
     onNativePermissionResult: function (granted) {
-      W.Toast.show({ text: granted ? 'Notificaciones activadas' : 'Permiso de notificaciones denegado', type: granted ? 'success' : 'danger' });
+      W.Toast.show({ text: granted ? W.t('Notificaciones activadas') : W.t('Permiso de notificaciones denegado'), type: granted ? 'success' : 'danger' });
       Notify.emit();
       Notify.scheduleSync();
     },
@@ -162,38 +162,38 @@ window.Whider = window.Whider || {};
 
       reminders.forEach(function (t) {
         var mins = Math.max(1, Math.round((U.deadlineTs(t.date, t.time) - now) / 60000));
-        Notify.system(t.text, 'Vence en ' + U.plural(mins, 'minuto', 'minutos') + ' (' + U.fmtTime(t.time) + ')', 'whider-pre-' + t.id);
+        Notify.system(t.text, W.t('Vence en {n} ({time})', { n: U.plural(mins, 'minuto', 'minutos'), time: U.fmtTime(t.time) }), 'whider-pre-' + t.id);
       });
       if (reminders.length) {
         var r0 = reminders[0], m0 = Math.max(1, Math.round((U.deadlineTs(r0.date, r0.time) - now) / 60000));
-        W.Toast.show({ text: reminders.length === 1 ? '«' + r0.text + '» vence en ' + m0 + ' min' : U.plural(reminders.length, 'tarea vence pronto', 'tareas vencen pronto'), icon: 'clock', type: 'info' });
+        W.Toast.show({ text: reminders.length === 1 ? W.t('«{text}» vence en {m0} min', { text: r0.text, m0: m0 }) : U.plural(reminders.length, 'tarea vence pronto', 'tareas vencen pronto'), icon: 'clock', type: 'info' });
       }
       alerts.forEach(function (t) {
-        var reason = t.time && t.date === U.today() ? 'Superó la hora límite (' + U.fmtTime(t.time) + ')' : 'Venció ' + U.inline(U.fmtDay(t.date));
-        Notify.system(t.text, reason + ' · Sigue pendiente', 'whider-due-' + t.id);
+        var reason = t.time && t.date === U.today() ? W.t('Superó la hora límite ({time})', { time: U.fmtTime(t.time) }) : W.t('Venció {day}', { day: U.inline(U.fmtDay(t.date)) });
+        Notify.system(t.text, reason + ' · ' + W.t('Sigue pendiente'), 'whider-due-' + t.id);
       });
       // Dentro de la app, un único aviso aunque venzan varias tareas a la vez
       if (alerts.length === 1) {
         var one = alerts[0];
-        W.Toast.show({ text: '«' + one.text + '» sigue pendiente', type: 'danger', icon: 'alert', duration: 7000,
-          action: { label: 'Completar', fn: function () { var x = st.find(one.id); if (x && !x.done) { st.setDone(one.id, true); W.Audio.success(); } } } });
+        W.Toast.show({ text: W.t('«{text}» sigue pendiente', { text: one.text }), type: 'danger', icon: 'alert', duration: 7000,
+          action: { label: W.t('Completar'), fn: function () { var x = st.find(one.id); if (x && !x.done) { st.setDone(one.id, true); W.Audio.success(); } } } });
       } else if (alerts.length > 1) {
         W.Toast.show({ text: U.plural(alerts.length, 'tarea sigue pendiente', 'tareas siguen pendientes'), type: 'danger', icon: 'alert', duration: 7000,
-          action: { label: 'Ver', fn: function () { W.Router.go('home'); } } });
+          action: { label: W.t('Ver'), fn: function () { W.Router.go('home'); } } });
       }
 
       // Hábitos: a su hora, si hoy toca y aún no está hecho
       var habits = dueHabits();
       habits.forEach(function (h) {
-        Notify.system(h.name, h.target > 1 ? 'Llevas ' + W.Habits.count(h, U.today()) + ' de ' + h.target + (h.unit ? ' ' + h.unit : '') + ' hoy' : 'Todavía no lo has marcado hoy', 'whider-habit-' + h.id);
+        Notify.system(h.name, h.target > 1 ? W.t('Llevas {n} de {total} hoy', { n: W.Habits.count(h, U.today()), total: h.target + (h.unit ? ' ' + h.unit : '') }) : W.t('Todavía no lo has marcado hoy'), 'whider-habit-' + h.id);
       });
       if (habits.length === 1) {
         var hb = habits[0];
-        W.Toast.show({ text: 'Hábito: ' + hb.name, icon: hb.icon || 'target', duration: 7000,
-          action: { label: hb.target > 1 ? 'Sumar uno' : 'Hecho', fn: function () { var x = st.getHabit(hb.id); if (x) W.Habits.tap(x, U.today()); } } });
+        W.Toast.show({ text: W.t('Hábito: {name}', { name: hb.name }), icon: hb.icon || 'target', duration: 7000,
+          action: { label: hb.target > 1 ? W.t('Sumar uno') : W.t('Hecho'), fn: function () { var x = st.getHabit(hb.id); if (x) W.Habits.tap(x, U.today()); } } });
       } else if (habits.length > 1) {
-        W.Toast.show({ text: U.plural(habits.length, 'hábito pendiente', 'hábitos pendientes') + ' para hoy', icon: 'target', duration: 7000,
-          action: { label: 'Ver', fn: function () { W.Router.go('habits'); } } });
+        W.Toast.show({ text: W.t('{n} para hoy', { n: U.plural(habits.length, 'hábito pendiente', 'hábitos pendientes') }), icon: 'target', duration: 7000,
+          action: { label: W.t('Ver'), fn: function () { W.Router.go('habits'); } } });
       }
 
       if (alerts.length) { W.Audio.warning(); W.Audio.vibrate([70, 60, 70, 60, 140]); }
@@ -234,12 +234,12 @@ window.Whider = window.Whider || {};
         if (t.time && before > 0) {
           var pre = afterQuiet(deadline - before * 60000);
           if (pre > now && pre < deadline && pre < horizon) {
-            out.push({ key: t.id + ':pre', at: pre, title: t.text, body: 'Vence a las ' + U.fmtTime(t.time) });
+            out.push({ key: t.id + ':pre', at: pre, title: t.text, body: W.t('Vence a las {0}', { 0: U.fmtTime(t.time) }) });
           }
         }
         var due = afterQuiet(deadline);
         if (due > now && due < horizon) {
-          out.push({ key: t.id + ':due', at: due, title: t.text, body: 'El plazo ha terminado y sigue pendiente' });
+          out.push({ key: t.id + ':due', at: due, title: t.text, body: W.t('El plazo ha terminado y sigue pendiente') });
         }
       });
       // Hábitos: los próximos 7 días a su hora (hoy, solo si sigue sin hacer)
@@ -254,7 +254,7 @@ window.Whider = window.Whider || {};
             var p = h.reminder.split(':'), d = U.parse(ds);
             d.setHours(+p[0], +p[1], 0, 0);
             var at = afterQuiet(d.getTime());
-            if (at > now) out.push({ key: 'habit:' + h.id + ':' + ds, at: at, title: h.name, body: h.target > 1 ? 'Objetivo de hoy: ' + h.target + (h.unit ? ' ' + h.unit : '') : 'Recuerda tu hábito de hoy' });
+            if (at > now) out.push({ key: 'habit:' + h.id + ':' + ds, at: at, title: h.name, body: h.target > 1 ? W.t('Objetivo de hoy: {target}{0}', { target: h.target, 0: h.unit ? ' ' + h.unit : '' }) : W.t('Recuerda tu hábito de hoy') });
           }
         });
       }

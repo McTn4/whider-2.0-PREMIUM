@@ -1,14 +1,26 @@
 // La app en inglés (docs/decisiones/0003-idiomas.md): recorre las pantallas ya traducidas, en ordenador y en el móvil,
 // y busca lo que se haya quedado en español (letras con tilde y palabras muy comunes) y los textos que se pidieron
 // en inglés y no están en el catálogo (W.I18n.missing()). Las tareas de ejemplo van en inglés para no confundirlas.
-// Mientras la traducción no esté completa, PANTALLAS solo tiene las que ya lo están.
+// Mientras la traducción no esté completa, PANTALLAS y HOJAS solo tienen las que ya lo están.
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0;
 const ok = (c, m, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (!c && extra !== undefined ? '  → ' + JSON.stringify(extra, null, 1).slice(0, 3000) : '')); if (!c) fails++; };
-const PANTALLAS = ['home'];
+const PANTALLAS = ['home', 'tasks'];
+// Hojas que se abren encima (Ajustes y sus páginas, la ayuda, los atajos, el importador, el editor de tareas…)
+const HOJAS = [
+  ['ajustes', () => Whider.Settings.open()],
+  ...['appearance', 'custom', 'sounds', 'alerts', 'tasks', 'lists', 'habits', 'focus', 'start', 'data', 'privacy', 'desktop'].map((pg) => ['ajustes › ' + pg, (x) => Whider.Settings.open(x), pg]),
+  ['preguntas frecuentes', () => Whider.Help.faq()],
+  ['enviar comentarios', () => Whider.Help.feedback()],
+  ['atajos de teclado', () => Whider.Keys.help(), null, 'ordenador'],
+  ['importar', () => Whider.ImportWizard.open()],
+  ['plantilla nueva', () => Whider.Templates.edit()],
+  ['tarea nueva', () => Whider.Editor.open()],
+  ['editar tarea', () => Whider.Editor.open(Whider.State.tasks.find((t) => t.text === 'Prepare the proposal').id)]
+];
 const ESPANOL = /[áéíóúñ¿¡]|\b(de|del|la|las|el|los|que|y|en|con|sin|para|por|una|un|tu|tus|más|hoy|mañana|tarea|tareas|hábito|hábitos|ajustes|cuaderno|nueva|nuevo|ver|todo|nada|semana|día|días|añadir|hecha|hechas|pendientes?|vencidas?)\b/i;
 
 async function abrir(b, movil) {
@@ -47,6 +59,17 @@ const leer = (p, scr) => p.evaluate((s) => {
   return out;
 }, scr);
 
+/** Todo el texto de las hojas abiertas, también el que está plegado (las respuestas de las preguntas frecuentes) */
+const leerHojas = (p) => p.evaluate(() => {
+  const out = [];
+  document.querySelectorAll('.sheet-layer').forEach((z) => {
+    const tw = document.createTreeWalker(z, NodeFilter.SHOW_TEXT);
+    for (let n = tw.nextNode(); n; n = tw.nextNode()) n.nodeValue.split('\n').forEach((l) => { if (l.trim()) out.push(l.trim()); });
+    z.querySelectorAll('[aria-label],[title],[placeholder]').forEach((el) => ['aria-label', 'title', 'placeholder'].forEach((a) => { const v = el.getAttribute(a); if (v) out.push('[' + a + '] ' + v); }));
+  });
+  return out;
+});
+
 (async () => {
   const b = await chromium.launch();
   for (const movil of [false, true]) {
@@ -57,6 +80,16 @@ const leer = (p, scr) => p.evaluate((s) => {
       await sleep(600);
       const restos = (await leer(p, scr)).filter((l) => ESPANOL.test(l));
       ok(!restos.length, donde + ': «' + scr + '» sin textos en español', restos);
+    }
+    for (const [nombre, abrirHoja, arg, solo] of HOJAS) {
+      if (solo === 'ordenador' && movil) continue;
+      await p.evaluate(abrirHoja, arg);
+      await sleep(500);
+      const texto = await leerHojas(p);
+      const restos = texto.filter((l) => ESPANOL.test(l));
+      ok(texto.length > 2 && !restos.length, donde + ': hoja «' + nombre + '» sin textos en español', restos.length ? restos : texto);
+      await p.evaluate(() => { let n = 0; while (Whider.Sheet.isOpen() && n++ < 10) Whider.Sheet.closeTop(); });
+      await sleep(450);
     }
     const faltan = await p.evaluate(() => Whider.I18n.missing());
     ok(!faltan.length, donde + ': todo lo pedido está en el catálogo', faltan);

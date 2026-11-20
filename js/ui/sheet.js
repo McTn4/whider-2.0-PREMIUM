@@ -182,7 +182,7 @@ window.Whider = window.Whider || {};
       return new Promise(function (resolve) {
         var result = false, closed = false;
         var layer = U.el('div.alert-layer', { attrs: { role: 'alertdialog', 'aria-modal': 'true', 'aria-label': o.title } });
-        var okLabel = o.ok || 'Aceptar', cancelLabel = o.cancel || 'Cancelar';
+        var okLabel = o.ok || W.t('Aceptar'), cancelLabel = o.cancel || W.t('Cancelar');
         var stackBtns = okLabel.length + cancelLabel.length > 24;
         var api = {
           close: function () {

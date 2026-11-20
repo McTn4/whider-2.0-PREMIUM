@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { cargar } = require('./_cargar');
 
-const { U } = cargar(['js/core/util.js'], { ahora: '2026-11-16T09:40:00' });
+const { U } = cargar(['js/core/i18n.js', 'js/core/util.js'], { ahora: '2026-11-16T09:40:00' });
 
 test('hoy y la hora actual salen del reloj del dispositivo', () => {
   assert.equal(U.today(), '2026-11-16');
@@ -64,7 +64,7 @@ test('los identificadores llevan prefijo y no se repiten', () => {
 test('ni al crear miles en el mismo milisegundo (importar), con o sin crypto', () => {
   // Con la hora congelada todos comparten el prefijo de tiempo: solo el contador y el azar los distinguen
   for (const sinCrypto of [false, true]) {
-    const V = cargar(['js/core/util.js'], { ahora: '2026-11-18T08:00:00', sinCrypto }).U;
+    const V = cargar(['js/core/i18n.js', 'js/core/util.js'], { ahora: '2026-11-18T08:00:00', sinCrypto }).U;
     const n = 20000,
       ids = new Set(Array.from({ length: n }, () => V.uid('t')));
     assert.equal(ids.size, n, sinCrypto ? 'sin crypto' : 'con crypto');

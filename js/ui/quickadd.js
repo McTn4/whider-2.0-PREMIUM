@@ -123,11 +123,11 @@ window.Whider = window.Whider || {};
             .then(function (v) { if (v !== undefined) { manual.listId = v || null; drawChips(); } });
         }));
         var prio = W.Editor.PRIO_OPTS.filter(function (o) { return o.value === hl; })[0] || W.Editor.PRIO_OPTS[0];
-        chips.appendChild(chip('flag', hl === 'none' ? 'Prioridad' : prio.label, hl !== 'none', function (b) {
+        chips.appendChild(chip('flag', hl === 'none' ? W.t('Prioridad') : prio.label, hl !== 'none', function (b) {
           W.Menu.open(b, W.Editor.PRIO_OPTS.map(function (o) { return Object.assign({ prio: o.value }, o, { on: o.value === hl }); }))
             .then(function (v) { if (v) { manual.highlight = v; drawChips(); } });
         }, hl !== 'none' ? W.UI.prio(hl) : null));
-        chips.appendChild(chip('repeat', repeat === 'none' ? 'Repetir' : st.REPEATS[repeat], repeat !== 'none', function (b) {
+        chips.appendChild(chip('repeat', repeat === 'none' ? W.t('Repetir') : st.REPEATS[repeat], repeat !== 'none', function (b) {
           W.Menu.open(b, Object.keys(st.REPEATS).map(function (k) { return { value: k, label: k === 'none' ? W.t('Nunca') : st.REPEATS[k], on: k === repeat }; }))
             .then(function (v) { if (v) { manual.repeat = v; drawChips(); } });
         }));

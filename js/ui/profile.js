@@ -74,7 +74,7 @@ window.Whider = window.Whider || {};
     return pickFile().then(function (file) {
       if (!file) return null;
       return processImage(file).catch(function () {
-        W.Toast.show({ text: 'No se pudo leer esa imagen. Prueba con otra (JPG o PNG).', type: 'danger' });
+        W.Toast.show({ text: W.t('No se pudo leer esa imagen. Prueba con otra (JPG o PNG).'), type: 'danger' });
         return null;
       });
     });
@@ -85,9 +85,9 @@ window.Whider = window.Whider || {};
     var st = S(), p = st.getProfile() || {};
     var draft = { photo: p.photo || '', removed: false, avatar: p.avatar || 'buddy' };
     var preview = U.el('span.avatar.xl');
-    var name = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 30, placeholder: 'Tu nombre', autocomplete: 'name', enterkeyhint: 'done', 'aria-label': 'Nombre' } });
+    var name = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 30, placeholder: W.t('Tu nombre'), autocomplete: 'name', enterkeyhint: 'done', 'aria-label': W.t('Nombre') } });
     name.value = st.displayName();
-    var removeBtn = U.el('button.link-btn.muted', { text: 'Quitar foto', on: { click: function () { draft.photo = ''; draft.removed = true; renderPreview(); } } });
+    var removeBtn = U.el('button.link-btn.muted', { text: W.t('Quitar foto'), on: { click: function () { draft.photo = ''; draft.removed = true; renderPreview(); } } });
     var modeSeg = null;
     var renderPreview = function () {
       U.clear(preview);
@@ -121,22 +121,22 @@ window.Whider = window.Whider || {};
     name.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); save(); } });
     var u = W.Auth && W.Auth.user;
     var sheet = W.Sheet.open({
-      title: 'Editar perfil',
-      foot: [U.el('button.btn.primary', { text: 'Guardar', on: { click: save } })],
+      title: W.t('Editar perfil'),
+      foot: [U.el('button.btn.primary', { text: W.t('Guardar'), on: { click: save } })],
       body: [
         U.el('div.profile-head', [
-          U.el('button.photo-pick', { attrs: { 'aria-label': 'Cambiar foto' }, on: { click: change } }, [preview, U.el('span.cam', [U.icon('camera')])]),
-          U.el('div.cell-row', [U.el('button.link-btn', { text: 'Cambiar foto', on: { click: change } }), removeBtn])
+          U.el('button.photo-pick', { attrs: { 'aria-label': W.t('Cambiar foto') }, on: { click: change } }, [preview, U.el('span.cam', [U.icon('camera')])]),
+          U.el('div.cell-row', [U.el('button.link-btn', { text: W.t('Cambiar foto'), on: { click: change } }), removeBtn])
         ]),
-        W.Avatar ? W.UI.section({ header: 'Foto de perfil', items: [U.el('div.cell', [(modeSeg = segmentedMode())])], footer: 'Tu personaje se ve en tu perfil, en tus chats y en tus equipos. Su fondo y su marco se eligen en «Personalizar».' }) : null,
-        W.Avatar ? U.el('div.cell-row.center', [U.el('button.btn.sm.soft', { on: { click: function () { W.Character.edit('avatar'); } } }, [U.icon('palette', 'sm'), 'Personalizar personaje'])]) : null,
-        W.UI.section({ header: 'Nombre', items: [U.el('label.cell', [name])] }),
-        u && u.email ? W.UI.section({ header: 'Correo', items: [W.UI.cell({ title: u.email })] }) : null
+        W.Avatar ? W.UI.section({ header: W.t('Foto de perfil'), items: [U.el('div.cell', [(modeSeg = segmentedMode())])], footer: W.t('Tu personaje se ve en tu perfil, en tus chats y en tus equipos. Su fondo y su marco se eligen en «Personalizar».') }) : null,
+        W.Avatar ? U.el('div.cell-row.center', [U.el('button.btn.sm.soft', { on: { click: function () { W.Character.edit('avatar'); } } }, [U.icon('palette', 'sm'), W.t('Personalizar personaje')])]) : null,
+        W.UI.section({ header: W.t('Nombre'), items: [U.el('label.cell', [name])] }),
+        u && u.email ? W.UI.section({ header: W.t('Correo'), items: [W.UI.cell({ title: u.email })] }) : null
       ]
     });
     function segmentedMode() {
-      var labels = { buddy: 'Personaje', photo: 'Foto', initial: 'Inicial' };
-      var seg = W.UI.segmented([{ value: 'buddy', label: 'Personaje' }, { value: 'photo', label: 'Foto' }, { value: 'initial', label: 'Inicial' }], draft.avatar, function (v) {
+      var labels = { buddy: W.t('Personaje'), photo: W.t('Foto'), initial: W.t('Inicial') };
+      var seg = W.UI.segmented([{ value: 'buddy', label: W.t('Personaje') }, { value: 'photo', label: W.t('Foto') }, { value: 'initial', label: W.t('Inicial') }], draft.avatar, function (v) {
         if (v === 'photo' && !(draft.photo || (!draft.removed && p.photoURL))) {
           var prev = draft.avatar;
           choosePhoto().then(function (data) {

@@ -10,6 +10,7 @@
  *   node tools/i18n.js envolver archivo…      envuelve en W.t() los textos de las posiciones de interfaz seguras
  *                                             (text, title, sub, label…, los hijos de U.el, W.UI.empty…) y convierte
  *                                             las concatenaciones en textos con {variables}; lo demás, a mano
+ *   node tools/i18n.js datos archivo VAR…     envuelve los textos de esas tablas de datos (var VAR = [ … ])
  *   node tools/i18n.js resumen                cuántos textos hay envueltos y traducidos
  *
  * Con --estricto, «faltan» termina con error si falta alguno (para la integración continua).
@@ -304,6 +305,40 @@ function envolver(f) {
   return n;
 }
 
+/* ---------- Envolver los textos de una tabla de datos ---------- */
+/** Envuelve en W.t los textos legibles de la variable `nombreVar` (su valor inicial: tablas de preguntas, plantillas…) */
+function envolverDatos(f, nombreVar, minimo) {
+  const src = leer(f);
+  const ast = arbol(src, f);
+  let objetivo = null;
+  walk.simple(ast, {
+    VariableDeclarator(n) {
+      if (n.id && n.id.type === 'Identifier' && n.id.name === nombreVar && n.init) objetivo = n.init;
+    }
+  });
+  if (!objetivo) throw new Error(f + ': no hay ninguna variable «' + nombreVar + '»');
+  const ya = [];
+  walk.simple(objetivo, {
+    CallExpression(n) {
+      if (/^(W\.t|W\.tn|W\.tk|tr)$/.test(nombre(n.callee))) ya.push([n.start, n.end]);
+    }
+  });
+  const cambios = [];
+  walk.simple(objetivo, {
+    Literal(n) {
+      if (typeof n.value !== 'string' || ya.some(([x, y]) => n.start >= x && n.end <= y)) return;
+      if (!legible(n.value) || /[<>=]/.test(n.value) || !new RegExp('[a-záéíóúñ]{' + (minimo || 2) + '}').test(n.value))
+        return;
+      cambios.push([n.start, n.end, 'W.t(' + comillas(n.value) + ')']);
+    }
+  });
+  cambios.sort((x, y) => y[0] - x[0]);
+  let out = src;
+  for (const [x, y, r] of cambios) out = out.slice(0, x) + r + out.slice(y);
+  if (cambios.length) fs.writeFileSync(path.join(RAIZ, f), out);
+  return cambios.length;
+}
+
 /* ---------- Pendientes (aproximado) ---------- */
 function pendientes(lista) {
   const out = [];
@@ -324,13 +359,29 @@ function pendientes(lista) {
           ya.push([n.start, n.end]);
       }
     });
+    // Lo que el código compara (teclas, tipos…) o usa en un «case» no se enseña
+    walk.simple(ast, {
+      BinaryExpression(n) {
+        if (/^(===|!==|==|!=|in)$/.test(n.operator)) ya.push([n.start, n.end]);
+      },
+      SwitchCase(n) {
+        if (n.test) ya.push([n.test.start, n.test.end]);
+      },
+      Property(n) {
+        if (n.key && n.key.type === 'Literal') ya.push([n.key.start, n.key.end]);
+      }
+    });
+    const API =
+      /^(Date|Object|Array|Promise|Error|Number|String|Boolean|Math|JSON|Intl|Enter|Escape|Tab|Backspace|Delete|Space|Home|End|Shift|Control|Alt|Meta|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|PageUp|PageDown|Bearer|WHIDER|Whider|Chrome|Android|Windows|Linux|Firefox|Safari|Edge|Electron|Google|Microsoft|Notion|Todoist|GitHub|Firebase|Firestore)$/;
     walk.simple(ast, {
       Literal(n) {
         if (typeof n.value !== 'string' || !legible(n.value) || ya.some(([a, b]) => n.start >= a && n.end <= b)) return;
         // Marcado (SVG, HTML, estilos) y clases sueltas no son texto
         if (/[<>=]/.test(n.value) || (/^ ?[a-z0-9-]+$/.test(n.value) && !/[áéíóúñ]/.test(n.value))) return;
-        // Frases: con espacios y alguna letra en minúscula, o con tildes, eñes o signos de apertura
-        if (!(/\s/.test(n.value) && /[a-záéíóúñ]/.test(n.value)) && !/[áéíóúñ¿¡]/i.test(n.value)) return;
+        // Frases: con espacios y alguna letra en minúscula, o con tildes, eñes o signos de apertura; o una palabra con
+        // mayúscula («Vencidas», «Hoy»), salvo nombres del lenguaje, de teclas o de marcas
+        const palabra = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñü]+$/.test(n.value) && !API.test(n.value);
+        if (!palabra && !(/\s/.test(n.value) && /[a-záéíóúñ]/.test(n.value)) && !/[áéíóúñ¿¡]/i.test(n.value)) return;
         if (
           /^([a-z0-9-]+ )+[a-z0-9-]+$/.test(n.value) &&
           !/[áéíóúñ]/.test(n.value) &&
@@ -379,6 +430,15 @@ if (orden === 'faltan') {
     process.exit(2);
   }
   for (const f of lista) console.log(f + ': ' + envolver(f.replace(/^\.\//, '')) + ' textos envueltos');
+} else if (orden === 'datos') {
+  // node tools/i18n.js datos archivo VARIABLE [VARIABLE…]: los textos de esas tablas de datos
+  const [f, ...vars] = lista;
+  if (!f || !vars.length) {
+    console.error('Uso: node tools/i18n.js datos archivo VARIABLE…');
+    process.exit(2);
+  }
+  for (const v of vars)
+    console.log(f + ' · ' + v + ': ' + envolverDatos(f.replace(/^\.\//, ''), v) + ' textos envueltos');
 } else if (orden === 'resumen') {
   const { keys, dinamicas } = usadas();
   const dic = catalogo();

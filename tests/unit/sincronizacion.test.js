@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { cargar } = require('./_cargar');
 
-const W = cargar(['js/core/util.js', 'js/core/schema.js', 'js/core/store.js', 'js/core/sync.js'], {
+const W = cargar(['js/core/i18n.js', 'js/core/util.js', 'js/core/schema.js', 'js/core/store.js', 'js/core/sync.js'], {
   ahora: '2026-11-16T09:40:00'
 });
 const merge = (a, b) => JSON.parse(JSON.stringify(W.Sync.merge(a, b)));

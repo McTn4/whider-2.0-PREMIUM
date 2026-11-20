@@ -74,16 +74,16 @@ window.Whider = window.Whider || {};
   /** Tarjeta en Hoy (navegador sin cuenta, una semana sin copia) */
   function card() {
     if (!reminderDue()) return null;
-    var later = U.el('button.circle-btn', { attrs: { type: 'button', 'aria-label': 'Recordármelo dentro de una semana' }, on: { click: function () {
+    var later = U.el('button.circle-btn', { attrs: { type: 'button', 'aria-label': W.t('Recordármelo dentro de una semana') }, on: { click: function () {
       var o = get(); o.snooze = Date.now(); put(o);
       W.Router.refresh();
     } } }, [U.icon('close', 'xs')]);
-    var save = U.el('button.btn.sm.soft', { text: 'Guardar una copia', attrs: { type: 'button' }, on: { click: function () { download(); W.Router.refresh(); } } });
+    var save = U.el('button.btn.sm.soft', { text: W.t('Guardar una copia'), attrs: { type: 'button' }, on: { click: function () { download(); W.Router.refresh(); } } });
     return U.el('div.wn-card.bk-card', { attrs: { role: 'status' } }, [
       U.el('span.wn-badge', { attrs: { 'aria-hidden': 'true' } }, [U.icon('shield', 'xs')]),
       U.el('div.wn-text', [
-        U.el('b', { text: 'Guarda una copia de tus datos' }),
-        U.el('small', { text: 'Sin cuenta, solo están en este navegador. Hace más de una semana de la última copia.' })
+        U.el('b', { text: W.t('Guarda una copia de tus datos') }),
+        U.el('small', { text: W.t('Sin cuenta, solo están en este navegador. Hace más de una semana de la última copia.') })
       ]),
       save, later
     ]);
@@ -96,9 +96,9 @@ window.Whider = window.Whider || {};
   /** Estado para Ajustes */
   function status() {
     var o = get(), w = where();
-    if (!w) return o.manual ? 'Última copia guardada ' + U.fmtRel(o.manual - Date.now()) : 'Todavía no has guardado ninguna copia';
-    if (!enabled()) return 'Apagada';
-    return o.at ? 'Última: ' + U.fmtRel(o.at - Date.now()) + (w === 'android' ? ' · en Descargas › WHIDER › Copias' : '') : 'La primera se hará hoy';
+    if (!w) return o.manual ? W.t('Última copia guardada {when}', { when: U.fmtRel(o.manual - Date.now()) }) : W.t('Todavía no has guardado ninguna copia');
+    if (!enabled()) return W.t('Apagada');
+    return o.at ? W.t('Última: {when}', { when: U.fmtRel(o.at - Date.now()) }) + (w === 'android' ? ' · ' + W.t('en Descargas › WHIDER › Copias') : '') : W.t('La primera se hará hoy');
   }
 
   /** Al abrir la app y al volver a ella: la copia del día, sin prisa */

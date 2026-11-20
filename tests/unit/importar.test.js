@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { cargar } = require('./_cargar');
 
-const W = cargar(['js/core/util.js', 'js/core/importer.js'], { ahora: '2026-11-18T09:00:00' });
+const W = cargar(['js/core/i18n.js', 'js/core/util.js', 'js/core/importer.js'], { ahora: '2026-11-18T09:00:00' });
 const I = W.Importer;
 const plano = (x) => JSON.parse(JSON.stringify(x));
 

@@ -47,12 +47,12 @@ window.Whider = window.Whider || {};
     if (!state.version || told[k]) return;
     if (state.state === 'ready') {
       told[k] = true;
-      W.Toast.show({ text: 'WHIDER ' + label(state.version) + ' está lista: se instalará al cerrar la app', icon: 'download', duration: 12000,
-        action: { label: 'Reiniciar ahora', fn: install } });
+      W.Toast.show({ text: W.t('WHIDER {0} está lista: se instalará al cerrar la app', { 0: label(state.version) }), icon: 'download', duration: 12000,
+        action: { label: W.t('Reiniciar ahora'), fn: install } });
     } else if (state.state === 'available') {
       told[k] = true;
-      W.Toast.show({ text: 'Hay una versión nueva de WHIDER: la ' + label(state.version), icon: 'download', duration: 12000,
-        action: { label: 'Descargar', fn: open } });
+      W.Toast.show({ text: W.t('Hay una versión nueva de WHIDER: la {0}', { 0: label(state.version) }), icon: 'download', duration: 12000,
+        action: { label: W.t('Descargar'), fn: open } });
     }
   }
 
@@ -76,7 +76,7 @@ window.Whider = window.Whider || {};
         else set({ state: 'latest', version: null, url: null });
         return state;
       })
-      .catch(function () { set({ state: 'error', error: 'No se pudo comprobar. Revisa la conexión.' }); return state; });
+      .catch(function () { set({ state: 'error', error: W.t('No se pudo comprobar. Revisa la conexión.') }); return state; });
   }
 
   function check(force) {
@@ -95,30 +95,30 @@ window.Whider = window.Whider || {};
   /** Texto del estado para Ajustes */
   function statusText() {
     switch (state.state) {
-      case 'checking': return 'Buscando actualizaciones…';
-      case 'latest': return 'Tienes la última versión';
-      case 'downloading': return 'Descargando la ' + label(state.version || '') + (state.percent ? ' · ' + state.percent + ' %' : '') + '…';
-      case 'ready': return 'La ' + label(state.version || '') + ' está lista: se instala al cerrar WHIDER';
-      case 'available': return 'Hay una versión nueva: la ' + label(state.version || '');
-      case 'error': return state.error || 'No se pudo comprobar';
-      case 'off': return 'Las actualizaciones automáticas solo funcionan en la app instalada';
-      default: return state.mode === 'android' ? 'Se comprueba una vez al día' : 'Se comprueba al abrir la app y cada 6 horas';
+      case 'checking': return W.t('Buscando actualizaciones…');
+      case 'latest': return W.t('Tienes la última versión');
+      case 'downloading': return W.t('Descargando la {v}', { v: label(state.version || '') }) + (state.percent ? ' · ' + state.percent + ' %' : '') + '…';
+      case 'ready': return W.t('La {v} está lista: se instala al cerrar WHIDER', { v: label(state.version || '') });
+      case 'available': return W.t('Hay una versión nueva: la {v}', { v: label(state.version || '') });
+      case 'error': return state.error || W.t('No se pudo comprobar');
+      case 'off': return W.t('Las actualizaciones automáticas solo funcionan en la app instalada');
+      default: return state.mode === 'android' ? W.t('Se comprueba una vez al día') : W.t('Se comprueba al abrir la app y cada 6 horas');
     }
   }
   /** Celda «Versión» con su estado y el botón que toque (Buscar, Reiniciar o Descargar) */
   function cell(nav) {
     var btn = null;
     // La acción que toca va en el botón principal (blanco); «Buscar», discreto
-    if (state.state === 'ready') btn = U.el('button.btn.xs.primary', { text: 'Reiniciar', attrs: { type: 'button', 'aria-label': 'Reiniciar para instalar la versión nueva' }, on: { click: install } });
-    else if (state.state === 'available') btn = U.el('button.btn.xs.primary', { text: 'Descargar', attrs: { type: 'button', 'aria-label': 'Descargar la versión nueva' }, on: { click: open } });
+    if (state.state === 'ready') btn = U.el('button.btn.xs.primary', { text: W.t('Reiniciar'), attrs: { type: 'button', 'aria-label': W.t('Reiniciar para instalar la versión nueva') }, on: { click: install } });
+    else if (state.state === 'available') btn = U.el('button.btn.xs.primary', { text: W.t('Descargar'), attrs: { type: 'button', 'aria-label': W.t('Descargar la versión nueva') }, on: { click: open } });
     else if (state.mode !== 'none' && state.state !== 'off' && state.state !== 'downloading') {
-      btn = U.el('button.btn.xs.soft', { text: state.state === 'checking' ? 'Buscando…' : 'Buscar', attrs: { type: 'button', 'aria-label': 'Buscar actualizaciones' }, on: { click: function () {
+      btn = U.el('button.btn.xs.soft', { text: state.state === 'checking' ? W.t('Buscando…') : W.t('Buscar'), attrs: { type: 'button', 'aria-label': W.t('Buscar actualizaciones') }, on: { click: function () {
         check(true).then(function () { if (nav) nav.refresh(); });
         if (nav) setTimeout(function () { nav.refresh(); }, 50);
       } } });
       if (state.state === 'checking') btn.disabled = true;
     }
-    return W.UI.cell({ icon: 'download', title: 'WHIDER ' + label(state.current), sub: state.mode === 'none' ? 'En el navegador se actualiza sola al recargar' : statusText(),
+    return W.UI.cell({ icon: 'download', title: W.t('WHIDER {0}', { 0: label(state.current) }), sub: state.mode === 'none' ? W.t('En el navegador se actualiza sola al recargar') : statusText(),
       subCls: state.state === 'error' ? 'warn' : null, right: btn });
   }
 
