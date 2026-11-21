@@ -101,6 +101,8 @@ window.Whider = window.Whider || {};
       widgets: { buddy: true, summary: true, habits: true, upcoming: true, focus: false },
       widgetOrder: 'buddy,summary,messages,habits,upcoming,pages,focus',
       calView: 'month', calStartH: 7, calEndH: 21, weekends: true,
+      // Panel «Por planificar» del calendario: tareas sin fecha y vencidas, para arrastrarlas a un día y una hora
+      plan: true,
       wide: false, contrast: 'normal'
     }
   };

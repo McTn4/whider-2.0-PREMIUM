@@ -533,7 +533,73 @@ window.Whider.Screens = window.Whider.Screens || {};
       })(U.addDays(start, k));
     }
     var selData = sel >= start && sel <= U.addDays(start, weeks * 7 - 1) ? data : collect(st, sel, sel);
-    return [U.el('div.cal-split', [U.el('div.group.mg-card', [grid]), U.el('aside.cal-side', [dayPanel(st, sel, selData)])])];
+    return [U.el('div.cal-split', [U.el('div.group.mg-card', [grid]), U.el('aside.cal-side', [dayPanel(st, sel, selData), planOn(st) ? planPanel(st) : null])])];
+  }
+
+  /* ---------- Por planificar (ordenador): lo vencido y lo que no tiene fecha, para arrastrarlo al calendario ---------- */
+  var PLAN_MAX = 60;
+  function planOn(st) { return st.settings.desk.plan !== false; }
+  /** { late: vencidas (de días anteriores), none: sin fecha }, sin hacer y con el filtro de categoría del calendario */
+  function planTasks(st) {
+    var td = U.today(), f = st.ui.calList;
+    var rank = function (t) { return (st.PRIORITIES[t.highlight] || { rank: 3 }).rank; };
+    var mine = st.tasks.filter(function (t) { return !t.done && (!f || t.listId === f); });
+    return {
+      late: mine.filter(function (t) { return t.date && t.date < td; })
+        .sort(function (a, b) { return rank(a) - rank(b) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0); }),
+      none: mine.filter(function (t) { return !t.date; })
+        .sort(function (a, b) { return rank(a) - rank(b) || (b.createdAt || 0) - (a.createdAt || 0); })
+    };
+  }
+  function planCount(st) { var p = planTasks(st); return p.late.length + p.none.length; }
+  /** Una tarea del panel: se arrastra a una hora, a un día o a la fila «Sin hora»; con un clic se abre */
+  function planItem(st, t, late) {
+    var l = t.listId ? st.getList(t.listId) : null;
+    var meta = late ? W.t('Vencida · {day}', { day: U.fmtDayMon(t.date) }) : l ? l.name : '';
+    var b = U.el('button.pl-item' + (late ? '.late' : ''), {
+      attrs: { type: 'button', title: W.t('Arrástrala a un día y una hora'), 'aria-label': t.text + (meta ? ', ' + meta : ''), 'data-id': t.id }
+    }, [W.UI.prio(t.highlight), U.el('span.pl-main', [U.el('b', { text: t.text }), meta ? U.el('small', { text: meta }) : null]), U.icon('grip', 'sm')]);
+    b.draggable = true;
+    b.addEventListener('dragstart', function (e) {
+      e.dataTransfer.setData(DRAG(), t.id); e.dataTransfer.setData('text/plain', t.text); e.dataTransfer.effectAllowed = 'move';
+      b.classList.add('drag-src');
+    });
+    b.addEventListener('dragend', function () { b.classList.remove('drag-src'); });
+    b.addEventListener('click', function () { W.Editor.open(t.id); });
+    b.addEventListener('contextmenu', function (e) { e.preventDefault(); W.TaskCard.actions.menu(t.id, { x: e.clientX, y: e.clientY }); });
+    return b;
+  }
+  /** Quitar la fecha a una tarea soltada en el panel (las que se repiten la necesitan) */
+  function unschedule(st, id) {
+    var t = st.find(id);
+    if (!t || !t.date) return;
+    if (t.repeat && t.repeat !== 'none') { W.Toast.show({ text: W.t('Una tarea que se repite necesita una fecha'), icon: 'repeat' }); return; }
+    st.updateTask(id, { date: null, time: null });
+    W.Toast.show({ text: W.t('«{text}» ya no tiene fecha', { text: t.text }), icon: 'calendar' });
+  }
+  function planPanel(st) {
+    var p = planTasks(st), total = p.late.length + p.none.length;
+    var body = U.el('div.pl-body');
+    var section = function (title, list, late) {
+      if (!list.length) return;
+      body.appendChild(U.el('div.pl-sec' + (late ? '.late' : ''), [U.el('span', { text: title }), U.el('small', { text: list.length })]));
+      list.slice(0, PLAN_MAX).forEach(function (t) { body.appendChild(planItem(st, t, late)); });
+      if (list.length > PLAN_MAX) body.appendChild(U.el('p.pl-more', { text: W.t('Y {n} más en Tareas', { n: list.length - PLAN_MAX }) }));
+    };
+    section(W.t('Vencidas'), p.late, true);
+    section(W.t('Sin fecha'), p.none, false);
+    if (!total) body.appendChild(U.el('div.pl-empty', [U.icon('check'), U.el('b', { text: W.t('Todo planificado') }),
+      U.el('small', { text: W.t('Las tareas sin fecha aparecerán aquí para arrastrarlas al calendario.') })]));
+    var hide = U.el('button.circle-btn', { attrs: { type: 'button', 'aria-label': W.t('Ocultar «Por planificar»'), title: W.t('Ocultar') },
+      on: { click: function () { st.settings.desk.plan = false; st.saveSettings('settings:desk'); } } }, [U.icon('close', 'xs')]);
+    var panel = U.el('section.cal-plan', { attrs: { 'aria-label': W.t('Por planificar') } }, [
+      U.el('div.pl-head', [U.el('div', [U.el('strong', { text: W.t('Por planificar') }),
+        U.el('small', { text: total ? W.t('Arrastra una tarea a un día y una hora') : W.t('Nada pendiente sin fecha') })]), hide]),
+      body,
+      U.el('p.pl-drop', { text: W.t('Suelta aquí una tarea para quitarle la fecha') })
+    ]);
+    W.Sidebar.dropTarget(panel, function (id) { unschedule(st, id); });
+    return panel;
   }
 
   /** Columnas para las tareas que coinciden en el tiempo (dentro de un mismo día) */
@@ -645,7 +711,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
     var body = U.el('div.wg-body', { style: { height: (hoursN * HOUR_H) + 'px', '--hour-h': HOUR_H + 'px' } }, [hoursCol].concat(cols));
     if (days.length !== 7) [head, allday, body].forEach(function (n) { n.style.gridTemplateColumns = '64px repeat(' + days.length + ', minmax(0, 1fr))'; });
-    return [U.el('div.group.wg', [head, allday, body])];
+    var grid = U.el('div.group.wg', [head, allday, body]);
+    // Con «Por planificar»: las tareas sin fecha y vencidas a la derecha, para soltarlas en su hora
+    return planOn(st) ? [U.el('div.cal-split.plan-split', [grid, U.el('aside.cal-side', [planPanel(st)])])] : [grid];
   }
 
   /** Estirar un bloque por abajo: cambia la duración (de 15 en 15 minutos) */
@@ -741,7 +809,12 @@ window.Whider.Screens = window.Whider.Screens || {};
     ]);
     var seg = W.UI.segmented(DESK_VIEWS, v.calView, function (val) { v.calView = val; rerender(); }, { mini: true });
     var exp = U.el('button.btn.ghost.sm.ct-export', { attrs: { type: 'button', title: W.t('Exportar las tareas con fecha a otro calendario (.ics)') }, on: { click: function () { exportIcs(st); } } }, [U.icon('download', 'sm'), W.t('Exportar')]);
-    return U.el('div.cal-toolbar', [left, U.el('div.ct-right', [listChip, doneChip, calsButton(true), exp, seg])]);
+    var n = planCount(st), on = planOn(st);
+    var plan = agenda ? null : U.el('button.btn.ghost.sm.ct-plan' + (on ? '.on' : ''), {
+      attrs: { type: 'button', 'aria-pressed': on ? 'true' : 'false', title: W.t('Mostrar u ocultar las tareas por planificar') },
+      on: { click: function () { st.settings.desk.plan = !on; st.saveSettings('settings:desk'); } }
+    }, [U.icon('inbox', 'sm'), n ? W.t('Por planificar ({n})', { n: n }) : W.t('Por planificar')]);
+    return U.el('div.cal-toolbar', [left, U.el('div.ct-right', [listChip, doneChip, plan, calsButton(true), exp, seg])]);
   }
 
   /** Calendarios suscritos (Ajustes → Calendarios suscritos): botón en el ordenador, ficha en el móvil */

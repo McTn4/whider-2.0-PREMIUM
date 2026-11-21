@@ -371,7 +371,8 @@ window.Whider = window.Whider || {};
           menuCell({ icon: 'calendar', title: W.t('Vista al abrir'), value: dk.calView, options: calViews, onChange: function (v) { dk.calView = v; st.ui.calView = v; saveDesk(); } }, nav),
           W.UI.cell({ icon: 'clock', title: W.t('La semana empieza a las'), right: W.UI.stepper(dk.calStartH, 0, 12, 1, function (v) { dk.calStartH = v; saveDesk(); }, hour) }),
           W.UI.cell({ icon: 'moon', title: W.t('Y termina a las'), right: W.UI.stepper(dk.calEndH, 13, 23, 1, function (v) { dk.calEndH = v; saveDesk(); }, hour) }),
-          toggleCell({ icon: 'week', title: W.t('Mostrar los fines de semana'), value: dk.weekends !== false, onChange: function (v) { dk.weekends = v; saveDesk(); } })
+          toggleCell({ icon: 'week', title: W.t('Mostrar los fines de semana'), value: dk.weekends !== false, onChange: function (v) { dk.weekends = v; saveDesk(); } }),
+          toggleCell({ icon: 'inbox', title: W.t('Panel «Por planificar»'), sub: W.t('Tareas sin fecha y vencidas junto al calendario, para arrastrarlas a un día y una hora'), value: dk.plan !== false, onChange: function (v) { dk.plan = v; saveDesk(); } })
         ] }),
         W.UI.section({ header: W.t('Pantalla'), items: [
           toggleCell({ icon: 'monitor', title: W.t('Contenido a todo el ancho'), sub: W.t('Aprovecha las pantallas grandes'), value: !!dk.wide, onChange: function (v) { dk.wide = v; saveDesk(); } })

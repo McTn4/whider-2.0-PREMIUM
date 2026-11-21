@@ -2612,5 +2612,23 @@ window.Whider.I18n.add('en', {
   'Calendarios ({n})': 'Calendars ({n})',
   'Calendarios': 'Calendars',
   // js/screens/settings.js
-  '<p><b>Calendarios suscritos.</b> Si añades uno, su enlace va con tus ajustes y sus eventos se quedan en tu dispositivo. El servidor de WHIDER lo descarga por ti sin guardarlo.</p>': '<p><b>Subscribed calendars.</b> If you add one, its link goes with your settings and its events stay on your device. WHIDER\'s server downloads it for you without storing it.</p>'
+  '<p><b>Calendarios suscritos.</b> Si añades uno, su enlace va con tus ajustes y sus eventos se quedan en tu dispositivo. El servidor de WHIDER lo descarga por ti sin guardarlo.</p>': '<p><b>Subscribed calendars.</b> If you add one, its link goes with your settings and its events stay on your device. WHIDER\'s server downloads it for you without storing it.</p>',
+  // js/screens/calendar.js
+  'Vencida · {day}': 'Overdue · {day}',
+  'Arrástrala a un día y una hora': 'Drag it to a day and a time',
+  'Una tarea que se repite necesita una fecha': 'A repeating task needs a date',
+  '«{text}» ya no tiene fecha': '“{text}” no longer has a date',
+  'Y {n} más en Tareas': 'And {n} more in Tasks',
+  'Todo planificado': 'All planned',
+  'Las tareas sin fecha aparecerán aquí para arrastrarlas al calendario.': 'Tasks without a date will show here so you can drag them to the calendar.',
+  'Ocultar «Por planificar»': 'Hide “To plan”',
+  'Por planificar': 'To plan',
+  'Arrastra una tarea a un día y una hora': 'Drag a task to a day and a time',
+  'Nada pendiente sin fecha': 'Nothing pending without a date',
+  'Suelta aquí una tarea para quitarle la fecha': 'Drop a task here to remove its date',
+  'Mostrar u ocultar las tareas por planificar': 'Show or hide the tasks to plan',
+  'Por planificar ({n})': 'To plan ({n})',
+  // js/screens/settings.js
+  'Panel «Por planificar»': '“To plan” panel',
+  'Tareas sin fecha y vencidas junto al calendario, para arrastrarlas a un día y una hora': 'Tasks without a date and overdue ones next to the calendar, to drag them to a day and a time'
 });

@@ -46,7 +46,8 @@ export const GRUPOS = {
     'copias',
     'tema',
     'ingles',
-    'calendarios'
+    'calendarios',
+    'planificar'
   ],
   // Cuentas, sincronización y comunidad contra los emuladores de Firebase
   nube: [

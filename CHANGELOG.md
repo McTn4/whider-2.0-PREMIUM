@@ -10,8 +10,8 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-WHIDER, también en inglés. Tus otros calendarios (Google, Outlook, Apple), dentro de WHIDER. Y lo que cambias en un
-dispositivo llega a los demás al momento, consultando mucho menos la nube.
+WHIDER, también en inglés. Tus otros calendarios (Google, Outlook, Apple), dentro de WHIDER, y la semana se planifica
+arrastrando. Y lo que cambias en un dispositivo llega a los demás al momento, consultando mucho menos la nube.
 
 ### Novedades
 
@@ -19,6 +19,9 @@ dispositivo llega a los demás al momento, consultando mucho menos la nube.
   tu calendario de Google, Outlook o Apple (o el de los festivos) y sus eventos se ven en el calendario, con su hora y
   su duración, y en Hoy, en «Agenda de hoy». Se actualizan solos cada hora, siguen ahí sin conexión y, desde la ficha
   de un evento, «Crear una tarea» lo convierte en una tarea. Se ven, no se cambian: para eso, su propia app.
+- **Planificar arrastrando** (ordenador): en el calendario, el panel «Por planificar» reúne las tareas sin fecha y las
+  vencidas. Arrástralas a una hora de la semana o del día, a la fila «Sin hora» o a un día del mes; soltar una tarea
+  del calendario en el panel le quita la fecha. Se oculta con × o desde Ajustes → Personalización.
 - **WHIDER, también en inglés**: Ajustes → Idioma. Toda la app: las pantallas, los avisos, las fechas y «Nueva tarea»,
   que entiende frases en inglés («Call Anna tomorrow at 10 #work»), además de los menús del ordenador y el widget y los
   avisos de Android. Lo que ya habías creado (tareas, categorías, páginas) se queda como estaba.
@@ -79,6 +82,9 @@ dispositivo llega a los demás al momento, consultando mucho menos la nube.
   `tests/unit/calendario-api.test.js` (direcciones, IP privadas, redirecciones, tamaño, tiempo, formato y CORS) y
   `tests/e2e/calendarios.js` (añadir, errores, todas las vistas del calendario en el ordenador y el móvil, Hoy, ficha,
   sin conexión, ocultar y quitar).
+- Planificar arrastrando: `planPanel` en `js/screens/calendar.js`, con el mismo arrastre que la barra lateral
+  (`W.Sidebar.DRAG_TYPE` y `dropTarget`); `settings.desk.plan` lo enciende o lo apaga. Prueba nueva
+  `tests/e2e/planificar.js` (arrastre simulado con `DragEvent`).
 
 ## [1.1.0] · 2026-11-18
 
