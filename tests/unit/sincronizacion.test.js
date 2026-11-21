@@ -187,3 +187,17 @@ test('sin tocar la app se mira la nube cada vez menos', () => {
   assert.equal(W.Sync.pollEvery(5 * 60000), 60000);
   assert.equal(W.Sync.pollEvery(60 * 60000), 300000);
 });
+
+test('los días de una repetición semanal viajan con la repetición', () => {
+  // Un dispositivo cambia los días (lunes y jueves) y otro, después, el texto: se conservan los dos cambios
+  const a = t('t1', 'Gimnasio', 10, {
+    date: '2026-11-16',
+    repeat: 'weekly',
+    days: [1, 4],
+    ft: { repeat: Date.now() - 5000 }
+  });
+  const b = t('t1', 'Gimnasio y sauna', 20, { date: '2026-11-16', repeat: 'weekly', ft: { text: Date.now() - 1000 } });
+  const m = JSON.parse(JSON.stringify(W.Sync.mergeTask(a, b)));
+  assert.equal(m.text, 'Gimnasio y sauna');
+  assert.deepEqual(m.days, [1, 4]);
+});

@@ -9,21 +9,19 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0;
 const ok = (c, m, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (!c && extra !== undefined ? '  → ' + JSON.stringify(extra, null, 1).slice(0, 3000) : '')); if (!c) fails++; };
 // «calendar:week» abre el calendario en esa vista (en el móvil no hay vista de día)
-const PANTALLAS = ['home', 'tasks', 'calendar:month', 'calendar:week', 'calendar:day', 'calendar:agenda', 'focus', 'progress', 'records', 'more', 'stats', 'reports', 'friends', 'chats', 'automations'];
+const PANTALLAS = ['home', 'tasks', 'calendar:month', 'calendar:week', 'calendar:day', 'calendar:agenda', 'friends', 'chats'];
 // Hojas que se abren encima (Ajustes y sus páginas, la ayuda, los atajos, el importador, el editor de tareas…)
 const HOJAS = [
   ['ajustes', () => Whider.Settings.open()],
-  ...['appearance', 'custom', 'sounds', 'alerts', 'tasks', 'lists', 'habits', 'calendars', 'focus', 'start', 'data', 'privacy', 'desktop'].map((pg) => ['ajustes › ' + pg, (x) => Whider.Settings.open(x), pg]),
+  ...['appearance', 'custom', 'sounds', 'alerts', 'tasks', 'lists', 'calendars', 'start', 'data', 'privacy', 'desktop'].map((pg) => ['ajustes › ' + pg, (x) => Whider.Settings.open(x), pg]),
   ['preguntas frecuentes', () => Whider.Help.faq()],
   ['enviar comentarios', () => Whider.Help.feedback()],
   ['atajos de teclado', () => Whider.Keys.help(), null, 'ordenador'],
   ['importar', () => Whider.ImportWizard.open()],
   ['calendario suscrito nuevo', () => Whider.CalSubs.addSheet()],
   ['evento de un calendario suscrito', () => Whider.CalSubs.open(Whider.Calendars.between(Whider.U.today(), Whider.U.addDays(Whider.U.today(), 7))[0])],
-  ['plantilla nueva', () => Whider.Templates.edit()],
   ['tarea nueva', () => Whider.Editor.open()],
-  ['regla nueva', () => Whider.Screens.automations.edit(null)],
-  ['editar regla', () => Whider.Screens.automations.edit(Whider.State.rules[0])],
+  ['editar una de cada día', () => Whider.Editor.open(Whider.State.tasks.find((t) => t.text === 'Gym').id)],
   ['editar tarea', () => Whider.Editor.open(Whider.State.tasks.find((t) => t.text === 'Prepare the proposal').id)]
 ];
 const ESPANOL = /[áéíóúñ¿¡]|\b(de|del|la|las|el|los|que|y|en|con|sin|para|por|una|un|tu|tus|más|hoy|mañana|tarea|tareas|hábito|hábitos|ajustes|cuaderno|nueva|nuevo|ver|todo|nada|semana|día|días|añadir|hecha|hechas|pendientes?|vencidas?|fecha|lugar|objetivo|asignatura|nombre|estado|página|páginas)\b/i;
@@ -63,9 +61,9 @@ async function abrir(b, movil) {
     add('Send the invoice', 'none', '17:00'); add('Old report', 'none', null, { date: Whider.U.addDays(t, -2) });
     const d = S.addTask({ text: 'Water the plants', date: t }); S.setDone(d.id, true);
     S.addTask({ text: 'Plan the trip', date: Whider.U.addDays(t, 2) });
-    // Una regla propia, para ver su resumen («Every day at 7:00, if date: is overdue → date today»)
-    const tp = Whider.Auto.TEMPLATES[0];
-    S.saveRule(Object.assign({ name: 'Morning sweep', enabled: true }, JSON.parse(JSON.stringify(tp.rule))));
+    // Tareas de cada día (una cada día y otra tres días por semana)
+    S.addTask({ text: 'Drink water', date: t, repeat: 'daily' });
+    S.addTask({ text: 'Gym', date: t, repeat: 'weekly', days: [1, 3, 5] });
   });
   return p;
 }
@@ -102,8 +100,7 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
       if (movil && vista === 'day') continue;
       await p.evaluate(([s, v]) => { if (v) Whider.State.ui.calView = v; Whider.Router.go(s); Whider.Router.refresh(); }, [scr, vista]);
       await sleep(600);
-      // «records» es la pestaña Marcas de la pantalla de perfil
-      const restos = (await leer(p, scr === 'records' ? 'progress' : scr)).filter((l) => ESPANOL.test(l));
+      const restos = (await leer(p, scr)).filter((l) => ESPANOL.test(l));
       ok(!restos.length, donde + ': «' + pantalla + '» sin textos en español', restos);
     }
     for (const [nombre, abrirHoja, arg, solo] of HOJAS) {
@@ -114,6 +111,16 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
       const restos = texto.filter((l) => ESPANOL.test(l));
       ok(texto.length > 2 && !restos.length, donde + ': hoja «' + nombre + '» sin textos en español', restos.length ? restos : texto);
       await p.evaluate(() => { let n = 0; while (Whider.Sheet.isOpen() && n++ < 10) Whider.Sheet.closeTop(); });
+      await sleep(450);
+    }
+    // La presentación (para qué la usas): cada paso, en inglés
+    await p.evaluate(() => Whider.Onboarding.start());
+    await sleep(500);
+    for (let paso = 0; paso < 4 && (await p.evaluate(() => Whider.Onboarding.isOpen())); paso++) {
+      const texto = await leerHojas(p, '#onboardingRoot');
+      const restos = texto.filter((l) => ESPANOL.test(l));
+      ok(texto.length > 2 && !restos.length, donde + ': presentación, paso ' + (paso + 1) + ' sin textos en español', restos.length ? restos : texto);
+      await p.evaluate(() => document.querySelector('#onboardingRoot .ob-foot .btn.primary').click());
       await sleep(450);
     }
     // El Cuaderno: la portada, una página de cada plantilla (con sus bases de datos) y la papelera

@@ -11,26 +11,6 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
   var timer = null;
   var ICON = 'icons/icon-192.png';
-  var HABIT_SENT = 'whider.habitsent';   // hábitos ya recordados hoy (solo en este dispositivo)
-  var HABIT_WINDOW = 120;                // minutos tras su hora en los que aún se recuerda
-
-  function habitSent() { try { return JSON.parse(localStorage.getItem(HABIT_SENT) || '{}') || {}; } catch (e) { return {}; } }
-  function saveHabitSent(m) { try { localStorage.setItem(HABIT_SENT, JSON.stringify(m)); } catch (e) { /* sin espacio */ } }
-
-  /** Hábitos con recordatorio a los que les toca aviso ahora (una vez al día, si siguen sin hacer) */
-  function dueHabits() {
-    if (!W.Habits) return [];
-    var sent = habitSent(), td = U.today(), now = U.hmToMin(U.nowHM()), out = [], changed = false;
-    W.Habits.list().forEach(function (h) {
-      if (!h.reminder || sent[h.id] === td) return;
-      var at = U.hmToMin(h.reminder);
-      if (now < at || now - at > HABIT_WINDOW) return;
-      if (!W.Habits.pendingToday(h)) return;
-      sent[h.id] = td; changed = true; out.push(h);
-    });
-    if (changed) saveHabitSent(sent);
-    return out;
-  }
 
   function bridge() {
     var b = window.WhiderAndroid;
@@ -182,22 +162,8 @@ window.Whider = window.Whider || {};
           action: { label: W.t('Ver'), fn: function () { W.Router.go('home'); } } });
       }
 
-      // Hábitos: a su hora, si hoy toca y aún no está hecho
-      var habits = dueHabits();
-      habits.forEach(function (h) {
-        Notify.system(h.name, h.target > 1 ? W.t('Llevas {n} de {total} hoy', { n: W.Habits.count(h, U.today()), total: h.target + (h.unit ? ' ' + h.unit : '') }) : W.t('Todavía no lo has marcado hoy'), 'whider-habit-' + h.id);
-      });
-      if (habits.length === 1) {
-        var hb = habits[0];
-        W.Toast.show({ text: W.t('Hábito: {name}', { name: hb.name }), icon: hb.icon || 'target', duration: 7000,
-          action: { label: hb.target > 1 ? W.t('Sumar uno') : W.t('Hecho'), fn: function () { var x = st.getHabit(hb.id); if (x) W.Habits.tap(x, U.today()); } } });
-      } else if (habits.length > 1) {
-        W.Toast.show({ text: W.t('{n} para hoy', { n: U.plural(habits.length, 'hábito pendiente', 'hábitos pendientes') }), icon: 'target', duration: 7000,
-          action: { label: W.t('Ver'), fn: function () { W.Router.go('habits'); } } });
-      }
-
       if (alerts.length) { W.Audio.warning(); W.Audio.vibrate([70, 60, 70, 60, 140]); }
-      else if (reminders.length || habits.length) { W.Audio.chime(); W.Audio.vibrate([30, 50, 30]); }
+      else if (reminders.length) { W.Audio.chime(); W.Audio.vibrate([30, 50, 30]); }
       if (dirty) st.save();
       Notify.emitBadge();
     },
@@ -209,9 +175,9 @@ window.Whider = window.Whider || {};
         b.textContent = n > 9 ? '9+' : String(n);
         b.classList.toggle('show', n > 0);
       });
-      // Chats sin leer (en su pestaña, si la tiene) y solicitudes (pestaña «Más» del móvil)
-      var unread = W.Chat ? W.Chat.unreadCount() : 0, chatsTab = !!(W.Dock && W.Dock.slots().indexOf('chats') >= 0);
-      var social = (chatsTab ? 0 : unread) + (W.People ? W.People.pendingCount() : 0);
+      // Chats sin leer y solicitudes: en la pestaña Personas
+      var unread = W.Chat ? W.Chat.unreadCount() : 0;
+      var social = unread + (W.People ? W.People.pendingCount() : 0);
       U.$$('[data-badge="chats"]').forEach(function (b) {
         b.textContent = unread > 9 ? '9+' : String(unread);
         b.classList.toggle('show', unread > 0);
@@ -242,22 +208,6 @@ window.Whider = window.Whider || {};
           out.push({ key: t.id + ':due', at: due, title: t.text, body: W.t('El plazo ha terminado y sigue pendiente') });
         }
       });
-      // Hábitos: los próximos 7 días a su hora (hoy, solo si sigue sin hacer)
-      if (W.Habits) {
-        var td = U.today();
-        W.Habits.list().forEach(function (h) {
-          if (!h.reminder) return;
-          for (var i = 0; i < 7; i++) {
-            var ds = U.addDays(td, i);
-            if (h.freq === 'weekly' ? i > 0 : !W.Habits.isDue(h, ds)) continue;
-            if (i === 0 && !W.Habits.pendingToday(h)) continue;
-            var p = h.reminder.split(':'), d = U.parse(ds);
-            d.setHours(+p[0], +p[1], 0, 0);
-            var at = afterQuiet(d.getTime());
-            if (at > now) out.push({ key: 'habit:' + h.id + ':' + ds, at: at, title: h.name, body: h.target > 1 ? W.t('Objetivo de hoy: {target}{0}', { target: h.target, 0: h.unit ? ' ' + h.unit : '' }) : W.t('Recuerda tu hábito de hoy') });
-          }
-        });
-      }
       try { b.syncReminders(JSON.stringify(out)); } catch (e) { /* sin puente */ }
     }, 600)
   };

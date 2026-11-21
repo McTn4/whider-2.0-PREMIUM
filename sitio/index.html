@@ -19,8 +19,8 @@
   </script>
   <title>WHIDER · Tu día, bajo control</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Tareas, calendario, hábitos, enfoque y un Cuaderno en una sola app gratuita para Windows, macOS, Linux y la web, sincronizada entre tus dispositivos.">
-  <meta name="theme-color" content="#070708">
+  <meta name="description" content="Tus tareas por importancia, las de cada día, el calendario y tus notas en una sola app gratuita para Windows, macOS, Linux y la web, sincronizada entre tus dispositivos.">
+  <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
   <link rel="canonical" href="https://whider-red.vercel.app/">
   <link rel="alternate" hreflang="es" href="https://whider-red.vercel.app/">
@@ -32,7 +32,7 @@
   <meta property="og:locale:alternate" content="en_US">
   <meta property="og:url" content="https://whider-red.vercel.app/">
   <meta property="og:title" content="WHIDER · Tu día, bajo control">
-  <meta property="og:description" content="Tareas, calendario, hábitos, enfoque y un Cuaderno. Gratis, sin anuncios y en todos tus dispositivos.">
+  <meta property="og:description" content="Tus tareas por importancia, las de cada día, el calendario y tus notas. Gratis, sin anuncios y en todos tus dispositivos.">
   <meta property="og:image" content="https://whider-red.vercel.app/sitio/img/og.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -41,21 +41,20 @@
   <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="manifest" href="/manifest.json">
-  <link rel="preload" href="/fonts/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/inter-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/sitio/portada.css">
 </head>
 <body id="top">
 <a class="skip" href="#contenido">Saltar al contenido</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.1"/><path d="M12 5L12 2.8M16.95 7.05L18.51 5.49M19 12L21.2 12M16.95 16.95L18.51 18.51M12 19L12 21.2M7.05 16.95L5.49 18.51M5 12L2.8 12M7.05 7.05L5.49 5.49"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M16.5 3.5 19.5 6.5 16.5 9.5"/><path d="M4.5 11.5V9A2.5 2.5 0 0 1 7 6.5H19.5"/><path d="M7.5 20.5 4.5 17.5 7.5 14.5"/><path d="M19.5 12.5V15A2.5 2.5 0 0 1 17 17.5H4.5"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7H11.75M17.25 7H20M4 17H6.75M12.25 17H20"/><path d="M13.05 4.75H15.95A1.3 1.3 0 0 1 17.25 6.05V7.95A1.3 1.3 0 0 1 15.95 9.25H13.05A1.3 1.3 0 0 1 11.75 7.95V6.05A1.3 1.3 0 0 1 13.05 4.75Z"/><path d="M8.05 14.75H10.95A1.3 1.3 0 0 1 12.25 16.05V17.95A1.3 1.3 0 0 1 10.95 19.25H8.05A1.3 1.3 0 0 1 6.75 17.95V16.05A1.3 1.3 0 0 1 8.05 14.75Z"/></symbol>
     <symbol id="i-tasks" viewBox="0 0 24 24"><path d="M10.5 6.5H20.5M10.5 12H20.5M10.5 17.5H17"/><path d="m3.5 6.4 1.6 1.6 2.9-3.1M3.5 11.9l1.6 1.6 2.9-3.1"/><path d="M4.7 15.6H6.3A1.1 1.1 0 0 1 7.4 16.7V18.3A1.1 1.1 0 0 1 6.3 19.4H4.7A1.1 1.1 0 0 1 3.6 18.3V16.7A1.1 1.1 0 0 1 4.7 15.6Z"/></symbol>
     <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M6.25 5H17.75A2.75 2.75 0 0 1 20.5 7.75V17.75A2.75 2.75 0 0 1 17.75 20.5H6.25A2.75 2.75 0 0 1 3.5 17.75V7.75A2.75 2.75 0 0 1 6.25 5Z"/><path d="M3.5 9.75H20.5M8 3V6.5M16 3V6.5"/></symbol>
     <symbol id="i-notebook" viewBox="0 0 24 24"><path d="M7.2 3.5H16.3A2.2 2.2 0 0 1 18.5 5.7V18.3A2.2 2.2 0 0 1 16.3 20.5H7.2A2.2 2.2 0 0 1 5 18.3V5.7A2.2 2.2 0 0 1 7.2 3.5Z"/><path d="M8.75 3.5V20.5M11.75 8H15.25M11.75 11.25H15.25"/><path d="M18.5 13.5H20.25V17H18.5"/></symbol>
-    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.3" r="7.6"/><path d="M12 13.3V9.3M9.6 2.75h4.8M18.6 6.7l1.4-1.4"/></symbol>
     <symbol id="i-team" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M7 19.5a5 5 0 0 1 10 0M2.75 18a3.4 3.4 0 0 1 4.6-3M21.25 18a3.4 3.4 0 0 0-4.6-3"/></symbol>
-    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20.5H21"/><path d="M5.6 12H6.9A1.1 1.1 0 0 1 8 13.1V19.4A1.1 1.1 0 0 1 6.9 20.5H5.6A1.1 1.1 0 0 1 4.5 19.4V13.1A1.1 1.1 0 0 1 5.6 12Z"/><path d="M11.35 4.5H12.65A1.1 1.1 0 0 1 13.75 5.6V19.4A1.1 1.1 0 0 1 12.65 20.5H11.35A1.1 1.1 0 0 1 10.25 19.4V5.6A1.1 1.1 0 0 1 11.35 4.5Z"/><path d="M17.1 8.5H18.4A1.1 1.1 0 0 1 19.5 9.6V19.4A1.1 1.1 0 0 1 18.4 20.5H17.1A1.1 1.1 0 0 1 16 19.4V9.6A1.1 1.1 0 0 1 17.1 8.5Z"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4V15M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19.5H19"/></symbol>
     <symbol id="i-monitor" viewBox="0 0 24 24"><path d="M5.2 4.5H18.8A2.2 2.2 0 0 1 21 6.7V14.3A2.2 2.2 0 0 1 18.8 16.5H5.2A2.2 2.2 0 0 1 3 14.3V6.7A2.2 2.2 0 0 1 5.2 4.5Z"/><path d="M8.5 20H15.5M12 16.5V20"/></symbol>
     <symbol id="i-phone" viewBox="0 0 24 24"><path d="M9.4 3H14.6A2.4 2.4 0 0 1 17 5.4V18.6A2.4 2.4 0 0 1 14.6 21H9.4A2.4 2.4 0 0 1 7 18.6V5.4A2.4 2.4 0 0 1 9.4 3Z"/><path d="M11 17.75H13"/></symbol>
@@ -90,7 +89,7 @@
     <div class="wrap">
       <p class="eyebrow rise d1"><span data-version>WHIDER 1.1</span> · Gratis y sin anuncios</p>
       <h1 id="t-hero"><span class="l rise d2">Tu día,</span><span class="l rise d3">bajo control.</span></h1>
-      <p class="lead rise d4">Tareas, calendario, hábitos, enfoque y un Cuaderno para tus ideas. Todo en un sitio y sincronizado entre el ordenador, el móvil y la web.</p>
+      <p class="lead rise d4">Nada más abrirla, lo que tienes que hacer hoy, de lo más importante a lo menos. Tus tareas de cada día, el calendario y tus notas, sincronizados entre el ordenador, el móvil y la web.</p>
       <div class="cta rise d5">
         <a class="btn primary" href="/app">Abrir en el navegador</a>
         <a class="btn ghost" id="cta-dl" href="#descargar"><svg class="ic"><use href="#i-download"/></svg><span>Descargar</span></a>
@@ -98,18 +97,9 @@
       </div>
       <p class="cta-note rise d5" id="cta-note">Para Windows, macOS y Linux · En Android, pronto en Google Play</p>
 
-      <div class="chart rise d5" aria-hidden="true">
-        <svg viewBox="8 11 49 40">
-          <g class="grid"><path d="M8 17H57M8 25H57M8 33H57M8 41H57M8 49H57"/></g>
-          <path class="w" pathLength="1" d="M12.5 22.5 23 45l9-15.5L41 45l11-28"/>
-          <circle class="dot" cx="12.5" cy="22.5" r=".62"/><circle class="dot" cx="23" cy="45" r=".62"/><circle class="dot" cx="32" cy="29.5" r=".62"/>
-          <circle class="dot" cx="41" cy="45" r=".62"/><circle class="dot" cx="52" cy="17" r=".95"/>
-          <text class="tag" x="50.2" y="14.2">HOY</text>
-        </svg>
-      </div>
       <div class="shots rise d6">
         <figure class="pc" style="margin:0 0 0 auto">
-          <img src="/sitio/img/pc-hoy.webp" width="1920" height="1200" fetchpriority="high" alt="WHIDER en el ordenador: la pantalla Hoy con lo más importante del día, el personaje Whi, el progreso y los hábitos">
+          <img src="/sitio/img/pc-hoy.webp" width="1920" height="1200" fetchpriority="high" alt="WHIDER en el ordenador: Hoy con el campo para añadir, «Cada día» y «Por hacer» ordenadas por importancia">
         </figure>
         <figure class="phone" style="margin:0">
           <img src="/sitio/img/movil-hoy.webp" width="600" height="1222" alt="La misma pantalla Hoy en el móvil">
@@ -128,15 +118,15 @@
 
   <section class="sec" id="funciones" aria-labelledby="t-fun">
     <div class="wrap">
-      <p class="label rv">Índice</p>
+      <p class="label rv">Funciones</p>
       <h2 id="t-fun" class="rv">Todo tu día,<br>en un solo sitio.</h2>
       <ol class="index">
-        <li class="rv"><span class="num">01</span><h3><svg class="ic"><use href="#i-tasks"/></svg>Tareas con prioridad</h3><p>Lo más importante arriba y el resto en orden: categorías, fechas, recordatorios y tareas que se repiten.</p></li>
-        <li class="rv"><span class="num">02</span><h3><svg class="ic"><use href="#i-calendar"/></svg>Calendario</h3><p>Mes, semana y agenda para ver tu día de un vistazo y planificar los siguientes.</p></li>
-        <li class="rv"><span class="num">03</span><h3><svg class="ic"><use href="#i-notebook"/></svg>Cuaderno</h3><p>Páginas por bloques con fotos, archivos, tablas y plantillas para tus ideas, viajes y proyectos.</p></li>
-        <li class="rv"><span class="num">04</span><h3><svg class="ic"><use href="#i-timer"/></svg>Hábitos y enfoque</h3><p>Rachas para lo que quieres repetir cada día y un temporizador para trabajar sin distracciones.</p></li>
-        <li class="rv"><span class="num">05</span><h3><svg class="ic"><use href="#i-team"/></svg>Personas y equipos</h3><p>Chats, equipos y páginas compartidas. Añade a amigos y compañeros con un enlace o un código QR.</p></li>
-        <li class="rv"><span class="num">06</span><h3><svg class="ic"><use href="#i-chart"/></svg>Estadísticas e informes</h3><p>Tu progreso por días, semanas y categorías, con informes para imprimir o exportar.</p></li>
+        <li class="rv"><span class="num">01</span><h3><svg class="ic"><use href="#i-sun"/></svg>Hoy, por importancia</h3><p>Lo urgente en rojo, lo importante en naranja y lo destacado en amarillo, siempre arriba. Escribe una tarea y elige su importancia al momento.</p></li>
+        <li class="rv"><span class="num">02</span><h3><svg class="ic"><use href="#i-repeat"/></svg>Tareas de cada día</h3><p>Lo que repites a diario o en los días que elijas. Si un día se queda sin hacer, pasa sola al siguiente.</p></li>
+        <li class="rv"><span class="num">03</span><h3><svg class="ic"><use href="#i-calendar"/></svg>Calendario</h3><p>Mes, semana y agenda, con tus calendarios de Google, Outlook o Apple dentro. En el ordenador, arrastra lo pendiente a su hora.</p></li>
+        <li class="rv"><span class="num">04</span><h3><svg class="ic"><use href="#i-notebook"/></svg>Cuaderno</h3><p>Páginas por bloques con fotos, archivos, tablas y plantillas para tus apuntes, viajes y proyectos.</p></li>
+        <li class="rv"><span class="num">05</span><h3><svg class="ic"><use href="#i-team"/></svg>Personas y equipos</h3><p>Chats, equipos y páginas compartidas, solo si trabajas con otros. Añade a quien quieras con un enlace o un código QR.</p></li>
+        <li class="rv"><span class="num">06</span><h3><svg class="ic"><use href="#i-sliders"/></svg>Se adapta a ti</h3><p>Dile para qué la vas a usar —estudios, trabajo, casa, salud— y prepara tus categorías y lo que ves.</p></li>
       </ol>
     </div>
   </section>
@@ -145,10 +135,10 @@
     <div class="wrap">
       <p class="label rv">En el móvil</p>
       <h2 id="t-mov" class="rv">Lo mismo,<br>en el bolsillo.</h2>
-      <p class="sub rv">Tus tareas, tus páginas y tus hábitos te siguen del ordenador al móvil, con Whi, tu personaje, de compañía.</p>
+      <p class="sub rv">Tus tareas, las de cada día y tus páginas te siguen del ordenador al móvil, con cinco pestañas y un «+» siempre a mano.</p>
       <ul class="phones" aria-label="Capturas de WHIDER en el móvil">
         <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-cuaderno.webp" width="560" height="1140" loading="lazy" decoding="async" alt="Una página del Cuaderno con un plan de viaje, casillas y un aviso"></div><figcaption><b>Cuaderno</b>Tus páginas, con listas, fotos y avisos.</figcaption></figure></li>
-        <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-enfoque.webp" width="560" height="1140" loading="lazy" decoding="async" alt="El temporizador de enfoque en 25:00"></div><figcaption><b>Enfoque</b>25 minutos para una sola cosa.</figcaption></figure></li>
+        <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-tareas.webp" width="560" height="1140" loading="lazy" decoding="async" alt="Tareas: listas automáticas (Hoy, Programadas, Todas y Prioritarias) y tus categorías"></div><figcaption><b>Tareas</b>Todo ordenado por categorías y filtros.</figcaption></figure></li>
         <li class="rv"><figure><div class="phone"><img src="/sitio/img/movil-calendario.webp" width="560" height="1140" loading="lazy" decoding="async" alt="El calendario del mes con el día de hoy marcado"></div><figcaption><b>Calendario</b>El mes entero, de un vistazo.</figcaption></figure></li>
       </ul>
     </div>

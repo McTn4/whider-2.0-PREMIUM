@@ -57,7 +57,7 @@ const intenta = (p, fn, arg) => p.evaluate(async ({ src, arg }) => {
   const n = await p.evaluate(() => document.querySelectorAll('#sheetRoot .hp-q').length);
   await p.click('#sheetRoot .hp-q:has-text("varios dispositivos"), #sheetRoot .hp-q:has-text("móvil y en el ordenador")');
   await sleep(200);
-  ok(n === 10 && /misma cuenta/.test(await sheetText(p)), 'diez preguntas frecuentes que se abren con un toque', n);
+  ok(n === 12 && /misma cuenta/.test(await sheetText(p)), 'doce preguntas frecuentes (con «Cada día» y el orden de Hoy) que se abren con un toque', n);
   await cerrar(p);
 
   // Comentarios

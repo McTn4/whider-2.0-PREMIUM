@@ -84,8 +84,10 @@ window.Whider = window.Whider || {};
     vibrate: true,
     quietHours: { enabled: false, from: '22:00', to: '08:00' },
     focus: { work: 25, short: 5, long: 15, rounds: 4, autoBreaks: true },
-    homeHabits: true,
-    homeBuddy: true,
+    // Para qué usas la app (presentación inicial): study, work, home, health, people
+    uses: '',
+    // Pestaña Personas en la barra (sin «Con otras personas», no está hasta que la actives)
+    peopleTab: true,
     contrast: 'normal',
     // Tema: 'dark' (de siempre), 'light' o 'system' (el del dispositivo)
     theme: 'dark',
@@ -152,7 +154,10 @@ window.Whider = window.Whider || {};
   }
   /** Campos con hora propia que cambian de una versión a otra de la tarea */
   function changedFields(before, after) {
-    return Object.keys(FT_KEYS).filter(function (k) { return JSON.stringify(before[k]) !== JSON.stringify(after[k]); });
+    var keys = Object.keys(FT_KEYS).filter(function (k) { return JSON.stringify(before[k]) !== JSON.stringify(after[k]); });
+    // Los días de la semana van con la repetición (se sincronizan juntos)
+    if (keys.indexOf('repeat') < 0 && JSON.stringify(before.days || null) !== JSON.stringify(after.days || null)) keys.push('repeat');
+    return keys;
   }
   function stampFields(t, keys) {
     if (!keys.length) return;
@@ -161,8 +166,24 @@ window.Whider = window.Whider || {};
     keys.forEach(function (k) { t.ft[k] = now; });
   }
 
+  /** Días de la semana (0 = domingo … 6 = sábado) de una tarea que se repite cada semana en varios días */
+  function cleanDays(a) {
+    if (!Array.isArray(a)) return null;
+    var out = [];
+    a.forEach(function (d) { d = Number(d); if (d >= 0 && d <= 6 && d % 1 === 0 && out.indexOf(d) < 0) out.push(d); });
+    return out.length ? out.sort() : null;
+  }
+
   function cleanTask(item, listIds) {
     if (!item || typeof item.text !== 'string' || !item.text.trim()) return null;
+    var t = cleanTaskFields(item, listIds);
+    // Solo «cada semana» lleva días: «lunes, miércoles y viernes». Las versiones anteriores no los conocen
+    // y repiten la tarea una vez por semana, así que no se pierde nada si una de ellas la abre.
+    var days = t.repeat === 'weekly' ? cleanDays(item.days) : null;
+    if (days) t.days = days;
+    return t;
+  }
+  function cleanTaskFields(item, listIds) {
     var subs = Array.isArray(item.subtasks) ? item.subtasks.filter(function (s) {
       return s && typeof s.text === 'string' && s.text.trim();
     }).map(function (s) {
@@ -449,11 +470,70 @@ window.Whider = window.Whider || {};
     return (now || Date.now()) >= U.deadlineTs(t.date, t.time);
   }
 
+  /** «Cada día», «Días laborables», «Lun, Mié, Vie»… (vacío si no se repite). weekStart: 1 lunes, 0 domingo */
+  function repeatLabel(t, weekStart) {
+    if (!t || !REPEATS[t.repeat] || t.repeat === 'none') return '';
+    if (t.repeat === 'weekly' && t.days && t.days.length > 1) {
+      var ws = weekStart === 0 ? 0 : 1;
+      return t.days.slice().sort(function (a, b) { return ((a - ws + 7) % 7) - ((b - ws + 7) % 7); })
+        .map(function (d) { return U.WEEKDAYS_SHORT[d]; }).join(', ');
+    }
+    return REPEATS[t.repeat];
+  }
+  /** ¿Le toca ese día a una tarea que se repite? (solo cuenta el patrón, no la fecha de inicio) */
+  function repeatsOn(t, ds) {
+    var wd = U.weekday(ds);
+    switch (t.repeat) {
+      case 'daily': return true;
+      case 'weekdays': return wd > 0 && wd < 6;
+      case 'weekly': return t.days && t.days.length ? t.days.indexOf(wd) >= 0 : !t.date || wd === U.weekday(t.date);
+      case 'monthly': return !t.date || U.parse(ds).getDate() === U.parse(t.date).getDate();
+      default: return false;
+    }
+  }
+  /** Primer día desde «ds» (incluido) en que le toca (como mucho una semana después) */
+  function firstDue(t, ds) {
+    for (var i = 0; i < 7; i++) { var d = U.addDays(ds, i); if (repeatsOn(t, d)) return d; }
+    return ds;
+  }
+  /**
+   * Tareas de cada día: las que se repiten varias veces por semana (cada día, días laborables o varios días
+   * de la semana). Tienen su sección en Hoy y, si un día se quedan sin hacer, pasan solas al siguiente
+   * que les toca en lugar de acumularse como vencidas.
+   */
+  function isRoutine(t) {
+    return !!t && (t.repeat === 'daily' || t.repeat === 'weekdays' || (t.repeat === 'weekly' && !!t.days && t.days.length > 1));
+  }
+
+  /*
+   * Hábitos de versiones anteriores → tareas de cada día. La frecuencia «X veces por semana» se reparte en
+   * días fijos; el recordatorio pasa a ser la hora de la tarea (con aviso) y el objetivo diario va en el texto.
+   * El id sale del hábito, así que dos dispositivos que lo conviertan a la vez crean la misma tarea.
+   */
+  var SPREAD = { 1: [1], 2: [2, 4], 3: [1, 3, 5], 4: [1, 2, 4, 5], 5: [1, 2, 3, 4, 5], 6: [1, 2, 3, 4, 5, 6] };
+  function taskFromHabit(h, today, doneToday) {
+    var repeat = 'daily', days = null;
+    if (h.freq === 'days') days = h.days.slice();
+    else if (h.freq === 'weekly' && h.perWeek < 7) days = SPREAD[h.perWeek].slice();
+    if (days && days.length >= 7) days = null;
+    else if (days && days.join() === '1,2,3,4,5') { repeat = 'weekdays'; days = null; }
+    else if (days) repeat = 'weekly';
+    var date = firstDue({ repeat: repeat, days: days, date: null }, doneToday ? U.addDays(today, 1) : today);
+    var now = Date.now();
+    return cleanTask({
+      id: 'hab-' + h.id + '-' + (h.updatedAt || 0).toString(36),
+      text: h.name + (h.target > 1 ? ' · ' + h.target + ' ' + (h.unit || W.t('veces')) : ''),
+      notes: h.freq === 'weekly' ? W.t('Antes: {n} veces por semana, el día que quisieras.', { n: h.perWeek }) : '',
+      date: date, time: h.reminder || null, warn: !!h.reminder, highlight: 'none', listId: null,
+      repeat: repeat, days: days, subtasks: [], createdAt: now, updatedAt: now, mine: true
+    }, null);
+  }
+
   function nextDate(t) {
     var base = t.date || U.today();
     switch (t.repeat) {
       case 'daily': return U.addDays(base, 1);
-      case 'weekly': return U.addDays(base, 7);
+      case 'weekly': return t.days && t.days.length ? firstDue(t, U.addDays(base, 1)) : U.addDays(base, 7);
       case 'monthly': return U.addMonths(base, 1);
       case 'weekdays':
         var d = U.addDays(base, 1);
@@ -508,6 +588,12 @@ window.Whider = window.Whider || {};
     cleanSocial: cleanSocial,
     cleanTemplates: cleanTemplates,
     isOverdue: isOverdue,
+    cleanDays: cleanDays,
+    repeatLabel: repeatLabel,
+    repeatsOn: repeatsOn,
+    firstDue: firstDue,
+    isRoutine: isRoutine,
+    taskFromHabit: taskFromHabit,
     nextDate: nextDate
   };
 })(window.Whider);

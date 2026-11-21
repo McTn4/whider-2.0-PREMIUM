@@ -37,7 +37,7 @@ async function register(p, name, email) {
   await fetch(r.oobCodes.filter(c => c.email === email).pop().oobLink);
   await p.click('text=Ya lo he verificado'); await sleep(2500);
   await p.evaluate(() => { if (Whider.Onboarding.isOpen()) document.querySelector('#onboardingRoot .nav-btn').click(); }); await sleep(700);
-  await p.evaluate(() => { Whider.Notify.check = function () {}; Whider.Character.celebrate = function () { return { close: function () {} }; }; Whider.Character.levelUp = function () {}; });
+  await p.evaluate(() => { Whider.Notify.check = function () {}; });
 }
 (async () => {
   await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/accounts`, { method: 'DELETE' });

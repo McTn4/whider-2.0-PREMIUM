@@ -17,16 +17,14 @@ const BAD = /\bXP\b|\bNivel \d|\bnivel \d|[Ll]ogros?\b|Ranking|Subes de nivel|Pr
     await sleep(1500);
     const toasts = await p.evaluate(() => document.getElementById('toastRoot').textContent);
     ok(!BAD.test(toasts), label + ': al completar tareas no aparecen avisos de logros ni XP («' + toasts.slice(0, 80) + '»)');
-    const screens = ['home', 'tasks', 'calendar', 'notes', 'chats', 'friends', 'habits', 'focus', 'stats', 'reports', 'automations', 'progress'].concat(label === 'Móvil' ? ['more'] : []);
+    const screens = ['home', 'tasks', 'calendar', 'notes', 'chats', 'friends'];
     for (const s of screens) {
       await p.evaluate(x => { document.getElementById('toastRoot').innerHTML = ''; Whider.Router.go(x); }, s); await sleep(500);
-      const txt = await p.evaluate(x => document.getElementById('screen-' + x).innerText, s);
+      const txt = await p.evaluate(() => document.querySelector('.screen.active').innerText);
       const m = txt.match(BAD);
       ok(!m, label + ': ' + s + ' sin gamificación' + (m ? ' → «' + txt.slice(Math.max(0, m.index - 30), m.index + 30).replace(/\n/g, ' ') + '»' : ''));
     }
-    await p.evaluate(() => { Whider.State.ui.profileTab = 'records'; Whider.Router.go('home'); Whider.Router.go('progress'); }); await sleep(400);
-    ok(!BAD.test(await p.evaluate(() => document.getElementById('screen-progress').innerText)), label + ': Perfil → Marcas sin gamificación');
-    for (const [name, fn] of [['Ajustes', () => Whider.Settings.open()], ['Personaje', () => Whider.Character.edit()]]) {
+    for (const [name, fn] of [['Ajustes', () => Whider.Settings.open()], ['Perfil', () => Whider.Profile.edit()]]) {
       await p.evaluate(fn); await sleep(600);
       const t = await p.evaluate(() => [...document.querySelectorAll('.sheet-layer.open')].map(x => x.innerText).join(' '));
       ok(!BAD.test(t), label + ': ' + name + ' sin gamificación' + (BAD.test(t) ? ' → «' + t.match(BAD)[0] + '»' : ''));
@@ -34,8 +32,6 @@ const BAD = /\bXP\b|\bNivel \d|\bnivel \d|[Ll]ogros?\b|Ranking|Subes de nivel|Pr
     }
     await p.evaluate(() => Whider.Router.go('home')); await sleep(400);
     await p.screenshot({ path: OUT + '/' + label + '-hoy.png' });
-    await p.evaluate(() => Whider.Router.go('progress')); await sleep(400);
-    await p.screenshot({ path: OUT + '/' + label + '-perfil.png' });
     ok(!errs.length, label + ': sin errores de JavaScript ' + JSON.stringify(errs.slice(0, 3)));
     await ctx.close();
   }

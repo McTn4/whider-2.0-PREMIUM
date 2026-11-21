@@ -41,7 +41,7 @@ window.Whider = window.Whider || {};
         var create = function () {
           var v = input.value.trim(); if (!v) return;
           var pr = W.Parse.task(v);
-          var task = W.State.addTask({ text: pr.text || v, date: pr.date !== undefined ? pr.date : U.today(), time: pr.time || null, listId: pr.listId || null, highlight: pr.highlight || 'none', repeat: pr.repeat || 'none', warn: W.State.settings.defaultWarn, notes: W.t('Desde el Cuaderno: {name}', { name: P().title(pageId) }) });
+          var task = W.State.addTask({ text: pr.text || v, date: pr.date !== undefined ? pr.date : U.today(), time: pr.time || null, listId: pr.listId || null, highlight: pr.highlight || 'none', repeat: pr.repeat || 'none', days: pr.days, warn: W.State.settings.defaultWarn, notes: W.t('Desde el Cuaderno: {name}', { name: P().title(pageId) }) });
           structural(); b.ref = task.id; save(true);
           var fresh = renderBlock(b); ed.els()[b.id].parentNode.replaceChild(fresh, ed.els()[b.id]); decorate();
           W.Toast.show({ text: task.date ? W.t('Tarea creada para {day}', { day: U.inline(U.fmtDay(task.date)) }) : W.t('Tarea creada'), icon: 'check', type: 'success' });

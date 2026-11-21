@@ -1,42 +1,24 @@
 /**
  * WHIDER · Barra lateral del ordenador.
- * Nueva tarea y búsqueda arriba; las secciones (Hoy, Tareas, Calendario, Hábitos, Enfoque),
- * análisis y herramientas, tus listas y tus filtros; abajo, tu perfil y los ajustes.
- * Las tareas (una o varias seleccionadas) se pueden soltar sobre «Hoy» o sobre una lista.
- * Qué se ve, los contadores y el tamaño se eligen en Ajustes → Personalización.
+ * Nueva tarea y búsqueda arriba; las cinco secciones (Hoy, Tareas, Calendario, Cuaderno y Personas); tus categorías y
+ * tus filtros; abajo, tu perfil y los ajustes. Las tareas (una o varias seleccionadas) se pueden soltar sobre «Hoy» o
+ * sobre una categoría. Los contadores y el tamaño se eligen en Ajustes → Personalización.
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var el = null, queued = false, timerEl = null;
+  var el = null, queued = false;
   var DRAG_TYPE = 'text/x-whider-task';
 
-  /*
-   * Secciones por orden de importancia: lo principal (tu día, tus tareas, tu calendario y tu
-   * Cuaderno), el trabajo con otros, tus rutinas (con los Sistemas: métodos y automatizaciones,
-   * que son forma de trabajar y no análisis) y, al final, el análisis. Los mismos grupos que «Más»
-   * en el móvil. «opt» es la clave para ocultarla (Ajustes → Personalización).
-   */
+  /* Las mismas cinco secciones que la barra inferior del móvil, por orden de importancia */
   var NAV = [
     { id: 'home', label: W.t('Hoy'), icon: 'sun', key: '1' },
     { id: 'tasks', label: W.t('Tareas'), icon: 'tasks', key: '2' },
     { id: 'calendar', label: W.t('Calendario'), icon: 'calendar', key: '3' },
-    { id: 'notes', label: W.t('Cuaderno'), icon: 'notebook', key: '4', opt: 'notes' }
-  ];
-  var TEAM = [
-    { id: 'chats', label: W.t('Chats'), icon: 'chat', key: '5', opt: 'chats' },
-    { id: 'friends', label: W.t('Personas'), icon: 'users', key: '6', opt: 'friends' }
-  ];
-  var DAY = [
-    { id: 'habits', label: W.t('Hábitos'), icon: 'target', key: '7', opt: 'habits' },
-    { id: 'focus', label: W.t('Enfoque'), icon: 'timer', key: '8', opt: 'focus' },
-    { id: 'automations', label: W.t('Automatizaciones'), icon: 'system', opt: 'automations' }
-  ];
-  var TOOLS = [
-    { id: 'stats', label: W.t('Estadísticas'), icon: 'chart', key: '9', opt: 'stats' },
-    { id: 'reports', label: W.t('Informes'), icon: 'print', opt: 'reports' }
+    { id: 'notes', label: W.t('Cuaderno'), icon: 'notebook', key: '4' },
+    { id: 'friends', label: W.t('Personas'), icon: 'users', key: '5' }
   ];
 
   function openedList(st) {
@@ -47,8 +29,6 @@ window.Whider = window.Whider || {};
     var v = st.ui.taskView;
     return st.activeScreen === 'tasks' && v && v.type === 'filter' ? v.id : null;
   }
-  function shown(st, n) { return !n.opt || st.settings.desk.sidebar[n.opt] !== false; }
-
   function go(id) {
     var st = S();
     if (id === 'tasks' && st.activeScreen === 'tasks' && st.ui.taskView) { W.Screens.tasks.back(); return; }
@@ -87,11 +67,13 @@ window.Whider = window.Whider || {};
   var showCounts = true;
   function count(n, strong) { return n && (showCounts || strong) ? U.el('span.sb-count' + (strong ? '.strong' : ''), { text: n > 99 ? '99+' : String(n) }) : null; }
 
+  // Secciones con su icono relleno cuando estás en ella (como en la barra inferior del móvil)
+  var FILLED = { sun: 1, tasks: 1, calendar: 1, notebook: 1, users: 1 };
   function navItem(st, n, on, extra) {
     return U.el('button.sb-item' + (on ? '.active' : ''), {
       attrs: { 'aria-current': on ? 'page' : null, title: n.label + (n.key ? ' · ' + n.key : ''), 'data-go': n.id },
       on: { click: function () { go(n.id); } }
-    }, [U.icon(n.icon), U.el('span.sb-label', { text: n.label }), extra]);
+    }, [U.icon(on && FILLED[n.icon] ? n.icon + '-fill' : n.icon), U.el('span.sb-label', { text: n.label }), extra]);
   }
 
   function render() {
@@ -103,14 +85,16 @@ window.Whider = window.Whider || {};
     var overdue = st.overdueAll().length;
     var todayLeft = st.tasks.filter(function (t) { return !t.done && t.date === td && !st.isOverdue(t); }).length;
     var pending = st.tasks.filter(function (t) { return !t.done; }).length;
-    var focus = W.Screens.focus && W.Screens.focus.status ? W.Screens.focus.status() : null;
-    var habitsLeft = W.Habits ? W.Habits.list().filter(W.Habits.pendingToday).length : 0;
+    var unread = W.Chat ? W.Chat.unreadCount() : 0, reqs = W.People ? W.People.pendingCount() : 0;
 
-    var nav = U.el('nav.sb-nav', NAV.filter(function (n) { return shown(st, n); }).map(function (n) {
-      var on = active === n.id && !(n.id === 'tasks' && (listOpen || filterOpen));
+    // Personas, solo si la usas (o si alguien te escribe): se elige en la presentación y en Ajustes
+    var people = st.settings.peopleTab !== false || unread + reqs > 0 || active === 'friends' || active === 'chats';
+    var nav = U.el('nav.sb-nav', NAV.filter(function (n) { return n.id !== 'friends' || people; }).map(function (n) {
+      var on = (active === n.id || (n.id === 'friends' && active === 'chats')) && !(n.id === 'tasks' && (listOpen || filterOpen));
       var extra = n.id === 'home' ? count(overdue || todayLeft, overdue > 0)
         : n.id === 'tasks' ? count(pending)
         : n.id === 'notes' ? count(W.Pages ? W.Pages.count() : 0)
+        : n.id === 'friends' ? count(unread + reqs, true)
         : null;
       var b = navItem(st, n, on, extra);
       if (n.id === 'home') dropTarget(b, function (id) {
@@ -120,20 +104,6 @@ window.Whider = window.Whider || {};
       });
       return b;
     }));
-    if (!focus || !focus.running) timerEl = null;
-
-    var group = function (title, items, extraFor) {
-      var list = items.filter(function (n) { return shown(st, n); });
-      return list.length ? U.el('div.sb-sec.sb-tools', [
-        U.el('div.sb-head', [U.el('span', { text: title })]),
-        U.el('div.sb-group', list.map(function (n) { return navItem(st, n, active === n.id, extraFor ? extraFor(n) : null); }))
-      ]) : null;
-    };
-    var unread = W.Chat ? W.Chat.unreadCount() : 0, reqs = W.People ? W.People.pendingCount() : 0;
-    var teamSec = group(W.t('Equipo'), TEAM, function (n) { return n.id === 'chats' ? count(unread, true) : n.id === 'friends' ? count(reqs, true) : null; });
-    var daySec = group(W.t('Rutinas'), DAY, function (n) { return n.id === 'habits' ? count(habitsLeft) : n.id === 'focus' && focus && focus.running ? (timerEl = U.el('span.sb-timer', { text: focus.text })) : null; });
-    var toolsSec = group(W.t('Análisis'), TOOLS);
-
     var lists = U.el('div.sb-lists', st.lists.map(function (l) {
       var n = st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length;
       var b = U.el('button.sb-item.sb-list' + (listOpen === l.id ? '.active' : ''), {
@@ -198,16 +168,13 @@ window.Whider = window.Whider || {};
       U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
       U.el('span', { text: W.t('WHIDER') })
     ]));
+    el.appendChild(U.el('button.sb-search', { attrs: { title: W.t('Buscar tareas y acciones · {0}', { 0: W.Layout.keys('K') }) }, on: { click: function () { W.Palette.open(); } } },
+      [U.icon('search', 'sm'), U.el('span', { text: W.t('Buscar') }), U.el('kbd', { text: W.Layout.keys('K') })]));
+    el.appendChild(nav);
     el.appendChild(U.el('div.sb-actions', [
       U.el('button.btn.primary.sb-new', { attrs: { title: W.t('Nueva tarea · N') }, on: { click: function () { W.App.newTask(); } } },
-        [U.icon('plus', 'sm'), U.el('span', { text: W.t('Nueva tarea') }), U.el('kbd', { text: 'N' })]),
-      U.el('button.sb-search', { attrs: { title: W.t('Buscar tareas y acciones · {0}', { 0: W.Layout.keys('K') }) }, on: { click: function () { W.Palette.open(); } } },
-        [U.icon('search', 'sm'), U.el('span', { text: W.t('Buscar') }), U.el('kbd', { text: W.Layout.keys('K') })])
+        [U.icon('plus', 'sm'), U.el('span', { text: W.t('Nueva tarea') })])
     ]));
-    el.appendChild(nav);
-    if (teamSec) el.appendChild(teamSec);
-    if (daySec) el.appendChild(daySec);
-    if (toolsSec) el.appendChild(toolsSec);
     el.appendChild(U.el('div.sb-sec', [
       U.el('div.sb-head', [U.el('span', { text: W.t('Categorías') }),
         U.el('button.sb-add', { attrs: { 'aria-label': W.t('Nueva categoría'), title: W.t('Nueva categoría') }, on: { click: function () {
@@ -217,7 +184,7 @@ window.Whider = window.Whider || {};
     ]));
     if (filtersSec) el.appendChild(filtersSec);
     el.appendChild(U.el('div.sb-foot', [
-      U.el('button.sb-profile' + (active === 'progress' ? '.active' : ''), { attrs: { title: W.t('Perfil y resumen · P') }, on: { click: function () { W.Router.go('progress'); } } }, [
+      U.el('button.sb-profile', { attrs: { title: W.t('Tu cuenta y tus ajustes') }, on: { click: function () { W.Settings.open(W.Auth && W.Auth.user ? 'account' : null); } } }, [
         W.Profile.avatar(),
         U.el('span.sb-who', [U.el('strong', { text: name || W.t('Tu perfil') }), U.el('small' + (W.Sync && W.Sync.unsaved && W.Sync.unsaved() ? '.sb-unsaved' : ''), { text: sync })])
       ]),
@@ -228,9 +195,6 @@ window.Whider = window.Whider || {};
   var Sidebar = {
     DRAG_TYPE: DRAG_TYPE,
     NAV: NAV,
-    TEAM: TEAM,
-    DAY: DAY,
-    TOOLS: TOOLS,
     openView: openView,
     dropTarget: dropTarget,
     /** Solo se dibuja en el ordenador (en el móvil no hace falta: se pintará al pasar a pantalla grande) */
@@ -240,12 +204,6 @@ window.Whider = window.Whider || {};
       if (!el || queued || !W.Layout.desktop) return;
       queued = true;
       requestAnimationFrame(function () { queued = false; render(); });
-    },
-    /** Cada segundo con el enfoque en marcha: solo cambia el reloj */
-    tick: function () {
-      if (!timerEl || !W.Layout.desktop) return;
-      var f = W.Screens.focus.status();
-      timerEl.textContent = f.text;
     }
   };
 

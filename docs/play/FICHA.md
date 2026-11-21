@@ -16,31 +16,33 @@ WHIDER: tareas y calendario
 **Descripción breve** (80 como máximo):
 
 ```text
-Tareas, calendario, hábitos, enfoque y notas. Gratis, sin anuncios.
+Tareas por importancia, las de cada día, calendario y notas. Sin anuncios.
 ```
 
 **Descripción completa** (4000 como máximo):
 
 ```text
-WHIDER ordena tu día en un solo sitio: tus tareas, tu calendario, tus hábitos, tu tiempo de enfoque y un Cuaderno para todo lo demás. Gratis, sin anuncios y en todos tus dispositivos.
+WHIDER ordena tu día en un solo sitio: lo que tienes que hacer hoy, de lo más importante a lo menos, las tareas de cada día, tu calendario y un Cuaderno para tus notas. Gratis, sin anuncios y en todos tus dispositivos.
+
+NADA MÁS ABRIR, LO QUE TOCA HOY
+• Arriba, un campo para añadir una tarea con su importancia: urgente, importante o destacada.
+• «Cada día»: lo que repites a diario o algunos días de la semana, con cuántas llevas hechas.
+• «Por hacer»: las de hoy y las que se te pasaron, de lo más importante a lo menos.
 
 TAREAS QUE SE ESCRIBEN SOLAS
 • Escribe «Llamar a Ana mañana a las 10» y WHIDER entiende el día y la hora.
-• Prioridad urgente o importante, categorías con color, subtareas, repeticiones y avisos.
-• Hoy por estados: lo más importante, en curso, vencidas, pendientes y hechas.
-• Elige hasta tres tareas como lo más importante del día.
+• Categorías con color, subtareas, repeticiones (también días sueltos de la semana) y avisos.
 
 CALENDARIO
-• Mes, semana por horas, día y agenda, con tus tareas y sus repeticiones.
+• Mes, semana por horas y agenda, con tus tareas y sus repeticiones.
 
 CUADERNO
 • Páginas con títulos, listas, casillas, tablas, bases de datos, imágenes y archivos adjuntos.
 • Plantillas para proyectos, reuniones y más.
 
-HÁBITOS Y ENFOQUE
-• Hábitos diarios con su racha.
-• Temporizador de enfoque para trabajar sin interrupciones.
-• Estadísticas e informes de tu semana, tu mes y tu año.
+HECHA A TU MEDIDA
+• Al empezar, eliges para qué la usarás (estudios, trabajo, casa, salud o con otras personas) y WHIDER prepara tus categorías.
+• Si no la usas con nadie, oculta la pestaña Personas.
 
 CON OTRAS PERSONAS
 • Contactos, equipos con su Cuaderno compartido y chats.
@@ -62,7 +64,7 @@ PRIVACIDAD
 • Puedes eliminar tu cuenta y todos tus datos desde la app o desde la web.
 ```
 
-**Categoría**: Productividad · **Etiquetas**: Lista de tareas, Calendario, Notas, Hábitos, Productividad.
+**Categoría**: Productividad · **Etiquetas**: Lista de tareas, Calendario, Notas, Productividad.
 
 **Datos de contacto**: el correo de contacto del desarrollador (el que indique la política de privacidad) y el
 sitio web `https://whider-red.vercel.app`.
@@ -73,9 +75,9 @@ sitio web `https://whider-red.vercel.app`.
 | --- | --- | --- |
 | Icono (512 × 512, PNG) | [`icons/icon-512.png`](../../icons/icon-512.png) | 512 × 512 |
 | Gráfico de funciones (1024 × 500, sin transparencia) | [`grafico-de-funciones.jpg`](grafico-de-funciones.jpg) | 1024 × 500 |
-| Capturas del teléfono (de 2 a 8; lado largo ≤ 2 × lado corto) | [`captura-1-hoy.jpg`](captura-1-hoy.jpg) … [`captura-6-enfoque.jpg`](captura-6-enfoque.jpg) | 1080 × 1920 |
+| Capturas del teléfono (de 2 a 8; lado largo ≤ 2 × lado corto) | [`captura-1-hoy.jpg`](captura-1-hoy.jpg) … [`captura-4-cuaderno.jpg`](captura-4-cuaderno.jpg) | 1080 × 1920 |
 
-Orden recomendado de las capturas: Hoy, Tareas, Calendario, Cuaderno, Hábitos y Enfoque.
+Orden recomendado de las capturas: Hoy, Tareas, Calendario y Cuaderno.
 
 ## Antes de pulsar «Enviar a revisión»
 

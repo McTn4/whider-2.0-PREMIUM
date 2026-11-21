@@ -1,4 +1,4 @@
-// App de escritorio: versión (la de package.json), tipografías (Onest y Outfit), esquinas curvadas, sin Premium, todas
+// App de escritorio: versión (la de package.json), tipografía (Inter, también en los títulos), esquinas curvadas, sin Premium, todas
 // las secciones sin errores y el tema claro (ventana, barra de título y lo nativo a juego, y recordado al abrir)
 const { _electron: electron } = require('playwright');
 const { OUT, DESK } = require('./_util');
@@ -21,13 +21,13 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   const info = await win.evaluate(async () => {
     await document.fonts.ready;
     const el = document.querySelector('.btn, .sb-new'), cs = getComputedStyle(el), h1 = document.querySelector('.screen.active .lt h1') || document.querySelector('.lt h1');
-    return { font: document.fonts.check('16px Onest'), display: [...document.fonts].some(f => f.family.replace(/"/g, '') === 'Outfit' && f.status === 'loaded'), family: getComputedStyle(document.body).fontFamily, h1: h1 ? getComputedStyle(h1).fontFamily : '', radius: cs.borderTopLeftRadius, cs: cs.getPropertyValue('corner-shape') || '', plan: typeof Whider.Plan };
+    return { font: document.fonts.check('16px Inter'), display: [...document.fonts].some(f => f.family.replace(/"/g, '') === 'Inter' && f.status === 'loaded'), family: getComputedStyle(document.body).fontFamily, h1: h1 ? getComputedStyle(h1).fontFamily : '', radius: cs.borderTopLeftRadius, cs: cs.getPropertyValue('corner-shape') || '', plan: typeof Whider.Plan };
   });
-  ok(info.font && /Onest/.test(info.family), 'tipografía Onest cargada (' + info.family.split(',')[0] + ')');
-  ok(info.display && /^"?Outfit/.test(info.h1), 'títulos en Outfit (' + info.h1.split(',')[0] + ')');
+  ok(info.font && /Inter/.test(info.family), 'tipografía Inter cargada (' + info.family.split(',')[0] + ')');
+  ok(info.display && /^"?Inter/.test(info.h1), 'títulos también en Inter (' + info.h1.split(',')[0] + ')');
   ok(parseFloat(info.radius) > 0 && !/bevel|superellipse\(0\)/.test(info.cs), 'esquinas curvadas (radio ' + info.radius + (info.cs ? ', corner-shape ' + info.cs : '') + ')');
   ok(info.plan === 'undefined', 'sin módulo de planes');
-  for (const id of ['home', 'tasks', 'calendar', 'notes', 'chats', 'friends', 'habits', 'focus', 'automations', 'stats', 'reports', 'progress']) {
+  for (const id of ['home', 'tasks', 'calendar', 'notes', 'chats', 'friends']) {
     await win.evaluate(id => Whider.Router.go(id), id); await sleep(450);
   }
   const txt = await win.evaluate(() => document.body.innerText);
@@ -41,10 +41,10 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   const nat = () => app.evaluate(({ nativeTheme, BrowserWindow }) => ({ src: nativeTheme.themeSource, th: global.__whider.theme, bg: BrowserWindow.getAllWindows()[0].getBackgroundColor() }));
   const page = () => win.evaluate(() => ({ th: document.documentElement.getAttribute('data-theme'), bg: getComputedStyle(document.body).backgroundColor }));
   let n = await nat();
-  ok(n.src === 'dark' && n.th === 'dark' && /^#070708$/i.test(n.bg), 'empieza con el tema oscuro (ventana ' + n.bg + ', nativo ' + n.src + ')');
+  ok(n.src === 'dark' && n.th === 'dark' && /^#000000$/i.test(n.bg), 'empieza con el tema oscuro (ventana ' + n.bg + ', nativo ' + n.src + ')');
   await win.evaluate(() => Whider.State.setSetting('theme', 'light')); await sleep(500);
   n = await nat(); const pg = await page();
-  ok(pg.th === 'light' && pg.bg === 'rgb(244, 244, 246)' && n.th === 'light' && n.src === 'light' && /^#F4F4F6$/i.test(n.bg),
+  ok(pg.th === 'light' && pg.bg === 'rgb(255, 255, 255)' && n.th === 'light' && n.src === 'light' && /^#FFFFFF$/i.test(n.bg),
     'tema claro: la página (' + pg.bg + '), la ventana (' + n.bg + ') y lo nativo (' + n.src + ')');
   await win.evaluate(() => Whider.State.setSetting('theme', 'system')); await sleep(500);
   n = await nat();
@@ -69,7 +69,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   const app2 = await electron.launch(LAUNCH);
   await app2.firstWindow();
   const n2 = await app2.evaluate(({ nativeTheme, BrowserWindow }) => ({ src: nativeTheme.themeSource, bg: BrowserWindow.getAllWindows()[0].getBackgroundColor() }));
-  ok(n2.src === 'light' && /^#F4F4F6$/i.test(n2.bg), 'al abrir otra vez, la ventana ya sale clara (' + n2.bg + ', nativo ' + n2.src + ')');
+  ok(n2.src === 'light' && /^#FFFFFF$/i.test(n2.bg), 'al abrir otra vez, la ventana ya sale clara (' + n2.bg + ', nativo ' + n2.src + ')');
   await app2.close();
   console.log(fails ? fails + ' FALLOS' : 'TODO OK'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });

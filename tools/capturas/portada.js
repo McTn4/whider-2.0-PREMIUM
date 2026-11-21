@@ -19,7 +19,7 @@ const DESTINOS = [
   ['pc-home', 'pc-hoy', 1920],
   ['movil-home', 'movil-hoy', 600],
   ['movil-page', 'movil-cuaderno', 560],
-  ['movil-focus', 'movil-enfoque', 560],
+  ['movil-tasks', 'movil-tareas', 560],
   ['movil-calendar', 'movil-calendario', 560]
 ];
 
@@ -40,7 +40,7 @@ async function seed(p) {
       ['Revisar el presupuesto del viaje', td, '12:30', 'purple', pers],
       ['Llamar al dentista', td, '17:00', 'star', salud],
       ['Comprar fruta y pan', td, null, 'none', casa],
-      ['Leer 20 páginas', td, '21:30', 'none', pers],
+      ['Leer el capítulo 4', td, '21:30', 'none', pers],
       ['Enviar el informe semanal', td, '09:00', 'purple', work],
       ['Salir a correr', td, '07:30', 'none', salud],
       ['Reunión con el equipo de diseño', tm, '09:30', 'purple', work],
@@ -50,11 +50,17 @@ async function seed(p) {
       const k = S.tasks.find((z) => z.text === t);
       if (k) S.setDone(k.id, true);
     });
-    S.addHabit({ name: 'Beber agua', icon: 'leaf' });
-    S.addHabit({ name: 'Leer', icon: 'book' });
-    S.addHabit({ name: 'Caminar 30 min', icon: 'dumbbell' });
-    const agua = (S.habits || []).find((h) => h.name === 'Beber agua');
-    if (agua && S.setHabitCount) S.setHabitCount(agua.id, td, agua.target || 1);
+    // Tareas de cada día: una ya hecha hoy
+    S.addTask({ text: 'Beber agua · 8 vasos', date: td, time: '09:00', repeat: 'daily', listId: salud });
+    S.addTask({
+      text: 'Caminar 30 minutos',
+      date: td,
+      repeat: 'weekly',
+      days: [1, 3, 5, U.weekday(td)],
+      listId: salud
+    });
+    const med = S.addTask({ text: 'Meditar 10 minutos', date: td, repeat: 'daily', listId: pers });
+    S.setDone(med.id, true);
     const P = Whider.Pages;
     P.fromTemplate('project', { title: 'Lanzamiento de la web' });
     P.fromTemplate('meeting', { title: 'Reunión semanal' });
@@ -117,7 +123,7 @@ async function run(b, label, ctxOpts) {
     await p.evaluate((x) => Whider.Router.go(x), id);
     await sleep(600);
   };
-  for (const id of ['home', 'calendar', 'focus', 'habits']) {
+  for (const id of ['home', 'calendar', 'tasks']) {
     await go(id);
     await shot(id);
   }

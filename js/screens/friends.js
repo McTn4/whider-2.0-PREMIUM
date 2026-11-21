@@ -1,12 +1,10 @@
 /**
- * WHIDER · Personas: amigos, trabajo y equipos
+ * WHIDER · Personas: tus chats, tus contactos y tus equipos
  *
- *  - Tu tarjeta con tu personaje y tu código; invitar con un enlace o con tu código QR,
- *    escanear el de otra persona o escribir su código.
- *  - Solicitudes (se elige si es de amigos o de trabajo), contactos de cada tipo con su
- *    personaje, su racha y su estado, y chat directo con cada uno.
- *  - Equipos: miembros, enlace y QR para unirse, tareas en común, chat y páginas del equipo.
- *  - Ánimos entre amigos.
+ *  - Arriba, tu tarjeta (foto, nombre y código) para invitar con un enlace o un código QR, escanear el de otra
+ *    persona o escribir su código.
+ *  - Las solicitudes, tus chats más recientes (todos, en «Todos los chats») y, debajo, tus contactos (de amigos o de
+ *    trabajo) y tus equipos: miembros, enlace y QR para unirse, tareas en común, chat y páginas del equipo.
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -16,32 +14,34 @@ window.Whider.Screens = window.Whider.Screens || {};
   var U = W.U, S = function () { return W.State; }, PE = function () { return W.People; };
   var unsub = null, teamTimer = null;
 
-  function tab() { return S().ui.peopleTab || 'friend'; }
+  // Contactos o equipos (las pestañas antiguas «friend» y «work» son ahora «Contactos»)
+  function tab() { return S().ui.peopleTab === 'teams' ? 'teams' : 'contacts'; }
 
   /* ---------- Tarjetas ---------- */
   function contactCard(f) {
-    var p = PE().profile(f.uid) || {}, w = PE().weekStats(), current = p.week === w.week, work = (f.kind || 'friend') === 'work';
+    var p = PE().profile(f.uid) || {}, work = (f.kind || 'friend') === 'work';
     var name = p.name || f.name || W.t('Contacto');
-    var focus = p.status === 'focus' && Date.now() - (p.updatedAt || 0) < 3 * 3600000;
     var card = U.el('div.pp-card' + (f.pending ? '.pending' : ''), [
-      U.el('div.pp-av', [W.Avatar.forProfile(p.uid ? p : { name: name, buddy: null }, 64, { live: true }), focus ? U.el('span.pp-status', { attrs: { title: W.t('Concentrado ahora') } }, [U.icon('timer')]) : null]),
+      U.el('div.pp-av', [W.Avatar.forProfile(p.uid ? p : { name: name }, 48)]),
       U.el('div.pp-main', [
         U.el('strong', { text: name }),
-        U.el('span', { text: f.pending ? W.t('Esperando su confirmación…') : !p.uid ? W.t('Aún sin perfil publicado') : focus ? W.t('Concentrado ahora') : p.updatedAt ? W.t('Activo {when}', { when: U.fmtRel(p.updatedAt - Date.now()) }) : (work ? W.t('Trabajo') : W.t('Amigos')) }),
-        !f.pending && p.uid ? U.el('div.pp-stats', [U.el('span', [U.icon('flame', 'xs'), U.el('b', { text: String(p.streak || 0) }), ' ' + (p.streak === 1 ? W.t('día') : W.t('días'))]),
-          U.el('span', [U.icon('check', 'xs'), U.el('b', { text: String(current ? p.weekDone || 0 : 0) }), ' ' + W.t('esta semana')]),
-          work ? null : U.el('span', [U.icon('timer', 'xs'), U.el('b', { text: W.Charts.fmtMin(current ? p.weekFocus || 0 : 0) })])]) : null
+        U.el('span', { text: f.pending ? W.t('Esperando su confirmación…') : (work ? W.t('Trabajo') : W.t('Amigo')) + (p.updatedAt ? ' · ' + W.t('Activo {when}', { when: U.fmtRel(p.updatedAt - Date.now()) }) : '') })
       ]),
       U.el('div.pp-acts', [
         U.el('button.btn.sm.primary', { on: { click: function () { W.Chat.openChat({ uid: f.uid }); } } }, [U.icon('chat', 'sm'), W.t('Chat')]),
-        work ? null : U.el('button.btn.sm.soft', { on: { click: function (e) { cheerMenu(f, e.currentTarget); } } }, [U.icon('send', 'sm'), W.t('Animar')]),
         U.el('button.nav-icon', { attrs: { 'aria-label': W.t('Más opciones'), title: W.t('Más opciones') }, on: { click: function (e) { contactMenu(f, name, e.currentTarget); } } }, [U.icon('dots')])
       ])
     ]);
     return card;
   }
-  function cheerMenu(f, anchor) {
-    W.Menu.open(anchor, PE().CHEERS.map(function (t) { return { value: t, label: t, icon: 'send' }; }), { title: W.t('Enviar ánimo') }).then(function (t) { if (t) PE().cheer(f, t); });
+  /** Un chat reciente (como en la lista de chats) */
+  function chatRow(c) {
+    var C = W.Chat, un = C.unread(c);
+    var av = c.type === 'team' ? U.el('span.av.av-team', { style: { '--s': '44px' } }, [U.el('span.av-in', [U.icon((S().social.spaces[c.sid] || {}).icon || 'team')])]) : W.Avatar.small(C.other(c), 44);
+    var last = c.last ? (c.last.by === C.me() ? W.t('Tú: {text}', { text: c.last.text }) : c.type === 'team' ? (c.last.name || '').split(' ')[0] + ': ' + c.last.text : c.last.text) : W.t('Empieza la conversación');
+    return U.el('button.pp-chat' + (un ? '.unread' : ''), { attrs: { type: 'button' }, on: { click: function () { C.openChat(c.id); } } }, [
+      av, U.el('span.pp-chat-main', [U.el('b', { text: C.title(c) }), U.el('small', { text: last })]), un ? U.el('i.ct-dot', { attrs: { 'aria-label': W.t('Sin leer') } }) : null
+    ]);
   }
   function contactMenu(f, name, anchor) {
     var work = (f.kind || 'friend') === 'work';
@@ -106,7 +106,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var draw = function () {
       U.clear(host);
       var d = PE().team(id);
-      if (!d) { host.appendChild(W.UI.empty('buddy:search:worried', W.t('No se pudo abrir el equipo'), W.t('Puede que ya no formes parte de él.'), null, true)); return; }
+      if (!d) { host.appendChild(W.UI.empty('search', W.t('No se pudo abrir el equipo'), W.t('Puede que ya no formes parte de él.'), null, true)); return; }
       var names = d.members || {};
       host.appendChild(U.el('div.pp-members', Object.keys(names).map(function (k) {
         return U.el('span.pp-member', [W.Avatar.small(k, 34), U.el('span', { text: k === me ? W.t('Tú') : names[k] }), k === d.owner ? U.icon('crown', 'xs') : null]);
@@ -155,11 +155,14 @@ window.Whider.Screens = window.Whider.Screens || {};
   /* ---------- Pantalla ---------- */
   W.Screens.friends = {
     title: W.t('Personas'),
-    back: function () { if (W.Layout.desktop) return false; W.Router.back(); return true; },
     render: function (root) {
-      var st = S(), desk = W.Layout.desktop;
-      if (!unsub) unsub = PE().subscribe(function (r) { if (S().activeScreen === 'friends' && (r === 'requests' || r === 'profiles' || r === 'error' || r === 'team')) W.Router.refresh(); });
-      var head = W.UI.header({ title: W.t('Personas'), back: desk ? null : { label: W.t('Atrás'), onTap: function () { W.Router.back(); } }, sub: W.t('Amigos, trabajo y equipos') });
+      var st = S();
+      if (!unsub) {
+        unsub = PE().subscribe(function (r) { if (S().activeScreen === 'friends' && (r === 'requests' || r === 'profiles' || r === 'error' || r === 'team')) W.Router.refresh(); });
+        // Los chats recientes se ponen al día solos
+        W.Chat.subscribe(function (r) { if (S().activeScreen === 'friends' && r === 'list') W.Router.refresh(); });
+      }
+      var head = W.UI.header({ title: W.t('Personas'), profile: true, sub: W.t('Chats, contactos y equipos') });
       var content = [];
       var b = PE().blocker();
       if (b && !b.soft) {
@@ -167,12 +170,12 @@ window.Whider.Screens = window.Whider.Screens || {};
         if (b.id === 'guest' && W.Auth.configured()) action = U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open({ mode: 'login' }); } } }, [U.icon('user', 'sm'), W.t('Iniciar sesión')]);
         else if (b.id === 'unverified') action = U.el('button.btn.sm.primary', { on: { click: function () { W.Auth.refresh().then(function () { W.Router.refresh(); }).catch(function () { W.Router.refresh(); }); } } }, [U.icon('check', 'sm'), W.t('Ya lo he verificado')]);
         else if (b.id === 'permission') action = U.el('button.btn.sm.soft', { on: { click: function () { PE().poll(true); } } }, [U.icon('refresh', 'sm'), W.t('Reintentar')]);
-        content.push(U.el('div.group', [W.UI.empty('buddy:friends', b.title, b.text, action)]));
+        content.push(U.el('div.group', [W.UI.empty('users', b.title, b.text, action)]));
         W.UI.mount(root, head, content); return;
       }
       if (!st.social.enabled) {
-        content.push(U.el('div.group.card.fr-hero', [W.Character.illustration('friends', 'happy', 110), U.el('strong', { text: W.t('Activa la comunidad') }),
-          U.el('p', { text: W.t('Tus contactos verán tu nombre, tu personaje y tu racha. Nunca tus tareas ni tu Cuaderno (salvo lo que compartas).') }),
+        content.push(U.el('div.group.card.fr-hero', [U.el('span.es-art', [U.icon('users')]), U.el('strong', { text: W.t('Trabaja con otras personas') }),
+          U.el('p', { text: W.t('Chatea, crea equipos y comparte tareas y páginas. Tus contactos solo ven tu nombre y tu foto; nunca tus tareas ni tu Cuaderno (salvo lo que compartas).') }),
           U.el('button.btn.primary', { on: { click: function (e) { e.currentTarget.disabled = true; PE().enable().then(function () { W.Router.refresh(); PE().poll(true); }).catch(function () { W.Router.refresh(); }); } } }, [U.icon('users', 'sm'), W.t('Activar')])]));
         W.UI.mount(root, head, content); return;
       }
@@ -181,15 +184,15 @@ window.Whider.Screens = window.Whider.Screens || {};
       var code = st.social.code || '…';
       var invite = function (kind) { W.Invite.share(W.Invite.personLink(kind)); };
       var input = U.el('input.input', { attrs: { type: 'text', placeholder: W.t('Código (WH-…) o enlace'), 'aria-label': W.t('Código o enlace de invitación'), autocapitalize: 'characters', spellcheck: 'false' } });
-      var go = function () { var v = input.value.trim(); if (!v) { input.focus(); return; } var inv = W.Invite.parse(v); if (inv && inv.type !== 'code') { W.Invite.open(inv); input.value = ''; return; } PE().addByCode(v, tab() === 'work' ? 'work' : 'friend').then(function (okk) { if (okk) input.value = ''; }); };
+      var go = function () { var v = input.value.trim(); if (!v) { input.focus(); return; } var inv = W.Invite.parse(v); if (inv && inv.type !== 'code') { W.Invite.open(inv); input.value = ''; return; } PE().addByCode(v, 'friend').then(function (okk) { if (okk) input.value = ''; }); };
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go(); } });
       content.push(U.el('div.pp-top', [
         U.el('div.group.card.pp-me', [
-          U.el('button.pp-me-av', { attrs: { 'aria-label': W.t('Personalizar tu personaje'), title: W.t('Personalizar') }, on: { click: function () { W.Character.edit('avatar'); } } }, [W.Avatar.me(78, { live: true })]),
+          U.el('button.pp-me-av', { attrs: { 'aria-label': W.t('Editar perfil'), title: W.t('Editar perfil') }, on: { click: function () { W.Profile.edit(function () { W.Router.refresh(); }); } } }, [W.Avatar.me(64)]),
           U.el('div.pp-me-main', [U.el('strong', { text: PE().myName() }), U.el('small', { text: W.t('Tu código: {code}', { code: code }) }),
             U.el('div.pp-me-acts', [
-              U.el('button.btn.sm.primary', { on: { click: function () { invite(tab() === 'work' ? 'work' : 'friend'); } } }, [U.icon('share', 'sm'), W.t('Invitar')]),
-              U.el('button.btn.sm.soft', { on: { click: function () { W.Invite.qrSheet({ kind: tab() === 'work' ? 'work' : 'friend' }); } } }, [U.icon('qr', 'sm'), W.t('Mi QR')]),
+              U.el('button.btn.sm.primary', { on: { click: function () { invite('friend'); } } }, [U.icon('share', 'sm'), W.t('Invitar')]),
+              U.el('button.btn.sm.soft', { on: { click: function () { W.Invite.qrSheet({ kind: 'friend' }); } } }, [U.icon('qr', 'sm'), W.t('Mi QR')]),
               U.el('button.btn.sm.soft', { on: { click: function () { W.Invite.scan(); } } }, [U.icon('scan', 'sm'), W.t('Escanear')])
             ])])
         ]),
@@ -197,8 +200,12 @@ window.Whider.Screens = window.Whider.Screens || {};
       ]));
       var reqs = PE().requests(), rk = Object.keys(reqs);
       if (rk.length) content.push(W.UI.section({ title: W.t('Solicitudes'), side: U.el('small', { text: rk.length }), items: rk.map(function (k) { return requestRow(k, reqs[k]); }) }));
-      var friends = PE().contacts('friend'), work = PE().contacts('work'), teams = PE().teams();
-      content.push(U.el('div.pp-tabs', [W.UI.segmented([{ value: 'friend', label: W.t('Amigos') + (friends.length ? ' · ' + friends.length : '') }, { value: 'work', label: W.t('Trabajo') + (work.length ? ' · ' + work.length : '') }, { value: 'teams', label: W.t('Equipos') + (teams.length ? ' · ' + teams.length : '') }], tab(), function (v) { st.ui.peopleTab = v; W.Router.refresh(); })]));
+      // Chats recientes (todos, en «Todos los chats»)
+      var chats = W.Chat.list();
+      if (chats.length) content.push(W.UI.section({ title: W.t('Chats'), side: U.el('button.link-btn', { text: W.t('Todos los chats'), on: { click: function () { W.Router.go('chats'); } } }),
+        items: U.el('div.group.pp-chats', chats.slice(0, 4).map(chatRow)) }));
+      var contacts = PE().contacts(), teams = PE().teams();
+      content.push(U.el('div.pp-tabs', [W.UI.segmented([{ value: 'contacts', label: W.t('Contactos') + (contacts.length ? ' · ' + contacts.length : '') }, { value: 'teams', label: W.t('Equipos') + (teams.length ? ' · ' + teams.length : '') }], tab(), function (v) { st.ui.peopleTab = v; W.Router.refresh(); })]));
       if (tab() === 'teams') {
         teams.forEach(function (t) { if (!PE().team(t.id)) PE().loadTeam(t.id).catch(function () {}); });
         content.push(U.el('div.pp-teams', teams.map(teamCard).concat([
@@ -207,11 +214,8 @@ window.Whider.Screens = window.Whider.Screens || {};
         ])));
         if (st.ui.team && PE().team(st.ui.team)) { var t0 = st.ui.team; st.ui.team = null; setTimeout(function () { teamSheet(t0); }, 200); }
       } else {
-        var list = tab() === 'work' ? work : friends;
-        content.push(list.length ? U.el('div.pp-grid', list.map(contactCard)) : U.el('div.group', [W.UI.empty('buddy:friends', tab() === 'work' ? W.t('Aún no tienes contactos de trabajo') : W.t('Aún no tienes amigos aquí'),
-          W.t('Invítalos con tu enlace o tu código QR: se conectan con un toque.'), U.el('button.btn.sm.primary', { on: { click: function () { invite(tab() === 'work' ? 'work' : 'friend'); } } }, [U.icon('share', 'sm'), W.t('Invitar')]), true)]));
-        var cheers = st.social.cheers.slice(-5).reverse();
-        if (tab() === 'friend' && cheers.length) content.push(W.UI.section({ header: W.t('Ánimos recibidos'), items: cheers.map(function (c) { return W.UI.cell({ icon: 'send', title: '«' + c.text + '»', sub: (c.name || W.t('Un amigo')) + ' · ' + U.fmtRel(c.at - Date.now()) }); }) }));
+        content.push(contacts.length ? U.el('div.pp-grid', contacts.map(contactCard)) : U.el('div.group', [W.UI.empty('users', W.t('Aún no tienes contactos'),
+          W.t('Invítalos con tu enlace o tu código QR: se conectan con un toque.'), U.el('button.btn.sm.primary', { on: { click: function () { invite('friend'); } } }, [U.icon('share', 'sm'), W.t('Invitar')]), true)]));
       }
       content.push(U.el('div.pp-foot', [U.el('button.link-btn.muted', { text: W.t('Renovar mis enlaces de invitación'), on: { click: function () { W.Sheet.confirm({ title: W.t('¿Renovar tus enlaces?'), text: W.t('Los enlaces y QR que ya enviaste dejarán de conectar solos (quien los use te enviará una solicitud).'), ok: W.t('Renovar') }).then(function (ok) { if (ok) PE().renewInvites(); }); } } })]));
       W.UI.mount(root, head, content);

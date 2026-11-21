@@ -7,7 +7,7 @@
  *    reglas nuevas o sin conexión) en vez de «revisa tu conexión» para todo.
  *  - El buzón llega al momento: se escucha (W.Live) y solo se lee y se vacía cuando trae algo nuevo. Si no se
  *    puede escuchar, se mira cada pocos segundos con Personas o Chats abiertos y cada 30 s en lo demás.
- *  - Los perfiles de tus contactos (racha, semana, enfoque) se actualizan cada minuto con Personas abierta.
+ *  - Los perfiles de tus contactos (nombre y foto) se actualizan cada minuto con Personas abierta.
  *  - Invitar con un enlace o un código QR: quien lo abre queda conectado al momento (sin
  *    esperar a que aceptes), y los enlaces de equipo meten directamente en el equipo.
  *
@@ -27,7 +27,7 @@ window.Whider = window.Whider || {};
   var lastPoll = 0, lastProfiles = 0, ticker = null, errorState = null, failures = 0, publishTimer = null, subs = [], polling = null;
   // Escucha del buzón: de quién es y si hay que volver a leerlo al acabar la lectura en curso
   var inboxFor = null, pollAgain = false;
-  var CHEERS = [W.t('¡Vamos, tú puedes!'), W.t('¡Qué racha llevas!'), W.t('A por el día de hoy'), W.t('Te reto a completar 3 tareas hoy'), W.t('Gran semana, sigue así'), W.t('¡Buen trabajo en equipo!')];
+  var CHEERS = [W.t('¡Vamos, tú puedes!'), W.t('A por el día de hoy'), W.t('Te reto a completar 3 tareas hoy'), W.t('Gran semana, sigue así'), W.t('¡Buen trabajo en equipo!')];
 
   function uid() { return W.Auth && W.Auth.user ? W.Auth.user.uid : null; }
   function ref() { var a = Array.prototype.slice.call(arguments); return F().doc.apply(null, [DB()].concat(a)); }
@@ -60,26 +60,14 @@ window.Whider = window.Whider || {};
     return null;
   }
 
-  /* ---------- Perfil público ---------- */
-  function weekStats() {
-    var st = S(), td = U.today(), ws = st.settings.weekStart, start = U.addDays(td, -((U.weekday(td) - ws + 7) % 7)), done = 0, focus = 0, map = st.doneByDay();
-    for (var d = start; d <= td; d = U.addDays(d, 1)) { done += map[d] || 0; focus += st.focusOn(d).min || 0; }
-    return { done: done, focus: focus, week: start };
-  }
-  function buddyData() {
-    var c = W.Character.config(), out = {};
-    W.Character.CATS.concat(['name', 'cheeks']).forEach(function (k) { if (c[k] != null) out[k] = c[k]; });
-    return out;
-  }
+  /* ---------- Perfil público: tu nombre, tu código y tu foto (o tu inicial). Nada de tus tareas ---------- */
   function profileData() {
-    var st = S(), w = weekStats(), mode = W.Avatar ? W.Avatar.mode() : 'buddy';
+    var st = S(), mode = W.Avatar ? W.Avatar.mode() : 'initial';
     var photo = mode === 'photo' ? S().photo() : '';
-    var f = W.Screens.focus && W.Screens.focus.status ? W.Screens.focus.status() : null;
     var d = {
       uid: uid(), name: myName(), code: st.social.code,
-      streak: st.streak(), bestStreak: st.bestStreak(), weekDone: w.done, weekFocus: w.focus, week: w.week,
-      buddy: buddyData(), avatar: mode === 'photo' && photo && /^data:image\//.test(photo) && photo.length < 90000 ? 'photo' : mode === 'initial' ? 'initial' : 'buddy',
-      status: f && f.running && f.mode === 'work' ? 'focus' : 'online', updatedAt: Date.now()
+      avatar: photo && /^data:image\//.test(photo) && photo.length < 90000 ? 'photo' : 'initial',
+      status: 'online', updatedAt: Date.now()
     };
     if (d.avatar === 'photo') d.photo = photo;
     return d;
@@ -183,7 +171,7 @@ window.Whider = window.Whider || {};
       emit('poll');
       // Los perfiles de todos: al empezar y, después, cada minuto solo con Personas abierta (fuera de ella basta la copia guardada)
       if (Date.now() - lastProfiles > 60000 && (!lastProfiles || S().activeScreen === 'friends')) return loadProfiles();
-      // Contactos nuevos: su personaje y su nombre, al momento
+      // Contactos nuevos: su foto y su nombre, al momento
       if (fresh.length) return loadProfiles(fresh);
     }).catch(function (e) { try { fail(e); } catch (x) { /* ya avisado */ } }).then(function () {
       polling = null;
@@ -486,7 +474,7 @@ window.Whider = window.Whider || {};
     uid: uid, ready: ready, canUse: canUse, blocker: blocker, error: function () { return errorState; },
     /** ¿Se escucha el buzón? (las solicitudes, los ánimos y los avisos llegan al momento) */
     live: inboxLive,
-    enable: enable, ensureEnabled: ensureEnabled, poll: poll, publish: publish, schedulePublish: schedulePublish, loadProfiles: loadProfiles, weekStats: weekStats, myName: myName, send: send,
+    enable: enable, ensureEnabled: ensureEnabled, poll: poll, publish: publish, schedulePublish: schedulePublish, loadProfiles: loadProfiles, myName: myName, send: send,
     profile: function (id) { return profiles[id] || null; },
     profiles: function () { return profiles; },
     requests: function () { var bl = blockedMap(), out = {}; Object.keys(inbox.requests || {}).forEach(function (k) { if (!bl[k]) out[k] = inbox.requests[k]; }); return out; },
@@ -506,7 +494,7 @@ window.Whider = window.Whider || {};
       // En otro dispositivo, los bloqueos se traen de la nube una vez por sesión
       var blocksLoaded = false;
       if (W.Sync) W.Sync.onStatus(function (s) { if (s === 'synced' && canUse() && !blocksLoaded) { blocksLoaded = true; loadBlocked(); } });
-      S().subscribe(function (reason) { if (ready() && (reason === 'done' || reason === 'focus' || reason === 'character' || reason === 'profile' || reason === 'habit')) schedulePublish(); });
+      S().subscribe(function (reason) { if (ready() && reason === 'profile') schedulePublish(); });
       if (W.Sync) W.Sync.onStatus(function (s) { if (s === 'synced' && ready() && !lastPoll) { publish(); poll(true); } });
       document.addEventListener('visibilitychange', function () { if (!document.hidden && ready() && Date.now() - lastPoll > 5000 && !inboxLive()) poll(true); });
     }

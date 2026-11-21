@@ -298,7 +298,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
     var trashN = P().trash().length;
     treeEl.appendChild(U.el('div.pt-foot', [
-      U.el('button.pt-res', { attrs: { type: 'button' }, on: { click: function (e) { templatesSheet(e.currentTarget); } } }, [U.el('span.pt-ic', [U.icon('sparkle')]), U.el('span.pt-t', { text: W.t('Plantillas') })]),
+      U.el('button.pt-res', { attrs: { type: 'button' }, on: { click: function (e) { templatesSheet(e.currentTarget); } } }, [U.el('span.pt-ic', [U.icon('layers')]), U.el('span.pt-t', { text: W.t('Plantillas') })]),
       U.el('button.pt-res', { attrs: { type: 'button' }, on: { click: function () { trashSheet(); } } }, [U.el('span.pt-ic', [U.icon('trash')]), U.el('span.pt-t', { text: W.t('Papelera') }), trashN ? U.el('small.pt-count', { text: String(trashN) }) : null])
     ]));
     void st;
@@ -481,7 +481,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var head = W.UI.header({ title: W.t('Cuaderno'), profile: true, sub: U.plural(P().count(), 'página', 'páginas'), actions: [{ icon: 'search', label: W.t('Buscar en el Cuaderno'), onTap: function () { searchSheet(); } }, { icon: 'plus', label: W.t('Nueva página'), onTap: function () { newMenu(null, {}); } }] });
     var content = [];
     var recent = P().recent(10), favs = P().favorites();
-    if (!P().count()) content.push(U.el('div.group', [W.UI.empty('buddy:note', W.t('Tu cuaderno está vacío'), W.t('Crea páginas, listas, bases de datos y mucho más. Escribe «/» para insertar bloques.'), U.el('button.btn.sm.primary', { on: { click: function () { newMenu(null, {}); } } }, [U.icon('plus', 'sm'), W.t('Nueva página')]))]));
+    if (!P().count()) content.push(U.el('div.group', [W.UI.empty('page', W.t('Tu cuaderno está vacío'), W.t('Crea páginas, listas, bases de datos y mucho más. Escribe «/» para insertar bloques.'), U.el('button.btn.sm.primary', { on: { click: function () { newMenu(null, {}); } } }, [U.icon('plus', 'sm'), W.t('Nueva página')]))]));
     if (favs.length) content.push(W.UI.section({ title: W.t('Favoritas'), items: U.el('div.pg-strip', favs.map(card)) }));
     if (recent.length) content.push(W.UI.section({ title: W.t('Recientes'), items: U.el('div.pg-strip', recent.map(card)) }));
     var mine = []; P().children(null, null).filter(function (m) { return !m.team; }).forEach(function (m) { mine = mine.concat(treeItem(m, 0)); });
@@ -555,9 +555,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     render: function (root, full) {
       screenRoot = root;
       if (!W.Blocks || !W.DbView) {
-        if (!root.querySelector('.pg-loading')) { U.clear(root); root.appendChild(U.el('div.pg-loading', [W.Character.illustration('note', 'happy', 84), U.el('p', { text: W.t('Abriendo tu Cuaderno…') })])); }
+        if (!root.querySelector('.pg-loading')) { U.clear(root); root.appendChild(U.el('div.pg-loading', [U.el('span.es-art', [U.icon('notebook')]), U.el('p', { text: W.t('Abriendo tu Cuaderno…') })])); }
         ensureEditor().then(function () { if (S().activeScreen === 'notes') W.Screens.notes.render(root, true); }).catch(function () {
-          U.clear(root); root.appendChild(W.UI.empty('buddy:note:worried', W.t('No se pudo abrir el Cuaderno'), W.t('Comprueba tu conexión y vuelve a intentarlo.'), null));
+          U.clear(root); root.appendChild(W.UI.empty('alert', W.t('No se pudo abrir el Cuaderno'), W.t('Comprueba tu conexión y vuelve a intentarlo.'), null));
         });
         return;
       }

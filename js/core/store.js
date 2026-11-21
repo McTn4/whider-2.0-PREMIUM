@@ -41,7 +41,6 @@ window.Whider = window.Whider || {};
   var cleanIcon = X.cleanIcon;
   var clone = X.clone;
   var mergeTyped = X.mergeTyped;
-  var isDate = X.isDate;
   var changedFields = X.changedFields;
   var stampFields = X.stampFields;
   var cleanTask = X.cleanTask;
@@ -50,10 +49,8 @@ window.Whider = window.Whider || {};
   var purgeSamples = X.purgeSamples;
   var emptyRecords = X.emptyRecords;
   var cleanRecords = X.cleanRecords;
-  var cleanHabit = X.cleanHabit;
   var cleanHabits = X.cleanHabits;
   var cleanHabitLog = X.cleanHabitLog;
-  var cleanRule = X.cleanRule;
   var cleanRules = X.cleanRules;
   var cleanFilter = X.cleanFilter;
   var cleanFilters = X.cleanFilters;
@@ -541,11 +538,11 @@ window.Whider = window.Whider || {};
       var out = [], k = 1, d = t.date, guard = 0, td = U.today();
       if (from < td) from = td;
       max = max || 62;
+      var byDay = t.repeat === 'weekdays' || (t.repeat === 'weekly' && t.days && t.days.length);
       while (out.length < max && guard++ < 1500) {
-        if (t.repeat === 'weekdays') {
+        if (byDay) {
           d = U.addDays(d, 1);
-          var wd = U.weekday(d);
-          if (wd === 0 || wd === 6) { if (d > to) break; continue; }
+          if (!X.repeatsOn(t, d)) { if (d > to) break; continue; }
         } else d = t.repeat === 'daily' ? U.addDays(t.date, k) : t.repeat === 'weekly' ? U.addDays(t.date, 7 * k) : U.addMonths(t.date, k);
         k++;
         if (d > to) break;
@@ -555,8 +552,6 @@ window.Whider = window.Whider || {};
     },
     isOverdue: function (t) { return isOverdue(t); },
     pending: function () { return State.tasks.filter(function (t) { return !t.done; }); },
-    forDate: function (d) { return State.tasks.filter(function (t) { return t.date === d; }); },
-    todayTasks: function () { return State.forDate(U.today()); },
     overdueAll: function () {
       var now = Date.now();
       return State.tasks.filter(function (t) { return isOverdue(t, now); });
@@ -572,23 +567,6 @@ window.Whider = window.Whider || {};
       return r || State.compareDeadline(a, b);
     },
 
-    /* ---------- Enfoque ---------- */
-    addFocus: function (minutes, taskId) {
-      var d = U.today();
-      var entry = focusLog[d] || { min: 0, sessions: 0 };
-      entry.min += minutes; entry.sessions += 1;
-      focusLog[d] = entry;
-      var t = taskId ? State.find(taskId) : null;
-      if (t) { t.focusMin += minutes; t.updatedAt = Date.now(); }
-      State.notify('focus');
-    },
-    focusOn: function (d) { return focusLog[d] || { min: 0, sessions: 0 }; },
-    focusTotals: function () {
-      var min = 0, sessions = 0;
-      Object.keys(focusLog).forEach(function (k) { min += focusLog[k].min || 0; sessions += focusLog[k].sessions || 0; });
-      return { min: min, sessions: sessions };
-    },
-
     /* ---------- Métricas ---------- */
     /** Completadas por día (historial permanente, sobrevive al borrado de tareas) */
     doneByDay: function () {
@@ -596,52 +574,25 @@ window.Whider = window.Whider || {};
       Object.keys(doneLog).forEach(function (d) { if (doneLog[d] > 0) map[d] = doneLog[d]; });
       return map;
     },
-    totalDone: function () {
-      return Object.keys(doneLog).reduce(function (a, d) { return a + (doneLog[d] || 0); }, 0);
-    },
     streak: function () {
       var seen = State.doneByDay(), td = U.today();
       var cur = seen[td] ? td : U.addDays(td, -1), n = 0;
       while (seen[cur]) { n++; cur = U.addDays(cur, -1); }
       return n;
     },
-    bestStreak: function () {
-      var days = Object.keys(State.doneByDay()).sort(), best = 0, run = 0, prev = null;
-      days.forEach(function (d) {
-        run = prev && U.addDays(prev, 1) === d ? run + 1 : 1;
-        if (run > best) best = run;
-        prev = d;
-      });
-      return best;
-    },
-    lastDays: function (n) {
-      var map = State.doneByDay(), td = U.today(), out = [];
-      for (var i = n - 1; i >= 0; i--) {
-        var d = U.addDays(td, -i);
-        out.push({ date: d, count: map[d] || 0, focus: State.focusOn(d).min, isToday: i === 0 });
-      }
-      return out;
-    },
     stats: function () {
       var total = State.tasks.length;
       var doneNow = State.tasks.filter(function (t) { return t.done; }).length;
-      var done = Math.max(State.totalDone(), doneNow);
-      var today = State.todayTasks();
+      var td = U.today(), today = State.tasks.filter(function (t) { return t.date === td; });
       var todayDone = today.filter(function (t) { return t.done; }).length;
-      var ft = State.focusTotals();
       return {
-        total: total, done: done, pending: total - doneNow,
-        rate: total ? Math.round(doneNow / total * 100) : 0,
+        total: total, pending: total - doneNow,
         todayTotal: today.length, todayDone: todayDone,
         todayPct: today.length ? Math.round(todayDone / today.length * 100) : 0,
-        streak: State.streak(), bestStreak: State.bestStreak(),
-        focusMin: ft.min, focusSessions: ft.sessions,
-        focusToday: State.focusOn(U.today()).min,
+        streak: State.streak(),
         overdue: State.overdueAll().length
       };
     },
-
-    focusLog: function () { return focusLog; },
 
     /* ---------- Ajustes ---------- */
     setSetting: function (path, value) {
@@ -652,92 +603,46 @@ window.Whider = window.Whider || {};
     },
     setMeta: function (k, v) { State.meta[k] = v; write(KEYS.meta, State.meta); },
 
-    /* ---------- Hábitos ---------- */
-    getHabit: function (id) {
-      for (var i = 0; i < State.habits.length; i++) if (State.habits[i].id === id) return State.habits[i];
-      return null;
-    },
-    addHabit: function (fields) {
-      var order = State.habits.reduce(function (m, h) { return Math.max(m, h.order); }, -1) + 1;
-      var h = cleanHabit(Object.assign({}, fields, { id: U.uid('h'), order: order, createdAt: Date.now(), updatedAt: Date.now() }));
-      if (!h) return null;
-      State.habits.push(h);
-      State.notify('habits');
-      return h;
-    },
-    updateHabit: function (id, fields) {
-      var h = State.getHabit(id);
-      if (!h) return null;
-      var c = cleanHabit(Object.assign({}, h, fields, { id: h.id, createdAt: h.createdAt, updatedAt: Date.now() }));
-      if (!c) return null;
-      Object.keys(c).forEach(function (k) { h[k] = c[k]; });
-      State.habits.sort(function (a, b) { return a.order - b.order || a.createdAt - b.createdAt; });
-      State.notify('habits');
-      return h;
-    },
-    removeHabit: function (id) {
-      var h = State.getHabit(id);
-      if (!h) return null;
-      State.habits = State.habits.filter(function (x) { return x.id !== id; });
-      var log = State.habitLog[id];
-      delete State.habitLog[id];
-      State.markDeleted('habit:' + id);
-      State.notify('habits');
-      return { habit: h, log: log };
-    },
-    restoreHabit: function (snap) {
-      if (!snap || !snap.habit || State.getHabit(snap.habit.id)) return;
-      delete State.syncMeta.deleted['habit:' + snap.habit.id];
-      snap.habit.updatedAt = Date.now();
-      State.habits.push(snap.habit);
-      if (snap.log) State.habitLog[snap.habit.id] = snap.log;
-      State.habits.sort(function (a, b) { return a.order - b.order; });
-      State.notify('habits');
-    },
-    /** Cambia el orden: delta -1 sube, +1 baja */
-    moveHabit: function (id, delta) {
-      var list = State.habits.slice().sort(function (a, b) { return a.order - b.order; });
-      var i = list.findIndex(function (h) { return h.id === id; }), j = i + delta;
-      if (i < 0 || j < 0 || j >= list.length) return;
-      var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
-      list.forEach(function (h, k) { if (h.order !== k) { h.order = k; h.updatedAt = Date.now(); } });
-      State.habits = list;
-      State.notify('habits');
-    },
+    /* ---------- Tareas de cada día (antes, hábitos) ---------- */
     habitCount: function (id, d) { var e = State.habitLog[id] && State.habitLog[id][d]; return e ? e.n : 0; },
-    setHabitCount: function (id, d, n) {
-      var h = State.getHabit(id);
-      if (!h || !isDate(d)) return;
-      var log = State.habitLog[id] || (State.habitLog[id] = {});
-      log[d] = { n: Math.max(0, Math.min(99, Math.round(n))), at: Date.now() };
-      State.notify('habit');
+    /**
+     * Convierte los hábitos activos de versiones anteriores en tareas de cada día. Cada hábito queda
+     * archivado con todo su historial (nada se borra, y una versión antigua lo sigue viendo).
+     * Devuelve cuántas tareas ha creado.
+     */
+    habitsToTasks: function () {
+      var active = State.habits.filter(function (h) { return !h.archived; });
+      if (!active.length) return 0;
+      var td = U.today(), made = 0, now = Date.now();
+      active.forEach(function (h) {
+        var t = X.taskFromHabit(h, td, State.habitCount(h.id, td) >= h.target);
+        if (t && !State.find(t.id) && !State.syncMeta.deleted[t.id]) { State.tasks.push(t); made++; }
+        h.archived = true; h.updatedAt = now;
+      });
+      // Hoy lo cuenta una vez («Tus hábitos ahora son tareas de cada día»)
+      if (made) State.meta.habitsMoved = (State.meta.habitsMoved || 0) + made;
+      State.notify('habits');
+      return made;
     },
-
-    /* ---------- Automatizaciones ---------- */
-    getRule: function (id) {
-      for (var i = 0; i < State.rules.length; i++) if (State.rules[i].id === id) return State.rules[i];
-      return null;
+    /**
+     * Las tareas de cada día que se quedaron sin hacer pasan solas al primer día que les toca desde hoy:
+     * no se acumulan como vencidas. Devuelve cuántas ha movido.
+     */
+    rollRoutines: function () {
+      var td = U.today(), moved = 0;
+      State.tasks.forEach(function (t) {
+        if (t.done || !t.date || t.date >= td || !X.isRoutine(t)) return;
+        t.date = X.firstDue(t, td);
+        t.warnedAt = null; t.remindedAt = null;
+        stampFields(t, ['date']);
+        t.updatedAt = Date.now();
+        moved++;
+      });
+      if (moved) State.notify('update');
+      return moved;
     },
-    saveRule: function (rule) {
-      var existing = rule.id ? State.getRule(rule.id) : null;
-      var c = cleanRule(Object.assign({}, existing || {}, rule, { id: rule.id || U.uid('r'), updatedAt: Date.now(), createdAt: existing ? existing.createdAt : Date.now() }));
-      if (!c) return null;
-      if (existing) Object.keys(c).forEach(function (k) { existing[k] = c[k]; }); else State.rules.push(c);
-      delete State.syncMeta.deleted['rule:' + c.id];
-      State.notify('rules');
-      return existing || c;
-    },
-    removeRule: function (id) {
-      State.rules = State.rules.filter(function (r) { return r.id !== id; });
-      State.markDeleted('rule:' + id);
-      State.notify('rules');
-    },
-    /** Anota una ejecución sin contar como edición (no gana a cambios hechos en otro dispositivo) */
-    ruleRan: function (id, n) {
-      var r = State.getRule(id);
-      if (!r) return;
-      r.runs += n; r.lastRun = Date.now();
-    },
+    /** Hábitos convertidos y tareas de cada día al día (al abrir, al cambiar de día y al sincronizar) */
+    tidyRoutines: function () { return State.batch(function () { return State.habitsToTasks() + State.rollRoutines(); }); },
 
     /* ---------- Listas personalizadas ---------- */
     getFilter: function (id) {
@@ -791,27 +696,7 @@ window.Whider = window.Whider || {};
       });
     },
 
-    /* ---------- Apuntes ---------- */
-    getNote: function (id) {
-      for (var i = 0; i < State.notes.length; i++) if (State.notes[i].id === id) return State.notes[i];
-      return null;
-    },
-    removeNote: function (id) {
-      var n = State.getNote(id);
-      if (!n) return null;
-      State.notes = State.notes.filter(function (x) { return x.id !== id; });
-      State.markDeleted('note:' + id);
-      State.notify('notes');
-      return n;
-    },
-
-    /* ---------- Personaje ---------- */
-    setCharacter: function (c) {
-      State.character = cleanCharacter(Object.assign({}, State.character, c, { at: Date.now() }));
-      State.notify('character');
-    },
-
-    /* ---------- Amigos, dispositivos y enfoque compartido ---------- */
+    /* ---------- Contactos ---------- */
     setFriend: function (uid, info) {
       State.social.friends[uid] = Object.assign({}, State.social.friends[uid] || {}, info, { at: Date.now() });
       State.notify('social');
@@ -820,34 +705,6 @@ window.Whider = window.Whider || {};
       var f = State.social.friends;
       return Object.keys(f).filter(function (k) { return !f[k].removed; }).map(function (k) { return Object.assign({ uid: k }, f[k]); });
     },
-    /** Este dispositivo sigue conectado (sin contar como cambio del usuario) */
-    seeDevice: function (id, info) {
-      State.social.devices[id] = Object.assign({}, State.social.devices[id] || {}, info, { seen: Date.now() });
-      write(KEYS.social, State.social);
-    },
-    setSharedFocus: function (f) {
-      State.social.focus = f ? Object.assign({}, f, { at: Date.now() }) : null;
-      write(KEYS.social, State.social);
-      State.notify('focus-shared');
-    },
-
-    /* ---------- Plantillas de un toque ---------- */
-    saveTemplate: function (t) {
-      var list = State.templates, existing = null;
-      for (var i = 0; i < list.length; i++) if (list[i].id === t.id) existing = list[i];
-      var c = cleanTemplates([Object.assign({}, existing || {}, t, { id: t.id || U.uid('tp'), createdAt: existing ? existing.createdAt : Date.now(), updatedAt: Date.now() })])[0];
-      if (!c) return null;
-      if (existing) Object.keys(c).forEach(function (k) { existing[k] = c[k]; }); else list.push(c);
-      delete State.syncMeta.deleted['tpl:' + c.id];
-      State.notify('templates');
-      return existing || c;
-    },
-    removeTemplate: function (id) {
-      State.templates = State.templates.filter(function (t) { return t.id !== id; });
-      State.markDeleted('tpl:' + id);
-      State.notify('templates');
-    },
-
     /* ---------- Listas: orden ---------- */
     moveList: function (id, delta) {
       var i = State.lists.findIndex(function (l) { return l.id === id; }), j = i + delta;

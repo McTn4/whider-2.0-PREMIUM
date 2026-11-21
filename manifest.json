@@ -1,7 +1,7 @@
 {
   "name": "WHIDER",
   "short_name": "WHIDER",
-  "description": "WHIDER: tareas, calendario, Cuaderno, chats y equipos, hábitos y enfoque, con tu personaje.",
+  "description": "WHIDER: tus tareas por importancia, las de cada día, tu calendario y tus notas. Y, si trabajas con otros, personas y equipos.",
   "id": "com.whider.app",
   "start_url": "./app",
   "scope": "./",
@@ -68,15 +68,16 @@
       "description": "Una página nueva en tu Cuaderno"
     },
     {
-      "name": "Hábitos de hoy",
-      "short_name": "Hábitos",
-      "url": "./app#habits",
+      "name": "Tareas de hoy",
+      "short_name": "Hoy",
+      "url": "./app#home",
       "icons": [
         {
           "src": "icons/icon-192.png",
           "sizes": "192x192"
         }
-      ]
+      ],
+      "description": "Lo que tienes que hacer hoy, por importancia"
     },
     {
       "name": "Chats",

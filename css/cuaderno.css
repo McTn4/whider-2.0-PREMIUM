@@ -76,7 +76,7 @@ html[data-layout="mobile"] .pg-top { padding-top: calc(8px + var(--safe-t)); }
 .pg-edited { color: var(--t3); font-size: var(--fs-cap); margin-right: 6px; white-space: nowrap; }
 html[data-layout="mobile"] .pg-edited { display: none; }
 .pg-live { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 99px; background: var(--fill-2); color: var(--t2); font-size: var(--fs-cap); }
-.pg-live i { width: 6px; height: 6px; border-radius: 50%; background: var(--t1); box-shadow: 0 0 10px rgba(var(--ink-rgb), .8); animation: pgPulse 2s infinite; }
+.pg-live i { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); animation: pgPulse 2s infinite; }
 @keyframes pgPulse { 50% { opacity: .35; } }
 .pg-acts .nav-icon.on { color: var(--t1); }
 .pg-sheet { max-width: 780px; margin: 0 auto; padding: 0 64px; }
@@ -123,7 +123,7 @@ html[data-layout="mobile"] .pg-tool { height: 34px; padding: 0 12px; color: var(
 .pg-bl-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .pg-bl { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 99px; background: var(--fill-2); color: var(--t2); font-size: var(--fs-sub); }
 .pg-bl:hover { background: var(--fill); color: var(--t1); }
-/* «Con serifa» y «Monoespaciada» cambian también el título y los encabezados (que por defecto van en Outfit) */
+/* «Con serifa» y «Monoespaciada» cambian también el título y los encabezados (que por defecto van en Inter) */
 .pg-pane[data-font="serif"] :is(.bk-editor, .pg-title, .bk-h1 .bk-text, .bk-h2 .bk-text, .bk-h3 .bk-text, .dbv-title) { font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Times New Roman', serif; }
 .pg-pane[data-font="mono"] :is(.bk-editor, .pg-title, .bk-h1 .bk-text, .bk-h2 .bk-text, .bk-h3 .bk-text, .dbv-title) { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
 .pg-pane.small .bk-editor { font-size: .9rem; }
@@ -192,7 +192,7 @@ html[data-layout="mobile"] .bk.focus::after { left: -13px; }
 .bk-plus .ic, .bk-handle .ic { width: 16px; height: 16px; }
 html[data-layout="mobile"] .bk-gutter { display: none; }
 .bk.dragging { opacity: .35; }
-.bk-drop { position: absolute; left: 0; right: 0; height: 3px; border-radius: 3px; background: var(--t1); box-shadow: 0 0 12px rgba(var(--ink-rgb), .6); pointer-events: none; z-index: 3; }
+.bk-drop { position: absolute; left: 0; right: 0; height: 3px; border-radius: 3px; background: var(--link); pointer-events: none; z-index: 3; }
 .bk-hidden { display: none !important; }
 .bk-selected { background: var(--fill-2); box-shadow: inset 0 0 0 1px var(--line-2); }
 .bk.flash { animation: bkFlash 1.2s; }

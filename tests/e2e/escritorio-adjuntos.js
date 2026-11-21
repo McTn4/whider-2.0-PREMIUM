@@ -22,7 +22,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   await sleep(1200);
   ok(await win.evaluate(() => !!window.WhiderDesktop && typeof window.WhiderDesktop.openFile === 'function' && typeof window.WhiderDesktop.saveBinary === 'function'), 'el puente de escritorio ofrece abrir y guardar archivos');
   const rail = await win.evaluate(() => ({ w: Math.round(document.getElementById('sidebar').getBoundingClientRect().width), labels: [...document.querySelectorAll('#sidebar .sb-label')].filter(e => e.offsetParent).length }));
-  ok(rail.w <= 70 && rail.labels === 0, 'en el Cuaderno la barra lateral se queda en iconos (' + rail.w + ' px)');
+  ok(rail.w <= 80 && rail.labels === 0, 'en el Cuaderno la barra lateral se queda en iconos (' + rail.w + ' px)');
   await win.click('#screen-notes .bk-text >> nth=0');
   const [fc] = await Promise.all([win.waitForEvent('filechooser'), win.click('.pg-addons button:has-text("Adjuntar")')]);
   await fc.setFiles([path.join(FX, 'Factura marzo.pdf'), path.join(FX, 'instalar.bat')]); await sleep(1500);

@@ -49,7 +49,7 @@ window.Whider = window.Whider || {};
 
   /* Fusión de dos versiones de la misma tarea: gana la editada más tarde, pero los campos que la
      otra cambió después (según su hora, «ft») se conservan. Algunos campos van juntos. */
-  var FIELD_GROUPS = { done: ['done', 'doneOn', 'doneAt', 'spawnedId'], date: ['date', 'warnedAt', 'remindedAt'] };
+  var FIELD_GROUPS = { done: ['done', 'doneOn', 'doneAt', 'spawnedId'], date: ['date', 'warnedAt', 'remindedAt'], repeat: ['repeat', 'days'] };
   function stampOf(x) { return x.updatedAt || x.createdAt || 0; }
   function mergeTask(x, y) {
     var sx = stampOf(x), sy = stampOf(y);

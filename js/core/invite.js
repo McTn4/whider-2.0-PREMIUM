@@ -8,7 +8,7 @@
  *    invitación espera a que entres.
  *  - Escáner con la cámara (lector nativo si existe; si no, jsQR) o pegar el enlace o el código.
  *
- * Enlaces: https://whider-red.vercel.app/i/?c=WH-XXXXXX&k=clave&t=f|w&n=Nombre&b=personaje
+ * Enlaces: https://whider-red.vercel.app/i/?c=WH-XXXXXX&k=clave&t=f|w&n=Nombre
  *          https://whider-red.vercel.app/i/?s=equipo&k=clave&n=Equipo&by=Nombre
  */
 window.Whider = window.Whider || {};
@@ -18,25 +18,16 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
   var CFG = window.WHIDER_CONFIG || {};
   var PENDING = 'whider.pendingInvite';
-  var BUDDY_KEYS = ['body', 'tone', 'eyes', 'mouth', 'head', 'acc', 'fx', 'bg', 'frame'];
 
   function base() { return String((CFG.links && CFG.links.base) || 'https://whider-red.vercel.app').replace(/\/+$/, ''); }
   function enc(v) { return encodeURIComponent(String(v || '')); }
-  function buddyCode(c) { c = c || W.Character.config(); return BUDDY_KEYS.map(function (k) { return String(c[k] || '').replace(/[^a-z0-9]/g, ''); }).join('.') + (c.cheeks ? '' : '.0'); }
-  function buddyFrom(code) {
-    if (!code || typeof code !== 'string') return null;
-    var p = code.split('.'), out = {};
-    BUDDY_KEYS.forEach(function (k, i) { if (p[i] && /^[a-z0-9]{2,20}$/.test(p[i])) out[k] = p[i]; });
-    out.cheeks = p[BUDDY_KEYS.length] !== '0';
-    return out;
-  }
 
   /* ---------- Enlaces ---------- */
   function personLink(kind) {
     var st = S(), code = st.social.code;
     if (!code) return null;
     var k = W.People.invite(kind);
-    return base() + '/i/?c=' + enc(code) + '&k=' + enc(k) + '&t=' + (kind === 'work' ? 'w' : 'f') + '&n=' + enc(W.People.myName()) + '&b=' + enc(buddyCode());
+    return base() + '/i/?c=' + enc(code) + '&k=' + enc(k) + '&t=' + (kind === 'work' ? 'w' : 'f') + '&n=' + enc(W.People.myName());
   }
   function teamLink(sid, key, name) {
     return base() + '/i/?s=' + enc(sid) + '&k=' + enc(key) + '&n=' + enc(name) + '&by=' + enc(W.People.myName());
@@ -58,7 +49,7 @@ window.Whider = window.Whider || {};
     var p = {};
     q.split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) { try { p[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); } catch (e) { /* mal escrito */ } } });
     if (p.s && p.k) return { type: 'team', sid: p.s, key: p.k, name: (p.n || W.t('Equipo')).slice(0, 40), by: (p.by || '').slice(0, 40) };
-    if (p.c) return { type: 'person', code: String(p.c).toUpperCase(), key: p.k || '', kind: p.t === 'w' ? 'work' : 'friend', name: (p.n || '').slice(0, 40), buddy: buddyFrom(p.b) };
+    if (p.c) return { type: 'person', code: String(p.c).toUpperCase(), key: p.k || '', kind: p.t === 'w' ? 'work' : 'friend', name: (p.n || '').slice(0, 40) };
     return null;
   }
 
@@ -95,9 +86,9 @@ window.Whider = window.Whider || {};
     var seg = W.UI.segmented([{ value: 'friend', label: W.t('Amigo') }, { value: 'work', label: W.t('Trabajo') }], kind, function (v) { kind = v; });
     var s = W.Sheet.open({ title: W.t('Invitación'), className: 'invite-sheet', body: [
       U.el('div.inv-hero', [
-        W.Avatar.buddy(inv.buddy || null, 112, { live: true, cls: 'inv-av' }),
+        W.Avatar.initial(who, 96, { cls: 'inv-av' }),
         U.el('strong', { text: W.t('{name} te invita a conectar', { name: who }) }),
-        U.el('p', { text: kind === 'work' ? W.t('Para trabajar juntos: chats, equipos y páginas compartidas.') : W.t('Para animaros, comparar rachas y chatear.') })
+        U.el('p', { text: kind === 'work' ? W.t('Para trabajar juntos: chats, equipos y páginas compartidas.') : W.t('Para chatear y compartir tareas y páginas.') })
       ]),
       W.UI.section({ header: W.t('Guardar como'), items: [U.el('div.cell', [seg])] })
     ], foot: [U.el('button.btn.ghost', { text: W.t('Ahora no'), on: { click: function () { s.close(); } } }), U.el('button.btn.primary', { on: { click: function (e) {
@@ -268,7 +259,7 @@ window.Whider = window.Whider || {};
 
   var Invite = {
     base: base, personLink: personLink, teamLink: teamLink, parse: parse, open: open, accept: accept,
-    qrNode: qrNode, qrSheet: qrSheet, loadQR: loadQR, scan: scan, share: share, copy: copy, buddyCode: buddyCode, buddyFrom: buddyFrom,
+    qrNode: qrNode, qrSheet: qrSheet, loadQR: loadQR, scan: scan, share: share, copy: copy,
     /** Al arrancar: invitación en la dirección (#i=… o ?c=…) */
     fromLocation: function () {
       var h = location.hash || '', q = location.search || '', inv = null;

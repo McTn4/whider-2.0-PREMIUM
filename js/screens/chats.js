@@ -26,7 +26,6 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (c.type === 'team') { var n = (c.memberIds || []).length; return U.plural(n, 'miembro', 'miembros'); }
     var p = W.People.profile(C().other(c));
     if (!p) return '';
-    if (p.status === 'focus' && Date.now() - (p.updatedAt || 0) < 3 * 3600000) return W.t('Concentrado ahora');
     return p.updatedAt ? W.t('Activo {when}', { when: U.fmtRel(p.updatedAt - Date.now()) }) : '';
   }
 
@@ -41,7 +40,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     ]);
     if (desk()) listEl.appendChild(head);
     if (!chats.length) {
-      listEl.appendChild(U.el('div.ct-empty', [W.Character.illustration('friends', 'happy', 92), U.el('strong', { text: W.t('Aún no hay chats') }),
+      listEl.appendChild(U.el('div.ct-empty', [U.el('span.es-art', [U.icon('chat')]), U.el('strong', { text: W.t('Aún no hay chats') }),
         U.el('p', { text: W.People.contacts().length ? W.t('Escribe a uno de tus contactos o a tu equipo.') : W.t('Añade a tus amigos o a tu equipo con un enlace o un código QR.') }),
         U.el('button.btn.sm.primary', { on: { click: function (e) { if (W.People.contacts().length || W.People.teams().length) newChat(e.currentTarget); else W.Router.go('friends'); } } }, [U.icon(W.People.contacts().length ? 'edit' : 'users', 'sm'), W.People.contacts().length ? W.t('Nuevo chat') : W.t('Añadir personas')])]));
       return;
@@ -273,7 +272,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     document.body.classList.toggle('chat-open', !desk() && !!c);
     C().setOpen(c ? cid : null);
     if (!c) {
-      if (desk()) convEl.appendChild(U.el('div.ct-none', [W.Character.illustration('friends', 'happy', 120), U.el('strong', { text: W.t('Elige un chat') }), U.el('p', { text: W.t('O empieza uno nuevo con tus contactos o con tu equipo.') })]));
+      if (desk()) convEl.appendChild(U.el('div.ct-none', [U.el('span.es-art', [U.icon('chat')]), U.el('strong', { text: W.t('Elige un chat') }), U.el('p', { text: W.t('O empieza uno nuevo con tus contactos o con tu equipo.') })]));
       return;
     }
     headEl = buildHead(c);
@@ -300,7 +299,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (b && !b.soft) {
         listEl = convEl = null;
         var head = W.UI.header({ title: W.t('Chats'), profile: true });
-        W.UI.mount(root, head, [U.el('div.group', [W.UI.empty('buddy:friends', b.title, b.text, b.id === 'guest' && W.Auth.configured() ? U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open({ mode: 'login' }); } } }, [U.icon('user', 'sm'), W.t('Iniciar sesión')]) : null)])]);
+        W.UI.mount(root, head, [U.el('div.group', [W.UI.empty('users', b.title, b.text, b.id === 'guest' && W.Auth.configured() ? U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open({ mode: 'login' }); } } }, [U.icon('user', 'sm'), W.t('Iniciar sesión')]) : null)])]);
         return;
       }
       if (desk()) {
@@ -324,7 +323,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (!openId()) {
         convEl = null;
         document.body.classList.remove('chat-open');
-        var h = W.UI.header({ title: W.t('Chats'), profile: true, sub: C().unreadCount() ? U.plural(C().unreadCount(), 'chat sin leer', 'chats sin leer') : '', actions: [{ icon: 'edit', label: W.t('Nuevo chat'), onTap: function (e, btn) { newChat(btn); } }] });
+        var h = W.UI.header({ title: W.t('Chats'), back: { label: W.t('Personas'), onTap: function () { W.Router.go('friends'); } }, sub: C().unreadCount() ? U.plural(C().unreadCount(), 'chat sin leer', 'chats sin leer') : '', actions: [{ icon: 'edit', label: W.t('Nuevo chat'), onTap: function (e, btn) { newChat(btn); } }] });
         listEl = U.el('div.group.ct-list.mobile');
         W.UI.mount(root, h, [listEl]);
         drawList();

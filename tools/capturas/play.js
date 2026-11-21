@@ -22,9 +22,7 @@ const PANTALLAS = [
   ['hoy', 'home'],
   ['tareas', 'tasks'],
   ['calendario', 'calendar'],
-  ['cuaderno', 'page'],
-  ['habitos', 'habits'],
-  ['enfoque', 'focus']
+  ['cuaderno', 'page']
 ];
 
 async function capturas(b) {
@@ -89,28 +87,25 @@ async function grafico(b) {
   const p = await b.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 1 });
   const shot = (f) => 'data:image/jpeg;base64,' + b64(path.relative(R, path.join(DIR, f)));
   await p.setContent(`<!doctype html><html><head><style>
-  @font-face { font-family: Outfit; src: url(data:font/woff2;base64,${b64('fonts/outfit-latin-wght-normal.woff2')}) format('woff2'); font-weight: 100 900; }
-  @font-face { font-family: Onest; src: url(data:font/woff2;base64,${b64('fonts/onest-latin-wght-normal.woff2')}) format('woff2'); font-weight: 100 900; }
+  @font-face { font-family: Inter; src: url(data:font/woff2;base64,${b64('fonts/inter-latin-opsz-normal.woff2')}) format('woff2'); font-weight: 100 900; }
   * { box-sizing: border-box; margin: 0; }
-  body { width: 1024px; height: 500px; overflow: hidden; background: #070708; color: #F2F2F2; font-family: Onest, sans-serif; position: relative; }
-  .glow { position: absolute; width: 760px; height: 760px; right: -260px; top: -150px; background: radial-gradient(closest-side, rgba(255,255,255,.13), transparent 70%); }
+  body { width: 1024px; height: 500px; overflow: hidden; background: #000000; color: #E7E9EA; font-family: Inter, sans-serif; position: relative; }
   .txt { position: absolute; left: 60px; top: 70px; width: 470px; }
-  .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .32em; font-size: 17px; color: #C9C9C9; }
-  .brand svg { width: 34px; height: 34px; filter: drop-shadow(0 0 10px rgba(255,255,255,.45)); }
-  h1 { font-family: Outfit; font-weight: 650; font-size: 66px; line-height: 1; letter-spacing: -.035em; margin-top: 40px; }
-  p { margin-top: 22px; font-size: 21px; line-height: 1.38; color: #A3A3A3; }
-  .phone { position: absolute; top: 46px; width: 216px; border-radius: 26px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 30px 70px -18px #000; }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.02em; font-size: 23px; color: #E7E9EA; }
+  .brand svg { width: 34px; height: 34px; }
+  h1 { font-family: Inter; font-weight: 800; font-size: 66px; line-height: 1; letter-spacing: -.035em; margin-top: 40px; }
+  p { margin-top: 22px; font-size: 21px; line-height: 1.38; color: #A1A5AB; }
+  .phone { position: absolute; top: 46px; width: 216px; border-radius: 26px; overflow: hidden; box-shadow: 0 0 0 1px #3E4144; }
   .phone img { display: block; width: 100%; }
-  .a { left: 560px; transform: rotate(-4deg); }
-  .b { left: 770px; top: 86px; transform: rotate(3deg); }
+  .a { left: 560px; }
+  .b { left: 790px; top: 86px; }
   </style></head><body>
-  <div class="glow"></div>
   <div class="phone a"><img src="${shot('captura-1-hoy.jpg')}"></div>
   <div class="phone b"><img src="${shot('captura-4-cuaderno.jpg')}"></div>
   <div class="txt">
     <div class="brand"><svg viewBox="0 0 64 64"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="#fff" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></svg>WHIDER</div>
     <h1>Tu día,<br>bajo control.</h1>
-    <p>Tareas, calendario, hábitos, enfoque y un Cuaderno. Gratis, sin anuncios y en todos tus dispositivos.</p>
+    <p>Tus tareas por importancia, las de cada día, el calendario y tus notas. Gratis, sin anuncios y en todos tus dispositivos.</p>
   </div>
   </body></html>`);
   await p.evaluate(() => document.fonts.ready);

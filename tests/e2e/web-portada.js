@@ -54,7 +54,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
       ok(await p.evaluate(() => !document.querySelector('#play') || document.querySelector('#play').hidden), name + ': la tarjeta del móvil no ofrece Google Play');
     }
     ok(!info.apk, name + ': sin APK');
-    ok(/^"?Outfit/.test(info.h1), name + ': titular en Outfit');
+    ok(/^"?Inter/.test(info.h1), name + ': titular en Inter');
     ok(info.overflow <= 0, name + ': sin desplazamiento horizontal (' + info.overflow + ')');
     ok(errs.length === 0, name + ': sin errores ' + JSON.stringify(errs));
     await p.screenshot({ path: path.join(OUTD, name + '-arriba.png') });

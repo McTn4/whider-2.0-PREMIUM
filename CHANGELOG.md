@@ -10,25 +10,53 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-WHIDER, también en inglés. Tus otros calendarios (Google, Outlook, Apple), dentro de WHIDER, y la semana se planifica
-arrastrando. Y lo que cambias en un dispositivo llega a los demás al momento, consultando mucho menos la nube.
+Una WHIDER más sencilla y con un diseño nuevo: lo que tienes que hacer hoy, ordenado por importancia, nada más abrirla.
+Tus hábitos pasan a ser tareas de cada día. WHIDER, también en inglés. Tus otros calendarios (Google, Outlook, Apple),
+dentro de WHIDER, y la semana se planifica arrastrando. Y lo que cambias en un dispositivo llega a los demás al momento.
 
 ### Novedades
 
+- **Hoy, por importancia**: arriba, un campo para escribir la tarea, con su importancia y «Cada día». Debajo, «Cada
+  día» (lo que repites a diario) y «Por hacer»: lo de hoy y lo vencido, de lo más urgente a lo menos (lo que ya
+  empezaste, delante). Lo hecho se pliega al final.
+- **Importancia en color**, sencilla: urgente en rojo, importante en naranja, destacada en amarillo y normal en gris,
+  en el círculo de cada tarea, y escrita al lado («Urgente», «Importante»).
+- **Tareas de cada día**: una tarea puede repetirse cada día, los días laborables o los días de la semana que elijas
+  («Gimnasio cada lunes, miércoles y viernes a las 7»). Si un día se queda sin hacer, pasa sola al siguiente que le
+  toca: no se acumula como vencida.
+- **Tus hábitos ahora son tareas de cada día**, con su horario y su aviso; su historial sigue guardado en tu cuenta.
+- **Una presentación que adapta la app**: para qué la vas a usar (estudios, trabajo, casa, salud, con otras personas)
+  prepara tus categorías y la barra; también si quieres avisos. Se puede repetir en Ajustes → Ayuda → «Adaptar WHIDER
+  a ti».
+- **Diseño nuevo**, inspirado en X y en Apple: tipografía Inter en todo, fondo negro (o blanco), líneas finas en lugar
+  de tarjetas, títulos grandes, iconos de trazo redondeado (rellenos en la pestaña activa), barra inferior de cinco
+  pestañas, botón «+» flotante y, en el ordenador, una barra lateral con secciones grandes y «Nueva tarea» en cápsula.
+- **Personas**: tus chats, tus contactos y tus equipos en una sola pestaña. Si no trabajas con otras personas, puedes
+  quitarla de la barra (Ajustes → Lo que ves).
 - **Calendarios suscritos**: Ajustes → Calendarios suscritos (o «Calendarios» en el calendario). Pega el enlace iCal de
   tu calendario de Google, Outlook o Apple (o el de los festivos) y sus eventos se ven en el calendario, con su hora y
   su duración, y en Hoy, en «Agenda de hoy». Se actualizan solos cada hora, siguen ahí sin conexión y, desde la ficha
   de un evento, «Crear una tarea» lo convierte en una tarea. Se ven, no se cambian: para eso, su propia app.
 - **Planificar arrastrando** (ordenador): en el calendario, el panel «Por planificar» reúne las tareas sin fecha y las
   vencidas. Arrástralas a una hora de la semana o del día, a la fila «Sin hora» o a un día del mes; soltar una tarea
-  del calendario en el panel le quita la fecha. Se oculta con × o desde Ajustes → Personalización.
+  del calendario en el panel le quita la fecha. Se oculta con × o desde Ajustes → Lo que ves.
 - **WHIDER, también en inglés**: Ajustes → Idioma. Toda la app: las pantallas, los avisos, las fechas y «Nueva tarea»,
   que entiende frases en inglés («Call Anna tomorrow at 10 #work»), además de los menús del ordenador y el widget y los
   avisos de Android. Lo que ya habías creado (tareas, categorías, páginas) se queda como estaba.
 
 ### Mejoras
 
-- **Sincronización al momento**: las tareas, los hábitos, los ajustes y los apuntes que cambias en otro dispositivo
+- **Más sencilla**: WHIDER se queda con lo importante —Hoy, Tareas, Calendario, Cuaderno y Personas—. Se van el
+  personaje, Enfoque, Estadísticas, Informes, Automatizaciones, Marcas, el Perfil, «Más» y los dispositivos; sus datos
+  se conservan en tu cuenta. Tu foto (arriba a la izquierda) abre los Ajustes, con tu cuenta lo primero.
+- **Ajustes** como los de Apple: grupos redondeados, iconos en cuadrados y, en «Lo que ves», la pestaña Personas, la
+  barra lateral y el calendario. Tus contactos solo ven tu nombre y tu foto.
+- La app se abre sin esperar a la animación de la W.
+- **Invitaciones**: la página de un enlace de invitación enseña la inicial de quien invita (ya no su personaje), con
+  el diseño nuevo.
+- **Portada, ficha de Google Play y política de privacidad** al día: capturas nuevas, sin hábitos ni enfoque, y el
+  perfil público con solo tu nombre y tu foto.
+- **Sincronización al momento**: las tareas, los ajustes y los apuntes que cambias en otro dispositivo
   llegan en un par de segundos, sin esperar a la siguiente consulta (antes, hasta 15 segundos; tras un rato sin tocar la
   app, hasta 5 minutos). En Ajustes, la copia en la nube dice «Sincronizado · al momento».
 - **Cuaderno**: las páginas nuevas y lo que escribes en ellas, tuyas o de tu equipo, llegan solas a tus otros
@@ -39,6 +67,25 @@ arrastrando. Y lo que cambias en un dispositivo llega a los demás al momento, c
 
 ### Para desarrolladores
 
+- **Rediseño**: tokens nuevos en `css/tokens.css` (Inter variable con tamaño óptico, `--imp-1…3` para la importancia,
+  `--accent` y `--link` para lo que se toca, `--on-color`, `--tile`…) y `layout.css`, `components.css`, `desktop.css` y
+  `social.css` reescritos: sin brillos, degradados ni sombras de colores. Fuente única `fonts/inter-latin-opsz-normal.woff2`
+  (licencia OFL en `fonts/LICENSE-Inter.txt`); se retiran Onest y Outfit.
+- **Tareas de cada día** (`js/core/schema.js`): «cada semana» acepta `days` (0 = domingo); `repeatsOn`, `firstDue`,
+  `isRoutine`, `repeatLabel` y `taskFromHabit`. En la sincronización, `days` viaja con `repeat` (mismo grupo de campos).
+  Las versiones anteriores, que no conocen `days`, repiten esas tareas una vez por semana.
+- `State.tidyRoutines()` (al abrir, al cambiar de día y tras sincronizar): convierte los hábitos activos en tareas
+  (id `hab-<hábito>-<marca>`, el mismo en todos los dispositivos) y archiva el hábito; pasa a hoy las de cada día sin
+  hacer (`rollRoutines`). Los datos de hábitos, enfoque, marcas, reglas y personaje se siguen guardando y
+  sincronizando por compatibilidad.
+- Fuera: `js/screens/{focus,stats,reports,automations,records,progress,more,habits}.js`,
+  `js/core/{stats,automations,records,habits}.js` y `js/ui/{character,charts,devices,fx,dock}.js`. Las rutas antiguas
+  llevan a la pantalla más parecida (`js/router.js`). Ajustes nuevos: `uses` y `peopleTab`.
+- Pruebas: `tests/unit/cada-dia.test.js` y `tests/e2e/rediseno.js`; fuera las de automatizaciones, personaje y
+  estadísticas, y las demás al día.
+- `tools/capturas/{portada,og,play}.js` con los datos de ejemplo nuevos (tareas de cada día en lugar de hábitos) y
+  sin brillos; `docs/play/` pasa de seis capturas a cuatro (Hoy, Tareas, Calendario y Cuaderno). `i/index.html` ya
+  no carga `js/core/util.js` ni el dibujo del personaje.
 - `js/core/live.js` (`W.Live`): escuchas con el Firestore completo (`onSnapshot`), solo para escuchar. Leer una vez,
   escribir y las transacciones siguen con «lite», que sin conexión falla enseguida en lugar de quedarse esperando.
   Cada escucha dice si está al día con el servidor (`ok`); mientras no lo está (sin conexión, un fallo o

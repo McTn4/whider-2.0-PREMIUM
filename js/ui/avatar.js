@@ -1,9 +1,8 @@
 /**
- * WHIDER · Fotos de perfil con tu personaje
+ * WHIDER · Fotos de perfil
  *
- * En toda la app (barra lateral, perfil, personas, chats, equipos, bases de datos) cada persona
- * aparece con su personaje: busto con fondo y marco a elegir. Quien lo
- * prefiera puede usar su foto o solo la inicial (Editar perfil → Foto de perfil).
+ * En toda la app (barra lateral, personas, chats, equipos, bases de datos) cada persona aparece con su foto o, si no
+ * tiene, con su inicial en un círculo. Los perfiles antiguos con personaje se ven con la inicial.
  */
 window.Whider = window.Whider || {};
 
@@ -11,44 +10,10 @@ window.Whider = window.Whider || {};
   'use strict';
   var U = W.U, S = function () { return W.State; };
 
+  /** Tu elección: 'photo' (si hay foto) o 'initial' */
   function mode() {
-    var p = S().getProfile() || {}, m = p.avatar || 'buddy';
-    if (m === 'photo' && !S().photo()) m = 'buddy';
-    return m;
-  }
-  function frameOverlay(frame) {
-    if (frame === 'laurel') {
-      var leaves = '';
-      for (var i = 0; i < 7; i++) {
-        // Dos ramas: de abajo hacia arriba por cada lado
-        var a = (112 + i * 21) * Math.PI / 180, b = (68 - i * 21) * Math.PI / 180;
-        [a, b].forEach(function (ang, k) {
-          var x = 50 + 47 * Math.cos(ang), y = 50 + 47 * Math.sin(ang), rot = ang * 180 / Math.PI + (k ? -60 : 60);
-          leaves += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="6" ry="2.6" transform="rotate(' + rot.toFixed(0) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ')" class="' + (i % 2 ? 'avf-2' : 'avf-1') + '"/>';
-        });
-      }
-      return '<svg viewBox="0 0 100 100" class="av-ov">' + leaves + '</svg>';
-    }
-    if (frame === 'diamante') {
-      var gems = '';
-      for (var j = 0; j < 8; j++) { var an = j * 45 * Math.PI / 180, gx = 50 + 48 * Math.cos(an), gy = 50 + 48 * Math.sin(an); gems += '<path d="M' + gx.toFixed(1) + ' ' + (gy - 4.5).toFixed(1) + 'l4 4.5-4 4.5-4-4.5z" class="avf-0" stroke="#9A9A9A" stroke-width=".8"/>'; }
-      return '<svg viewBox="0 0 100 100" class="av-ov"><circle cx="50" cy="50" r="48" fill="none" stroke="url(#avd)" stroke-width="3"/><defs><linearGradient id="avd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="avf-stop"/><stop offset=".5" stop-color="#8A8A8A"/><stop offset="1" class="avf-stop"/></linearGradient></defs>' + gems + '</svg>';
-    }
-    if (frame === 'corona') return '<svg viewBox="0 0 100 100" class="av-ov crown"><path d="M33 9l5 11 12-11 12 11 5-11 3 16H30z" class="avf-0" stroke="#8A8A8A" stroke-width="1.2" stroke-linejoin="round"/><circle cx="50" cy="16" r="2" class="avf-dot"/></svg>';
-    return '';
-  }
-  /** Avatar a partir de un personaje: busto con su fondo y su marco */
-  function buddy(cfg, size, o) {
-    o = o || {};
-    var c = Object.assign({}, W.Character.DEFAULT, cfg || {});
-    var px = size ? (typeof size === 'number' ? size + 'px' : size) : '100%';
-    var el = U.el('span.av.av-bg-' + (c.bg || 'liso') + '.av-fr-' + (c.frame || 'nada') + (o.cls ? '.' + o.cls : ''), { style: { '--s': px }, attrs: { 'aria-hidden': 'true' } });
-    var inner = U.el('span.av-in');
-    inner.appendChild(W.Character.svg({ size: 100, cfg: c, mood: o.mood || 'happy', crop: true, still: !o.live }));
-    el.appendChild(inner);
-    var ov = frameOverlay(c.frame);
-    if (ov) el.appendChild(U.el('span.av-ovw', { html: ov }));
-    return el;
+    var p = S().getProfile() || {};
+    return p.avatar !== 'initial' && S().photo() ? 'photo' : 'initial';
   }
   function initial(name, size, o) {
     o = o || {};
@@ -64,21 +29,16 @@ window.Whider = window.Whider || {};
     el.appendChild(U.el('span.av-in', [img]));
     return el;
   }
-  /** Tu avatar (según tu elección en Editar perfil) */
+  /** Tu foto de perfil (o tu inicial) */
   function me(size, o) {
-    var m = mode();
-    if (m === 'photo') return photo(S().photo(), size, S().displayName(), o);
-    if (m === 'initial') return initial(S().displayName(), size, o);
-    return buddy(W.Character.config(), size, o);
+    return mode() === 'photo' ? photo(S().photo(), size, S().displayName(), o) : initial(S().displayName(), size, o);
   }
-  /** Avatar de otra persona a partir de su perfil público */
+  /** Otra persona, a partir de su perfil público */
   function forProfile(p, size, o) {
     p = p || {};
-    if (p.avatar === 'photo' && p.photo) return photo(p.photo, size, p.name, o);
-    if (p.avatar === 'initial' || (!p.buddy && p.name)) return initial(p.name, size, o);
-    return buddy(p.buddy || null, size, o);
+    return p.avatar === 'photo' && p.photo ? photo(p.photo, size, p.name, o) : initial(p.name, size, o);
   }
-  /** Avatar de un contacto por su cuenta (o el tuyo con null o «me») */
+  /** Un contacto por su cuenta (o tú, con null o «me») */
   function small(uid, size, o) {
     var my = W.Auth && W.Auth.user ? W.Auth.user.uid : null;
     if (!uid || uid === 'me' || uid === my) return me(size, o);
@@ -88,5 +48,5 @@ window.Whider = window.Whider || {};
     return initial(f ? f.name : '?', size, o);
   }
 
-  W.Avatar = { mode: mode, buddy: buddy, initial: initial, photo: photo, me: me, forProfile: forProfile, small: small, frameOverlay: frameOverlay };
+  W.Avatar = { mode: mode, initial: initial, photo: photo, me: me, forProfile: forProfile, small: small };
 })(window.Whider);

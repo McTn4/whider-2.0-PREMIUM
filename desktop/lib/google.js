@@ -27,16 +27,15 @@ function page(state) {
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WHIDER · Entrar con Google</title>
 <style>
-  @font-face { font-family: 'Onest'; src: url('/font.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
-  @font-face { font-family: 'Outfit'; src: url('/display.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url('/font.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #070708; color: #F2F2F2;
-    font: 16px/1.5 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #000000; color: #E7E9EA;
+    font: 16px/1.5 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
   main { width: min(26rem, 100%); padding: 36px 28px 30px; border-radius: 22px; text-align: center; background: #111113;
     border: 1px solid rgba(255,255,255,.08); box-shadow: 0 30px 70px -30px #000, inset 0 1px 0 rgba(255,255,255,.05); }
   svg.w { width: 64px; height: 64px; filter: drop-shadow(0 0 12px rgba(255,255,255,.35)); }
-  h1 { margin: 14px 0 6px; font-family: 'Outfit', 'Onest', system-ui, sans-serif; font-size: 1.6rem; font-weight: 600; letter-spacing: -.01em; }
+  h1 { margin: 14px 0 6px; font-family: 'Inter', system-ui, sans-serif; font-size: 1.6rem; font-weight: 800; letter-spacing: -.025em; }
   p { margin: 0 0 22px; color: #A3A3A3; font-size: .95rem; }
   button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 50px; padding: 0 20px;
     border-radius: 12px; border: 1px solid #8E918F; background: #131314; color: #E3E3E3; font: inherit; font-weight: 500; cursor: pointer; }
@@ -140,7 +139,7 @@ function signIn(opts) {
         return fs.readFile(path.join(opts.www, 'js', 'vendor', 'firebase.js'), function (e, buf) { e ? send(res, 404, 'text/plain', '') : send(res, 200, 'text/javascript; charset=utf-8', buf); });
       }
       if (req.method === 'GET' && (u.pathname === '/font.woff2' || u.pathname === '/display.woff2')) {
-        var file = u.pathname === '/font.woff2' ? 'onest-latin-wght-normal.woff2' : 'outfit-latin-wght-normal.woff2';
+        var file = 'inter-latin-opsz-normal.woff2';
         return fs.readFile(path.join(opts.www, 'fonts', file), function (e, buf) { e ? send(res, 404, 'text/plain', '') : send(res, 200, 'font/woff2', buf); });
       }
       if (req.method === 'GET' && u.pathname === '/config.js') {

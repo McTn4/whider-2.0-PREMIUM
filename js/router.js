@@ -1,19 +1,22 @@
 /**
- * WHIDER · Navegación: cuatro secciones (Hoy, Tareas, Calendario, Enfoque) en el dock del
- * móvil o en la barra lateral del ordenador, y una pantalla de Perfil y resumen (desde tu foto).
- * URL sincronizada (#pantalla).
+ * WHIDER · Navegación: cinco secciones (Hoy, Tareas, Calendario, Cuaderno y Personas, con sus chats y equipos), las
+ * mismas en la barra inferior del móvil y en la barra lateral del ordenador. URL sincronizada (#pantalla).
  */
 window.Whider = window.Whider || {};
 
 (function (W) {
   'use strict';
   var U = W.U;
-  // ¿Tiene pestaña propia en la barra inferior? (las tres elegidas y «Más»)
-  function isTab(id) { return W.Dock ? W.Dock.has(id) : { home: 1, tasks: 1, calendar: 1, more: 1 }[id] === 1; }
-  // Pantallas que se abren desde «Más» en el móvil (la pestaña Más queda marcada si no tienen pestaña propia)
-  var UNDER_MORE = { notes: 1, chats: 1, friends: 1, habits: 1, focus: 1, stats: 1, reports: 1, automations: 1, progress: 1 };
-  // Rutas antiguas o secundarias → pantalla (y apartado)
-  var ALIASES = { records: ['progress', 'records'], achievements: ['progress'], alerts: ['home'], agenda: ['calendar'], profile: ['progress'] };
+  var TABS = { home: 1, tasks: 1, calendar: 1, notes: 1, friends: 1 };
+  function isTab(id) { return TABS[id] === 1; }
+  // Pantallas que cuelgan de una sección (su pestaña queda marcada): los chats, de Personas
+  var PARENT = { chats: 'friends' };
+  /*
+   * Rutas antiguas → pantalla. Los hábitos pasaron a ser tareas de cada día; Enfoque, Estadísticas, Informes,
+   * Automatizaciones, Marcas, el Perfil y «Más» ya no existen: llevan a lo más parecido.
+   */
+  var ALIASES = { records: ['home'], achievements: ['home'], alerts: ['home'], agenda: ['calendar'], profile: ['home'], progress: ['home'],
+    habits: ['tasks'], focus: ['home'], stats: ['home'], reports: ['home'], automations: ['tasks'], more: ['home'], people: ['friends'] };
   var refreshQueued = false, lastTab = 'home';
 
   function screenFromHash() {
@@ -55,7 +58,7 @@ window.Whider = window.Whider || {};
 
   var Router = {
     init: function (initial) {
-      // Las pestañas se pueden cambiar (Ajustes → Personalización): un solo oyente para todas
+      // Un solo oyente para todas las pestañas
       var dock = document.querySelector('.dock');
       if (dock) dock.addEventListener('click', function (e) {
         var b = e.target.closest('.tab');
@@ -83,7 +86,7 @@ window.Whider = window.Whider || {};
     go: function (id, opts) {
       opts = opts || {};
       if (id === 'settings') { W.Settings.open(); return; }
-      if (ALIASES[id]) { if (ALIASES[id][1]) W.State.ui.profileTab = ALIASES[id][1]; id = ALIASES[id][0]; if (W.State.activeScreen === id && !opts.initial) { Router.refresh(); return; } }
+      if (ALIASES[id]) { id = ALIASES[id][0]; if (W.State.activeScreen === id && !opts.initial) { Router.refresh(); return; } }
       if (!W.Screens[id]) id = 'home';
       var prev = W.State.activeScreen;
       var root = document.getElementById('screen-' + id);
@@ -119,18 +122,18 @@ window.Whider = window.Whider || {};
       if (W.Sidebar) W.Sidebar.refresh();
     },
 
-    /** Marca la pestaña de la pantalla abierta (o «Más» si la pantalla cuelga de ella) */
+    /** Marca la pestaña de la pantalla abierta (o la de su sección: los chats, Personas) */
     markTabs: function (id) {
-      var viaMore = !!UNDER_MORE[id] && !isTab(id);
+      var tab = PARENT[id] || id;
       U.$$('.tab').forEach(function (b) {
         // Siempre un booleano: toggle(x, undefined) no fuerza, alterna (y encendía las demás pestañas)
-        var go = b.getAttribute('data-go'), on = go === id || (viaMore && go === 'more');
+        var on = b.getAttribute('data-go') === tab;
         b.classList.toggle('active', on);
         if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       });
     },
 
-    /** Desde el Perfil, vuelve a la pestaña en la que estabas */
+    /** Vuelve a la última sección en la que estabas (desde una pantalla que cuelga de otra) */
     back: function () { Router.go(lastTab || 'home'); },
 
     /** Animación de una página dentro de la pestaña actual ('push' o 'pop') */

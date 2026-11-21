@@ -9,7 +9,7 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
   var PHOTO_SIZE = 320;
 
-  /** Avatar redondo: foto si existe, si no la inicial sobre el color de acento */
+  /** Avatar redondo: foto si existe, si no la inicial */
   function avatar(cls) {
     var wrap = U.el('span.avatar' + (cls ? '.' + cls : ''), { attrs: { 'data-avatar': '' } });
     paint(wrap);
@@ -17,10 +17,8 @@ window.Whider = window.Whider || {};
   }
 
   function paint(wrap) {
-    var src = S().photo();
+    var src = W.Avatar && W.Avatar.mode() === 'initial' ? '' : S().photo();
     U.clear(wrap);
-    // 7.0: tu personaje como foto de perfil (o tu foto, o la inicial: lo eliges en Editar perfil)
-    if (W.Avatar && W.Character) { wrap.classList.add('has-av'); wrap.classList.remove('has-photo'); wrap.appendChild(W.Avatar.me(null)); return; }
     wrap.classList.toggle('has-photo', !!src);
     if (src) {
       var img = U.el('img', { attrs: { alt: '', src: src, referrerpolicy: 'no-referrer', decoding: 'async', draggable: 'false' } });
@@ -83,22 +81,14 @@ window.Whider = window.Whider || {};
   /** Hoja "Editar perfil": foto + nombre, guardados juntos */
   function edit(after) {
     var st = S(), p = st.getProfile() || {};
-    var draft = { photo: p.photo || '', removed: false, avatar: p.avatar || 'buddy' };
+    var draft = { photo: p.photo || '', removed: false };
     var preview = U.el('span.avatar.xl');
     var name = U.el('input.cell-input', { attrs: { type: 'text', maxlength: 30, placeholder: W.t('Tu nombre'), autocomplete: 'name', enterkeyhint: 'done', 'aria-label': W.t('Nombre') } });
     name.value = st.displayName();
     var removeBtn = U.el('button.link-btn.muted', { text: W.t('Quitar foto'), on: { click: function () { draft.photo = ''; draft.removed = true; renderPreview(); } } });
-    var modeSeg = null;
     var renderPreview = function () {
       U.clear(preview);
       var src = draft.photo || (!draft.removed && p.photoURL) || '';
-      if (W.Avatar) {
-        removeBtn.style.display = src ? '' : 'none';
-        preview.classList.add('has-av'); preview.classList.remove('has-photo');
-        var m = draft.avatar === 'photo' && !src ? 'buddy' : draft.avatar;
-        preview.appendChild(m === 'photo' ? W.Avatar.photo(src, null, name.value) : m === 'initial' ? W.Avatar.initial(name.value.trim() || 'W', null) : W.Avatar.buddy(W.Character.config(), null, { live: true }));
-        return;
-      }
       preview.classList.toggle('has-photo', !!src);
       if (src) preview.appendChild(U.el('img', { attrs: { alt: '', src: src, referrerpolicy: 'no-referrer' } }));
       else preview.appendChild(document.createTextNode((name.value.trim() || 'W').charAt(0).toUpperCase()));
@@ -106,12 +96,13 @@ window.Whider = window.Whider || {};
     };
     name.addEventListener('input', function () { if (!preview.classList.contains('has-photo')) renderPreview(); });
     var change = function () {
-      choosePhoto().then(function (data) { if (data) { draft.photo = data; draft.removed = false; draft.avatar = 'photo'; renderPreview(); if (modeSeg) modeSeg.set('photo'); } });
+      choosePhoto().then(function (data) { if (data) { draft.photo = data; draft.removed = false; renderPreview(); } });
     };
     var save = function () {
       var n = name.value.trim();
       if (!n) { name.focus(); name.closest('.group').classList.add('shake'); setTimeout(function () { name.closest('.group').classList.remove('shake'); }, 450); return; }
-      var patch = { name: n, photo: draft.photo, avatar: draft.avatar };
+      var hasPhoto = !!(draft.photo || (!draft.removed && p.photoURL));
+      var patch = { name: n, photo: draft.photo, avatar: hasPhoto ? 'photo' : 'initial' };
       if (draft.removed) patch.photoURL = '';
       st.setProfile(patch);
       if (W.Auth) W.Auth.updateName(n);
@@ -128,29 +119,10 @@ window.Whider = window.Whider || {};
           U.el('button.photo-pick', { attrs: { 'aria-label': W.t('Cambiar foto') }, on: { click: change } }, [preview, U.el('span.cam', [U.icon('camera')])]),
           U.el('div.cell-row', [U.el('button.link-btn', { text: W.t('Cambiar foto'), on: { click: change } }), removeBtn])
         ]),
-        W.Avatar ? W.UI.section({ header: W.t('Foto de perfil'), items: [U.el('div.cell', [(modeSeg = segmentedMode())])], footer: W.t('Tu personaje se ve en tu perfil, en tus chats y en tus equipos. Su fondo y su marco se eligen en «Personalizar».') }) : null,
-        W.Avatar ? U.el('div.cell-row.center', [U.el('button.btn.sm.soft', { on: { click: function () { W.Character.edit('avatar'); } } }, [U.icon('palette', 'sm'), W.t('Personalizar personaje')])]) : null,
-        W.UI.section({ header: W.t('Nombre'), items: [U.el('label.cell', [name])] }),
+        W.UI.section({ header: W.t('Nombre'), items: [U.el('label.cell', [name])], footer: W.t('Tu foto (o tu inicial) se ve en tus chats y en tus equipos.') }),
         u && u.email ? W.UI.section({ header: W.t('Correo'), items: [W.UI.cell({ title: u.email })] }) : null
       ]
     });
-    function segmentedMode() {
-      var labels = { buddy: W.t('Personaje'), photo: W.t('Foto'), initial: W.t('Inicial') };
-      var seg = W.UI.segmented([{ value: 'buddy', label: W.t('Personaje') }, { value: 'photo', label: W.t('Foto') }, { value: 'initial', label: W.t('Inicial') }], draft.avatar, function (v) {
-        if (v === 'photo' && !(draft.photo || (!draft.removed && p.photoURL))) {
-          var prev = draft.avatar;
-          choosePhoto().then(function (data) {
-            if (data) { draft.photo = data; draft.removed = false; draft.avatar = 'photo'; renderPreview(); }
-            else seg.set(prev);
-          });
-          return;
-        }
-        draft.avatar = v; renderPreview();
-      });
-      // Marca una opción como si se hubiera tocado (sin repetir la acción si ya está)
-      seg.set = function (v) { U.$$('button', seg).forEach(function (b) { if (b.textContent === labels[v] && !b.classList.contains('active')) b.click(); }); };
-      return seg;
-    }
     renderPreview();
   }
 

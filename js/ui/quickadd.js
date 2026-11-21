@@ -36,7 +36,7 @@ window.Whider = window.Whider || {};
         st.addTask({
           text: p.text, date: p.date !== undefined ? p.date : (preset.date !== undefined ? preset.date : null),
           time: p.time || null, listId: p.listId || preset.listId || st.settings.defaultList,
-          highlight: p.highlight || preset.highlight || 'none', repeat: p.repeat || 'none',
+          highlight: p.highlight || preset.highlight || 'none', repeat: p.repeat || 'none', days: p.days,
           warn: st.settings.defaultWarn, notes: '', subtasks: []
         });
         W.Audio.vibrate([8]);
@@ -127,7 +127,8 @@ window.Whider = window.Whider || {};
           W.Menu.open(b, W.Editor.PRIO_OPTS.map(function (o) { return Object.assign({ prio: o.value }, o, { on: o.value === hl }); }))
             .then(function (v) { if (v) { manual.highlight = v; drawChips(); } });
         }, hl !== 'none' ? W.UI.prio(hl) : null));
-        chips.appendChild(chip('repeat', repeat === 'none' ? W.t('Repetir') : st.REPEATS[repeat], repeat !== 'none', function (b) {
+        var pdays = parsed && parsed.repeat === repeat ? parsed.days : null;
+        chips.appendChild(chip('repeat', repeat === 'none' ? W.t('Repetir') : W.Schema.repeatLabel({ repeat: repeat, days: pdays }, st.settings.weekStart), repeat !== 'none', function (b) {
           W.Menu.open(b, Object.keys(st.REPEATS).map(function (k) { return { value: k, label: k === 'none' ? W.t('Nunca') : st.REPEATS[k], on: k === repeat }; }))
             .then(function (v) { if (v) { manual.repeat = v; drawChips(); } });
         }));
@@ -145,7 +146,7 @@ window.Whider = window.Whider || {};
         var p = W.Parse.task(raw, { lists: st.lists, ignore: ignore });
         var fields = {
           text: p.text, date: value('date'), time: value('time'), listId: value('listId'),
-          highlight: value('highlight'), repeat: value('repeat'), warn: st.settings.defaultWarn, notes: '', subtasks: []
+          highlight: value('highlight'), repeat: value('repeat'), days: p.repeat && p.repeat === value('repeat') ? p.days : undefined, warn: st.settings.defaultWarn, notes: '', subtasks: []
         };
         if (fields.time && !fields.date) fields.date = U.today();
         var t = st.addTask(fields);
@@ -164,14 +165,14 @@ window.Whider = window.Whider || {};
 
       var more = U.el('button.btn.ghost', { text: W.t('Más detalles'), on: { click: function () {
         var raw = input.value.trim(), p = raw ? W.Parse.task(raw, { lists: st.lists, ignore: ignore }) : { text: '' };
-        var draft = { text: p.text || '', date: value('date'), time: value('time'), listId: value('listId'), highlight: value('highlight'), repeat: value('repeat') };
+        var draft = { text: p.text || '', date: value('date'), time: value('time'), listId: value('listId'), highlight: value('highlight'), repeat: value('repeat'), days: p.repeat && p.repeat === value('repeat') ? p.days : undefined };
         sheet.close();
         setTimeout(function () { W.Editor.open(null, draft); }, 300);
       } } });
 
       var sheet = W.Sheet.open({
         title: W.t('Nueva tarea'), className: 'quick-add',
-        body: [U.el('div.qa-box', [input, detected]), chips, W.Templates.row(function () { sheet.close(); }), help, addedNote],
+        body: [U.el('div.qa-box', [input, detected]), chips, help, addedNote],
         foot: [more, addBtn],
         onClose: function () { current = null; var f = document.getElementById('fab'); if (f) f.classList.remove('open'); }
       });

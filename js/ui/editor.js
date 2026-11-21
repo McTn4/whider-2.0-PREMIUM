@@ -61,7 +61,7 @@ window.Whider = window.Whider || {};
       var d = isNew ? {
         text: (preset && preset.text) || '', notes: (preset && preset.notes) || '', date: preset && preset.date !== undefined ? preset.date : U.today(), time: (preset && preset.time) || null,
         highlight: (preset && preset.highlight) || 'none', warn: st.settings.defaultWarn, listId: (preset && preset.listId) || st.ui.listFilter || st.settings.defaultList,
-        repeat: (preset && preset.repeat) || 'none', subtasks: [], remindBefore: null
+        repeat: (preset && preset.repeat) || 'none', days: (preset && preset.days) || undefined, subtasks: [], remindBefore: null
       } : JSON.parse(JSON.stringify(src));
       if (d.listId && !st.getList(d.listId)) d.listId = null;
       var original = JSON.stringify(d);
@@ -129,8 +129,30 @@ window.Whider = window.Whider || {};
       } });
       var repeatRow = W.UI.cell({ icon: 'repeat', title: W.t('Repetir'), value: '', onTap: function (e, node) {
         W.Menu.choose(node.querySelector('.cell-value'), { value: d.repeat, options: Object.keys(st.REPEATS).map(function (k) { return { value: k, label: k === 'none' ? W.t('Nunca') : st.REPEATS[k] }; }) })
-          .then(function (v) { if (v) { d.repeat = v; renderWhen(); } });
+          .then(function (v) {
+            if (!v) return;
+            d.repeat = v;
+            if (v !== 'none' && !d.date) d.date = U.today();
+            if (v !== 'weekly') delete d.days;
+            renderWhen();
+          });
       } });
+      /* ----- Cada semana: qué días (varios = tarea de cada día, sale en «Cada día» de Hoy) ----- */
+      var ws = st.settings.weekStart === 0 ? 0 : 1;
+      var dayBtns = [0, 1, 2, 3, 4, 5, 6].map(function (i) {
+        var wd = (i + ws) % 7;
+        return U.el('button.day-opt', { attrs: { type: 'button', 'aria-pressed': 'false', 'aria-label': U.cap(U.WEEKDAYS[wd]), title: U.cap(U.WEEKDAYS[wd]) }, on: { click: function () {
+          var cur = d.days && d.days.length ? d.days.slice() : (d.date ? [U.weekday(d.date)] : []);
+          var k = cur.indexOf(wd);
+          if (k >= 0) { if (cur.length > 1) cur.splice(k, 1); } else cur.push(wd);
+          d.days = cur.sort();
+          // La fecha pasa al primer día elegido (desde la que tenía)
+          if (d.date && d.days.indexOf(U.weekday(d.date)) < 0) d.date = W.Schema.firstDue({ repeat: 'weekly', days: d.days, date: d.date }, d.date);
+          W.Audio.select();
+          renderWhen();
+        } } }, [U.WEEKDAYS_LETTER[wd]]);
+      });
+      var daysRow = U.el('div.cell.col.days-cell', [U.el('span.cell-sub', { text: W.t('Qué días de la semana') }), U.el('div.days-row', { attrs: { role: 'group', 'aria-label': W.t('Qué días de la semana') } }, dayBtns)]);
 
       /* ----- Lista y prioridad ----- */
       var listRow = W.UI.cell({ icon: 'list', title: W.t('Categoría'), value: '', onTap: function (e, node) {
@@ -169,7 +191,10 @@ window.Whider = window.Whider || {};
         warnSub.style.display = warnSub.textContent ? '' : 'none';
         remindRow.style.display = d.warn && d.time ? '' : 'none';
         setValue(remindRow, remindLabel(typeof d.remindBefore === 'number' ? d.remindBefore : st.settings.remindBefore));
-        setValue(repeatRow, d.repeat === 'none' ? W.t('Nunca') : st.REPEATS[d.repeat]);
+        setValue(repeatRow, d.repeat === 'none' ? W.t('Nunca') : W.Schema.repeatLabel(d, ws));
+        daysRow.style.display = d.repeat === 'weekly' ? '' : 'none';
+        var on = d.days && d.days.length ? d.days : (d.date ? [U.weekday(d.date)] : []);
+        dayBtns.forEach(function (b, i) { var x = on.indexOf((i + ws) % 7) >= 0; b.classList.toggle('on', x); b.setAttribute('aria-pressed', x ? 'true' : 'false'); });
         var l = d.listId ? st.getList(d.listId) : null;
         setValue(listRow, l ? l.name : W.t('Sin categoría'));
         prioBtns.forEach(function (b, i) { var on = PRIO_OPTS[i].value === d.highlight; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
@@ -224,11 +249,10 @@ window.Whider = window.Whider || {};
       var body = [
         U.el('div.group.editor-fields', [U.el('label.cell', [title]), U.el('label.cell', [notes])]),
         U.el('div.group', [dateRow, calRow, timeRow, durRow]),
-        U.el('div.group', [warnRow, remindRow, repeatRow]),
+        U.el('div.group', [warnRow, remindRow, repeatRow, daysRow]),
         U.el('div.group', [listRow, prioRow, doingRow]),
         W.UI.section({ header: W.t('Subtareas'), items: subGroup })
       ];
-      if (!isNew && src.focusMin) body.push(U.el('p.hint', { text: W.t('{focusMin} min de enfoque dedicados a esta tarea', { focusMin: src.focusMin }) }));
       var foot = [];
       if (!isNew) foot.push(U.el('button.btn.ghost', { attrs: { 'aria-label': W.t('Eliminar tarea'), title: W.t('Eliminar tarea') }, style: { padding: '0 16px' }, on: { click: function () {
         W.TaskCard.actions.confirmRemove(src.id).then(function (ok) { if (ok) sheet.close(); });

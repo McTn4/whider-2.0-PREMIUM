@@ -267,7 +267,7 @@ window.Whider.Screens = window.Whider.Screens || {};
             W.Menu.choose(btn, { value: st.settings.sort, options: SORTS }).then(function (s) { if (s) st.setSetting('sort', s); });
           }, 60);
         } else if (a === 'clear') {
-          W.Sheet.confirm({ title: W.t('¿Borrar las completadas?'), text: W.t('Tus rachas y marcas se conservan.'), ok: W.t('Borrar'), danger: true }).then(function (ok) {
+          W.Sheet.confirm({ title: W.t('¿Borrar las completadas?'), text: W.t('No se puede deshacer.'), ok: W.t('Borrar'), danger: true }).then(function (ok) {
             if (!ok) return;
             var ids = {}; b.done.forEach(function (t) { ids[t.id] = true; });
             st.tasks.forEach(function (t) { if (ids[t.id]) st.markDeleted(t.id); });
@@ -341,7 +341,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var found = st.tasks.filter(function (t) { return matches(t, q); });
     var pend = found.filter(function (t) { return !t.done; }).sort(st.compareDeadline);
     var done = found.filter(function (t) { return t.done; }).sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
-    if (!found.length) { host.appendChild(W.UI.empty('buddy:search:worried', W.t('Sin resultados'), W.t('Ninguna tarea coincide con «{q}».', { q: q }))); return; }
+    if (!found.length) { host.appendChild(W.UI.empty('search', W.t('Sin resultados'), W.t('Ninguna tarea coincide con «{q}».', { q: q }))); return; }
     if (pend.length) host.appendChild(W.UI.section({ title: W.t('Pendientes'), side: U.el('small', { text: pend.length }), items: W.TaskCard.list(pend.slice(0, 200), {}) }));
     if (done.length) host.appendChild(W.UI.section({ title: W.t('Completadas'), side: U.el('small', { text: done.length }), items: W.TaskCard.list(done.slice(0, 100), { ctx: 'done' }) }));
   }

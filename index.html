@@ -4,22 +4,21 @@
   <meta charset="utf-8">
   <title>WHIDER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#070708">
+  <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="WHIDER">
   <meta name="format-detection" content="telephone=no">
-  <meta name="description" content="WHIDER: tareas, calendario, avisos, enfoque y progreso en una sola app.">
+  <meta name="description" content="WHIDER: tus tareas por importancia, las de cada día, tu calendario y tus notas.">
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-  <link rel="preload" href="fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/inter-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -35,7 +34,7 @@
         if (ui && ui.t) html.setAttribute('data-text', ui.t);
         var light = ui && (ui.sys ? window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches : ui.th === 'light');
         html.setAttribute('data-theme', light ? 'light' : 'dark');
-        if (light) { var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', '#F4F4F6'); }
+        if (light) { var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', '#FFFFFF'); }
       } catch (e) { /* valores por defecto */ }
       html.setAttribute('data-layout', window.matchMedia && window.matchMedia('(min-width: 1000px)').matches ? 'desktop' : 'mobile');
       if (window.WhiderDesktop) html.className += ' desktop-app os-' + window.WhiderDesktop.platform;
@@ -44,12 +43,12 @@
 </head>
 <body>
 
-<!-- ========== PANTALLA DE CARGA: la W se traza y se ilumina ========== -->
+<!-- ========== PANTALLA DE CARGA: la W, quieta, mientras arranca ========== -->
 <div class="splash" id="splash" aria-hidden="true">
   <svg class="splash-w" viewBox="4 8 56 46"><path pathLength="100" d="M12.5 22.5 23 45l9-15.5L41 45l11-28"/></svg>
 </div>
 
-<!-- ========== ICONOS «Índice» (colección propia: rejilla de 24, contenedores de esquinas curvadas) ========== -->
+<!-- ========== ICONOS (trazo redondeado, como los de Apple; rejilla de 24; relleno en la pestaña activa) ========== -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="logo" viewBox="0 0 64 64"><path d="M12.5 22.5 23 45l9-15.5L41 45l11-28" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -80,6 +79,7 @@
   <symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 5.75 15.75 12 9.5 18.25"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M5.75 9.5 12 15.75 18.25 9.5"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M5.75 14.5 12 8.25 18.25 14.5"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19.25V5.25M6 11 12 5l6 6"/></symbol>
   <symbol id="i-ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.25"/><circle cx="7.75" cy="12" r="1.15" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/><circle cx="16.25" cy="12" r="1.15" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.6" cy="10.6" r="6.6"/><path d="M15.4 15.4 20.25 20.25"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></symbol>
@@ -122,6 +122,7 @@
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M10.5 3.75C11.1 8.1 12.9 9.9 17.25 10.5 12.9 11.1 11.1 12.9 10.5 17.25 9.9 12.9 8.1 11.1 3.75 10.5 8.1 9.9 9.9 8.1 10.5 3.75Z"/><path d="M18 15.5V20.5M15.5 18H20.5"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.25" r="3.75"/><path d="M4.75 20.25A7.25 7.25 0 0 1 19.25 20.25"/></symbol>
   <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.3"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.6 5.5a3.3 3.3 0 0 1 0 6.2M17.6 14a6 6 0 0 1 3.4 5.5"/></symbol>
+  <symbol id="i-users-fill" viewBox="0 0 24 24"><circle cx="9" cy="8.3" r="3.8" fill="currentColor" stroke="none"/><path d="M2.5 19.8a6.5 6.5 0 0 1 13 0Z" fill="currentColor" stroke="none"/><path d="M15.6 5.1a3.5 3.5 0 0 1 0 6.6M17.6 13.7a6.2 6.2 0 0 1 3.6 5.9" stroke-width="2.1"/></symbol>
   <symbol id="i-team" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M7 19.5a5 5 0 0 1 10 0M2.75 18a3.4 3.4 0 0 1 4.6-3M21.25 18a3.4 3.4 0 0 0-4.6-3"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.25 5.25V18.75L19 12Z" fill="currentColor" stroke="none" stroke-linejoin="round"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7.35 5.25H9.15A1.1 1.1 0 0 1 10.25 6.35V17.65A1.1 1.1 0 0 1 9.15 18.75H7.35A1.1 1.1 0 0 1 6.25 17.65V6.35A1.1 1.1 0 0 1 7.35 5.25Z" fill="currentColor" stroke="none"/><path d="M14.85 5.25H16.65A1.1 1.1 0 0 1 17.75 6.35V17.65A1.1 1.1 0 0 1 16.65 18.75H14.85A1.1 1.1 0 0 1 13.75 17.65V6.35A1.1 1.1 0 0 1 14.85 5.25Z" fill="currentColor" stroke="none"/></symbol>
@@ -215,25 +216,20 @@
     <section class="screen" id="screen-home" data-screen="home" aria-label="Hoy"></section>
     <section class="screen" id="screen-tasks" data-screen="tasks" aria-label="Tareas"></section>
     <section class="screen" id="screen-calendar" data-screen="calendar" aria-label="Calendario"></section>
-    <section class="screen" id="screen-habits" data-screen="habits" aria-label="Hábitos"></section>
-    <section class="screen" id="screen-focus" data-screen="focus" aria-label="Enfoque"></section>
-    <section class="screen" id="screen-stats" data-screen="stats" aria-label="Estadísticas"></section>
-    <section class="screen" id="screen-reports" data-screen="reports" aria-label="Informes"></section>
-    <section class="screen" id="screen-automations" data-screen="automations" aria-label="Automatizaciones"></section>
     <section class="screen" id="screen-notes" data-screen="notes" aria-label="Cuaderno"></section>
     <section class="screen" id="screen-chats" data-screen="chats" aria-label="Chats"></section>
     <section class="screen" id="screen-friends" data-screen="friends" aria-label="Personas"></section>
-    <section class="screen" id="screen-more" data-screen="more" aria-label="Todo WHIDER"></section>
-    <section class="screen" id="screen-progress" data-screen="progress" aria-label="Perfil y resumen"></section>
   </main>
 
+  <!-- Cinco secciones, siempre las mismas; «+» flota encima, a la derecha -->
   <nav class="dock" aria-label="Navegación principal">
     <button class="tab" data-go="home"><span class="tab-ic"><svg class="ic off"><use href="#i-sun"/></svg><svg class="ic on"><use href="#i-sun-fill"/></svg><span class="tab-badge" data-badge="alerts"></span></span><span class="tab-label">Hoy</span></button>
     <button class="tab" data-go="tasks"><span class="tab-ic"><svg class="ic off"><use href="#i-tasks"/></svg><svg class="ic on"><use href="#i-tasks-fill"/></svg></span><span class="tab-label">Tareas</span></button>
-    <button class="fab" id="fab" aria-label="Nueva tarea"><svg class="ic"><use href="#i-plus"/></svg></button>
     <button class="tab" data-go="calendar"><span class="tab-ic"><svg class="ic off"><use href="#i-calendar"/></svg><svg class="ic on"><use href="#i-calendar-fill"/></svg></span><span class="tab-label">Calendario</span></button>
-    <button class="tab" data-go="more"><span class="tab-ic"><svg class="ic off"><use href="#i-apps"/></svg><svg class="ic on"><use href="#i-apps-fill"/></svg><span class="tab-badge" data-badge="social"></span></span><span class="tab-label">Más</span></button>
+    <button class="tab" data-go="notes"><span class="tab-ic"><svg class="ic off"><use href="#i-notebook"/></svg><svg class="ic on"><use href="#i-notebook-fill"/></svg></span><span class="tab-label">Cuaderno</span></button>
+    <button class="tab" data-go="friends"><span class="tab-ic"><svg class="ic off"><use href="#i-users"/></svg><svg class="ic on"><use href="#i-users-fill"/></svg><span class="tab-badge" data-badge="social"></span></span><span class="tab-label">Personas</span></button>
   </nav>
+  <button class="fab" id="fab" aria-label="Nueva tarea"><svg class="ic"><use href="#i-plus"/></svg></button>
 </div>
 
 <div class="sheet-root" id="sheetRoot"></div>
@@ -249,21 +245,16 @@
 <script src="js/ui/layout.js"></script>
 <script src="js/core/schema.js"></script>
 <script src="js/core/store.js"></script>
-<script src="js/core/habits.js"></script>
-<script src="js/core/automations.js"></script>
-<script src="js/core/stats.js"></script>
 <script src="js/core/parse.js"></script>
 <script src="js/core/importer.js"></script>
 <script src="js/core/ical.js"></script>
 <script src="js/core/calendars.js"></script>
 <script src="js/core/audio.js"></script>
-<script src="js/ui/fx.js"></script>
 <script src="js/ui/toast.js"></script>
 <script src="js/ui/menu.js"></script>
 <script src="js/ui/sheet.js"></script>
 <script src="js/ui/controls.js"></script>
 <script src="js/core/notify.js"></script>
-<script src="js/core/records.js"></script>
 <script src="js/core/auth.js"></script>
 <script src="js/core/live.js"></script>
 <script src="js/core/sync.js"></script>
@@ -280,11 +271,7 @@
 <script src="js/ui/taskcard.js"></script>
 <script src="js/ui/select.js"></script>
 <script src="js/ui/filters.js"></script>
-<script src="js/ui/character.js"></script>
 <script src="js/ui/avatar.js"></script>
-<script src="js/ui/charts.js"></script>
-<script src="js/ui/devices.js"></script>
-<script src="js/ui/dock.js"></script>
 <script src="js/ui/firststeps.js"></script>
 <script src="js/ui/importwiz.js"></script>
 <script src="js/ui/whatsnew.js"></script>
@@ -298,18 +285,10 @@
 <script src="js/screens/home.js"></script>
 <script src="js/screens/tasks.js"></script>
 <script src="js/screens/calendar.js"></script>
-<script src="js/screens/focus.js"></script>
-<script src="js/screens/habits.js"></script>
 <script src="js/screens/notes.js"></script>
 <script src="js/screens/chats.js"></script>
-<script src="js/screens/more.js"></script>
-<script src="js/screens/automations.js"></script>
-<script src="js/screens/stats.js"></script>
-<script src="js/screens/reports.js"></script>
 <script src="js/screens/friends.js"></script>
-<script src="js/screens/progress.js"></script>
 <script src="js/screens/settings.js"></script>
-<script src="js/screens/records.js"></script>
 <script src="js/screens/onboarding.js"></script>
 <script src="js/screens/auth.js"></script>
 <script src="js/router.js"></script>

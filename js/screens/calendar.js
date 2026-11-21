@@ -41,7 +41,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       lines.push(icsFold('SUMMARY:' + icsText(t.text)));
       if (t.notes) lines.push(icsFold('DESCRIPTION:' + icsText(t.notes)));
       if (l) lines.push(icsFold('CATEGORIES:' + icsText(l.name)));
-      if (RR[t.repeat]) lines.push('RRULE:' + RR[t.repeat]);
+      if (t.repeat === 'weekly' && t.days && t.days.length) lines.push('RRULE:FREQ=WEEKLY;BYDAY=' + t.days.map(function (x) { return ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][x]; }).join(','));
+      else if (RR[t.repeat]) lines.push('RRULE:' + RR[t.repeat]);
       if (PRI[t.highlight]) lines.push('PRIORITY:' + PRI[t.highlight]);
       if (t.warn && t.time) lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsText(t.text), 'TRIGGER:-PT' + (typeof t.remindBefore === 'number' ? t.remindBefore : st.settings.remindBefore) + 'M', 'END:VALARM');
       lines.push('END:VEVENT');
@@ -119,7 +120,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   function projectedRow(st, p) {
     var t = p.base;
     var check = U.el('span.check' + (t.highlight !== 'none' ? '.p-' + t.highlight : ''));
-    var meta = U.el('div.task-meta', [U.el('span.rep-tag', [U.icon('repeat'), st.REPEATS[t.repeat]])]);
+    var meta = U.el('div.task-meta', [U.el('span.rep-tag', [U.icon('repeat'), W.Schema.repeatLabel(t, st.settings.weekStart)])]);
     var l = t.listId ? st.getList(t.listId) : null;
     if (l) { meta.appendChild(U.el('span.sep', { text: '·' })); meta.appendChild(U.el('span', { text: l.name })); }
     var body = U.el('div.task-body', [U.el('span.tl-time' + (t.time ? '' : '.none'), { text: t.time ? U.fmtTime(t.time) : '—' }), check,
@@ -144,7 +145,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (!raw) { input.focus(); return; }
       var p = W.Parse.task(raw, { lists: st.lists });
       st.addTask({ text: p.text, date: ds, time: p.time || null, listId: p.listId || st.ui.calList || st.settings.defaultList, highlight: p.highlight || 'none',
-        repeat: p.repeat || 'none', warn: st.settings.defaultWarn, notes: '', subtasks: [] });
+        repeat: p.repeat || 'none', days: p.days, warn: st.settings.defaultWarn, notes: '', subtasks: [] });
       W.Audio.vibrate([8]);
       setTimeout(function () { var i = U.$('#screen-calendar .quick-day input'); if (i) i.focus(); }, 60);
     };

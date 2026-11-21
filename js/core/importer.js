@@ -286,6 +286,12 @@ window.Whider = window.Whider || {};
         if (rr) {
           var freq = (rr.match(/FREQ=([A-Z]+)/) || [])[1];
           t.repeat = freq === 'DAILY' ? 'daily' : freq === 'WEEKLY' ? (/BYDAY=MO,TU,WE,TH,FR(;|$)/.test(rr) ? 'weekdays' : 'weekly') : freq === 'MONTHLY' ? 'monthly' : 'none';
+          // Cada semana en varios días (BYDAY=MO,WE,FR): los mismos días
+          var by = t.repeat === 'weekly' && /BYDAY=([A-Z,0-9+-]+)/.exec(rr);
+          if (by) {
+            var days = by[1].split(',').map(function (x) { return ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'].indexOf(x.replace(/[^A-Z]/g, '')); }).filter(function (x) { return x >= 0; });
+            if (days.length > 1) t.days = days;
+          }
           if (t.repeat === 'none') warnings.push(W.t('«{task}»: esa repetición no existe en WHIDER (se importa una vez).', { task: t.text.slice(0, 40) }));
         }
         var p = +((x.PRIORITY && x.PRIORITY.v) || 0);

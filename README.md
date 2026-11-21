@@ -1,15 +1,15 @@
 # WHIDER
 
-**Tu día, bajo control.** WHIDER es una app de productividad **gratuita para ordenador (Windows, macOS y Linux), la web y Android** (pronto en Google Play) que reúne tareas por categorías, calendario profesional, un **Cuaderno** (páginas por bloques con **fotos y archivos adjuntos**, bases de datos y plantillas), hábitos, avisos, enfoque, sistemas y automatizaciones, estadísticas e informes. **Tu personaje** es tu foto de perfil, y para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión. Con **tema oscuro o claro** (o el del sistema), importa tus tareas de **Todoist, Google Tasks, Notion o un CSV**, y en el ordenador **se actualiza sola**.
+**Tu día, bajo control.** WHIDER es una app de productividad **gratuita para ordenador (Windows, macOS y Linux), la web y Android** (pronto en Google Play) que se queda con lo importante: **tus tareas, ordenadas por importancia**, las **tareas de cada día**, el **calendario** y el **Cuaderno** (páginas por bloques con **fotos y archivos adjuntos**, bases de datos y plantillas). Nada más abrirla ves lo que tienes que hacer hoy, de lo más urgente a lo menos, y un campo para añadir lo que falte. Para trabajar con otros tienes **Personas, equipos y chats**: a amigos y compañeros se les añade con un **enlace o un código QR**. Incluye **cuentas** (correo o Google) con **copia en la nube**, así que tienes lo mismo en el ordenador y en el móvil, y funciona sin conexión. Con **tema oscuro o claro** (o el del sistema), importa tus tareas de **Todoist, Google Tasks, Notion o un CSV**, y en el ordenador **se actualiza sola**.
 
 **Todo es gratis y para todos**: no hay planes de pago, anuncios ni compras dentro de la app.
 
 **Web: [whider-red.vercel.app](https://whider-red.vercel.app)** — la portada presenta WHIDER, sus novedades y preguntas frecuentes, y ofrece la descarga para tu dispositivo (en el ordenador, Windows, macOS o Linux; en el iPhone, cómo añadirla desde Safari; en Android, Google Play, próximamente). También [en inglés](https://whider-red.vercel.app/en/). La app está en español y en inglés (Ajustes → Idioma); en el ordenador y en Android, el inglés llega con su próxima versión. La app en el navegador está en [`/app`](https://whider-red.vercel.app/app).
 
-**Diseño «Índice»**, en blanco y negro: cabeceras cerradas por una regla fina, secciones en versalitas y **esquinas curvadas** y precisas en tarjetas, hojas, botones, campos y etiquetas, igual que en los iconos de la app, una colección propia en rejilla de 24. Dos tipografías: **Outfit**, geométrica y rotunda, en los títulos, las cabeceras y las cifras grandes, y **Onest**, una grotesca moderna de x alta y aperturas abiertas, muy legible en pantallas pequeñas, en el resto del texto, con cifras tabulares en horas y contadores.
+**Diseño sencillo, inspirado en X y en Apple**: fondo negro (o blanco), texto casi blanco, **líneas finas** en lugar de tarjetas con sombra, títulos grandes y un solo azul para lo que se puede tocar. El único color «de verdad» es el de la **importancia** de cada tarea: **urgente en rojo, importante en naranja, destacada en amarillo** y normal en gris. Una sola tipografía, **Inter**, en todo; iconos de trazo redondeado, como los de Apple, que se rellenan en la pestaña activa. En el móvil, cinco pestañas abajo y un **«+» flotante**; en el ordenador, una barra lateral con secciones grandes y **«Nueva tarea»** en cápsula, como en X.
 
 <p align="center">
-  <img src="sitio/img/pc-hoy.webp" width="900" alt="WHIDER 1.0 en el ordenador: Hoy con lo más importante arriba, tu personaje, el progreso y los hábitos del día">
+  <img src="sitio/img/pc-hoy.webp" width="900" alt="WHIDER en el ordenador: Hoy con el campo para añadir, «Cada día» y «Por hacer» por importancia">
 </p>
 
 ---
@@ -18,32 +18,23 @@
 
 | Apartado | Objetivo |
 | --- | --- |
-| **PC** | Experiencia avanzada, organización y productividad profesional. |
-| **Móvil** | Experiencia rápida, accesible y conectada con el ordenador. |
-| **General** | Personalización, tu personaje como foto de perfil, personas y chats, sonidos y notificaciones. |
+| **Hoy** | Lo que tienes que hacer hoy, por importancia, y lo que repites cada día. Lo primero que ves al abrir. |
+| **Tareas, Calendario y Cuaderno** | Organizar: categorías y filtros, el calendario (también tus calendarios de Google, Outlook o Apple) y tus notas. |
+| **Personas** | Chats, contactos y equipos, solo si trabajas con otros (si no, se quita de la barra). |
 
 ### Todo incluido, gratis
 
 | | Qué incluye |
 | --- | --- |
-| **PC** | Calendario profesional (mes, semana y **día**; duración de las tareas, arrastrar y estirar, exportar a `.ics`, el panel **«Por planificar»** para arrastrar a la semana lo que no tiene fecha, y tus **calendarios de Google, Outlook o Apple** dentro, por su enlace) · Tareas por **categorías** con icono, **filtros** sin límite y vista de **tablero** · **Hábitos** y **selección múltiple** · **Sistemas profesionales** (GTD, Eisenhower, bloques de tiempo, 1-3-5, revisión semanal, bandeja a cero, Pomodoro) y **automatizaciones** a medida · **Estadísticas de hasta un año** e **informes** en PDF, CSV y JSON · **Personalización** de la barra lateral, Hoy y el calendario · **Cuaderno** completo |
-| **Móvil** | Calendario · Tareas · Cuaderno · Plantillas de un toque · **Gestionar el ordenador** (dispositivos y enfoque compartido) · Una sola app sincronizada al instante con el ordenador |
-| **General** | Sonidos de botones y avisos · **Personaje** personalizable como foto de perfil (especies, acabados, efectos, fondos y marcos) · Notificaciones · **Personas, chats y equipos**: invitar por enlace, QR o código, chatear y crear equipos con su chat y páginas compartidas |
+| **Tareas** | **Importancia** en cuatro niveles y en color · **tareas de cada día** (cada día, días laborables o los días que elijas) · categorías con icono y color · **filtros** sin límite y vista de **tablero** · selección múltiple · subtareas, notas, avisos y repeticiones · escribir en lenguaje natural («Gimnasio cada lunes y jueves a las 7 !!») |
+| **Calendario** | Mes, semana y **día** por horas (arrastrar y estirar), agenda, exportar a `.ics`, el panel **«Por planificar»** (ordenador) y tus **calendarios de Google, Outlook o Apple** dentro, por su enlace |
+| **Cuaderno** | Páginas por bloques, fotos y archivos adjuntos, bases de datos (tabla, tablero, lista, calendario y galería) y plantillas |
+| **Personas** | Invitar por enlace, QR o código, **chats** y **equipos** con su chat, sus tareas y sus páginas compartidas |
+| **General** | Tema oscuro o claro, español o inglés, avisos y sonidos, copia en la nube con cuenta, una presentación que **adapta la app a ti** y funciona sin conexión |
 
 <p align="center">
   <img src="docs/capturas/pc-70-cuaderno.jpg" width="440" alt="Cuaderno: página de proyecto con su base de datos en tablero">
   <img src="docs/capturas/pc-70-basedatos.jpg" width="440" alt="Cuaderno: base de datos en tabla con propiedades">
-</p>
-<p align="center">
-  <img src="docs/capturas/pc-70-chats.jpg" width="440" alt="Chats con tus contactos: reacciones y tareas compartidas">
-  <img src="docs/capturas/pc-70-personas.jpg" width="440" alt="Personas: amigos, trabajo y equipos, con enlace y código QR">
-</p>
-<p align="center">
-  <img src="docs/capturas/pc-70-personajes.jpg" width="440" alt="Editor del personaje">
-  <img src="docs/capturas/pc-60-estadisticas.jpg" width="440" alt="Estadísticas">
-</p>
-<p align="center">
-  <img src="docs/capturas/movil-70.jpg" width="900" alt="WHIDER 7.0 en el móvil: Hoy con lo más importante arriba, Más, una página de equipo del Cuaderno y un chat">
 </p>
 
 ---
@@ -61,14 +52,14 @@
 La portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.vercel.app/descargar), destacando el de tu sistema, y cada versión publicada los trae todos en la pestaña **[Releases](https://github.com/McTn4/whider-2.0-PREMIUM/releases)**, con sus novedades. **Desde la 1.1 la app se actualiza sola** en Windows y en Linux (AppImage) y avisa de cada versión nueva en macOS y en Linux (.deb, nuevo en la 1.1, que no necesita `libfuse2`). La app también funciona en el navegador del ordenador con el mismo diseño, en [`/app`](https://whider-red.vercel.app/app).
 
 **Pensada para pantalla grande, ratón y teclado**
-- **Barra lateral ordenada por importancia**: *Nueva tarea* y *Buscar*; **Hoy, Tareas, Calendario y Cuaderno**; **Equipo** (Chats y Personas, con los mensajes sin leer); **Rutinas** (Hábitos y Enfoque); **Análisis** (Estadísticas, Informes y Automatizaciones); tus **categorías** y **filtros**; y abajo, tu perfil, tu plan y los ajustes. Qué se ve, los contadores y el tamaño se eligen en *Personalización*.
-- **Hoy a dos columnas**: arriba, **lo más importante** (hasta 3 tareas: las que elijas o, si no, las más prioritarias, empezando por las vencidas) y después el resto; a la derecha, **quién te está esperando** (mensajes y solicitudes), **tu personaje**, el resumen del día, los hábitos, **los próximos 7 días**, tus páginas recientes y el enfoque (bloques y orden a tu gusto).
+- **Barra lateral como la de X**: el logotipo, *Buscar*, **Hoy, Tareas, Calendario, Cuaderno y Personas** (en grande, con el icono relleno en la que estás) y **«Nueva tarea»** en cápsula; debajo, tus **categorías** y **filtros**, y abajo tu cuenta y los ajustes. Los contadores y el tamaño se eligen en *Ajustes → Lo que ves*.
+- **Hoy a dos columnas**: a la izquierda, el campo para añadir, **«Cada día»** y **«Por hacer»** por importancia; a la derecha, **los próximos 7 días**, la agenda de tus calendarios, **quién te está esperando** (mensajes y solicitudes) y tus páginas recientes.
 - **Varias tareas a la vez**: `Ctrl`/`⌘` clic, `Mayús` clic o `Ctrl A` y una barra para cambiar fecha, hora, prioridad, categoría, repetición y avisos, duplicar, completar o eliminar (con Deshacer). Arrastra cualquiera de ellas y se mueven todas.
-- **Cuaderno** con el árbol de páginas a la izquierda y la página a lo ancho; **chats** con la lista y la conversación a la vez; **hábitos en cuadrícula** de 7, 14 o 30 días, **estadísticas** con gráficos y conclusiones e **informes** listos para imprimir o guardar en PDF.
+- **Cuaderno** con el árbol de páginas a la izquierda y la página a lo ancho; **chats** con la lista y la conversación a la vez.
 - **Calendario grande**: el **mes** con las tareas dentro de cada día y el día elegido al lado, y la **semana en 7 columnas por horas** con la hora actual. Haz clic en un hueco para crear una tarea a esa hora y **arrastra** cualquier tarea a otro día u otra hora.
 - **Editor en un panel a la derecha**, sin perder de vista la lista; diálogos centrados y la creación rápida arriba, como una barra de comandos.
-- **Campo para añadir** en Hoy y en cada lista: escribe y pulsa Intro (entiende fecha, hora, `#lista` y `!` de prioridad).
-- **Clic derecho** en una tarea: completar, editar, pasarla a hoy, a mañana o al lunes, cambiar la prioridad o la lista, enfocarte en ella o eliminarla.
+- **Campo para añadir** en Hoy y en cada lista: escribe y pulsa Intro (entiende fecha, hora, `#lista`, `!` de importancia y «cada día»).
+- **Clic derecho** en una tarea: completar, editar, pasarla a hoy, a mañana o al lunes, cambiar la importancia o la lista, marcarla «En curso» o eliminarla.
 - **Arrastra** una tarea a una lista de la barra lateral para moverla, a «Hoy» para hacerla hoy o a un día del calendario.
 - **Buscar** (`Ctrl K` / `⌘ K`): encuentra tareas y listas, ve a cualquier sección o crea la tarea con lo que has escrito.
 
@@ -78,18 +69,17 @@ La portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.ve
 | --- | --- |
 | `N` · `Alt N` | Nueva tarea · nueva página del Cuaderno |
 | `Ctrl K` · `/` | Buscar tareas, páginas, personas y acciones |
-| `1` … `9` | Hoy · Tareas · Calendario · Cuaderno · Chats · Personas · Hábitos · Enfoque · Estadísticas |
+| `1` … `5` | Hoy · Tareas · Calendario · Cuaderno · Personas |
 | `/` en una página | Menú de bloques del Cuaderno (títulos, listas, casillas, tablas, bases de datos…) |
-| `P` · `Ctrl ,` | Perfil · Ajustes |
+| `Ctrl ,` | Ajustes |
 | `↑` `↓` · `Espacio` · `Intro` · `Supr` | Moverse por la lista · completar · editar · eliminar |
 | `←` `→` · `T` · `M` `S` `D` `A` | En el calendario: anterior y siguiente · hoy · mes, semana, día y agenda |
 | `Ctrl` clic · `Mayús` clic · `Ctrl A` | Seleccionar varias tareas · un tramo · todas (`Espacio` las completa, `Supr` las elimina) |
-| `Ctrl P` | Informe en PDF (app de escritorio) |
 | `Ctrl Intro` · `Esc` | Guardar · cerrar |
 
 **La app de escritorio**
 - Ventana con la franja de título integrada en el diseño (Windows y macOS); recuerda su tamaño y posición.
-- **Sigue en la bandeja del sistema** al cerrar la ventana para avisarte de tus tareas, y puede **abrirse al iniciar el ordenador** (Ajustes → Ordenador). Desde la bandeja: abrir, nueva tarea, buscar, enfoque y salir.
+- **Sigue en la bandeja del sistema** al cerrar la ventana para avisarte de tus tareas, y puede **abrirse al iniciar el ordenador** (Ajustes → Ordenador). Desde la bandeja: abrir, nueva tarea, buscar, las tareas de hoy, una página nueva y salir.
 - Notificaciones del sistema y aviso en el icono de la barra de tareas cuando hay tareas vencidas.
 - **Entrar con Google**: se abre tu navegador, eliges la cuenta y vuelves a la app (Google no permite iniciar sesión dentro de otras apps). Con correo y contraseña se entra directamente.
 - Funciona sin conexión: la app web va dentro y tus datos se guardan en el ordenador (y en tu cuenta, si has iniciado sesión).
@@ -107,17 +97,18 @@ La portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.ve
 
 ## 🧭 Organización
 
-En el ordenador, las secciones están en la barra lateral, de lo más importante a lo menos. En el móvil, un dock flotante abajo con cuatro pestañas y el botón **+** en el centro. Las tres primeras se eligen en *Ajustes → Personalización → Barra inferior* (por ejemplo, el **Cuaderno** o los **Chats** a un toque); por defecto son estas:
+En el ordenador, las secciones están en la barra lateral, de lo más importante a lo menos. En el móvil, una barra abajo con **cinco pestañas** (Personas solo si trabajas con otros; se elige en la presentación y en *Ajustes → Lo que ves*) y el botón **+** flotante, abajo a la derecha:
 
 | Pestaña | Qué encontrarás |
 | --- | --- |
-| **Hoy** | Arriba, **lo más importante** del día (hasta 3 tareas, elegidas por ti o automáticas); después **tu día en una tarjeta** (tu personaje, cuántas llevas, la racha y por dónde seguir), **quién te está esperando** (mensajes y solicitudes) y tus tareas **agrupadas por estado**: **en curso**, **vencidas** (con *Posponer*), **pendientes** y **hechas**; al final, los hábitos y tus páginas recientes. Los primeros días, **Primeros pasos** enseña lo esencial con tus propias tareas. |
-| **Tareas** | Buscador, **listas inteligentes** (Hoy · Programadas · Todas · Prioritarias) y **Mis listas** (Personal, Trabajo…). Cada lista abre su propia página. |
-| **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la lista y la prioridad. |
-| **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**, con filtro por lista y tus tareas que se repiten. |
-| **Más** | El **Cuaderno** y los **Chats** en grande (con los mensajes sin leer) y, debajo, lo demás: **Personas**, **Rutinas** (Hábitos, Enfoque y Automatizaciones), **Análisis** (Estadísticas e Informes) y los ajustes. La pestaña avisa de los mensajes sin leer. |
+| **Hoy** | Arriba, un **campo para escribir** la tarea, con su **importancia** y **«Cada día»**. Debajo, **«Cada día»** (lo que repites a diario, tachado en su sitio cuando lo haces) y **«Por hacer»**: lo de hoy y lo vencido, **de lo más importante a lo menos** (lo que ya empezaste, delante; lo vencido, con su fecha en rojo). Lo hecho, plegado al final, y la agenda de tus calendarios. Los primeros días, **Primeros pasos** enseña lo esencial con tus propias tareas. |
+| **Tareas** | Buscador, **listas inteligentes** (Hoy · Programadas · Todas · Prioritarias) y **Mis categorías** (Personal, Trabajo…), cada una con su página, y tus **filtros**. |
+| **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**, con filtro por categoría, tus tareas que se repiten y los eventos de tus calendarios. |
+| **Cuaderno** | Tus páginas: favoritas, recientes y todas, con búsqueda, plantillas y papelera. |
+| **Personas** | Tu tarjeta para invitar (enlace, QR o código), las solicitudes, **tus chats recientes**, tus **contactos** y tus **equipos**. |
+| **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la categoría y la importancia. |
 
-Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abre tu **Perfil y resumen** (actividad y marcas) y el **engranaje** (derecha) abre los **Ajustes**, con una página por apartado.
+Arriba a la izquierda, **tu foto** (o tu inicial) abre los **Ajustes**, con tu cuenta lo primero, como en X.
 
 ---
 
@@ -137,32 +128,34 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 - **Páginas de equipo**: compártelas con un equipo y editadlas a la vez (los cambios se juntan bloque a bloque).
 - Se guarda al momento, funciona sin conexión y se sincroniza con tu cuenta. Los apuntes de versiones anteriores se convierten solos en páginas.
 
-**Personas, equipos y chats**
-- **Contactos de amigos y de trabajo**, separados. Se añaden con tu **enlace de invitación**, tu **código QR** (se escanea con la cámara del móvil o del ordenador) o tu código `WH-…`. El enlace funciona aunque la otra persona aún no tenga la app: la página de invitación la abre o le dice dónde descargarla.
-- **Equipos** con sus miembros, su enlace para entrar, su **chat** y sus **páginas del Cuaderno**.
-- **Chats** con cada contacto y con cada equipo: responder, reaccionar, editar y borrar tus mensajes, y compartir **tareas**, **páginas** y ánimos (quien los recibe los añade a lo suyo con un toque). Avisos de mensajes nuevos con la app abierta y contadores en la barra lateral, en *Más* y en Hoy.
+**Hoy, por importancia, y tareas de cada día**
+- **Importancia** en cuatro niveles: **urgente** (rojo), **importante** (naranja), **destacada** (amarillo) y normal. Se ve en el círculo de cada tarea, se escribe al lado («Urgente», «Importante») y ordena Hoy. Se elige al escribir la tarea (con el botón *Importancia* o con `!`, `!!` y `!!!`) o tocándola.
+- **Tareas de cada día**: una tarea puede repetirse **cada día**, los **días laborables** o los **días de la semana que elijas** («Gimnasio cada lunes, miércoles y viernes a las 7»). Salen en «Cada día» y, si un día se quedan sin hacer, **pasan solas al siguiente día que les toca**: no se acumulan como vencidas.
+- **Tus hábitos de antes** son ahora tareas de cada día, con su horario (que pasa a ser su aviso) y su objetivo en el título; su historial sigue guardado en tu cuenta.
+- **Una presentación que adapta la app**: para qué la vas a usar (estudios, trabajo, casa, salud, con otras personas) prepara tus categorías, los ejemplos que te propone y si la pestaña Personas está en la barra. Se repite en *Ajustes → Ayuda → Adaptar WHIDER a ti*.
 
-**Tu personaje y tu foto de perfil**
-- Tu personaje es **tu foto de perfil** en toda la app: la barra lateral, tu perfil, tus contactos, los chats y los equipos. Si lo prefieres, usa tu foto o solo la inicial.
-- 10 especies (gota, cubo, cápsula, nube, gato, oso, búho, zorro, fantasma y robot), 10 acabados (de blanco y noche a platino, obsidiana, holográfico, cristal, mármol y cromo) y ojos, bocas, cabezas, accesorios, efectos, fondos y marcos: todo disponible desde el principio.
+**Personas, equipos y chats**
+- **Contactos** (de amigos o de trabajo), en una sola lista. Se añaden con tu **enlace de invitación**, tu **código QR** (se escanea con la cámara del móvil o del ordenador) o tu código `WH-…`. El enlace funciona aunque la otra persona aún no tenga la app: la página de invitación la abre o le dice dónde descargarla.
+- **Equipos** con sus miembros, su enlace para entrar, su **chat** y sus **páginas del Cuaderno**.
+- **Chats** con cada contacto y con cada equipo: responder, reaccionar, editar y borrar tus mensajes, y compartir **tareas**, **páginas** y ánimos (quien los recibe los añade a lo suyo con un toque). Avisos de mensajes nuevos con la app abierta y contadores en la barra lateral y en la pestaña Personas.
+- Tus contactos solo ven tu **nombre y tu foto** (o tu inicial); nunca tus tareas ni tu Cuaderno, salvo lo que compartas.
 
 **Cuentas y copia en la nube**
 - Registro con **correo y contraseña** (con verificación del correo, medidor de seguridad de la contraseña y recuperación por correo) o con **Google** (en Android, con el selector nativo de cuentas del teléfono).
 - Opción para admitir **solo correos de empresa** (`allowedEmailDomains`).
-- Tus tareas, listas, marcas, enfoque y ajustes se guardan en tu cuenta y se **sincronizan automáticamente** entre dispositivos (al abrir la app, al volver a ella, cada minuto y tras cada cambio); los cambios de varios móviles se fusionan sin perder nada.
+- Tus tareas, categorías, tu Cuaderno y tus ajustes se guardan en tu cuenta y se **sincronizan al momento** entre dispositivos; los cambios de varios dispositivos se fusionan sin perder nada.
 - Funciona sin internet y sincroniza al volver la conexión. Cerrar sesión y **eliminar la cuenta** desde Ajustes → Cuenta.
 - Modo **sin cuenta** opcional: los datos se quedan en el dispositivo y se suben a la cuenta si la creas más tarde.
 - Configuración: [docs/CONFIGURAR-CUENTAS.md](docs/CONFIGURAR-CUENTAS.md).
 
 **Tareas y listas**
-- **Creación rápida en lenguaje natural**: «mañana», «el lunes», «el 15», «20/11», «en 3 días», «a las 5 de la tarde», «cada semana», «#lista» y «!»/«!!»/«!!!» para la prioridad. Lo detectado aparece en etiquetas que puedes descartar; con Intro se añade y queda listo para la siguiente.
-- La prioridad se ve de tres formas, nunca solo por el brillo: a la derecha se **rellenan** una, dos o tres barras (destacada, importante y urgente; las demás quedan con su contorno), lo urgente y lo importante **lo dicen con texto** junto a la tarea y, si lo activas en *Ajustes → Apariencia → Prioridad en color*, también se ve **en color** (rojo y ámbar).
-- **En curso**: marca una tarea como empezada (clic derecho, el editor o al enfocarte en ella) y sale aparte en Hoy, con media casilla rellena. Las que tienen alguna subtarea hecha también cuentan.
-- **Color de categoría** opcional (verde, azul, turquesa, violeta o rosa): un punto junto a su nombre en las tareas, el calendario y la barra lateral. Elegidos para leerse bien sobre fondo oscuro y distinguirse también con daltonismo; la app sigue en blanco y negro si no eliges ninguno.
+- **Creación rápida en lenguaje natural**: «mañana», «el lunes», «el 15», «20/11», «en 3 días», «a las 5 de la tarde», «cada día», «cada lunes y jueves», «#lista» y «!»/«!!»/«!!!» para la importancia. Lo detectado aparece en etiquetas que puedes descartar; con Intro se añade y queda listo para la siguiente.
+- **En curso**: marca una tarea como empezada (clic derecho o el editor) y sale la primera en Hoy, con medio círculo relleno.
+- **Color de categoría** opcional (verde, azul, turquesa, violeta o rosa): un punto junto a su nombre en las tareas, el calendario y la barra lateral.
 - **Listas** propias, más cuatro **listas automáticas** que se rellenan solas (Hoy, Programadas, Todas y Prioritarias).
 - **Importar desde otras apps** (*Ajustes → Datos* o la paleta de comandos): **Todoist** (CSV de cada proyecto), **Google Tasks** (Google Takeout), **Notion** (CSV de una base de datos), **calendarios** `.ics` de Google, Outlook o Apple (con su hora y zona horaria, duración y repetición) y cualquier **hoja de cálculo** CSV eligiendo qué columna es cada cosa. Antes de importar se ve una vista previa con las categorías nuevas, las tareas que ya tienes (no se duplican) y lo que no se entendió; durante un día se puede **deshacer**.
 - **Compartir con WHIDER**: desde otra app (Android) o desde el menú *Compartir* del sistema (web instalada), un texto o un enlace se convierte en una tarea nueva.
-- Fecha con **calendario integrado**, hora, **subtareas**, **notas** y **repeticiones** (cada día, días laborables, cada semana, cada mes).
+- Fecha con **calendario integrado**, hora, **subtareas**, **notas** y **repeticiones** (cada día, días laborables, cada semana —en uno o varios días— y cada mes).
 - **Gestos**: desliza → para completar y ← para eliminar, con **Deshacer**.
 - Búsqueda en títulos, notas y subtareas; orden por fecha, prioridad, recientes o título.
 - Si cierras el editor con cambios sin guardar, WHIDER te pregunta antes de descartarlos.
@@ -173,28 +166,19 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 - En la app Android, los recordatorios **suenan aunque la app esté cerrada** y se restauran al reiniciar el móvil.
 
 **Calendario**
-- **Mes**: un punto por tarea pendiente (hasta tres), uno que brilla si hay algo vencido y uno hueco para las repeticiones futuras; menú para saltar de mes y el día elegido con sus tareas por hora y un campo para **añadir directamente a ese día**.
+- **Mes**: un punto por tarea pendiente (hasta tres), uno rojo si hay algo vencido y uno hueco para las repeticiones futuras; menú para saltar de mes y el día elegido con sus tareas por hora y un campo para **añadir directamente a ese día**.
 - **Semana**: tira de 7 días con su progreso y el **día por horas** con la hora actual; **toca un hueco** para crear una tarea a esa hora y **mantén pulsada una tarea para arrastrarla** a otra hora.
 - **Agenda**: lo vencido y los próximos 30 días, día a día.
 - Las tareas que se repiten se ven también en los días futuros, filtro por lista y opción de ocultar las completadas.
-
-**Enfoque**
-- Sesiones y pausas cortas o largas, con pausas automáticas opcionales y una tarea vinculada.
-- Exacto aunque la app pase a segundo plano. Notificación y sonido suave al terminar.
-
-**Perfil y marcas**
-- Tu foto y tu nombre; completadas, racha y minutos de enfoque; gráfica de 7 o 30 días, **mapa de constancia** de 15 semanas y reparto por listas.
-- **Récords automáticos** (mejor racha, más tareas en un día, mejor semana, más enfoque en un día) e **hitos**.
-- **Marcas personales**: tiempos, pesos, distancias, páginas… con su evolución. El historial es permanente: **no se borra aunque elimines tareas**.
 
 **Tus datos no se pierden**
 - Todo se guarda al instante en el dispositivo; en el APK además en un almacén nativo de Android, que los recupera aunque el sistema limpie el almacenamiento de la app.
 - Con cuenta, también en la nube: al iniciar sesión en otro móvil lo recuperas todo.
 
-**Personalización (Ajustes)**
+**Ajustes**
 - Tamaño de texto (4 niveles), densidad cómoda o compacta y movimiento reducido.
 - Pantalla al abrir, lista por defecto, aviso por defecto, primer día de la semana, formato 12/24 h y confirmación al eliminar.
-- Duración de las sesiones de enfoque y de las pausas.
+- *Lo que ves*: la pestaña Personas y, en el ordenador, la barra lateral, el calendario y el orden de las categorías.
 
 ---
 
@@ -273,47 +257,47 @@ npm start
 
 ```text
 .
-├── index.html              # Estructura de la app + colección de iconos «Índice» (SVG propio)
-├── manifest.json           # PWA: iconos y accesos directos (nueva tarea, nueva página, chats, hábitos)
+├── index.html              # Estructura de la app + iconos de trazo redondeado (SVG propio, rellenos en la pestaña activa)
+├── manifest.json           # PWA: iconos y accesos directos (nueva tarea, nueva página, tareas de hoy, chats)
 ├── sw.js                   # Funcionamiento sin conexión y clic en notificaciones
 ├── sitio/                  # La web: portada (index.html), enlaces de descarga (descargas.js) y capturas (img/)
 ├── i/index.html            # Página de las invitaciones (enlaces y QR): abre la app o la web, o enseña a descargarla
 ├── privacidad/index.html   # Política de privacidad pública (la que pide Google Play) y cómo eliminar la cuenta
 ├── .well-known/            # assetlinks.json: los enlaces de invitación abren la app de Android (App Links)
 ├── css/
-│   ├── tokens.css          # Grises, sombras, tipografías, radios de esquina, tamaños y movimiento
-│   ├── layout.css          # Pantalla de carga, estructura a pantalla completa, barra superior y dock
-│   ├── components.css      # Celdas agrupadas, botones, hojas, alertas, menús, interruptores…
+│   ├── tokens.css          # Colores (y los de la importancia), Inter, radios de esquina, tamaños y movimiento
+│   ├── layout.css          # Pantalla de carga, estructura, barra superior, barra inferior y el «+» flotante
+│   ├── components.css      # Filas de tarea, celdas agrupadas, botones en cápsula, hojas, alertas, menús, interruptores…
 │   ├── screens.css         # Estilos de cada pantalla
-│   ├── social.css          # Personas, chats, avatares con tu personaje, invitaciones y QR, Más
+│   ├── social.css          # Personas, chats, fotos de perfil, invitaciones y QR
 │   ├── cuaderno.css        # Cuaderno: editor por bloques y bases de datos (se carga al abrirlo)
-│   └── desktop.css         # Ordenador: barra lateral, diálogos, calendario grande, ratón y teclado
+│   └── desktop.css         # Ordenador: barra lateral (como la de X), diálogos, calendario grande, ratón y teclado
 ├── firestore.rules         # Reglas de seguridad: tus datos solo tuyos; perfiles, buzón, equipos y chats solo de sus miembros
 ├── firebase.json           # Configuración de Firebase (reglas, hosting y emuladores)
 ├── vercel.json             # Publicación de la web: compilación (tools/web-build.js), /app y /descargar
 ├── js/
 │   ├── config.js           # ← Configuración de cuentas (Firebase) y enlaces: ver docs/CONFIGURAR-CUENTAS.md
 │   ├── vendor/             # SDK de Firebase empaquetado (funciona sin CDN), generador y lector de códigos QR
-│   ├── core/               # util, store, parse (lenguaje natural), audio (sonidos), notify, records, auth (cuentas),
-│   │                       #   sync (nube), habits, files (archivos adjuntos del Cuaderno),
-│   │                       #   automations (motor de reglas), stats (estadísticas), pages y pagesync (Cuaderno),
-│   │                       #   community (personas y equipos), chat (chats) e invite (enlaces y QR)
-│   ├── ui/                 # anillos, avisos, menús, hojas, controles, perfil, editor, creación rápida, fila de tarea,
+│   ├── core/               # util, schema (datos y tareas de cada día), store, parse (lenguaje natural), audio, notify,
+│   │                       #   auth (cuentas), sync (nube), files (archivos adjuntos del Cuaderno), pages y pagesync
+│   │                       #   (Cuaderno), calendars e ical (calendarios suscritos), community (personas y equipos),
+│   │                       #   chat (chats) e invite (enlaces y QR)
+│   ├── ui/                 # avisos, menús, hojas, controles, perfil, editor, creación rápida, fila de tarea,
 │   │                       #   diseño (layout), barra lateral, búsqueda, atajos, selección múltiple (select),
-│   │                       #   filtros, personaje (character), avatares (avatar), gráficos (charts),
-│   │                       #   dispositivos/plantillas (devices) y, para el Cuaderno, blocks (editor) y dbview (bases de datos)
-│   ├── screens/            # home (Hoy), tasks, calendar, notes (Cuaderno), chats, friends (Personas), more (Más),
-│   │                       #   habits, focus, stats, reports, automations (Automatizaciones), progress (Perfil), settings…
+│   │                       #   filtros, fotos de perfil (avatar), primeros pasos y, para el Cuaderno, blocks (editor)
+│   │                       #   y dbview (bases de datos)
+│   ├── screens/            # home (Hoy), tasks, calendar, notes (Cuaderno), friends (Personas), chats, onboarding
+│   │                       #   (presentación), settings (Ajustes)…
 │   ├── router.js
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable
-├── fonts/                  # Outfit (títulos y cifras) y Onest (texto), variables 100–900, locales, con sus licencias OFL
+├── fonts/                  # Inter (variable, 100–900 y tamaño óptico), local, con su licencia OFL
 ├── desktop/                # App de escritorio (Electron): ventana, bandeja, acceso con Google por el navegador
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones), API 36
 ├── tools/
 │   ├── web-build.js        # Prepara la web para Vercel en dist/ (portada en /, app en /app)
 │   ├── servir-web.py       # Sirve dist/ en local con las mismas reglas que vercel.json
-│   ├── iconos/             # Generador de la colección de iconos «Índice» y su muestrario
+│   ├── iconos/             # Generador de la colección de iconos y su muestrario
 │   ├── capturas/           # Capturas de la portada, imagen para compartir y recorrido por las pantallas
 │   └── firebase-bundle/    # Cómo regenerar js/vendor/firebase.js
 ├── tests/
@@ -338,7 +322,7 @@ Cómo instalar, ejecutar, probar y compilar todo desde cero: [docs/DESARROLLO.md
 
 ## 🔒 Privacidad
 
-Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (nombre, personaje o foto, racha y cuántas tareas y minutos de enfoque llevas en la semana), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde Ajustes o, sin la app, desde la web (`https://whider-red.vercel.app/app#cuenta`). Política completa: [`privacidad/index.html`](privacidad/index.html), publicada en `https://whider-red.vercel.app/privacidad/`.
+Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (tu nombre y tu foto o tu inicial), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde Ajustes o, sin la app, desde la web (`https://whider-red.vercel.app/app#cuenta`). Política completa: [`privacidad/index.html`](privacidad/index.html), publicada en `https://whider-red.vercel.app/privacidad/`.
 
 ---
 

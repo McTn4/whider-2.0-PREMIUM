@@ -54,7 +54,7 @@ GitHub lo compila solo con cada cambio de la app, o a mano: **Actions → Compil
      - **Eliminación de la cuenta**: dentro de la app (Ajustes → Cuenta → Eliminar la cuenta) y en la web: `https://whider-red.vercel.app/app#cuenta`.
    - **Clasificación de contenido**: rellena el cuestionario (app de productividad; tiene chats entre usuarios, así que marca que permite la interacción entre usuarios).
    - **Público objetivo**: mayores de 14 años (la política lo indica así).
-6. **Ficha de Play Store**: los textos (nombre, descripción breve y completa), el gráfico de funciones de 1024 × 500 y seis capturas del móvil de 1080 × 1920 están listos en [`docs/play/`](play/FICHA.md), con una lista de comprobación antes de enviarla a revisión. El icono de 512 × 512 es `icons/icon-512.png`. El **correo de contacto del desarrollador** que pongas aquí es el que la política de privacidad indica para consultas.
+6. **Ficha de Play Store**: los textos (nombre, descripción breve y completa), el gráfico de funciones de 1024 × 500 y cuatro capturas del móvil de 1080 × 1920 están listos en [`docs/play/`](play/FICHA.md), con una lista de comprobación antes de enviarla a revisión. El icono de 512 × 512 es `icons/icon-512.png`. El **correo de contacto del desarrollador** que pongas aquí es el que la política de privacidad indica para consultas.
 
 ## 5. Después de la primera subida (imprescindible para Google)
 

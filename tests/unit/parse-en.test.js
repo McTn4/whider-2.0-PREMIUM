@@ -86,3 +86,15 @@ test('en español sigue entendiendo español', () => {
     ['Llamar a Ana', '2026-11-17', '10:00', 'work', 'purple']
   );
 });
+
+test('«every Monday and Wednesday»: cada semana esos días', () => {
+  const r = W.Parse.task('Gym every Mon, Wed and Fri at 7am', { lists });
+  assert.equal(r.text, 'Gym');
+  assert.equal(r.repeat, 'weekly');
+  assert.deepEqual(JSON.parse(JSON.stringify(r.days)), [1, 3, 5]);
+  assert.equal(r.date, '2026-11-16', 'hoy es lunes: empieza hoy');
+  assert.equal(r.time, '07:00');
+  const s = W.Parse.task('English every Tuesday and Thursday', { lists });
+  assert.deepEqual(JSON.parse(JSON.stringify(s.days)), [2, 4]);
+  assert.equal(s.date, '2026-11-17');
+});

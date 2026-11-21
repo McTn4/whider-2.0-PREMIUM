@@ -8,7 +8,7 @@
  *  - Bandeja del sistema: al cerrar la ventana, WHIDER sigue abierta para avisarte de tus
  *    tareas (se puede desactivar en Ajustes → Ordenador). También puede abrirse al iniciar.
  *  - Google: el acceso se completa en el navegador del ordenador (ver lib/google.js).
- *  - Informes en PDF y exportaciones (CSV, JSON, texto) se guardan donde elijas.
+ *  - Las exportaciones (CSV, JSON, texto) se guardan donde elijas.
  *  - Actualizaciones: solas en Windows y Linux AppImage; aviso con enlace en macOS y .deb (lib/updates.js).
  */
 'use strict';
@@ -89,7 +89,7 @@ function saveBounds() {
 }
 
 /** Colores de la ventana para cada tema (los mismos que --bg y --t2 en css/tokens.css) */
-function themeColors(light) { return light ? { bg: '#F4F4F6', symbol: '#45454B' } : { bg: '#070708', symbol: '#A3A3A3' }; }
+function themeColors(light) { return light ? { bg: '#FFFFFF', symbol: '#3C4650' } : { bg: '#000000', symbol: '#A1A5AB' }; }
 
 function createWindow(show) {
   const st = prefs.get('window') || {};
@@ -213,9 +213,8 @@ function trayMenu() {
     { label: t('Nueva tarea'), click: function () { command('new-task'); } },
     { label: t('Buscar'), click: function () { command('search'); } },
     { type: 'separator' },
-    { label: t('Hábitos de hoy'), click: function () { command('go:habits'); } },
-    { label: t('Nuevo apunte'), click: function () { command('new-note'); } },
-    { label: t('Empezar o pausar el enfoque'), click: function () { command('focus-toggle', false); } },
+    { label: t('Tareas de hoy'), click: function () { command('go:home'); } },
+    { label: t('Nueva página del Cuaderno'), click: function () { command('new-note'); } },
     { type: 'separator' },
     { label: t('Buscar actualizaciones'), click: checkUpdates },
     { label: t('Salir de WHIDER'), click: quit }
@@ -235,7 +234,6 @@ function buildMenu() {
     { label: t('Nueva tarea'), accelerator: 'CmdOrCtrl+N', click: function () { command('new-task'); } },
     { label: t('Buscar…'), click: function () { command('search'); } },
     { type: 'separator' },
-    { label: t('Informe en PDF…'), accelerator: 'CmdOrCtrl+P', click: function () { command('report-pdf'); } },
     { label: t('Importar o exportar tareas…'), click: function () { command('data'); } },
     { type: 'separator' },
     IS_MAC ? { role: 'close', label: t('Cerrar ventana') } : { label: t('Salir de WHIDER'), accelerator: 'Ctrl+Q', click: quit }
@@ -245,10 +243,8 @@ function buildMenu() {
     { role: 'cut', label: t('Cortar') }, { role: 'copy', label: t('Copiar') }, { role: 'paste', label: t('Pegar') }, { role: 'selectAll', label: t('Seleccionar todo') }
   ] });
   template.push({ label: t('Ver'), submenu: [
-    go(t('Hoy'), 'home', '1'), go(t('Tareas'), 'tasks', '2'), go(t('Calendario'), 'calendar', '3'), go(t('Cuaderno'), 'notes', '4'), { type: 'separator' },
-    go(t('Chats'), 'chats', '5'), go(t('Personas'), 'friends', '6'), { type: 'separator' },
-    go(t('Hábitos'), 'habits', '7'), go(t('Enfoque'), 'focus', '8'), go(t('Estadísticas'), 'stats', '9'),
-    { label: t('Informes'), click: function () { command('go:reports'); } }, { label: t('Automatizaciones'), click: function () { command('go:automations'); } }, { type: 'separator' },
+    go(t('Hoy'), 'home', '1'), go(t('Tareas'), 'tasks', '2'), go(t('Calendario'), 'calendar', '3'), go(t('Cuaderno'), 'notes', '4'), go(t('Personas'), 'friends', '5'), { type: 'separator' },
+    { label: t('Chats'), click: function () { command('go:chats'); } }, { type: 'separator' },
     { role: 'resetZoom', label: t('Tamaño real') }, { role: 'zoomIn', label: t('Ampliar') }, { role: 'zoomOut', label: t('Reducir') }, { type: 'separator' },
     { role: 'togglefullscreen', label: t('Pantalla completa') }
   ] });

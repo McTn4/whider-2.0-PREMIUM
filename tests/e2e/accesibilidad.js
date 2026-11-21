@@ -18,18 +18,23 @@ async function run(label, opts) {
   const b = await chromium.launch(); const ctx = await b.newContext(opts);
   await ctx.addInitScript(() => { window.WHIDER_CONFIG = { firebase: null }; localStorage.setItem('whider.meta.v1', JSON.stringify({ onboarded: true, createdAt: Date.now() - 9e8 })); });
   const p = await ctx.newPage(); await p.goto(APP); await sleep(1800);
-  await p.evaluate(() => { const S = Whider.State, U = Whider.U, td = U.today(); [['Enviar el presupuesto', '10:00', 'danger'], ['Revisar el informe', '12:30', 'purple'], ['Leer', null, 'none']].forEach(x => S.addTask({ text: x[0], date: td, time: x[1], highlight: x[2], listId: 'work' })); S.addHabit({ name: 'Beber agua', icon: 'leaf' }); });
-  for (const id of ['home', 'tasks', 'calendar', 'notes', 'habits', 'focus', 'stats', 'reports', 'automations', 'friends', 'chats', 'progress', 'more']) {
+  await p.evaluate(() => { const S = Whider.State, U = Whider.U, td = U.today(); [['Enviar el presupuesto', '10:00', 'danger'], ['Revisar el informe', '12:30', 'purple'], ['Leer', null, 'none']].forEach(x => S.addTask({ text: x[0], date: td, time: x[1], highlight: x[2], listId: 'work' })); S.addTask({ text: 'Beber agua', date: td, repeat: 'daily' }); S.addTask({ text: 'Gimnasio', date: td, repeat: 'weekly', days: [1, 3, 5] }); });
+  for (const id of ['home', 'tasks', 'calendar', 'notes', 'friends', 'chats']) {
     await p.evaluate(id => Whider.Router.go(id), id); await sleep(500); await audit(p, label + ':' + id);
   }
-  for (const pg of [null, 'appearance', 'custom', 'alerts', 'data', 'privacy']) {
+  for (const pg of [null, 'appearance', 'custom', 'alerts', 'tasks', 'data', 'privacy']) {
     await p.evaluate(() => { while (Whider.Sheet.closeTop()); }); await sleep(450);
     await p.evaluate(pg => Whider.Settings.open(pg || undefined), pg); await sleep(600); await audit(p, label + ':ajustes-' + (pg || 'portada'));
   }
   await p.evaluate(() => { while (Whider.Sheet.closeTop()); }); await sleep(450);
   await p.evaluate(() => Whider.QuickAdd.open({})); await sleep(600); await audit(p, label + ':nueva-tarea');
   await p.evaluate(() => { while (Whider.Sheet.closeTop()); }); await sleep(450);
-  await p.evaluate(() => Whider.Character.edit()); await sleep(700); await audit(p, label + ':personaje');
+  // El editor de una tarea de cada semana (con sus días) y la presentación (para qué la usas)
+  await p.evaluate(() => Whider.Editor.open(Whider.State.tasks.find(t => t.text === 'Gimnasio').id)); await sleep(700); await audit(p, label + ':editor');
+  await p.evaluate(() => { while (Whider.Sheet.closeTop()); }); await sleep(450);
+  await p.evaluate(() => Whider.Onboarding.start()); await sleep(500);
+  for (let i = 0; i < 3; i++) { await p.click('.ob-foot .btn.primary'); await sleep(400); if (await p.$('.ob-uses')) break; }
+  await audit(p, label + ':presentacion');
   await b.close();
 }
 (async () => {

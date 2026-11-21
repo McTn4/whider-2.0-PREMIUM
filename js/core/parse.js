@@ -28,6 +28,11 @@ window.Whider = window.Whider || {};
     return U.addDays(from, diff);
   }
   function hm(h, m) { return U.pad(h) + ':' + U.pad(m || 0); }
+  /** Primer día (desde «from», incluido) que cae en uno de esos días de la semana */
+  function firstOf(days, from) {
+    for (var i = 0; i < 7; i++) { var d = U.addDays(from, i); if (days.indexOf(U.weekday(d)) >= 0) return d; }
+    return from;
+  }
   function num(s) { return NUM_WORDS[s] != null ? NUM_WORDS[s] : parseInt(s, 10); }
 
   /**
@@ -75,6 +80,21 @@ window.Whider = window.Whider || {};
       [new RegExp(B + '(cada mes|todos los meses|mensualmente)' + E, 'i'), 'monthly', 'Cada mes']
     ];
     rep.some(function (r) { return take(r[0], 'repeat', function () { out.repeat = r[1]; return r[2]; }); });
+    // "cada lunes y miércoles" / "todos los lunes, miércoles y viernes": cada semana esos días
+    var D1 = '(?:domingo|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado)s?';
+    if (!out.repeat) take(new RegExp(B + '(?:cada|todos los)\\s+(' + D1 + '(?:\\s*,\\s*' + D1 + ')*\\s+y\\s+' + D1 + ')' + E, 'i'), 'repeat', function (m) {
+      var days = [];
+      m[1].split(/\s*,\s*|\s+y\s+/i).forEach(function (x) {
+        var k = fold(x.trim());
+        if (DAYS[k] == null && /s$/.test(k)) k = k.slice(0, -1);
+        if (DAYS[k] != null && days.indexOf(DAYS[k]) < 0) days.push(DAYS[k]);
+      });
+      if (days.length < 2) return false;
+      out.repeat = 'weekly';
+      out.days = days.sort();
+      out.date = firstOf(out.days, td);
+      return 'Cada ' + m[1].toLowerCase();
+    });
     // "cada lunes" / "todos los lunes": semanal desde ese día
     if (!out.repeat) take(new RegExp(B + '(?:cada|todos los)\\s+' + DAY_RE + 's?' + E, 'i'), 'repeat', function (m) {
       out.repeat = 'weekly';
@@ -224,6 +244,17 @@ window.Whider = window.Whider || {};
       [new RegExp(B + '(every month|each month|monthly)' + E, 'i'), 'monthly', 'Every month']
     ];
     rep.some(function (r) { return take(r[0], 'repeat', function () { out.repeat = r[1]; return r[2]; }); });
+    // "every Monday and Wednesday" / "every Mon, Wed and Fri": weekly on those days
+    var D1E = '(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tues|tue|wed|thurs|thur|thu|fri|sat)';
+    if (!out.repeat) take(new RegExp(B + '(?:every|each)\\s+(' + D1E + '(?:\\s*,\\s*' + D1E + ')*,?\\s+and\\s+' + D1E + ')' + E, 'i'), 'repeat', function (m) {
+      var days = [];
+      m[1].split(/\s*,\s*(?:and\s+)?|\s+and\s+/i).forEach(function (x) { var wd = wday(x.trim()); if (wd != null && wd >= 0 && days.indexOf(wd) < 0) days.push(wd); });
+      if (days.length < 2) return false;
+      out.repeat = 'weekly';
+      out.days = days.sort();
+      out.date = firstOf(out.days, td);
+      return 'Every ' + days.map(function (d) { return DAY_NAMES_EN[d]; }).join(', ');
+    });
     // "every Monday" / "each Monday": weekly from that day
     if (!out.repeat) take(new RegExp(B + '(?:every|each)\\s+' + DAY_RE_EN + E, 'i'), 'repeat', function (m) {
       var wd = wday(m[1]);

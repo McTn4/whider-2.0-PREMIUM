@@ -1,6 +1,6 @@
-// 1.1 · Uso diario: etiquetas legibles, prioridad con texto y forma (color opcional), colores de
-// categoría, «En curso», Hoy agrupado por estado sin recuentos repetidos, barra inferior a elegir,
-// Cuaderno y Chats a la vista en «Más», nombres claros y «Primeros pasos».
+// Uso diario: «Primeros pasos» (que se cumplen solos), Hoy por importancia (lo empezado delante, lo vencido con
+// su fecha en rojo y lo hecho plegado), la importancia escrita y en color, colores de categoría, «En curso»
+// desde el menú y el editor, y la barra lateral del ordenador.
 const { chromium, devices } = require('playwright');
 const { APP } = require('./_util');
 
@@ -21,10 +21,14 @@ async function abrir(b, opts, meta) {
   p.setDefaultTimeout(6000);
   const errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
-  p.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
+  p.on('console', (m) => {
+    if (m.type() === 'error') errs.push('console: ' + m.text());
+  });
   await p.goto(APP);
   await sleep(1600);
-  await p.evaluate(() => { Whider.Notify.check = function () {}; });
+  await p.evaluate(() => {
+    Whider.Notify.check = function () {};
+  });
   return { ctx, p, errs };
 }
 
@@ -39,12 +43,22 @@ async function abrir(b, opts, meta) {
       return { hay: !!sec, n: sec ? sec.querySelectorAll('.fs-step').length : 0, cuenta: sec ? sec.querySelector('.sec-t small').textContent : '', tareas: Whider.State.tasks.length };
     });
     ok(fs.hay && fs.n === 5 && fs.cuenta === '0 de 5' && fs.tareas === 0, 'persona nueva: «Primeros pasos» con 5 pasos y ninguna tarea de ejemplo', fs);
-    await p.evaluate(() => { Whider.State.addTask({ text: 'Mi primera tarea', date: Whider.U.today(), time: '23:30' }); Whider.Router.refresh(); });
+    // «Añade algo de cada día» lleva al campo de Hoy con «Cada día» ya elegido
+    await p.click('#screen-home .fs-step:has-text("Añade algo de cada día")');
+    await sleep(500);
+    ok(await p.evaluate(() => document.activeElement && document.activeElement.closest('.composer') && document.querySelector('#screen-home .cp-opt[aria-pressed="true"]')), 'el paso «cada día» lleva al campo con «Cada día» elegido');
+    await p.keyboard.type('Leer 20 minutos');
+    await p.keyboard.press('Enter');
+    await sleep(500);
+    await p.evaluate(() => {
+      Whider.State.addTask({ text: 'Mi primera tarea', date: Whider.U.today(), time: '23:30', highlight: 'purple' });
+      Whider.Router.refresh();
+    });
     await sleep(500);
     const hechos = await p.evaluate(() => [...document.querySelectorAll('#screen-home .fs-step.done b')].map((x) => x.textContent));
-    ok(hechos.includes('Crea tu primera tarea') && hechos.includes('Dale día y hora escribiendo'), 'los pasos se marcan solos al cumplirse', hechos);
+    ok(hechos.includes('Escribe tu primera tarea') && hechos.includes('Marca lo importante') && hechos.includes('Añade algo de cada día'), 'los pasos se marcan solos al cumplirse', hechos);
     const orden = await p.evaluate(() => [...document.querySelectorAll('#screen-home .sec-t > span:first-child')].map((x) => x.textContent));
-    ok(orden.indexOf('Primeros pasos') > orden.indexOf('Pendientes'), 'con tareas, los primeros pasos van después de ellas', orden);
+    ok(orden.indexOf('Primeros pasos') > orden.indexOf('Por hacer') && orden.indexOf('Cada día') < orden.indexOf('Por hacer'), 'arriba lo de cada día y lo que hay que hacer; los primeros pasos, después', orden);
     await p.click('#screen-home .first-steps button:has-text("Ocultar")');
     await sleep(500);
     ok(await p.evaluate(() => !document.querySelector('#screen-home .first-steps') && Whider.State.meta.firstSteps.hidden === true), '«Ocultar» quita la tarjeta');
@@ -57,155 +71,86 @@ async function abrir(b, opts, meta) {
     await ctx.close();
   }
 
-  /* 2. Móvil · Hoy agrupado por estado, prioridad legible y colores */
+  /* 2. Móvil · Hoy por importancia, lo vencido, lo empezado y lo hecho */
   {
     const { ctx, p, errs } = await abrir(b, { ...devices['Pixel 7'] }, { onboarded: true, createdAt: Date.now() - 60 * 86400000 });
     await p.evaluate(() => {
-      const S = Whider.State, U = Whider.U, td = U.today();
+      const S = Whider.State,
+        U = Whider.U,
+        td = U.today();
       const viaje = S.addList('Viajes', null, 'send', 'azul');
-      S.addTask({ text: 'Urgente de hoy', date: td, time: '23:50', highlight: 'danger', listId: viaje.id });
-      S.addTask({ text: 'Importante de hoy', date: td, time: '23:55', highlight: 'purple' });
+      S.addTask({ text: 'Normal de hoy', date: td });
       S.addTask({ text: 'Destacada de hoy', date: td, highlight: 'star' });
+      S.addTask({ text: 'Importante de hoy', date: td, time: '23:55', highlight: 'purple' });
+      S.addTask({ text: 'Urgente de hoy', date: td, time: '23:50', highlight: 'danger', listId: viaje.id });
       const e = S.addTask({ text: 'Empezada', date: td });
       S.setStarted(e.id, true);
-      S.addTask({ text: 'Con subtareas a medias', date: U.addDays(td, 2), subtasks: [{ text: 'a', done: true }, { text: 'b', done: false }] });
-      S.addTask({ text: 'Normal de hoy', date: td });
       S.addTask({ text: 'De anteayer', date: U.addDays(td, -2) });
+      S.addTask({ text: 'Urgente de anteayer', date: U.addDays(td, -2), highlight: 'danger' });
       const h = S.addTask({ text: 'Ya hecha', date: td });
       S.setDone(h.id, true);
       Whider.Router.go('home');
       Whider.Router.refresh();
     });
     await sleep(900);
-    const hoy = await p.evaluate(() => {
-      const secs = [...document.querySelectorAll('#screen-home .sec')].map((s) => {
-        const t = s.querySelector('.sec-t > span:first-child');
-        return { t: t ? t.textContent : '', tareas: [...s.querySelectorAll('.task-title')].map((x) => x.textContent) };
-      });
-      return {
-        secs,
-        dia: !!document.querySelector('#screen-home .day-card'),
-        tira: !!document.querySelector('#screen-home .buddy-strip'),
-        hero: !!document.querySelector('#screen-home .hero'),
-        burbuja: (document.querySelector('#screen-home .day-card .buddy-bubble') || {}).textContent || '',
-        hechas: (document.querySelector('#screen-home .done-toggle') || {}).textContent || ''
-      };
-    });
-    const titulo = (t) => hoy.secs.find((s) => s.t === t) || { tareas: [] };
-    ok(hoy.dia && !hoy.tira && !hoy.hero, 'móvil: el personaje y el progreso van en una sola tarjeta', hoy);
-    ok(!/Te quedan \d+ tareas/.test(hoy.burbuja), 'la frase del personaje no repite el recuento del día', hoy.burbuja);
-    ok(titulo('Lo más importante').tareas[0] === 'Urgente de hoy', 'lo urgente encabeza «Lo más importante»', titulo('Lo más importante'));
-    ok(titulo('En curso').tareas.includes('Empezada') && titulo('En curso').tareas.includes('Con subtareas a medias'), '«En curso»: empezadas y con subtareas a medias (aunque sean de otro día)', titulo('En curso'));
-    ok(titulo('Vencidas').tareas.includes('De anteayer'), '«Vencidas» sigue aparte', titulo('Vencidas'));
-    ok(titulo('Pendientes').tareas.length >= 1 && !titulo('Pendientes').tareas.includes('Empezada'), '«Pendientes» con el resto de hoy', titulo('Pendientes'));
-    ok(/1 hecha hoy/.test(hoy.hechas), '«Hechas» recogidas al final', hoy.hechas);
-    ok(/de otro día/.test(hoy.burbuja) || /Lo siguiente|Se te pasó/.test(hoy.burbuja), 'el personaje propone algo útil y exacto', hoy.burbuja);
-
+    const hoy = await p.evaluate(() => ({
+      todo: [...document.querySelectorAll('#screen-home .todo-sec .task-title')].map((x) => x.textContent),
+      hechas: (document.querySelector('#screen-home .done-toggle') || {}).textContent || '',
+      cuenta: document.querySelector('#screen-home .lt-sub').textContent
+    }));
+    ok(
+      JSON.stringify(hoy.todo) === JSON.stringify(['Empezada', 'Urgente de anteayer', 'Urgente de hoy', 'Importante de hoy', 'Destacada de hoy', 'De anteayer', 'Normal de hoy']),
+      '«Por hacer»: lo empezado, después urgente, importante, destacada y normal (lo vencido delante a igual importancia)',
+      hoy.todo
+    );
+    ok(/1 hecha hoy/.test(hoy.hechas), 'lo hecho, plegado al final', hoy.hechas);
+    ok(/de \d+ hechas/.test(hoy.cuenta), 'el día, de un vistazo bajo el título', hoy.cuenta);
     const prio = await p.evaluate(() => {
-      const fila = [...document.querySelectorAll('#screen-home .task')].find((x) => x.querySelector('.task-title').textContent === 'Urgente de hoy');
-      const imp = [...document.querySelectorAll('#screen-home .task')].find((x) => x.querySelector('.task-title').textContent === 'Importante de hoy');
-      const barras = [...fila.querySelectorAll('.prio i')].map((i) => getComputedStyle(i).backgroundColor);
-      const vacia = getComputedStyle(imp.querySelector('.prio i:nth-child(3)'));
-      const punto = fila.querySelector('.tint-dot');
+      const fila = (t) => [...document.querySelectorAll('#screen-home .task')].find((x) => x.querySelector('.task-title').textContent === t);
+      const u = fila('Urgente de hoy'),
+        i = fila('Importante de hoy'),
+        d = fila('Destacada de hoy'),
+        v = fila('De anteayer');
       return {
-        texto: (fila.querySelector('.m-prio') || {}).textContent || '',
-        textoImp: (imp.querySelector('.m-prio') || {}).textContent || '',
-        barras, vaciaFondo: vacia.backgroundColor, vaciaBorde: vacia.boxShadow,
-        punto: punto ? getComputedStyle(punto).backgroundColor : null,
-        aria: fila.querySelector('.check').getAttribute('aria-label')
+        texto: (u.querySelector('.m-prio') || {}).textContent || '',
+        textoImp: (i.querySelector('.m-prio') || {}).textContent || '',
+        colorTexto: getComputedStyle(u.querySelector('.m-prio')).color,
+        aros: [u, i, d].map((x) => getComputedStyle(x.querySelector('.check')).borderTopColor),
+        tarde: v.querySelector('.late') ? getComputedStyle(v.querySelector('.late')).color : null,
+        punto: u.querySelector('.tint-dot') ? getComputedStyle(u.querySelector('.tint-dot')).backgroundColor : null,
+        aria: u.querySelector('.check').getAttribute('aria-label')
       };
     });
-    ok(prio.texto === 'Urgente' && prio.textoImp === 'Importante', 'la prioridad se escribe: «Urgente», «Importante»', prio);
-    ok(prio.vaciaFondo === 'rgba(0, 0, 0, 0)' && /inset/.test(prio.vaciaBorde), 'las barras que no cuentan quedan con su contorno (forma, no solo luz)', prio);
+    ok(prio.texto === 'Urgente' && prio.textoImp === 'Importante', 'la importancia se escribe: «Urgente», «Importante»', prio);
+    ok(prio.colorTexto === 'rgb(255, 105, 97)', 'y va en color: lo urgente en rojo', prio.colorTexto);
+    ok(JSON.stringify(prio.aros) === JSON.stringify(['rgb(255, 105, 97)', 'rgb(255, 159, 10)', 'rgb(255, 214, 10)']), 'el círculo: rojo urgente, naranja importante y amarillo destacada', prio.aros);
+    ok(prio.tarde === 'rgb(255, 105, 97)', 'lo vencido lleva su fecha en rojo', prio.tarde);
     ok(prio.punto === 'rgb(57, 135, 229)', 'la categoría «Viajes» lleva su punto azul', prio.punto);
-    ok(/urgente/.test(prio.aria), 'el lector de pantalla oye la prioridad', prio.aria);
+    ok(/urgente/.test(prio.aria), 'el lector de pantalla oye la importancia', prio.aria);
     const doing = await p.evaluate(() => {
       const fila = [...document.querySelectorAll('#screen-home .task')].find((x) => x.querySelector('.task-title').textContent === 'Empezada');
       return { check: fila.querySelector('.check').classList.contains('doing'), meta: (fila.querySelector('.m-doing') || {}).textContent, aria: fila.querySelector('.check').getAttribute('aria-label') };
     });
-    ok(doing.check && doing.meta === 'En curso' && /en curso/.test(doing.aria), '«En curso»: media casilla, texto y lectura', doing);
-
-    // Etiquetas de sección: en minúsculas y a 14-15 px
+    ok(doing.check && doing.meta === 'En curso' && /en curso/.test(doing.aria), '«En curso»: medio círculo, texto y lectura', doing);
     const etiq = await p.evaluate(() => {
       const t = getComputedStyle(document.querySelector('#screen-home .sec-t'));
-      return { tt: t.textTransform, fs: parseFloat(t.fontSize), ls: t.letterSpacing };
+      return { tt: t.textTransform, fs: parseFloat(t.fontSize), fw: +t.fontWeight };
     });
-    ok(etiq.tt === 'none' && etiq.fs >= 14, 'los títulos de sección ya no van en versalitas pequeñas', etiq);
-
-    // Prioridad en color (opcional)
-    await p.evaluate(() => Whider.State.setSetting('prioColor', true));
+    ok(etiq.tt === 'none' && etiq.fs >= 18 && etiq.fw >= 700, 'los títulos de sección, grandes y en negrita (sin versalitas)', etiq);
+    // Con muchas vencidas, Hoy enseña las más recientes y lleva al resto
+    await p.evaluate(() => {
+      const S = Whider.State,
+        U = Whider.U;
+      for (let i = 3; i < 12; i++) S.addTask({ text: 'Vieja ' + i, date: U.addDays(U.today(), -i) });
+      Whider.Router.refresh();
+    });
     await sleep(500);
-    const color = await p.evaluate(() => {
-      const fila = [...document.querySelectorAll('#screen-home .task')].find((x) => x.querySelector('.task-title').textContent === 'Urgente de hoy');
-      return { attr: document.documentElement.getAttribute('data-prio-color'), texto: getComputedStyle(fila.querySelector('.m-prio')).color, barra: getComputedStyle(fila.querySelector('.prio')).color };
-    });
-    ok(color.attr === 'on' && color.texto === 'rgb(230, 103, 103)' && color.barra === 'rgb(230, 103, 103)', 'Ajustes → «Prioridad en color» pinta lo urgente en rojo', color);
-    await p.evaluate(() => Whider.State.setSetting('prioColor', false));
-    await sleep(300);
-    ok(await p.evaluate(() => document.documentElement.getAttribute('data-prio-color')) === 'off', 'y se puede volver al blanco y negro');
+    ok(await p.evaluate(() => /Ver las \d+ vencidas/.test(document.querySelector('#screen-home .sec-more').textContent)), 'con muchas vencidas: «Ver las N vencidas»');
     ok(!errs.length, 'sin errores (Hoy)', errs);
     await ctx.close();
   }
 
-  /* 3. Móvil · barra inferior a elegir, «Más» y nombres claros */
-  {
-    const { ctx, p, errs } = await abrir(b, { ...devices['Pixel 7'] });
-    const tabs = () => p.evaluate(() => [...document.querySelectorAll('.dock .tab')].map((t) => t.getAttribute('data-go')));
-    ok(JSON.stringify(await tabs()) === JSON.stringify(['home', 'tasks', 'calendar', 'more']), 'barra por defecto: Hoy, Tareas, Calendario y Más', await tabs());
-    await p.evaluate(() => Whider.Settings.open());
-    await sleep(700);
-    await p.click('.sheet .cell:has-text("Personalización")');
-    await sleep(600);
-    await p.click('.sheet .cell:has-text("Barra inferior")');
-    await sleep(700);
-    // Segunda pestaña → Cuaderno (la hoja de la barra queda encima de los Ajustes)
-    const arriba = '#sheetRoot > .sheet-layer:last-child';
-    await p.click(arriba + ' .cell:has-text("Tareas")');
-    await sleep(600);
-    await p.click('.menu .menu-item:has-text("Cuaderno")');
-    await sleep(500);
-    await p.click(arriba + ' button:has-text("Guardar")');
-    await sleep(700);
-    ok(JSON.stringify(await tabs()) === JSON.stringify(['home', 'notes', 'calendar', 'more']), 'elegir «Cuaderno» lo pone en la barra', await tabs());
-    ok(await p.evaluate(() => Whider.State.settings.dock) === 'home,notes,calendar', 'y queda guardado en los ajustes');
-    // «Atrás» primero vuelve de página dentro de los Ajustes y después los cierra
-    await p.evaluate(() => { for (let i = 0; i < 6 && Whider.Sheet.closeTop(); i++); });
-    await sleep(600);
-    await p.evaluate(() => document.querySelector('.dock .tab[data-go="notes"]').click());
-    await sleep(800);
-    const activo = await p.evaluate(() => ({ screen: Whider.State.activeScreen, on: [...document.querySelectorAll('.dock .tab.active')].map((t) => t.getAttribute('data-go')) }));
-    ok(activo.screen === 'notes' && JSON.stringify(activo.on) === '["notes"]', 'la pestaña Cuaderno abre el Cuaderno y es la única marcada', activo);
-    await p.evaluate(() => Whider.Router.go('chats'));
-    await sleep(500);
-    ok(JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.dock .tab.active')].map((t) => t.getAttribute('data-go')))) === '["more"]', 'sin pestaña propia, Chats sigue marcando «Más»');
-    // Una configuración con repetidos (p. ej. llegada de otra versión) se arregla sola: sin repetir y siempre tres
-    await p.evaluate(() => Whider.State.setSetting('dock', 'chats,chats,focus'));
-    await sleep(400);
-    ok(JSON.stringify(await tabs()) === JSON.stringify(['chats', 'focus', 'home', 'more']), 'una configuración con repetidos se arregla sola (sin repetir, siempre tres)', await tabs());
-    await p.evaluate(() => Whider.State.setSetting('dock', 'home,tasks,calendar'));
-    await sleep(300);
-
-    // «Más»: Cuaderno y Chats grandes; «Automatizaciones» en lugar de «Sistemas»
-    await p.evaluate(() => Whider.Router.go('more'));
-    await sleep(700);
-    const mas = await p.evaluate(() => ({
-      tiles: [...document.querySelectorAll('#screen-more .mo-tile b')].map((x) => x.textContent),
-      filas: [...document.querySelectorAll('#screen-more .cell-title')].map((x) => x.textContent),
-      sistemas: /Sistemas/.test(document.querySelector('#screen-more').textContent)
-    }));
-    ok(JSON.stringify(mas.tiles) === '["Cuaderno","Chats"]', '«Más» enseña el Cuaderno y los Chats en grande', mas);
-    ok(mas.filas.includes('Automatizaciones') && !mas.sistemas, '«Sistemas» pasa a llamarse «Automatizaciones»', mas);
-    await p.click('#screen-more .mo-tile:has-text("Cuaderno")');
-    await sleep(700);
-    ok(await p.evaluate(() => Whider.State.activeScreen) === 'notes', 'el acceso grande abre el Cuaderno');
-    await p.evaluate(() => Whider.Router.go('automations'));
-    await sleep(600);
-    ok(await p.evaluate(() => document.querySelector('#screen-automations h1, #screen-automations .lt-title') && /Automatizaciones/.test(document.querySelector('#screen-automations').textContent)), 'la pantalla se titula «Automatizaciones»');
-    ok(!errs.length, 'sin errores (barra y Más)', errs);
-    await ctx.close();
-  }
-
-  /* 4. Ordenador · color de categoría desde su editor, «En curso» desde el menú y sin recuento repetido */
+  /* 3. Ordenador · color de categoría desde su editor, «En curso» desde el menú y la barra lateral */
   {
     const { ctx, p, errs } = await abrir(b, { viewport: { width: 1440, height: 900 } });
     await p.evaluate(() => Whider.Lists.edit(null));
@@ -222,11 +167,12 @@ async function abrir(b, opts, meta) {
     });
     ok(icono === 'rgb(144, 133, 233)', 'la barra lateral pinta su icono de violeta', icono);
     const id = await p.evaluate(() => {
-      const S = Whider.State, td = Whider.U.today();
-      // Tres urgentes ocupan «Lo más importante»; la del tema 3 queda en «Pendientes»
-      ['Urgente A', 'Urgente B', 'Urgente C'].forEach((x) => S.addTask({ text: x, date: td, highlight: 'danger' }));
+      const S = Whider.State,
+        td = Whider.U.today();
+      ['Urgente A', 'Urgente B'].forEach((x) => S.addTask({ text: x, date: td, highlight: 'danger' }));
       const t = S.addTask({ text: 'Repasar el tema 3', date: td, listId: S.lists.find((x) => x.name === 'Estudio').id });
-      Whider.Router.go('home'); Whider.Router.refresh();
+      Whider.Router.go('home');
+      Whider.Router.refresh();
       return t.id;
     });
     await sleep(700);
@@ -234,8 +180,11 @@ async function abrir(b, opts, meta) {
     await sleep(400);
     await p.click('.menu .menu-item:has-text("Marcar «En curso»")');
     await sleep(600);
-    const est = await p.evaluate((x) => ({ started: !!Whider.State.find(x).startedAt, sec: [...document.querySelectorAll('#screen-home .sec')].filter((s) => /En curso/.test((s.querySelector('.sec-t') || {}).textContent || '')).map((s) => s.textContent) }), id);
-    ok(est.started && est.sec.length === 1 && /Repasar el tema 3/.test(est.sec[0]), 'menú → «Marcar En curso» la lleva a su grupo', est);
+    const est = await p.evaluate((x) => ({
+      started: !!Whider.State.find(x).startedAt,
+      primera: document.querySelector('#screen-home .todo-sec .task-title').textContent
+    }), id);
+    ok(est.started && est.primera === 'Repasar el tema 3', 'menú → «Marcar En curso» la pone delante de todo', est);
     await p.evaluate((x) => Whider.Editor.open(x), id);
     await sleep(600);
     ok(await p.evaluate(() => document.querySelector('.sheet.editor input[aria-label="En curso"]').checked), 'el editor muestra el interruptor «En curso» encendido');
@@ -243,14 +192,9 @@ async function abrir(b, opts, meta) {
     await p.click('.sheet.editor button:has-text("Guardar cambios")');
     await sleep(600);
     ok(await p.evaluate((x) => Whider.State.find(x).startedAt === null, id), 'y desde el editor se vuelve a pendiente');
-    const lado = await p.evaluate(() => ({
-      buddy: (document.querySelector('.buddy-card .buddy-meta') || {}).textContent || '',
-      resumen: !!document.querySelector('.desk-side .hero')
-    }));
-    ok(lado.resumen && !/tareas? hechas? hoy/.test(lado.buddy), 'ordenador: con el resumen a la vista, el personaje no repite el recuento', lado);
     const sb = await p.evaluate(() => [...document.querySelectorAll('.sb-head')].map((x) => ({ t: x.textContent, tt: getComputedStyle(x).textTransform, fs: parseFloat(getComputedStyle(x).fontSize) })));
     ok(sb.length && sb.every((x) => x.tt === 'none' && x.fs >= 13), 'barra lateral: grupos en minúsculas y a 13 px o más', sb);
-    ok(await p.evaluate(() => [...document.querySelectorAll('.sb-item')].some((x) => x.textContent.includes('Automatizaciones'))), 'barra lateral: «Automatizaciones»');
+    ok(await p.evaluate(() => !!document.querySelector('.desk-side .side-card')), 'a la derecha de Hoy, los próximos días');
     ok(!errs.length, 'sin errores (ordenador)', errs);
     await ctx.close();
   }
@@ -258,4 +202,7 @@ async function abrir(b, opts, meta) {
   await b.close();
   console.log(fails ? fails + ' FALLOS' : 'TODO OK');
   process.exit(fails ? 1 : 0);
-})().catch((e) => { console.error(e); process.exit(2); });
+})().catch((e) => {
+  console.error(e);
+  process.exit(2);
+});

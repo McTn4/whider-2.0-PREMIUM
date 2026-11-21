@@ -36,7 +36,7 @@ contextBridge.exposeInMainWorld('WhiderDesktop', {
   openFile: function (name, bytes) { return ipcRenderer.invoke('whider:open-file', String(name), bytes instanceof Uint8Array ? bytes : new Uint8Array(0)); },
   /** …y guardarlos donde elija el usuario → { ok, path } */
   saveBinary: function (name, bytes) { return ipcRenderer.invoke('whider:save-binary', String(name), bytes instanceof Uint8Array ? bytes : new Uint8Array(0)); },
-  /** Órdenes del menú y de la bandeja: 'new-task', 'search', 'settings', 'shortcuts', 'focus-toggle', 'report-pdf', 'data', 'updates', 'go:home'… */
+  /** Órdenes del menú y de la bandeja: 'new-task', 'new-note', 'search', 'settings', 'shortcuts', 'data', 'updates', 'go:home'… */
   onCommand: function (fn) { if (typeof fn === 'function') listeners.push(fn); },
   /** Copias automáticas: una al día en la carpeta de datos de la app (las 10 últimas) */
   backup: {

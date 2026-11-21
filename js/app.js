@@ -28,7 +28,7 @@ window.Whider = window.Whider || {};
     applyTheme.last = key;
     html.setAttribute('data-theme', th);
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', th === 'light' ? '#F4F4F6' : '#070708');
+    if (meta) meta.setAttribute('content', th === 'light' ? '#FFFFFF' : '#000000');
     // La barra de título del ordenador y las barras del sistema en Android, a juego
     var D = window.WhiderDesktop, A = window.WhiderAndroid;
     try { if (D && D.setTheme) D.setTheme(th, sys); } catch (e) { /* sin puente */ }
@@ -44,7 +44,8 @@ window.Whider = window.Whider || {};
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
     html.setAttribute('data-contrast', cfg.contrast === 'high' ? 'high' : 'normal');
     html.setAttribute('data-prio-color', cfg.prioColor ? 'on' : 'off');
-    if (W.Dock) W.Dock.render();
+    // Pestaña Personas: fuera de la barra si no la usas
+    html.setAttribute('data-people', cfg.peopleTab === false ? 'off' : 'on');
     // Personalización del ordenador: contenido a todo el ancho
     html.setAttribute('data-wide', cfg.desk && cfg.desk.wide ? 'true' : 'false');
     // El tamaño de texto se aplica antes de pintar en el siguiente arranque
@@ -58,7 +59,7 @@ window.Whider = window.Whider || {};
   function hideSplash(now) {
     var sp = document.getElementById('splash');
     if (!sp || splashDone) return;
-    var min = now ? 0 : (U.reducedMotion() ? 300 : 1500);
+    var min = 0;   // sin esperas: en cuanto la app está lista
     setTimeout(function () {
       if (splashDone) return;
       splashDone = true;
@@ -75,9 +76,7 @@ window.Whider = window.Whider || {};
     clearTimeout(widgetT);
     widgetT = setTimeout(function () {
       var st = S, s = st.stats(), top = W.Screens.home && W.Screens.home.topTasks ? W.Screens.home.topTasks(st).list : [];
-      var td = U.today(), ids = top.map(function (t) { return t.id; });
-      var rest = st.tasks.filter(function (t) { return !t.done && (t.date === td || st.isOverdue(t)) && ids.indexOf(t.id) < 0; }).sort(st.compareDeadline);
-      var list = top.concat(rest).slice(0, 5).map(function (t) {
+      var list = top.slice(0, 5).map(function (t) {
         return { text: t.text, time: t.time ? U.fmtTime(t.time) : '', prio: t.highlight === 'danger' ? '!!' : t.highlight === 'purple' ? '!' : '' };
       });
       try { b.updateWidget(JSON.stringify({ tasks: list, total: s.todayTotal, done: s.todayDone })); } catch (e) { /* app antigua */ }
@@ -108,7 +107,6 @@ window.Whider = window.Whider || {};
     if (W.Onboarding.isOpen()) return W.Onboarding.back();
     var cur = W.Screens[S.activeScreen];
     if (cur && cur.back && cur.back()) return true;
-    if (S.activeScreen === 'progress') { W.Router.back(); return true; }
     if (opts && opts.keyboard && W.Layout.desktop) return false;
     var start = S.settings.startScreen || 'home';
     if (S.activeScreen !== start) { W.Router.go(start); return true; }
@@ -117,19 +115,13 @@ window.Whider = window.Whider || {};
 
   /* ---------- Trabajo pesado fuera del toque del usuario ---------- */
   var idle = window.requestIdleCallback || function (fn) { return setTimeout(fn, 60); };
-  var lateWork = { done: false, focus: false };
-  function scheduleLateWork(reason) {
-    if (reason === 'done') lateWork.done = true;
-    if (reason === 'focus') lateWork.focus = true;
+  var lateWork = { timer: null };
+  /** Tras completar algo: el aviso de «todo hecho por hoy», sin estorbar al toque */
+  function scheduleLateWork() {
     if (lateWork.timer) return;
     lateWork.timer = setTimeout(function () {
       lateWork.timer = null;
-      var wasDone = lateWork.done, wasFocus = lateWork.focus;
-      lateWork.done = lateWork.focus = false;
-      idle(function () {
-        if (wasDone) dayDoneNotice();
-        if (wasDone || wasFocus) W.Records.check(false);
-      });
+      idle(function () { dayDoneNotice(); });
     }, 350);
   }
 
@@ -262,10 +254,8 @@ window.Whider = window.Whider || {};
       else if (cmd === 'search') { if (!W.Palette.isOpen()) W.Palette.open(); }
       else if (cmd === 'settings') { if (!W.Settings.isOpen()) W.Settings.open(); }
       else if (cmd === 'shortcuts') W.Keys.help();
-      else if (cmd === 'focus-toggle') W.Screens.focus.toggle();
       else if (cmd === 'new-note' || cmd === 'new-page') W.Notes.open(null);
       else if (cmd.indexOf('invite:') === 0) { if (W.Invite) W.Invite.open(cmd.slice(7)); }
-      else if (cmd === 'report-pdf') { W.Router.go('reports'); setTimeout(function () { if (W.Screens.reports.pdf) W.Screens.reports.pdf(); }, 350); }
       else if (cmd === 'data') { if (!W.Settings.isOpen()) W.Settings.open('data'); }
       else if (cmd === 'updates') { if (!W.Settings.isOpen()) W.Settings.open('desktop'); }
       else if (cmd === 'whats-new') W.WhatsNew.open();
@@ -295,14 +285,16 @@ window.Whider = window.Whider || {};
     try { if (An && typeof An.setLang === 'function' && W.I18n) An.setLang(W.I18n.lang); } catch (e) { /* sin puente */ }
     adoptSystemFontScale();
     applyAppearance();
+    // Hábitos de versiones anteriores → tareas de cada día; las de cada día que quedaron sin hacer, a hoy
+    S.tidyRoutines();
 
     S.subscribe(function (reason) {
       if (/^settings|^profile/.test(reason)) applyAppearance();
       W.Router.refresh();
       W.Notify.emitBadge();
-      if (reason === 'done' || reason === 'focus') scheduleLateWork(reason);
-      else if (reason === 'habit' || reason === 'notes' || reason === 'habits' || reason === 'social' || reason === 'filters' || reason === 'rules') scheduleLateWork('focus');
-      if (reason === 'sync') W.Screens.focus.adoptRemote();
+      if (reason === 'done') scheduleLateWork();
+      // Lo llegado de la nube puede traer hábitos (de una versión anterior) o días sin hacer
+      if (reason === 'sync' || reason === 'purge') setTimeout(function () { S.tidyRoutines(); }, 0);
       if (reason === 'purge') setTimeout(function () { W.Sync.schedule(); }, 0);
       else if (reason !== 'sync') W.Sync.schedule();
     });
@@ -318,15 +310,13 @@ window.Whider = window.Whider || {};
     S.subscribe(function () { pushWidget(); });
     W.Keys.init();
     W.Sidebar.init();
-    W.Auto.init();
     W.People.init();
     W.Chat.init();
-    W.Devices.init();
-    // Los chats y las solicitudes cambian el contador de la pestaña «Más» y de la barra lateral
+    // Los chats y las solicitudes cambian el contador de la pestaña Personas y de la barra lateral
     W.Chat.subscribe(function (r) { if (r === 'list') { W.Notify.emitBadge(); W.Sidebar.refresh(); } });
     W.People.subscribe(function (r) { if (r === 'requests' || r === 'poll') { W.Notify.emitBadge(); W.Sidebar.refresh(); } });
-    // Páginas nuevas, borradas o recuperadas: contador del Cuaderno en la barra lateral y logros
-    W.Pages.subscribe(function (r) { if (r.create || r.trash || r.restore || r.destroy || r.import || r.remote) { W.Sidebar.refresh(); scheduleLateWork('focus'); } });
+    // Páginas nuevas, borradas o recuperadas: contador del Cuaderno en la barra lateral
+    W.Pages.subscribe(function (r) { if (r.create || r.trash || r.restore || r.destroy || r.import || r.remote) W.Sidebar.refresh(); });
     // Al pasar de móvil a ordenador (o al revés) se vuelve a pintar con el otro diseño
     W.Layout.onChange(function () { W.Menu.close(); W.Router.refresh(); W.Sidebar.refresh(); });
     initDesktopApp();
@@ -339,10 +329,10 @@ window.Whider = window.Whider || {};
 
     // Refrescar fechas y avisos si la app sigue abierta al cambiar de día
     var day = U.today();
-    setInterval(function () { if (U.today() !== day) { day = U.today(); W.Router.refresh(); } }, 60000);
+    setInterval(function () { if (U.today() !== day) { day = U.today(); S.tidyRoutines(); W.Router.refresh(); } }, 60000);
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) { S.flush(); return; }
-      W.Screens.focus.resume(); W.Router.refresh();
+      W.Router.refresh();
     });
 
     document.getElementById('fab').addEventListener('click', function () { newTaskFromContext(); });
@@ -371,9 +361,6 @@ window.Whider = window.Whider || {};
     requestAnimationFrame(function () {
       setTimeout(function () {
         W.Notify.init();
-        W.Screens.focus.resume();
-        W.Records.init();
-        idle(function () { W.Records.check(true); });
         if (accounts) { W.Auth.onChange(onUser); W.Auth.init(); }
         initServiceWorker();
         if (W.Invite) W.Invite.ready();

@@ -11,7 +11,7 @@ window.Whider = window.Whider || {};
 (function (W) {
   'use strict';
   var U = W.U, S = function () { return W.State; };
-  var SECTIONS = { 1: 'home', 2: 'tasks', 3: 'calendar', 4: 'notes', 5: 'chats', 6: 'friends', 7: 'habits', 8: 'focus', 9: 'stats' };
+  var SECTIONS = { 1: 'home', 2: 'tasks', 3: 'calendar', 4: 'notes', 5: 'friends' };
 
   function typing() {
     var a = document.activeElement;
@@ -112,7 +112,6 @@ window.Whider = window.Whider || {};
     if (k === '/') { e.preventDefault(); W.Palette.open(); return; }
     if (k === '?') { e.preventDefault(); Keys.help(); return; }
     if (SECTIONS[k]) { e.preventDefault(); W.Router.go(SECTIONS[k]); return; }
-    if (k === 'p' || k === 'P') { e.preventDefault(); W.Router.go('progress'); return; }
 
     var screen = W.Screens[S().activeScreen];
     if (screen && screen.key && screen.key(e)) { e.preventDefault(); return; }
@@ -125,8 +124,8 @@ window.Whider = window.Whider || {};
     return [
       { title: W.t('General'), rows: [
         [W.t('Nueva tarea'), ['N']], [W.t('Nueva página del Cuaderno'), ['Alt', 'N']], [W.t('Buscar en todo'), [K('K'), '/']],
-        [W.t('Hoy · Tareas · Calendario · Cuaderno'), ['1', '2', '3', '4']], [W.t('Chats · Personas'), ['5', '6']], [W.t('Hábitos · Enfoque · Estadísticas'), ['7', '8', '9']],
-        [W.t('Perfil y resumen'), ['P']], [W.t('Ajustes'), [K(',')]], [W.t('Atajos de teclado'), ['?']], [W.t('Cerrar o volver'), ['Esc']]
+        [W.t('Hoy · Tareas · Calendario · Cuaderno · Personas'), ['1', '2', '3', '4', '5']],
+        [W.t('Ajustes'), [K(',')]], [W.t('Atajos de teclado'), ['?']], [W.t('Cerrar o volver'), ['Esc']]
       ] },
       { title: W.t('En el Cuaderno'), rows: [
         [W.t('Insertar un bloque'), ['/']], [W.t('Mencionar una página, persona o fecha'), ['@']], [W.t('Títulos, listas y casillas'), null, W.t('#, -, 1., [] y espacio')],

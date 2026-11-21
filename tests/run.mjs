@@ -27,9 +27,6 @@ export const GRUPOS = {
   app: [
     'recorrido',
     'sin-premium',
-    'automatizaciones',
-    'personaje',
-    'estadisticas',
     'sin-gamificacion',
     'copia-cuaderno',
     'barra-inferior',
@@ -47,7 +44,8 @@ export const GRUPOS = {
     'tema',
     'ingles',
     'calendarios',
-    'planificar'
+    'planificar',
+    'rediseno'
   ],
   // Cuentas, sincronización y comunidad contra los emuladores de Firebase
   nube: [

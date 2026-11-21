@@ -73,7 +73,6 @@ window.Whider = window.Whider || {};
         items.push({ value: 'monday', label: W.t('Para el lunes'), desc: U.fmtLong(next), icon: 'week', on: t.date === next });
         items.push({ value: 'prio', label: W.t('Prioridad…'), icon: 'flag', gap: true });
         items.push({ value: 'list', label: W.t('Cambiar de categoría…'), icon: 'list' });
-        items.push({ value: 'focus', label: W.t('Enfocarme en esta tarea'), icon: 'target' });
       }
       items.push({ value: 'delete', label: W.t('Eliminar'), icon: 'trash', destructive: true, gap: true });
       var again = function (list) { return new Promise(function (r) { setTimeout(function () { r(W.Menu.open(at, list)); }, 40); }); };
@@ -89,7 +88,6 @@ window.Whider = window.Whider || {};
           .then(function (h) { if (h) st.updateTask(id, { highlight: h }); });
         else if (v === 'list') again([{ value: '', label: W.t('Sin categoría'), on: !t.listId }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name, icon: W.Lists.icon(l), on: l.id === t.listId }; })))
           .then(function (l) { if (l !== undefined) st.updateTask(id, { listId: l || null }); });
-        else if (v === 'focus') { W.Screens.focus.linkTask(id); W.Router.go('focus'); }
         else if (v === 'delete') Actions.confirmRemove(id);
       });
     }

@@ -33,9 +33,10 @@ window.Whider = window.Whider || {};
     return b;
   }
 
-  /** Foto de perfil (abre el Perfil) y engranaje (abre los Ajustes): siempre a mano */
+  /** Tu foto, arriba a la izquierda (como en X): abre los Ajustes, con tu cuenta lo primero */
   function profileBtn() {
-    return U.el('button.avatar-btn', { attrs: { 'aria-label': W.t('Tu perfil y resumen'), title: W.t('Perfil') }, on: { click: function () { W.Router.go('progress'); } } }, [W.Profile.avatar()]);
+    return U.el('button.avatar-btn', { attrs: { 'aria-label': W.t('Tu cuenta y tus ajustes'), title: W.t('Tu cuenta y tus ajustes') },
+      on: { click: function () { W.Settings.open(); } } }, [W.Profile.avatar()]);
   }
   function gearBtn() {
     // Con cambios sin subir por un fallo, el engranaje lleva un punto (y lo dice al lector de pantalla)
@@ -57,7 +58,8 @@ window.Whider = window.Whider || {};
       // En el ordenador, la foto y los ajustes están en la barra lateral
       var desk = W.Layout && W.Layout.desktop;
       var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: W.t('Volver a {label}', { label: o.back.label }), onTap: o.back.onTap, back: true }) : o.profile && !desk ? profileBtn() : null]);
-      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false || desk ? [] : [gearBtn()]));
+      // El engranaje solo donde no está tu foto (que ya abre los Ajustes)
+      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false || desk || (o.profile && !o.back) ? [] : [gearBtn()]));
       var nav = U.el('header.nav', [lead, U.el('div.nav-title', { text: o.compact || o.title }), trail]);
       var lt = U.el('div.lt', [
         U.el('div.lt-text', [
@@ -182,10 +184,7 @@ window.Whider = window.Whider || {};
 
     /** Estado vacío: icono gris, título y texto (y una acción opcional) */
     empty: function (icon, title, text, action, small) {
-      // «buddy:objeto» dibuja al personaje con ese objeto (café, brote, nota, lupa…)
-      var art = null;
-      if (icon && icon.indexOf('buddy:') === 0 && W.Character) { var p = icon.slice(6).split(':'); art = W.Character.illustration(p[0] || null, p[1] || 'happy', small ? 76 : 96); }
-      else if (icon) art = U.el('span.es-art', [U.icon(icon)]);
+      var art = icon ? U.el('span.es-art', [U.icon(icon)]) : null;
       return U.el('div.empty-state' + (small ? '.small' : ''), [
         art,
         U.el('strong', { text: title }),

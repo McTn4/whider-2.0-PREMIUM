@@ -1,4 +1,4 @@
-// El QR de la app (con el personaje en el centro) se lee bien con un lector real
+// El QR de la app (con tu foto o tu inicial en el centro) se lee bien con un lector real
 const { chromium } = require('playwright');
 const { APP, OUT } = require('./_util');
 const fs = require('fs');
@@ -9,7 +9,7 @@ const DIR = process.argv[2] || OUT;
   await p.addInitScript(() => { window.WHIDER_CONFIG = { firebase: null }; localStorage.setItem('whider.meta.v1', JSON.stringify({ onboarded: true, createdAt: Date.now(), seenAchievements: [] })); });
   await p.goto(APP); await p.waitForTimeout(1500);
   const results = [];
-  for (const link of ['https://whider-red.vercel.app/i/?c=WH-9ZQZS5&k=tz4YtJHGVHn7&t=w&n=Luc%C3%ADa%20Mart%C3%ADn&b=zorro.blanco.grandes.sonrisa.auriculares.bufanda.brillo.degradado.aro', 'https://whider-red.vercel.app/i/?s=sp_mw6ywjwhzlug1&k=E4DG3R7j4KRj&n=Marketing&by=Luc%C3%ADa%20Mart%C3%ADn']) {
+  for (const link of ['https://whider-red.vercel.app/i/?c=WH-9ZQZS5&k=tz4YtJHGVHn7&t=w&n=Luc%C3%ADa%20Mart%C3%ADn', 'https://whider-red.vercel.app/i/?s=sp_mw6ywjwhzlug1&k=E4DG3R7j4KRj&n=Marketing&by=Luc%C3%ADa%20Mart%C3%ADn']) {
     await p.evaluate(l => Whider.Invite.loadQR().then(() => { const old = document.getElementById('qrtest'); if (old) old.remove(); const box = Whider.U.el('div', { attrs: { id: 'qrtest' }, style: { position: 'fixed', left: '0', top: '0', zIndex: '99999', background: '#fff', padding: '20px' } }, [Whider.U.el('div', { style: { width: '300px' } }, [Whider.Invite.qrNode(l, { center: Whider.Avatar.me(60) })])]); document.body.appendChild(box); }), link);
     await p.waitForTimeout(400);
     const png = await p.locator('#qrtest').screenshot();

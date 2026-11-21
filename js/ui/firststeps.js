@@ -12,19 +12,32 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
   var DIAS = 21;
 
-  function state() { return Object.assign({ hidden: false, chose: false }, S().meta.firstSteps || {}); }
+  function state() { return Object.assign({ hidden: false }, S().meta.firstSteps || {}); }
+  /** Un ejemplo según para qué usas la app (lo elegiste en la presentación) */
+  function example() {
+    var uses = String(S().settings.uses || '');
+    var ex = /study/.test(uses) ? W.t('Prueba: «Repasar el tema 3 mañana a las 18 !!»')
+      : /work/.test(uses) ? W.t('Prueba: «Enviar el informe el viernes a las 10 !!»')
+      : /health/.test(uses) ? W.t('Prueba: «Salir a correr cada día a las 8»')
+      : W.t('Prueba: «Llamar a Ana mañana a las 10»');
+    return ex;
+  }
+  /** Lleva al campo de Hoy (con la importancia o «Cada día» preparados) */
+  function compose(opts) {
+    if (S().activeScreen !== 'home') W.Router.go('home');
+    setTimeout(function () { if (W.Screens.home.compose) W.Screens.home.compose(opts || {}); }, 80);
+  }
   function save(patch) { S().setMeta('firstSteps', Object.assign(state(), patch)); }
 
   function steps() {
-    var st = S(), td = U.today(), fs = state();
+    var st = S();
     return [
-      { id: 'task', title: W.t('Crea tu primera tarea'), sub: W.t('Con el botón + o escribiendo en Hoy'),
-        done: st.tasks.length > 0, run: function () { W.QuickAdd.open({ date: td }); } },
-      { id: 'when', title: W.t('Dale día y hora escribiendo'), sub: W.t('Prueba: «Llamar a Ana mañana a las 10»'),
-        done: st.tasks.some(function (t) { return !!t.time; }),
-        run: function () { W.QuickAdd.open({ date: td, placeholder: W.t('Llamar a Ana mañana a las 10') }); } },
-      { id: 'top', title: W.t('Elige lo más importante de hoy'), sub: W.t('Hasta tres tareas, arriba del todo'),
-        done: !!fs.chose, run: function () { if (W.Screens.home.choose) W.Screens.home.choose(); } },
+      { id: 'task', title: W.t('Escribe tu primera tarea'), sub: example(),
+        done: st.tasks.length > 0, run: function () { compose(); } },
+      { id: 'prio', title: W.t('Marca lo importante'), sub: W.t('Urgente, importante o destacada: sale primero en Hoy'),
+        done: st.tasks.some(function (t) { return t.highlight !== 'none'; }), run: function () { compose({ prio: true }); } },
+      { id: 'daily', title: W.t('Añade algo de cada día'), sub: W.t('Leer, entrenar, beber agua… Vuelve cada día a «Cada día»'),
+        done: st.tasks.some(function (t) { return W.Schema.isRoutine(t); }), run: function () { compose({ daily: true }); } },
       { id: 'page', title: W.t('Escribe tu primera página'), sub: W.t('Notas, listas y archivos en el Cuaderno'),
         done: !!(W.Pages && W.Pages.count() > 0), run: function () { W.Router.go('notes'); } },
       { id: 'notify', title: W.t('Activa los avisos'), sub: W.t('Para que no se te pase ninguna tarea'),
@@ -42,8 +55,6 @@ window.Whider = window.Whider || {};
       if (!fs.forced && Date.now() - (st.meta.createdAt || Date.now()) > DIAS * 86400000) return false;
       return steps().some(function (s) { return !s.done; });
     },
-    /** Apunta un paso que no se ve en los datos (p. ej. haber elegido las prioridades) */
-    mark: function (k) { var p = {}; p[k] = true; save(p); },
     hide: function () { save({ hidden: true }); },
     card: function () {
       if (!FirstSteps.visible()) return null;

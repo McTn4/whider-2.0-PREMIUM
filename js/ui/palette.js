@@ -14,7 +14,6 @@ window.Whider = window.Whider || {};
   function matches(text, words) { var t = fold(text); return words.every(function (w) { return t.indexOf(w) >= 0; }); }
 
   function actions() {
-    var focus = W.Screens.focus.status();
     var K = W.Layout.keys;
     return [
       { icon: 'plus', label: W.t('Nueva tarea'), hint: 'N', run: function () { W.App.newTask(); } },
@@ -22,23 +21,14 @@ window.Whider = window.Whider || {};
       { icon: 'tasks', label: W.t('Ir a Tareas'), hint: '2', run: function () { W.Router.go('tasks'); } },
       { icon: 'calendar', label: W.t('Ir al Calendario'), hint: '3', run: function () { W.Router.go('calendar'); } },
       { icon: 'notebook', label: W.t('Ir al Cuaderno'), hint: '4', run: function () { W.Router.go('notes'); } },
-      { icon: 'chat', label: W.t('Ir a Chats'), hint: '5', run: function () { W.Router.go('chats'); } },
-      { icon: 'users', label: W.t('Ir a Personas'), hint: '6', run: function () { W.Router.go('friends'); } },
-      { icon: 'target', label: W.t('Ir a Hábitos'), hint: '7', run: function () { W.Router.go('habits'); } },
-      { icon: 'timer', label: W.t('Ir a Enfoque'), hint: '8', run: function () { W.Router.go('focus'); } },
-      { icon: 'chart', label: W.t('Estadísticas'), hint: '9', run: function () { W.Router.go('stats'); } },
-      { icon: 'print', label: W.t('Informes'), run: function () { W.Router.go('reports'); } },
-      { icon: 'system', label: W.t('Automatizaciones'), run: function () { W.Router.go('automations'); } },
+      { icon: 'users', label: W.t('Ir a Personas'), hint: '5', run: function () { W.Router.go('friends'); } },
+      { icon: 'chat', label: W.t('Ir a Chats'), run: function () { W.Router.go('chats'); } },
       { icon: 'plus', label: W.t('Nueva página del Cuaderno'), hint: W.t('Alt N'), run: function () { W.Notes.open(null); } },
       { icon: 'database', label: W.t('Nueva base de datos'), run: function () { W.Notes.newPage({ kind: 'db' }); } },
       { icon: 'qr', label: W.t('Mi código QR para invitar'), run: function () { W.Invite.qrSheet({}); } },
       { icon: 'scan', label: W.t('Escanear una invitación'), run: function () { W.Invite.scan(); } },
       { icon: 'team', label: W.t('Nuevo equipo'), run: function () { W.State.ui.peopleTab = 'teams'; W.Router.go('friends'); } },
-      { icon: 'plus', label: W.t('Nuevo hábito'), run: function () { W.HabitView.edit(null); } },
-      { icon: 'smile', label: W.t('Personalizar tu personaje'), run: function () { W.Character.edit(); } },
-      { icon: focus.running ? 'pause' : 'play', label: focus.running ? W.t('Pausar el enfoque') : W.t('Empezar una sesión de enfoque'), run: function () { W.Screens.focus.toggle(); } },
-      { icon: 'user', label: W.t('Perfil y resumen'), hint: 'P', run: function () { W.Router.go('progress'); } },
-      { icon: 'trophy', label: W.t('Marcas personales'), run: function () { W.Router.go('records'); } },
+      { icon: 'user', label: W.t('Editar perfil'), run: function () { W.Profile.edit(); } },
       { icon: 'list', label: W.t('Nueva categoría'), run: function () { W.Lists.edit(null, function (l) { W.Sidebar && openList(l.id); }); } },
       { icon: 'filter', label: W.t('Nuevo filtro'), run: function () { W.Filters.edit(null, function (f) { W.Sidebar.openView({ type: 'filter', id: f.id }); }); } },
       { icon: 'upload', label: W.t('Importar desde Todoist, Google Tasks, Notion o un calendario'), run: function () { W.ImportWizard.open(); } },
@@ -95,20 +85,15 @@ window.Whider = window.Whider || {};
     var people = W.People ? W.People.contacts().filter(function (f) { return matches(((W.People.profile(f.uid) || {}).name || f.name || ''), words); }).slice(0, 5).map(function (f) {
       return { icon: f.kind === 'work' ? 'briefcase' : 'user', label: (W.People.profile(f.uid) || {}).name || f.name || W.t('Contacto'), sub: W.t('Abrir el chat'), run: function () { W.Chat.openChat({ uid: f.uid }); } };
     }) : [];
-    var habits = st.habits.filter(function (h) { return matches(h.name, words); }).map(function (h) {
-      var done = W.Habits.isDone(h, U.today());
-      return { icon: h.icon || 'target', label: h.name, sub: (h.archived ? W.t('Archivado') + ' · ' : '') + W.Habits.freqLabel(h) + (done ? ' · ' + W.t('hecho hoy') : ''), run: function () { W.HabitView.open(h.id); } };
-    });
     var acts = actions().filter(function (a) { return matches(a.label, words); });
     var create = { icon: 'plus', label: W.t('Crear «{0}»', { 0: q.trim() }), sub: W.t('Nueva tarea con este texto'), run: function () { createTask(q); } };
     if (tasks.length) groups.push({ title: W.t('Tareas'), items: tasks });
     if (lists.length) groups.push({ title: W.t('Categorías y filtros'), items: lists });
     if (notes.length) groups.push({ title: W.t('Cuaderno'), items: notes });
     if (people.length) groups.push({ title: W.t('Personas'), items: people });
-    if (habits.length) groups.push({ title: W.t('Hábitos'), items: habits });
     if (acts.length) groups.push({ title: W.t('Acciones'), items: acts });
     // Sin coincidencias, crear la tarea es lo primero (Intro la crea)
-    if (!tasks.length && !lists.length && !acts.length && !habits.length && !notes.length) groups.unshift({ title: W.t('Nueva tarea'), items: [create] });
+    if (!tasks.length && !lists.length && !acts.length && !notes.length && !people.length) groups.unshift({ title: W.t('Nueva tarea'), items: [create] });
     else groups.push({ title: W.t('Nueva tarea'), items: [create] });
     return groups;
   }
@@ -117,7 +102,7 @@ window.Whider = window.Whider || {};
     var st = S(), p = W.Parse.task(raw, { lists: st.lists });
     if (!p.text) return;
     var t = st.addTask({ text: p.text, date: p.date !== undefined ? p.date : U.today(), time: p.time || null, listId: p.listId || st.settings.defaultList,
-      highlight: p.highlight || 'none', repeat: p.repeat || 'none', warn: st.settings.defaultWarn, notes: '', subtasks: [] });
+      highlight: p.highlight || 'none', repeat: p.repeat || 'none', days: p.days, warn: st.settings.defaultWarn, notes: '', subtasks: [] });
     if (t) W.Toast.show({ text: W.t('Tarea creada: {text}', { text: t.text }), type: 'success', icon: 'check' });
   }
 
