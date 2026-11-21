@@ -10,11 +10,15 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-WHIDER, también en inglés. Y lo que cambias en un dispositivo llega a los demás al momento, consultando mucho menos la
-nube.
+WHIDER, también en inglés. Tus otros calendarios (Google, Outlook, Apple), dentro de WHIDER. Y lo que cambias en un
+dispositivo llega a los demás al momento, consultando mucho menos la nube.
 
 ### Novedades
 
+- **Calendarios suscritos**: Ajustes → Calendarios suscritos (o «Calendarios» en el calendario). Pega el enlace iCal de
+  tu calendario de Google, Outlook o Apple (o el de los festivos) y sus eventos se ven en el calendario, con su hora y
+  su duración, y en Hoy, en «Agenda de hoy». Se actualizan solos cada hora, siguen ahí sin conexión y, desde la ficha
+  de un evento, «Crear una tarea» lo convierte en una tarea. Se ven, no se cambian: para eso, su propia app.
 - **WHIDER, también en inglés**: Ajustes → Idioma. Toda la app: las pantallas, los avisos, las fechas y «Nueva tarea»,
   que entiende frases en inglés («Call Anna tomorrow at 10 #work»), además de los menús del ordenador y el widget y los
   avisos de Android. Lo que ya habías creado (tareas, categorías, páginas) se queda como estaba.
@@ -58,6 +62,23 @@ nube.
   español.
 - Con `?lang=en` (o `?lang=es`) en la dirección, la app se abre en ese idioma y lo recuerda: lo usan los botones de la
   portada en inglés.
+- **Calendarios suscritos**: `js/core/ical.js` (`W.ICal`, lógica pura) lee los VEVENT (zonas IANA y de Windows, todo
+  el día, `RRULE` diaria, semanal, mensual y anual con `INTERVAL`, `COUNT`, `UNTIL`, `BYDAY`, `BYMONTHDAY`, `BYMONTH`
+  y `BYSETPOS`, `EXDATE` y `RECURRENCE-ID`) y repite cada evento en su propia zona, así que la hora de reloj se
+  mantiene con los cambios de hora. `js/core/calendars.js` (`W.Calendars`) guarda la lista en los ajustes
+  (`settings.calendars`, se sincroniza) y los eventos en cada dispositivo (`whider.cal.v1`, solo lo que puede salir:
+  de medio año atrás a dos años vista); `js/ui/calsubs.js`, Ajustes, la ficha y las filas.
+- `api/calendario.js`: la primera función de Vercel del proyecto. Trae el `.ics` por la app (los navegadores no dejan
+  leerlo de otro sitio) sin guardarlo ni registrar el enlace, que va en el cuerpo de la petición: solo https (y
+  webcal://), puerto 443, sin usuario ni contraseña, solo nombres que llevan a direcciones públicas (comprobado en la
+  propia conexión y tras cada redirección), 4 redirecciones, 8 segundos, 12 MB, recorte de lo antiguo por encima de
+  1 MB, tiene que ser un `VCALENDAR`, CORS solo para la web, Android y el ordenador, y un límite por IP.
+  `GET /api/calendario?comprobar` trae siempre el mismo calendario público (los festivos de España de Google) y dice
+  cuántos eventos tiene: sirve para comprobar que la función llega a Internet.
+- Pruebas: `tests/unit/ical.test.js` (zonas, cambio de hora, repeticiones y excepciones),
+  `tests/unit/calendario-api.test.js` (direcciones, IP privadas, redirecciones, tamaño, tiempo, formato y CORS) y
+  `tests/e2e/calendarios.js` (añadir, errores, todas las vistas del calendario en el ordenador y el móvil, Hoy, ficha,
+  sin conexión, ocultar y quitar).
 
 ## [1.1.0] · 2026-11-18
 

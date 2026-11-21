@@ -418,3 +418,8 @@ html[data-layout="desktop"][data-wide="true"] .screen { --content-max: 2400px !i
 html[data-layout="desktop"][data-wide="true"] #screen-focus { --content-max: 600px !important; }
 html[data-layout="desktop"] #screen-friends { --content-max: 1000px; }
 
+
+/* Calendarios suscritos en el ordenador: las fichas del mes y los bloques de la semana no se arrastran */
+.mg-chip.ev { border-left: 2px solid rgba(var(--ink-rgb), .45); color: var(--t1); }
+.wg-blk.ev { cursor: pointer; }
+.cal-toolbar .ct-cals .ic { margin-right: 2px; }

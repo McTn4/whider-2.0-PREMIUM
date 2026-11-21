@@ -44,7 +44,7 @@ export default [
     rules: reglas
   },
   {
-    files: ['desktop/**/*.js', 'tools/**/*.js', 'tests/**/*.js'],
+    files: ['desktop/**/*.js', 'tools/**/*.js', 'tests/**/*.js', 'api/**/*.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'commonjs', globals: { ...globals.node } },
     rules: reglas
   },

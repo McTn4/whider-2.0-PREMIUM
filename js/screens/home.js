@@ -204,6 +204,9 @@ window.Whider.Screens = window.Whider.Screens || {};
       var steps = W.FirstSteps ? W.FirstSteps.card() : null;
       var stepsFirst = !!steps && !st.tasks.some(function (t) { return !t.done; });
       if (stepsFirst) main.push(steps);
+      // Agenda de hoy: los eventos de tus calendarios suscritos (si tienes alguno y hay eventos hoy)
+      var agenda = W.CalSubs ? W.CalSubs.homeSection() : null;
+      if (agenda) main.push(agenda);
       if (!desk) { var mc = messagesCard(st, false); if (mc) main.push(mc); }
       var notTop = function (t) { return topIds.indexOf(t.id) < 0; };
       // En curso: lo que ya empezaste, tenga la fecha que tenga (manda sobre «vencida»)

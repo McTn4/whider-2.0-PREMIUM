@@ -190,8 +190,9 @@ Se actualiza al cerrar cada bloque.
   antes) y reprogramación al conceder el permiso. Compila en la integración continua (no hay SDK de
   Android en el entorno de trabajo); falta probarlo en un teléfono real.
 - **No hecho**: sincronización bidireccional con Google Calendar u Outlook (necesita una app de OAuth
-  verificada por Google y Microsoft) y suscripción a un calendario `.ics` por URL (necesita un servidor
-  con una cuenta de servicio). Sigue disponible exportar a `.ics` desde el calendario.
+  verificada por Google y Microsoft). Sigue disponible exportar a `.ics` desde el calendario.
+  ~~Suscripción a un calendario `.ics` por URL~~: hecha después de la 1.1 (Ajustes → Calendarios suscritos, con una
+  función de Vercel, `api/calendario.js`, que no necesita cuenta de servicio; CHANGELOG, «Sin publicar»).
 - **Pruebas**: `tests/e2e/importar.js` (21 comprobaciones: Todoist, repetidas, deshacer, calendario,
   hoja de cálculo, archivo de otro tipo, compartir, widget y alarmas simulados) y 9 unitarias.
 
@@ -367,11 +368,12 @@ Se actualiza al cerrar cada bloque.
 
 ### Pendiente (no está hecho)
 
-- **La app en inglés**: la web ya lo está; la app tiene ≈ 1.660 textos y un intérprete de fechas en español. Plan y
-  método en [decisiones/0003](decisiones/0003-idiomas.md) (unas dos semanas).
+- ~~**La app en inglés**~~: hecha después de la 1.1, con la opción en Ajustes → Idioma
+  ([decisiones/0003](decisiones/0003-idiomas.md); CHANGELOG, «Sin publicar»).
 - ~~**Escuchas en tiempo real** (SDK completo de Firestore) en lugar de consultar cada 15 segundos.~~ Hecho después de
   la 1.1 (CHANGELOG, «Sin publicar»; cifras en [COSTES.md](COSTES.md)).
-- **Google Calendar y Outlook en las dos direcciones**: necesita apps OAuth verificadas por Google y Microsoft.
+- **Google Calendar y Outlook en las dos direcciones**: necesita apps OAuth verificadas por Google y Microsoft. En una
+  dirección (verlos en WHIDER), hecho después de la 1.1: calendarios suscritos.
 - **Encender** App Check (consola), 2FA (Identity Platform) y Storage (plan Blaze): todo preparado y documentado.
 - **Dominio propio y correos con ese dominio** ([DOMINIO.md](DOMINIO.md)): decisión y pago.
 - **Firmar los instaladores** (certificado de Windows, cuenta de desarrollador de Apple) y **publicar en Google Play**.
@@ -392,4 +394,4 @@ Se actualiza al cerrar cada bloque.
 3. Publicar en Google Play con la ficha y las capturas ya hechas ([PUBLICAR-EN-GOOGLE-PLAY.md](PUBLICAR-EN-GOOGLE-PLAY.md)).
 4. Pasar a Blaze con una alerta de presupuesto antes de llegar al límite gratuito; entonces, encender Storage y
    App Check.
-5. ~~Escuchas en tiempo real~~ (hecho después de la 1.1) y, después, la app en inglés.
+5. ~~Escuchas en tiempo real~~ y ~~la app en inglés~~ (hechas después de la 1.1).

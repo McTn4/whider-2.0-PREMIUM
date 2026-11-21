@@ -93,6 +93,8 @@ window.Whider = window.Whider || {};
     prioColor: false,
     // Pestañas de la barra inferior del móvil (la cuarta es siempre «Más»)
     dock: 'home,tasks,calendar',
+    // Calendarios suscritos (js/core/calendars.js): [{ id, url, name, on }]. Los eventos no van aquí, sino en cada dispositivo
+    calendars: [],
     // Personalización avanzada del ordenador
     desk: {
       sidebar: { habits: true, notes: true, focus: true, stats: true, reports: true, automations: true, friends: true, chats: true, filters: true, counts: true, compact: false },

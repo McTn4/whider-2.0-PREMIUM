@@ -21,6 +21,7 @@
     "js/ui/**/*.js",
     "js/screens/**/*.js",
     "js/*.js",
+    "api/**/*.js",
     "sitio/**/*.js",
     "tests/**/*.js",
     "tests/**/*.mjs",

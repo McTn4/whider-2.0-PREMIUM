@@ -22,6 +22,24 @@ aunque alguien use la API sin la app:
 Todo exige un correo verificado. Las pruebas `tests/e2e/seguridad.js` comprueban estas reglas contra el
 emulador con el archivo real.
 
+## El servidor de los calendarios suscritos
+
+[`api/calendario.js`](../api/calendario.js) es la única parte de WHIDER con servidor (una función de Vercel): trae
+el `.ics` de un calendario suscrito, porque los navegadores no dejan que una web lo lea de otro sitio. Una función
+que descarga lo que le piden podría usarse para llegar a la red interna o como intermediario para otra cosa, así que:
+
+| Protección | Cómo |
+| --- | --- |
+| Solo calendarios públicos de Internet | https (y `webcal://`), puerto 443, sin usuario ni contraseña, nombres de dominio (no IP) y nada de `localhost`, `.local`, `.internal`… |
+| Nunca la red interna | La resolución de nombres que usa la propia conexión rechaza cualquier dirección privada, local o reservada (también `169.254.169.254`, la de los metadatos de las nubes), así que no hay hueco entre comprobar y conectar; cada redirección (como mucho 4) se vuelve a comprobar |
+| No sirve para otra cosa | Lo que llega tiene que empezar por `BEGIN:VCALENDAR`; como mucho 8 segundos y 12 MB; se devuelve como `text/calendar` con `nosniff` |
+| Privacidad | La dirección (que en Google lleva la clave del calendario) va en el cuerpo de la petición, no en la URL, y no se escribe en ningún registro; la respuesta lleva `Cache-Control: no-store` |
+| Abuso | CORS solo para la propia web, la app de Android y la del ordenador; 60 peticiones cada 10 minutos por IP (en cada instancia). Si hiciera falta más, el cortafuegos de Vercel permite reglas de límite por ruta |
+
+Las pruebas `tests/unit/calendario-api.test.js` cubren cada una (sin red de verdad). Para comprobar la de producción:
+`https://whider-red.vercel.app/api/calendario?comprobar` trae siempre el mismo calendario público (los festivos de
+España de Google) y responde `{"ok":true,"events":…}`.
+
 ## Moderación: denuncias
 
 Las denuncias quedan en Firestore → colección `reports` (quién denuncia, a quién, el motivo, dónde y un

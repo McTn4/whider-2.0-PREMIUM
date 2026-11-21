@@ -13,11 +13,13 @@ const PANTALLAS = ['home', 'tasks', 'calendar:month', 'calendar:week', 'calendar
 // Hojas que se abren encima (Ajustes y sus páginas, la ayuda, los atajos, el importador, el editor de tareas…)
 const HOJAS = [
   ['ajustes', () => Whider.Settings.open()],
-  ...['appearance', 'custom', 'sounds', 'alerts', 'tasks', 'lists', 'habits', 'focus', 'start', 'data', 'privacy', 'desktop'].map((pg) => ['ajustes › ' + pg, (x) => Whider.Settings.open(x), pg]),
+  ...['appearance', 'custom', 'sounds', 'alerts', 'tasks', 'lists', 'habits', 'calendars', 'focus', 'start', 'data', 'privacy', 'desktop'].map((pg) => ['ajustes › ' + pg, (x) => Whider.Settings.open(x), pg]),
   ['preguntas frecuentes', () => Whider.Help.faq()],
   ['enviar comentarios', () => Whider.Help.feedback()],
   ['atajos de teclado', () => Whider.Keys.help(), null, 'ordenador'],
   ['importar', () => Whider.ImportWizard.open()],
+  ['calendario suscrito nuevo', () => Whider.CalSubs.addSheet()],
+  ['evento de un calendario suscrito', () => Whider.CalSubs.open(Whider.Calendars.between(Whider.U.today(), Whider.U.addDays(Whider.U.today(), 7))[0])],
   ['plantilla nueva', () => Whider.Templates.edit()],
   ['tarea nueva', () => Whider.Editor.open()],
   ['regla nueva', () => Whider.Screens.automations.edit(null)],
@@ -25,6 +27,17 @@ const HOJAS = [
   ['editar tarea', () => Whider.Editor.open(Whider.State.tasks.find((t) => t.text === 'Prepare the proposal').id)]
 ];
 const ESPANOL = /[áéíóúñ¿¡]|\b(de|del|la|las|el|los|que|y|en|con|sin|para|por|una|un|tu|tus|más|hoy|mañana|tarea|tareas|hábito|hábitos|ajustes|cuaderno|nueva|nuevo|ver|todo|nada|semana|día|días|añadir|hecha|hechas|pendientes?|vencidas?|fecha|lugar|objetivo|asignatura|nombre|estado|página|páginas)\b/i;
+
+/** Un calendario con un evento hoy, uno de todo el día mañana y uno que se repite cada semana (horas «flotantes»: las del equipo) */
+function icsDeHoy() {
+  const pad = (n) => String(n).padStart(2, '0'), ymd = (x) => x.getFullYear() + pad(x.getMonth() + 1) + pad(x.getDate());
+  const d = new Date(), hoy = ymd(d), man = ymd(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)), pas = ymd(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 2));
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'X-WR-CALNAME:Work',
+    'BEGIN:VEVENT', 'UID:e1', 'SUMMARY:Team meeting', 'LOCATION:Room 4', 'DESCRIPTION:Quarterly numbers', 'DTSTART:' + hoy + 'T100000', 'DTEND:' + hoy + 'T110000', 'END:VEVENT',
+    'BEGIN:VEVENT', 'UID:e2', 'SUMMARY:Bank holiday', 'DTSTART;VALUE=DATE:' + man, 'DTEND;VALUE=DATE:' + pas, 'END:VEVENT',
+    'BEGIN:VEVENT', 'UID:e3', 'SUMMARY:Yoga', 'DTSTART:' + hoy + 'T190000', 'DURATION:PT1H', 'RRULE:FREQ=WEEKLY', 'END:VEVENT',
+    'END:VCALENDAR'].join('\r\n');
+}
 
 async function abrir(b, movil) {
   const ctx = await b.newContext(movil ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } : { viewport: { width: 1440, height: 900 } });
@@ -37,8 +50,11 @@ async function abrir(b, movil) {
   p.errs = [];
   p.on('pageerror', (e) => p.errs.push(e.message));
   p.on('console', (m) => { if (m.type() === 'error') p.errs.push('console: ' + m.text()); });
+  // Un calendario suscrito (la función del servidor, simulada): sus eventos salen en Hoy y en el calendario
+  await p.route('**/api/calendario', (r) => r.fulfill({ status: 200, contentType: 'text/calendar', body: icsDeHoy() }));
   await p.goto(APP);
   await sleep(1800);
+  await p.evaluate(() => Whider.Calendars.test('https://cal.example/work.ics').then((r) => Whider.Calendars.add(r, 'Work')));
   await p.evaluate(() => {
     Whider.Notify.check = function () {};
     const S = Whider.State, t = Whider.U.today();

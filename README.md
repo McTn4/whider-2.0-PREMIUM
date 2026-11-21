@@ -26,7 +26,7 @@
 
 | | Qué incluye |
 | --- | --- |
-| **PC** | Calendario profesional (mes, semana y **día**; duración de las tareas, arrastrar y estirar, exportar a `.ics`) · Tareas por **categorías** con icono, **filtros** sin límite y vista de **tablero** · **Hábitos** y **selección múltiple** · **Sistemas profesionales** (GTD, Eisenhower, bloques de tiempo, 1-3-5, revisión semanal, bandeja a cero, Pomodoro) y **automatizaciones** a medida · **Estadísticas de hasta un año** e **informes** en PDF, CSV y JSON · **Personalización** de la barra lateral, Hoy y el calendario · **Cuaderno** completo |
+| **PC** | Calendario profesional (mes, semana y **día**; duración de las tareas, arrastrar y estirar, exportar a `.ics`, y tus **calendarios de Google, Outlook o Apple** dentro, por su enlace) · Tareas por **categorías** con icono, **filtros** sin límite y vista de **tablero** · **Hábitos** y **selección múltiple** · **Sistemas profesionales** (GTD, Eisenhower, bloques de tiempo, 1-3-5, revisión semanal, bandeja a cero, Pomodoro) y **automatizaciones** a medida · **Estadísticas de hasta un año** e **informes** en PDF, CSV y JSON · **Personalización** de la barra lateral, Hoy y el calendario · **Cuaderno** completo |
 | **Móvil** | Calendario · Tareas · Cuaderno · Plantillas de un toque · **Gestionar el ordenador** (dispositivos y enfoque compartido) · Una sola app sincronizada al instante con el ordenador |
 | **General** | Sonidos de botones y avisos · **Personaje** personalizable como foto de perfil (especies, acabados, efectos, fondos y marcos) · Notificaciones · **Personas, chats y equipos**: invitar por enlace, QR o código, chatear y crear equipos con su chat y páginas compartidas |
 
@@ -122,6 +122,11 @@ Arriba, en todas las pantallas: **tu personaje** (o tu foto, a la izquierda) abr
 ---
 
 ## ✨ Funciones
+
+**Calendarios suscritos**
+- **Ajustes → Calendarios suscritos** (o «Calendarios» en el calendario): pega el enlace iCal (`.ics` o `webcal://`) de tu calendario de **Google**, **Outlook** o **Apple**, o el de los festivos, y sus eventos se ven en el calendario (mes, semana, día y agenda, con su hora y su duración) y en **Hoy**, en «Agenda de hoy». Hasta 10 calendarios, cada uno se puede ocultar o quitar.
+- Se actualizan solos cada hora y siguen ahí sin conexión. Se ven, no se cambian (para eso, su propia app); desde la ficha de un evento, **Crear una tarea** lo convierte en una tarea con su día, hora y notas.
+- Repeticiones, excepciones y zonas horarias como en el calendario original (también los cambios de hora). La lista va con tus ajustes, así que con cuenta la tienes en todos tus dispositivos.
 
 **Cuaderno (antes «Apuntes»)**
 - **Páginas por bloques**: texto, tres tamaños de título, listas, casillas, desplegables, citas, avisos destacados, código, separadores, tablas, imágenes, enlaces web, subpáginas, índice, **bases de datos**, **tareas de WHIDER** con su aviso y la **agenda de hoy**. Escribe `/` para el menú de bloques (o `#`, `-`, `[]`… al empezar la línea), arrastra cualquier bloque para moverlo y selecciona texto para darle formato.
@@ -231,6 +236,7 @@ Se abre `http://localhost:8080` y la consola muestra también la dirección para
 | `/i/…` | Invitaciones: abren la app o la web y ofrecen las mismas descargas. |
 | `/privacidad/` | Política de privacidad; «Eliminar mi cuenta» abre `/app#cuenta`. |
 | `/en/` y `/privacy/` | La portada y la política de privacidad en inglés ([`sitio/en/index.html`](sitio/en/index.html), [`privacy/index.html`](privacy/index.html)). |
+| `/api/calendario` | La única parte con servidor: trae un calendario `.ics` para los calendarios suscritos ([`api/calendario.js`](api/calendario.js)), sin guardarlo, solo de direcciones públicas y con límites de tamaño, tiempo y uso. |
 
 Vercel ejecuta `node tools/web-build.js` (ver [`vercel.json`](vercel.json)), que deja en `dist/` la portada como `index.html` y la app como `app.html`, servida en `/app`. Para verla igual en local: `node tools/web-build.js` y sirve `dist/` con esas mismas reglas. Las direcciones de descarga están todas en [`sitio/descargas.js`](sitio/descargas.js): cuando WHIDER esté en Google Play, basta con poner su enlace en `play`.
 

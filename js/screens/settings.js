@@ -82,6 +82,7 @@ window.Whider = window.Whider || {};
           W.UI.cell({ icon: 'bell', title: W.t('Avisos'), sub: W.t('Recordatorios, vencidas y horas de silencio'), onTap: function () { nav.push(alertsPage); } }),
           W.UI.cell({ icon: 'tasks', title: W.t('Tareas y categorías'), onTap: function () { nav.push(tasksPage); } }),
           W.UI.cell({ icon: 'target', title: W.t('Hábitos'), onTap: function () { nav.push(habitsPage); } }),
+          W.UI.cell({ icon: 'calendar', title: W.t('Calendarios suscritos'), value: W.Calendars && W.Calendars.list().length ? String(W.Calendars.list().length) : W.t('Ninguno'), onTap: function () { nav.push(W.CalSubs.page); } }),
           W.UI.cell({ icon: 'timer', title: W.t('Enfoque'), value: cfg.focus.work + ' min', onTap: function () { nav.push(focusPage); } }),
           W.UI.cell({ icon: 'home', title: W.t('Pantalla al abrir'), value: labelOf(SCREENS, cfg.startScreen), onTap: function () { nav.push(startPage); } })
         ] }),
@@ -616,6 +617,7 @@ window.Whider = window.Whider || {};
     W.t('<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre, tu personaje o tu foto, tu racha y cuántas tareas completas a la semana. Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros. Los chats van cifrados en tránsito y en los servidores, pero no de extremo a extremo.</p>'),
     W.t('<p><b>Bloquear y denunciar.</b> Quien bloqueas no puede escribirte ni mandarte mensajes en vuestro chat. Si denuncias, se guarda el motivo y, si es un mensaje, un extracto, para revisarlo.</p>'),
     W.t('<p><b>Comentarios e informes de errores.</b> Son opcionales y van sin tu nombre ni tu cuenta: el texto que escribas, la versión de WHIDER, el sistema y, si lo permites, los errores de la app. Nunca tus tareas ni tu Cuaderno.</p>'),
+    W.t('<p><b>Calendarios suscritos.</b> Si añades uno, su enlace va con tus ajustes y sus eventos se quedan en tu dispositivo. El servidor de WHIDER lo descarga por ti sin guardarlo.</p>'),
     W.t('<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>'),
     W.t('<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>'),
     W.t('<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>')
@@ -630,7 +632,7 @@ window.Whider = window.Whider || {};
   }
 
   var PAGES = { desktop: desktopPage, account: accountPage, appearance: appearancePage, tasks: tasksPage, lists: listsPage, alerts: alertsPage, focus: focusPage, start: startPage,
-    data: dataPage, privacy: privacyPage, sounds: soundsPage, custom: customPage, habits: habitsPage };
+    data: dataPage, privacy: privacyPage, sounds: soundsPage, custom: customPage, habits: habitsPage, calendars: function (nav) { return W.CalSubs.page(nav); } };
   var current = null;
 
   W.Settings = {

@@ -713,3 +713,26 @@ html[data-theme="light"] .google-btn { background: #FFFFFF; color: #1F1F1F; bord
 .space-add .input { flex: 1; min-width: 0; }
 
 .space-task.done .cell-title { color: var(--t3); text-decoration: line-through; }
+
+/* ---------- Calendarios suscritos: eventos de otros calendarios (solo lectura), rayados para no confundirlos con tareas ---------- */
+.cal-dots i.ev { border-radius: 1px; background: transparent; box-shadow: inset 0 0 0 1.2px var(--t2); transform: rotate(45deg) scale(.82); }
+.ev-group { margin-bottom: 10px; }
+.ev-list { display: flex; flex-direction: column; }
+.ev-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 14px; text-align: left; color: var(--t1); border-top: 1px solid var(--line); transition: background-color .15s; }
+.ev-row:first-child { border-top: 0; }
+.ev-row:hover { background-color: var(--block-hover); }
+.ev-row.past { opacity: .5; }
+.ev-time { flex: none; width: 58px; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 12px; line-height: 1.25; color: var(--t2); }
+.ev-bar { flex: none; align-self: stretch; width: 3px; margin: 2px 0; border-radius: 2px; background: repeating-linear-gradient(180deg, rgba(var(--ink-rgb), .55) 0 4px, transparent 4px 7px); }
+.ev-main { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.ev-main b { overflow: hidden; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.ev-main small { overflow: hidden; font-size: var(--fs-cap); color: var(--t3); text-overflow: ellipsis; white-space: nowrap; }
+.blk.ev, .chip.ev, .mg-chip.ev { background-image: repeating-linear-gradient(135deg, rgba(var(--ink-rgb), .07) 0 5px, transparent 5px 10px); }
+.blk.ev { border-left: 2px solid rgba(var(--ink-rgb), .5); box-shadow: none; cursor: pointer; }
+.blk.ev:hover { background-color: var(--block-hover); }
+.chip.ev .ic { opacity: .7; }
+.ev-notes { margin: 0; padding: 12px 14px; font-size: var(--fs-sub); line-height: 1.5; color: var(--t2); white-space: pre-wrap; word-break: break-word; }
+.form-msg { min-height: 1.3em; margin: 10px 4px 0; font-size: var(--fs-foot); line-height: 1.45; color: var(--t2); }
+.form-msg.error { color: var(--t1); font-weight: 500; }
+.cal-right { gap: 10px; }
+.cal-more .ic { width: 1.1rem; height: 1.1rem; }

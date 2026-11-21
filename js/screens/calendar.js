@@ -82,7 +82,10 @@ window.Whider.Screens = window.Whider.Screens || {};
     var f = st.ui.calList;
     return st.tasks.filter(function (t) { return (!f || t.listId === f) && (st.ui.calShowDone || !t.done); });
   }
-  /** { fecha: [tareas] } y { fecha: [{ base, date }] } para un intervalo */
+  /**
+   * { fecha: [tareas] }, { fecha: [{ base, date }] } (repeticiones previstas) y { fecha: [eventos] } de los
+   * calendarios suscritos (js/core/calendars.js) para un intervalo
+   */
   function collect(st, from, to) {
     var byDate = {}, proj = {}, n = 0;
     pool(st).forEach(function (t) {
@@ -91,7 +94,18 @@ window.Whider.Screens = window.Whider.Screens || {};
         st.occurrences(t, from, to, 62).forEach(function (d) { (proj[d] = proj[d] || []).push({ base: t, date: d }); n++; });
       }
     });
-    return { byDate: byDate, proj: proj };
+    return { byDate: byDate, proj: proj, ev: W.Calendars ? W.Calendars.byDate(from, to) : {} };
+  }
+  function eventsOf(data, ds) { return (data.ev && data.ev[ds]) || []; }
+  function evCount(n) { return U.plural(n, 'evento', 'eventos'); }
+  /** Bloque de un evento en el día por horas o en la semana (no se arrastra: se abre su ficha) */
+  function eventBlock(e, style, desk) {
+    var blk = U.el('div.blk.ev' + (desk ? '.wg-blk' : ''), {
+      attrs: { role: 'button', tabindex: '0', title: W.CalSubs.label(e), 'aria-label': W.t('Evento: {label}', { label: W.CalSubs.label(e) }) }, style: style
+    }, [U.el('b', { text: W.CalSubs.title(e) }), U.el('small', { text: W.CalSubs.when(e) + (e.calName ? ' · ' + e.calName : '') })]);
+    blk.addEventListener('click', function (ev) { ev.stopPropagation(); W.CalSubs.open(e); });
+    blk.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') W.CalSubs.open(e); });
+    return blk;
   }
   function sortDay(st, list) {
     return list.slice().sort(function (a, b) {
@@ -139,16 +153,17 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   function dayPanel(st, ds, data) {
-    var real = data.byDate[ds] || [], proj = data.proj[ds] || [];
+    var real = data.byDate[ds] || [], proj = data.proj[ds] || [], evs = eventsOf(data, ds);
     var done = real.filter(function (t) { return t.done; }).length;
-    var info = real.length ? W.tn(real.length, '{done} de {n} tarea completada', '{done} de {n} tareas completadas', { done: done }) : proj.length ? U.plural(proj.length, 'tarea que se repite', 'tareas que se repiten') : W.t('Sin tareas');
+    var info = real.length ? W.tn(real.length, '{done} de {n} tarea completada', '{done} de {n} tareas completadas', { done: done }) : proj.length ? U.plural(proj.length, 'tarea que se repite', 'tareas que se repiten') : evs.length ? '' : W.t('Sin tareas');
+    if (evs.length) info = (info ? info + ' · ' : '') + evCount(evs.length);
     var head = U.el('div.day-head', [
       U.el('div', [U.el('strong', { text: dayName(ds) }), U.el('span', { text: (ds === U.today() || Math.abs(U.diffDays(U.today(), ds)) === 1 ? U.fmtLong(ds) + ' · ' : '') + info })]),
       real.length ? U.el('div.day-progress', [U.el('div.bar', [U.el('i', { style: { width: Math.round(done / real.length * 100) + '%' } })])]) : null
     ]);
-    var body = real.length || proj.length ? dayList(st, ds, real, proj)
+    var body = real.length || proj.length ? dayList(st, ds, real, proj) : evs.length ? null
       : U.el('div.group', [W.UI.empty('calendar', W.t('Día libre'), ds < U.today() ? W.t('No hubo tareas este día.') : W.t('Escribe arriba para añadir algo a este día.'), null, true)]);
-    return U.el('div.sec', [head, ds >= U.today() ? quickDay(st, ds) : null, body]);
+    return U.el('div.sec', [head, ds >= U.today() ? quickDay(st, ds) : null, evs.length ? U.el('div.group.ev-group', [W.CalSubs.list(evs)]) : null, body]);
   }
 
   /* ---------- Vista Mes ---------- */
@@ -161,16 +176,19 @@ window.Whider.Screens = window.Whider.Screens || {};
       /* Hasta tres puntos: uno que brilla si hay algo vencido, uno por tarea pendiente
          (así se ve lo cargado que está el día) y uno hueco si hay repeticiones previstas. */
       mark: function (ds) {
-        var real = data.byDate[ds] || [], proj = data.proj[ds] || [], dots = [];
+        var real = data.byDate[ds] || [], proj = data.proj[ds] || [], evs = eventsOf(data, ds), dots = [];
         var pend = real.filter(function (t) { return !t.done; });
         var late = pend.filter(function (t) { return st.isOverdue(t); }).length;
         if (late) dots.push({ kind: 'late' });
-        var room = 3 - dots.length - (proj.length ? 1 : 0);
+        var room = 3 - dots.length - (proj.length ? 1 : 0) - (evs.length ? 1 : 0);
         for (var i = 0; i < Math.min(pend.length - late, room); i++) dots.push({});
         if (proj.length) dots.push({ kind: 'rep' });
+        // Un rombo hueco: hay eventos de tus calendarios suscritos
+        if (evs.length) dots.push({ kind: 'ev' });
         if (!pend.length && !proj.length && real.length && ds <= td) dots.push({ kind: 'done' });
         if (!dots.length) return null;
-        return { dots: dots, label: pend.length ? U.plural(pend.length, 'pendiente', 'pendientes') : proj.length ? W.t('se repite') : W.t('completado') };
+        var what = pend.length ? U.plural(pend.length, 'pendiente', 'pendientes') : proj.length ? W.t('se repite') : real.length ? W.t('completado') : '';
+        return { dots: dots, label: [what, evs.length ? evCount(evs.length) : ''].filter(Boolean).join(', ') };
       },
       onPick: function (ds) { st.ui.calSelected = ds; W.Audio.select(); rerender(); }
     });
@@ -229,9 +247,9 @@ window.Whider.Screens = window.Whider.Screens || {};
     for (var i = 0; i < 7; i++) {
       (function (ds) {
         var real = data.byDate[ds] || [], done = real.filter(function (t) { return t.done; }).length;
-        var total = real.length + (data.proj[ds] || []).length;
+        var total = real.length + (data.proj[ds] || []).length, nEv = eventsOf(data, ds).length;
         var b = U.el('button.wk-day' + (ds === sel ? '.selected' : '') + (ds === td ? '.today' : '') + (ds < td ? '.past' : ''), {
-          attrs: { 'aria-label': U.fmtLong(ds) + (total ? ', ' + U.plural(total, 'tarea', 'tareas') : ''), 'aria-pressed': ds === sel ? 'true' : 'false' }
+          attrs: { 'aria-label': U.fmtLong(ds) + (total ? ', ' + U.plural(total, 'tarea', 'tareas') : '') + (nEv ? ', ' + evCount(nEv) : ''), 'aria-pressed': ds === sel ? 'true' : 'false' }
         }, [U.el('small', { text: U.WEEKDAYS_LETTER[U.weekday(ds)] }), U.el('b', { text: U.parse(ds).getDate() }),
           // Barra: lo completado del día (tenue si aún no hay nada hecho)
           U.el('span.wk-bar', [U.el('i', { style: !total ? { width: '0%' } : done ? { width: Math.max(12, Math.round(done / total * 100)) + '%' } : { width: '100%', opacity: '.35' } })])]);
@@ -261,10 +279,12 @@ window.Whider.Screens = window.Whider.Screens || {};
 
   /** El día por horas: sin hora arriba, el resto colocado en su hora */
   function dayTimeline(st, ds, data) {
-    var real = sortDay(st, data.byDate[ds] || []), proj = data.proj[ds] || [];
-    var timed = [], untimed = [];
+    var real = sortDay(st, data.byDate[ds] || []), proj = data.proj[ds] || [], evs = eventsOf(data, ds);
+    var timed = [], untimed = [], evAllDay = [];
     real.forEach(function (t) { (t.time ? timed : untimed).push({ t: t, proj: false }); });
     proj.forEach(function (p) { (p.base.time ? timed : untimed).push({ t: p.base, proj: true }); });
+    // Eventos de los calendarios suscritos: los de todo el día arriba; los demás, en su hora y con su duración
+    evs.forEach(function (e) { if (e.allDay) evAllDay.push(e); else timed.push({ t: { time: e.time, duration: e.durMin || 45 }, ev: e }); });
     var mins = function (x) { var p = x.t.time.split(':'); return +p[0] * 60 + +p[1]; };
     var firstH = 7, lastH = 22;
     timed.forEach(function (x) { var m = mins(x); firstH = Math.min(firstH, Math.floor(m / 60)); lastH = Math.max(lastH, Math.min(23, Math.floor(m / 60) + 1)); });
@@ -273,7 +293,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     var startMin = firstH * 60;
 
     // Sin hora
-    var allday = U.el('div.allday', [U.el('span.allday-label', { text: untimed.length ? W.t('Sin hora') : W.t('Sin tareas sin hora · toca una hora para añadir') })]);
+    var allday = U.el('div.allday', [U.el('span.allday-label', { text: untimed.length ? W.t('Sin hora') : evAllDay.length ? W.t('Todo el día') : W.t('Sin tareas sin hora · toca una hora para añadir') })]);
+    evAllDay.forEach(function (e) { allday.appendChild(W.CalSubs.chip(e)); });
     untimed.forEach(function (x) {
       var chip = U.el('button.chip' + (x.t.done && !x.proj ? '.done' : ''), { attrs: { type: 'button' } }, [
         U.icon(x.proj ? 'repeat' : x.t.done ? 'check' : 'clock'), U.el('span', { text: x.t.text })]);
@@ -304,6 +325,11 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
     timed.forEach(function (x) {
       var m = mins(x);
+      if (x.ev) {
+        hours.appendChild(eventBlock(x.ev, { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(34, Math.min(x.ev.durMin || 45, (lastH + 1) * 60 - m) / 60 * HOUR_H - 2) + 'px',
+          left: 'calc(' + (x.col / x.cols * 100) + '% + ' + (x.col ? 3 : 0) + 'px)', width: 'calc(' + (100 / x.cols) + '% - ' + (x.cols > 1 ? 3 : 0) + 'px)' }, false));
+        return;
+      }
       var blk = U.el('div.blk' + (x.proj ? '.proj' : '') + (x.t.done && !x.proj ? '.done' : '') + (x.t.highlight !== 'none' ? '.p-' + x.t.highlight : ''), {
         attrs: { role: 'button', tabindex: '0', 'aria-label': U.fmtTime(x.t.time) + ', ' + (x.proj ? W.t('{text} (se repite)', { text: x.t.text }) : x.t.text) },
         style: { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(34, HOUR_H * 0.75 - 2) + 'px',
@@ -328,7 +354,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
 
     var head = U.el('div.day-head', [U.el('div', [U.el('strong', { text: dayName(ds) }),
-      U.el('span', { text: real.length || proj.length ? W.t('{n} · mantén pulsada una para cambiar su hora', { n: U.plural(real.length + proj.length, 'tarea', 'tareas') }) : W.t('Toca una hora para añadir una tarea') })])]);
+      U.el('span', { text: (real.length || proj.length ? W.t('{n} · mantén pulsada una para cambiar su hora', { n: U.plural(real.length + proj.length, 'tarea', 'tareas') }) : W.t('Toca una hora para añadir una tarea'))
+        + (evs.length ? ' · ' + evCount(evs.length) : '') })])]);
     return U.el('div.sec', [head, U.el('div.group', [allday, U.el('div.hours-pad'), hours, U.el('div.hours-pad')])]);
   }
 
@@ -389,12 +416,14 @@ window.Whider.Screens = window.Whider.Screens || {};
       items: W.TaskCard.list(overdue, { ctx: 'alerts', postpone: true }) }));
     var days = 0;
     for (var d = td; d <= to; d = U.addDays(d, 1)) {
-      var real = data.byDate[d] || [], proj = data.proj[d] || [];
-      if (!real.length && !proj.length) continue;
+      var real = data.byDate[d] || [], proj = data.proj[d] || [], evs = eventsOf(data, d);
+      if (!real.length && !proj.length && !evs.length) continue;
       days++;
+      var what = [real.length + proj.length ? U.plural(real.length + proj.length, 'tarea', 'tareas') : '', evs.length ? evCount(evs.length) : ''].filter(Boolean).join(' · ');
       out.push(U.el('div.ag-day', [U.el('div.ag-head' + (d === td ? '.today' : ''), [
-        U.el('strong', { text: dayName(d) }), U.el('span', { text: (d === td || d === U.addDays(td, 1) ? U.fmtLong(d) + ' · ' : '') + U.plural(real.length + proj.length, 'tarea', 'tareas') })]),
-        dayList(st, d, real, proj)]));
+        U.el('strong', { text: dayName(d) }), U.el('span', { text: (d === td || d === U.addDays(td, 1) ? U.fmtLong(d) + ' · ' : '') + what })]),
+        evs.length ? U.el('div.group.ev-group', [W.CalSubs.list(evs)]) : null,
+        real.length || proj.length ? dayList(st, d, real, proj) : null]));
     }
     if (!days && !overdue.length) out.push(U.el('div.sec', [U.el('div.group', [W.UI.empty('agenda', W.t('Nada en los próximos 30 días'), W.t('Las tareas con fecha aparecerán aquí, día a día.'),
       U.el('button.btn.sm.soft', { on: { click: function () { W.QuickAdd.open({ date: td }); } } }, [U.icon('plus', 'sm'), W.t('Nueva tarea')]))])]));
@@ -442,6 +471,23 @@ window.Whider.Screens = window.Whider.Screens || {};
     return chip;
   }
 
+  /**
+   * Casilla del mes: los eventos de todo el día primero y los demás, por su hora, entre las tareas con hora
+   * (el orden de las tareas no cambia; las sin hora y las hechas siguen al final)
+   */
+  function withEvents(items, evs) {
+    if (!evs.length) return items;
+    var out = evs.filter(function (e) { return e.allDay; }).map(function (e) { return { ev: e }; });
+    var timed = evs.filter(function (e) { return !e.allDay; }), i = 0;
+    items.forEach(function (x) {
+      var tm = x.t.time && !(x.t.done && !x.proj) ? x.t.time : null;
+      while (i < timed.length && (!tm || timed[i].time <= tm)) out.push({ ev: timed[i++] });
+      out.push(x);
+    });
+    while (i < timed.length) out.push({ ev: timed[i++] });
+    return out;
+  }
+
   /** ¿Se muestra este día? (los fines de semana se pueden ocultar en el ordenador) */
   function shownDay(st, ds) { var wd = U.weekday(ds); return st.settings.desk.weekends !== false || (wd !== 0 && wd !== 6); }
 
@@ -462,18 +508,18 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (!shownDay(st, U.addDays(start, k))) continue;
       (function (ds) {
         var d = U.parse(ds), inMonth = d.getMonth() === cm.m;
-        var real = sortDay(st, data.byDate[ds] || []), proj = data.proj[ds] || [];
-        var items = real.map(function (t) { return { t: t, proj: false }; }).concat(proj.map(function (p) { return { t: p.base, proj: true }; }));
+        var real = sortDay(st, data.byDate[ds] || []), proj = data.proj[ds] || [], evs = eventsOf(data, ds);
+        var items = withEvents(real.map(function (t) { return { t: t, proj: false }; }).concat(proj.map(function (p) { return { t: p.base, proj: true }; })), evs);
         var pend = real.filter(function (t) { return !t.done; }).length;
         var cell = U.el('div.mg-cell' + (inMonth ? '' : '.out') + (ds === td ? '.today' : '') + (ds === sel ? '.selected' : '') + (ds < td ? '.past' : ''), {
           attrs: { role: 'group', 'data-date': ds, 'aria-current': ds === td ? 'date' : null,
-            'aria-label': U.fmtLong(ds) + (pend ? ', ' + U.plural(pend, 'pendiente', 'pendientes') : '') + (ds === sel ? ', ' + W.t('elegido') : '') }
+            'aria-label': U.fmtLong(ds) + (pend ? ', ' + U.plural(pend, 'pendiente', 'pendientes') : '') + (evs.length ? ', ' + evCount(evs.length) : '') + (ds === sel ? ', ' + W.t('elegido') : '') }
         });
         cell.appendChild(U.el('div.mg-top', [U.el('span.mg-num', { text: d.getDate() === 1 ? U.fmtDayMon(ds) : d.getDate() }),
           U.el('button.mg-add', { attrs: { type: 'button', 'aria-label': W.t('Nueva tarea el {day}', { day: U.inline(U.fmtLong(ds)) }), title: W.t('Nueva tarea este día') },
             on: { click: function (e) { e.stopPropagation(); W.QuickAdd.open({ date: ds }); } } }, [U.icon('plus', 'xs')])]));
         var list = U.el('div.mg-items');
-        items.slice(0, MG_MAX).forEach(function (x) { list.appendChild(mgChip(st, x)); });
+        items.slice(0, MG_MAX).forEach(function (x) { list.appendChild(x.ev ? W.CalSubs.chip(x.ev, 'mg-chip') : mgChip(st, x)); });
         if (items.length > MG_MAX) list.appendChild(U.el('span.mg-more', { text: W.t('+{n} más', { n: items.length - MG_MAX }) }));
         cell.appendChild(list);
         cell.addEventListener('click', function () {
@@ -521,19 +567,20 @@ window.Whider.Screens = window.Whider.Screens || {};
     var firstH = U.clamp(dk.calStartH, 0, 22), lastH = U.clamp(Math.max(dk.calEndH, firstH + 1), 1, 23), nowM = new Date().getHours() * 60 + new Date().getMinutes();
     days.forEach(function (ds) {
       var real = sortDay(st, data.byDate[ds] || []), proj = data.proj[ds] || [];
-      var timed = [], untimed = [];
+      var timed = [], untimed = [], evDay = [];
       real.forEach(function (t) { (t.time ? timed : untimed).push({ t: t, proj: false }); });
       proj.forEach(function (p) { (p.base.time ? timed : untimed).push({ t: p.base, proj: true }); });
+      eventsOf(data, ds).forEach(function (e) { if (e.allDay) evDay.push(e); else timed.push({ t: { time: e.time, duration: e.durMin }, ev: e }); });
       timed.forEach(function (x) { var h = Math.floor(minutesOf(x.t) / 60); firstH = Math.min(firstH, h); lastH = Math.max(lastH, Math.min(23, h + 1)); });
-      perDay[ds] = { timed: placeColumns(timed), untimed: untimed };
+      perDay[ds] = { timed: placeColumns(timed), untimed: untimed, evDay: evDay };
     });
     if (days.indexOf(td) >= 0) { firstH = Math.min(firstH, Math.floor(nowM / 60)); lastH = Math.max(lastH, Math.min(23, Math.floor(nowM / 60) + 1)); }
     var startMin = firstH * 60, hoursN = lastH - firstH + 1;
 
     var head = U.el('div.wg-head', [U.el('div.wg-corner')].concat(days.map(function (ds) {
-      var d = U.parse(ds), n = (data.byDate[ds] || []).filter(function (t) { return !t.done; }).length + (data.proj[ds] || []).length;
+      var d = U.parse(ds), n = (data.byDate[ds] || []).filter(function (t) { return !t.done; }).length + (data.proj[ds] || []).length, ne = eventsOf(data, ds).length;
       var b = U.el('button.wg-day' + (ds === td ? '.today' : '') + (ds === sel ? '.selected' : '') + (ds < td ? '.past' : ''), {
-        attrs: { type: 'button', 'aria-label': U.fmtLong(ds) + (n ? ', ' + U.plural(n, 'tarea', 'tareas') : ''), 'aria-pressed': ds === sel ? 'true' : 'false' }
+        attrs: { type: 'button', 'aria-label': U.fmtLong(ds) + (n ? ', ' + U.plural(n, 'tarea', 'tareas') : '') + (ne ? ', ' + evCount(ne) : ''), 'aria-pressed': ds === sel ? 'true' : 'false' }
       }, [U.el('small', { text: U.WEEKDAYS_SHORT[d.getDay()] }), U.el('b', { text: d.getDate() })]);
       b.addEventListener('click', function () { st.ui.calSelected = ds; W.Audio.select(); rerender(); });
       W.Sidebar.dropTarget(b, function (id) { moveToDay(st, id, ds); });
@@ -542,6 +589,7 @@ window.Whider.Screens = window.Whider.Screens || {};
 
     var allday = U.el('div.wg-allday', [U.el('div.wg-label', { text: W.t('Sin hora') })].concat(days.map(function (ds) {
       var cell = U.el('div.wg-adcell', { attrs: { 'data-date': ds } });
+      perDay[ds].evDay.forEach(function (e) { cell.appendChild(W.CalSubs.chip(e, 'mg-chip')); });
       perDay[ds].untimed.forEach(function (x) { cell.appendChild(mgChip(st, x)); });
       W.Sidebar.dropTarget(cell, function (id) { var t = st.find(id); if (t) { st.updateTask(id, { date: ds, time: null }); W.Toast.show({ text: W.t('«{text}» pasa al {day}, sin hora', { text: t.text, day: U.inline(U.fmtLong(ds)) }), icon: 'calendar' }); } });
       return cell;
@@ -553,6 +601,11 @@ window.Whider.Screens = window.Whider.Screens || {};
       var col = U.el('div.wg-col' + (ds === td ? '.today' : '') + (ds < td ? '.past' : ''), { attrs: { 'data-date': ds } });
       perDay[ds].timed.forEach(function (x) {
         var m = minutesOf(x.t), t = x.t;
+        if (x.ev) {
+          col.appendChild(eventBlock(x.ev, { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(26, Math.min(x.ev.durMin || 45, (lastH + 1) * 60 - m) / 60 * HOUR_H - 2) + 'px',
+            left: 'calc(' + (x.col / x.cols * 100) + '% + ' + (x.col ? 2 : 3) + 'px)', width: 'calc(' + (100 / x.cols) + '% - ' + (x.cols > 1 ? 4 : 6) + 'px)', right: 'auto' }, true));
+          return;
+        }
         var blk = U.el('div.blk.wg-blk' + (x.proj ? '.proj' : '') + (t.done && !x.proj ? '.done' : '') + (t.highlight !== 'none' ? '.p-' + t.highlight : ''), {
           attrs: { role: 'button', tabindex: '0', title: U.fmtTime(t.time) + ' · ' + t.text, 'aria-label': U.fmtTime(t.time) + ', ' + (x.proj ? W.t('{text} (se repite)', { text: t.text }) : t.text) },
           style: { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(26, blockMin(t) / 60 * HOUR_H - 2) + 'px',
@@ -688,7 +741,16 @@ window.Whider.Screens = window.Whider.Screens || {};
     ]);
     var seg = W.UI.segmented(DESK_VIEWS, v.calView, function (val) { v.calView = val; rerender(); }, { mini: true });
     var exp = U.el('button.btn.ghost.sm.ct-export', { attrs: { type: 'button', title: W.t('Exportar las tareas con fecha a otro calendario (.ics)') }, on: { click: function () { exportIcs(st); } } }, [U.icon('download', 'sm'), W.t('Exportar')]);
-    return U.el('div.cal-toolbar', [left, U.el('div.ct-right', [listChip, doneChip, exp, seg])]);
+    return U.el('div.cal-toolbar', [left, U.el('div.ct-right', [listChip, doneChip, calsButton(true), exp, seg])]);
+  }
+
+  /** Calendarios suscritos (Ajustes → Calendarios suscritos): botón en el ordenador, ficha en el móvil */
+  function calsButton(desk) {
+    var n = W.Calendars ? W.Calendars.list().filter(function (c) { return c.on; }).length : 0;
+    var open = function () { W.Settings.open('calendars'); };
+    var tip = W.t('Ver aquí los eventos de tus otros calendarios (Google, Outlook, Apple…)');
+    if (desk) return U.el('button.btn.ghost.sm.ct-cals', { attrs: { type: 'button', title: tip }, on: { click: open } }, [U.icon('calendar', 'sm'), n ? W.t('Calendarios ({n})', { n: n }) : W.t('Calendarios')]);
+    return U.el('button.chip' + (n ? '.on' : ''), { attrs: { type: 'button', title: tip }, on: { click: open } }, [U.icon('calendar'), U.el('span', { text: n ? W.t('Calendarios ({n})', { n: n }) : W.t('Calendarios') })]);
   }
 
   /** Teclas del calendario (en el ordenador): ← → anterior y siguiente, T hoy, M S D A vistas (en inglés, W para la semana) */
@@ -742,7 +804,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       }
       var seg = W.UI.segmented(VIEWS, v.calView, function (val) { v.calView = val; rerender(); });
       seg.style.marginTop = '12px';
-      var tools = U.el('div.chips.cal-tools', [listChip, doneChip]);
+      var tools = U.el('div.chips.cal-tools', [listChip, doneChip, calsButton(false)]);
       var body = v.calView === 'week' ? weekView(st) : v.calView === 'agenda' ? agendaView(st) : monthView(st);
       var first = body[0];
       if (first && first.classList && first.classList.contains('group')) first.style.marginTop = '14px';

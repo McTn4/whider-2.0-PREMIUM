@@ -334,6 +334,8 @@ window.Whider = window.Whider || {};
     W.Updates.init();
     // Copia automática del día (ordenador y Android), sin prisa
     W.Backup.init();
+    // Calendarios suscritos: lo que toque actualizar, sin prisa, y cada hora con la app abierta
+    if (W.Calendars) W.Calendars.init();
 
     // Refrescar fechas y avisos si la app sigue abierta al cambiar de día
     var day = U.today();
