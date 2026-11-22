@@ -332,6 +332,20 @@ Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan ad
 
 Todas las versiones y lo que trae cada una: [`CHANGELOG.md`](CHANGELOG.md) (también en la app: Ajustes → Ayuda → Novedades).
 
+### 2.0
+
+- **Más sencilla**: Hoy, Tareas, Calendario, Cuaderno y Personas. Fuera el personaje, Enfoque, Estadísticas,
+  Informes, Automatizaciones, Marcas, Perfil y «Más» (sus datos se conservan en la cuenta).
+- **Hoy por importancia**: campo para añadir la tarea con su importancia, «Cada día» y «Por hacer», con colores
+  sencillos (urgente, importante, destacada y normal).
+- **Tareas de cada día** (cada día, laborables o días de la semana elegidos); los hábitos se convierten en ellas solos.
+- **Una presentación que adapta la app** a para qué la vas a usar.
+- **Diseño nuevo** inspirado en X y en Apple, con Inter en todo.
+- **WHIDER en inglés**, **calendarios suscritos** (Google, Outlook, Apple), **planificar arrastrando** en el ordenador
+  y **sincronización al momento**.
+
+Detalle completo en [`CHANGELOG.md`](CHANGELOG.md).
+
 ### 1.1
 
 - **Importar** desde Todoist, Google Tasks, Notion, calendarios (.ics) o un CSV, con vista previa y deshacer.

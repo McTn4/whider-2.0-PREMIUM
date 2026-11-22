@@ -11,7 +11,7 @@
   var REL = 'https://github.com/McTn4/whider-2.0-PREMIUM/releases/latest/download/';
 
   var D = window.WhiderDescargas = {
-    version: '1.1.0',
+    version: '2.0.0',
     /** Ficha de Google Play (vacío mientras no esté publicada) */
     play: '',
     /** La app en el navegador */

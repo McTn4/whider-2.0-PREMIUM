@@ -187,6 +187,21 @@ test('Novedades: al pasar a una estable no se repiten las notas de sus betas', (
   assert.deepEqual([...B.WhatsNew.pending().map((r) => r.v)], ['1.1.0-beta.2']);
 });
 
+test('Novedades: al pasar a una versión mayor no se cuentan como nuevas las de la anterior', () => {
+  const todas = [R('2.1.0'), R('2.0.0'), R('1.1.0'), R('1.0.0')];
+  const pend = (seen, version) => [
+    ...app({ onboarded: true, seen, version, releases: todas })
+      .WhatsNew.pending()
+      .map((r) => r.v)
+  ];
+  // De la 1.0 o la 1.1 a la 2.0: solo las de la 2.0 (las de la 1.1 hablan de cosas que ya no están)
+  assert.deepEqual(pend('1.0.0', '2.0.0'), ['2.0.0']);
+  assert.deepEqual(pend('1.1.0', '2.0.0'), ['2.0.0']);
+  // Dentro de la misma versión mayor, todas las que faltan
+  assert.deepEqual(pend('1.1.0', '2.1.0'), ['2.1.0', '2.0.0']);
+  assert.deepEqual(pend('2.0.0', '2.1.0'), ['2.1.0']);
+});
+
 test('Novedades: el aviso en Hoy caduca a las dos semanas', () => {
   const W = app({ onboarded: true });
   assert.equal(W.WhatsNew.due(), true);

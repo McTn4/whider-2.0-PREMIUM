@@ -1,8 +1,43 @@
 // Generado por tools/version.js desde package.json y CHANGELOG.md: no lo edites a mano.
 // Para cambiar la versión: node tools/version.js 1.2.3 (y su entrada en CHANGELOG.md).
 window.Whider = window.Whider || {};
-window.Whider.VERSION = "1.1.0";
+window.Whider.VERSION = "2.0.0";
 window.Whider.RELEASES = [
+ {
+  "v": "2.0.0",
+  "date": "2026-11-22",
+  "summary": "WHIDER 2.0: más sencilla y con un diseño nuevo. Nada más abrirla, lo que tienes que hacer hoy, ordenado por importancia, y tus hábitos pasan a ser tareas de cada día. Además, WHIDER en inglés, tus otros calendarios (Google, Outlook, Apple) dentro de WHIDER, la semana se planifica arrastrando y lo que cambias llega a tus otros dispositivos al momento.",
+  "groups": [
+   {
+    "t": "Novedades",
+    "items": [
+     "**Hoy, por importancia**: arriba, un campo para escribir la tarea, con su importancia y «Cada día». Debajo, «Cada día» (lo que repites a diario) y «Por hacer»: lo de hoy y lo vencido, de lo más urgente a lo menos (lo que ya empezaste, delante). Lo hecho se pliega al final.",
+     "**Importancia en color**, sencilla: urgente en rojo, importante en naranja, destacada en amarillo y normal en gris, en el círculo de cada tarea, y escrita al lado («Urgente», «Importante»).",
+     "**Tareas de cada día**: una tarea puede repetirse cada día, los días laborables o los días de la semana que elijas («Gimnasio cada lunes, miércoles y viernes a las 7»). Si un día se queda sin hacer, pasa sola al siguiente que le toca: no se acumula como vencida. Actualiza también tus otros dispositivos: las versiones anteriores repiten una vez por semana las tareas de días concretos.",
+     "**Tus hábitos ahora son tareas de cada día**, con su horario y su aviso; su historial sigue guardado en tu cuenta.",
+     "**Una presentación que adapta la app**: para qué la vas a usar (estudios, trabajo, casa, salud, con otras personas) prepara tus categorías y la barra; también si quieres avisos. Se puede repetir en Ajustes → Ayuda → «Adaptar WHIDER a ti».",
+     "**Diseño nuevo**, inspirado en X y en Apple: tipografía Inter en todo, fondo negro (o blanco), líneas finas en lugar de tarjetas, títulos grandes, iconos de trazo redondeado (rellenos en la pestaña activa), barra inferior de cinco pestañas, botón «+» flotante y, en el ordenador, una barra lateral con secciones grandes y «Nueva tarea» en cápsula.",
+     "**Personas**: tus chats, tus contactos y tus equipos en una sola pestaña. Si no trabajas con otras personas, puedes quitarla de la barra (Ajustes → Lo que ves).",
+     "**Calendarios suscritos**: Ajustes → Calendarios suscritos (o «Calendarios» en el calendario). Pega el enlace iCal de tu calendario de Google, Outlook o Apple (o el de los festivos) y sus eventos se ven en el calendario, con su hora y su duración, y en Hoy, en «Agenda de hoy». Se actualizan solos cada hora, siguen ahí sin conexión y, desde la ficha de un evento, «Crear una tarea» lo convierte en una tarea. Se ven, no se cambian: para eso, su propia app.",
+     "**Planificar arrastrando** (ordenador): en el calendario, el panel «Por planificar» reúne las tareas sin fecha y las vencidas. Arrástralas a una hora de la semana o del día, a la fila «Sin hora» o a un día del mes; soltar una tarea del calendario en el panel le quita la fecha. Se oculta con × o desde Ajustes → Lo que ves.",
+     "**WHIDER, también en inglés**: Ajustes → Idioma. Toda la app: las pantallas, los avisos, las fechas y «Nueva tarea», que entiende frases en inglés («Call Anna tomorrow at 10 #work»), además de los menús del ordenador y el widget y los avisos de Android. Lo que ya habías creado (tareas, categorías, páginas) se queda como estaba."
+    ]
+   },
+   {
+    "t": "Mejoras",
+    "items": [
+     "**Más sencilla**: WHIDER se queda con lo importante —Hoy, Tareas, Calendario, Cuaderno y Personas—. Se van el personaje, Enfoque, Estadísticas, Informes, Automatizaciones, Marcas, el Perfil, «Más» y los dispositivos; sus datos se conservan en tu cuenta. Tu foto (arriba a la izquierda) abre los Ajustes, con tu cuenta lo primero.",
+     "**Ajustes** como los de Apple: grupos redondeados, iconos en cuadrados y, en «Lo que ves», la pestaña Personas, la barra lateral y el calendario. Tus contactos solo ven tu nombre y tu foto.",
+     "La app se abre sin esperar a la animación de la W.",
+     "**Invitaciones**: la página de un enlace de invitación enseña la inicial de quien invita (ya no su personaje), con el diseño nuevo.",
+     "**Sincronización al momento**: las tareas, los ajustes y los apuntes que cambias en otro dispositivo llegan en un par de segundos, sin esperar a la siguiente consulta (antes, hasta 15 segundos; tras un rato sin tocar la app, hasta 5 minutos). En Ajustes, la copia en la nube dice «Sincronizado · al momento».",
+     "**Cuaderno**: las páginas nuevas y lo que escribes en ellas, tuyas o de tu equipo, llegan solas a tus otros dispositivos y a tus compañeros.",
+     "**Personas y chats**: las solicitudes, los ánimos, los mensajes, las ediciones y las reacciones llegan al momento, y el número de chats sin leer se pone al día solo. Cada mensaje avisa una sola vez.",
+     "Sin conexión todo sigue igual: los cambios se guardan en el dispositivo y se suben al volver la red."
+    ]
+   }
+  ]
+ },
  {
   "v": "1.1.0",
   "date": "2026-11-18",

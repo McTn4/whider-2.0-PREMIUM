@@ -8,11 +8,12 @@ Este archivo es la fuente de las notas que enseña la app (Ajustes → Ayuda →
 Las secciones «Novedades», «Mejoras», «Correcciones» y «Seguridad» se ven en la app; «Para desarrolladores», solo aquí.
 Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VERSION.md).
 
-## [Sin publicar]
+## [2.0.0] · 2026-11-22
 
-Una WHIDER más sencilla y con un diseño nuevo: lo que tienes que hacer hoy, ordenado por importancia, nada más abrirla.
-Tus hábitos pasan a ser tareas de cada día. WHIDER, también en inglés. Tus otros calendarios (Google, Outlook, Apple),
-dentro de WHIDER, y la semana se planifica arrastrando. Y lo que cambias en un dispositivo llega a los demás al momento.
+WHIDER 2.0: más sencilla y con un diseño nuevo. Nada más abrirla, lo que tienes que hacer hoy, ordenado por
+importancia, y tus hábitos pasan a ser tareas de cada día. Además, WHIDER en inglés, tus otros calendarios (Google,
+Outlook, Apple) dentro de WHIDER, la semana se planifica arrastrando y lo que cambias llega a tus otros dispositivos al
+momento.
 
 ### Novedades
 
@@ -23,7 +24,8 @@ dentro de WHIDER, y la semana se planifica arrastrando. Y lo que cambias en un d
   en el círculo de cada tarea, y escrita al lado («Urgente», «Importante»).
 - **Tareas de cada día**: una tarea puede repetirse cada día, los días laborables o los días de la semana que elijas
   («Gimnasio cada lunes, miércoles y viernes a las 7»). Si un día se queda sin hacer, pasa sola al siguiente que le
-  toca: no se acumula como vencida.
+  toca: no se acumula como vencida. Actualiza también tus otros dispositivos: las versiones anteriores repiten una
+  vez por semana las tareas de días concretos.
 - **Tus hábitos ahora son tareas de cada día**, con su horario y su aviso; su historial sigue guardado en tu cuenta.
 - **Una presentación que adapta la app**: para qué la vas a usar (estudios, trabajo, casa, salud, con otras personas)
   prepara tus categorías y la barra; también si quieres avisos. Se puede repetir en Ajustes → Ayuda → «Adaptar WHIDER
@@ -54,8 +56,6 @@ dentro de WHIDER, y la semana se planifica arrastrando. Y lo que cambias en un d
 - La app se abre sin esperar a la animación de la W.
 - **Invitaciones**: la página de un enlace de invitación enseña la inicial de quien invita (ya no su personaje), con
   el diseño nuevo.
-- **Portada, ficha de Google Play y política de privacidad** al día: capturas nuevas, sin hábitos ni enfoque, y el
-  perfil público con solo tu nombre y tu foto.
 - **Sincronización al momento**: las tareas, los ajustes y los apuntes que cambias en otro dispositivo
   llegan en un par de segundos, sin esperar a la siguiente consulta (antes, hasta 15 segundos; tras un rato sin tocar la
   app, hasta 5 minutos). En Ajustes, la copia en la nube dice «Sincronizado · al momento».
@@ -83,9 +83,10 @@ dentro de WHIDER, y la semana se planifica arrastrando. Y lo que cambias en un d
   llevan a la pantalla más parecida (`js/router.js`). Ajustes nuevos: `uses` y `peopleTab`.
 - Pruebas: `tests/unit/cada-dia.test.js` y `tests/e2e/rediseno.js`; fuera las de automatizaciones, personaje y
   estadísticas, y las demás al día.
-- `tools/capturas/{portada,og,play}.js` con los datos de ejemplo nuevos (tareas de cada día en lugar de hábitos) y
-  sin brillos; `docs/play/` pasa de seis capturas a cuatro (Hoy, Tareas, Calendario y Cuaderno). `i/index.html` ya
-  no carga `js/core/util.js` ni el dibujo del personaje.
+- Portada, ficha de Google Play y política de privacidad al día (sin hábitos ni enfoque; perfil público con solo el
+  nombre y la foto). `tools/capturas/{portada,og,play}.js` con los datos de ejemplo nuevos (tareas de cada día en
+  lugar de hábitos) y sin brillos; `docs/play/` pasa de seis capturas a cuatro (Hoy, Tareas, Calendario y Cuaderno).
+  `i/index.html` ya no carga `js/core/util.js` ni el dibujo del personaje.
 - `js/core/live.js` (`W.Live`): escuchas con el Firestore completo (`onSnapshot`), solo para escuchar. Leer una vez,
   escribir y las transacciones siguen con «lite», que sin conexión falla enseguida en lugar de quedarse esperando.
   Cada escucha dice si está al día con el servidor (`ok`); mientras no lo está (sin conexión, un fallo o

@@ -72,11 +72,16 @@ window.Whider = window.Whider || {};
   }
   function markSeen() { put(KEY, current()); put(FIRST_KEY, null); }
 
-  /** Versiones posteriores a la vista, hasta la actual (si la actual es estable, sin sus betas) */
+  function major(v) { var p = SEMVER.exec(String(v || '')); return p ? +p[1] : -1; }
+  /**
+   * Versiones posteriores a la vista, hasta la actual (si la actual es estable, sin sus betas). Solo las de la
+   * misma versión mayor que la actual: al pasar de la 1.x a la 2.0, las notas de la 1.x hablan de cosas que ya
+   * no existen, y las de la 2.0 ya cuentan cómo queda todo.
+   */
   function pending() {
-    var from = seen(), now = current(), stableNow = !/-/.test(now);
+    var from = seen(), now = current(), stableNow = !/-/.test(now), mayor = major(now);
     return releases().filter(function (r) {
-      if (cmp(r.v, from) <= 0 || cmp(r.v, now) > 0) return false;
+      if (cmp(r.v, from) <= 0 || cmp(r.v, now) > 0 || major(r.v) !== mayor) return false;
       return !(stableNow && /-/.test(r.v));
     });
   }

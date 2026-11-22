@@ -40,7 +40,9 @@ const closeAll = (p) => p.evaluate(() => { for (let i = 0; i < 8 && Whider.Sheet
     await sleep(600);
     const notas = await sheetText(p);
     ok(/^Novedades/m.test(notas) && notas.includes('WHIDER ' + LABEL), nombre + ': «Ver novedades» abre las notas de esta versión', notas.slice(0, 200));
-    ok(/Importar/.test(notas) && /Mejoras/.test(notas), nombre + ': con sus apartados (Novedades, Mejoras…)');
+    // La primera novedad de esta versión (su título en negrita) y el apartado «Mejoras»
+    const primera = await p.evaluate(() => (/\*\*([^*]+)\*\*/.exec(Whider.RELEASES[0].groups[0].items[0]) || [])[1] || '');
+    ok(!!primera && notas.includes(primera) && /Mejoras/.test(notas), nombre + ': con sus apartados (Novedades, Mejoras…)', primera);
     ok(!/Para desarrolladores|ESLint/.test(notas), nombre + ': sin las notas para desarrolladores');
     ok(notas.includes('Estás usando WHIDER ' + LABEL), nombre + ': dice qué versión estás usando');
     await closeAll(p);
