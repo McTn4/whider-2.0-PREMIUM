@@ -124,7 +124,7 @@ window.Whider = window.Whider || {};
     return [
       { title: W.t('General'), rows: [
         [W.t('Nueva tarea'), ['N']], [W.t('Nueva página del Cuaderno'), ['Alt', 'N']], [W.t('Buscar en todo'), [K('K'), '/']],
-        [W.t('Hoy · Tareas · Calendario · Cuaderno · Personas'), ['1', '2', '3', '4', '5']],
+        [W.t('Inicio · Tareas · Calendario · Cuaderno · Personas'), ['1', '2', '3', '4', '5']],
         [W.t('Ajustes'), [K(',')]], [W.t('Atajos de teclado'), ['?']], [W.t('Cerrar o volver'), ['Esc']]
       ] },
       { title: W.t('En el Cuaderno'), rows: [

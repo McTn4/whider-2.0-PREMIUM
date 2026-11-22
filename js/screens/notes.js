@@ -478,7 +478,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     return host;
   }
   function homeMobile(root) {
-    var head = W.UI.header({ title: W.t('Cuaderno'), profile: true, sub: U.plural(P().count(), 'página', 'páginas'), actions: [{ icon: 'search', label: W.t('Buscar en el Cuaderno'), onTap: function () { searchSheet(); } }, { icon: 'plus', label: W.t('Nueva página'), onTap: function () { newMenu(null, {}); } }] });
+    var head = W.UI.header({ title: W.t('Cuaderno'), sub: U.plural(P().count(), 'página', 'páginas'), actions: [{ icon: 'search', label: W.t('Buscar en el Cuaderno'), onTap: function () { searchSheet(); } }, { icon: 'plus', label: W.t('Nueva página'), onTap: function () { newMenu(null, {}); } }] });
     var content = [];
     var recent = P().recent(10), favs = P().favorites();
     if (!P().count()) content.push(U.el('div.group', [W.UI.empty('page', W.t('Tu cuaderno está vacío'), W.t('Crea páginas, listas, bases de datos y mucho más. Escribe «/» para insertar bloques.'), U.el('button.btn.sm.primary', { on: { click: function () { newMenu(null, {}); } } }, [U.icon('plus', 'sm'), W.t('Nueva página')]))]));

@@ -47,15 +47,15 @@
   --t3: #9298A0;   /* secundario: ≥ 4,5:1 sobre el fondo y sobre todas las superficies (también las celdas de las hojas) */
   --t4: #3E4144;   /* solo decorativo o desactivado */
 
-  /* Azul de lo que se toca: botones (relleno) y enlaces (texto) */
-  --accent: #1570EF;
-  --accent-rgb: 21, 112, 239;
-  --accent-2: #4DA3FF;
-  --link: #4DA3FF;
-  --on-accent: #FFFFFF;
-  --accent-hover: #1A7BFF;
-  --accent-press: #0F5FCC;
-  --on-accent-rgb: 255, 255, 255;
+  /* Lo que se toca: blanco sobre negro (botones en relleno blanco con texto negro; enlaces en blanco) */
+  --accent: #FFFFFF;
+  --accent-rgb: 255, 255, 255;
+  --accent-2: #FFFFFF;
+  --link: #FFFFFF;
+  --on-accent: #000000;
+  --accent-hover: #E6E6E6;
+  --accent-press: #C8C8C8;
+  --on-accent-rgb: 0, 0, 0;
   --on-color: #FFFFFF;      /* texto e iconos sobre un color (botones rojos, cuadrados de los ajustes…) */
   --on-imp-3: #1C1C1E;      /* la marca sobre el amarillo de «destacada» */
   --tile: #5C6064;          /* cuadrado de los iconos de los ajustes */
@@ -232,13 +232,14 @@ html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-
   --t2: #3C4650;
   --t3: #536471;
   --t4: #CFD9DE;
-  --accent: #005FC8;
-  --accent-rgb: 0, 95, 200;
-  --accent-2: #005FC8;
-  --link: #005FC8;
+  /* En el tema claro, lo mismo al revés: negro sobre blanco */
+  --accent: #0F1419;
+  --accent-rgb: 15, 20, 25;
+  --accent-2: #0F1419;
+  --link: #0F1419;
   --on-accent: #FFFFFF;
-  --accent-hover: #0A56B5;
-  --accent-press: #004A9E;
+  --accent-hover: #272C30;
+  --accent-press: #000000;
   --on-accent-rgb: 255, 255, 255;
   --on-color: #FFFFFF;
   --on-imp-3: #FFFFFF;

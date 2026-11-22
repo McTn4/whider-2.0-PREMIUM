@@ -1,5 +1,5 @@
 /**
- * WHIDER · Hoy: lo que tienes que hacer hoy, de lo más importante a lo menos.
+ * WHIDER · Inicio: lo que tienes que hacer hoy, de lo más importante a lo menos.
  *  - Arriba, el campo para añadir una tarea (con su importancia y, si quieres, para cada día).
  *  - «Cada día»: las tareas que se repiten varias veces por semana (antes, los hábitos); las ya hechas,
  *    tachadas en su sitio.
@@ -73,7 +73,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       var p = W.Parse.task(raw, { lists: st.lists });
       if (!p.text) return;
       st.addTask({
-        text: p.text, date: p.date !== undefined ? p.date : td, time: p.time || null, listId: p.listId || st.settings.defaultList,
+        text: p.text, date: p.date !== undefined ? p.date : td, time: p.time || null, listId: p.listId || st.defaultListId(),
         highlight: p.highlight || draft.prio, repeat: p.repeat || (draft.daily ? 'daily' : 'none'), days: p.days,
         warn: st.settings.defaultWarn, notes: '', subtasks: []
       });
@@ -165,7 +165,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
 
   W.Screens.home = {
-    title: W.t('Hoy'),
+    title: W.t('Inicio'),
     topTasks: topTasks,
     todo: todo,
     routines: routines,
@@ -180,7 +180,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     render: function (root) {
       var st = S(), s = st.stats(), td = U.today(), desk = W.Layout.desktop;
       var progress = s.todayTotal ? W.t('{done} de {total} hechas', { done: s.todayDone, total: s.todayTotal }) : '';
-      var head = W.UI.header({ title: W.t('Hoy'), profile: true, sub: U.cap(U.fmtLong(td)) + (progress ? ' · ' + progress : '') });
+      var head = W.UI.header({ title: W.t('Inicio'), sub: U.cap(U.fmtLong(td)) + (progress ? ' · ' + progress : '') });
       var main = [composer(st)], side = [], notices = [];
 
       var moved = movedNotice(st);
@@ -236,9 +236,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       var agenda = W.CalSubs ? W.CalSubs.homeSection() : null;
       if (agenda) (desk ? side : main).push(agenda);
 
-      // Primeros pasos (las primeras semanas) y avisos: debajo de las tareas
-      var steps = W.FirstSteps ? W.FirstSteps.card() : null;
-      if (steps) main.push(steps);
+      // Avisos: debajo de las tareas
       var perm = W.Notify.permission();
       if ((perm === 'default' || perm === 'denied') && st.tasks.some(function (t) { return t.warn && !t.done; })) {
         notices.push(W.UI.section({ items: [W.UI.cell({

@@ -48,7 +48,7 @@ button.cell:active, .cell.tap:active { background: var(--cell-hl); }
 /* Icono de fila: glifo blanco en un cuadrado redondeado gris (como los ajustes de Apple) */
 .cell-icon { flex: none; display: grid; place-items: center; width: 29px; height: 29px; border-radius: 7px; background: var(--tile); color: var(--on-color); }
 .cell-icon .ic { width: 18px; height: 18px; stroke-width: 2; }
-.cell.accent .cell-icon { background: var(--accent); }
+.cell.accent .cell-icon { background: var(--accent); color: var(--on-accent); }
 .cell.danger .cell-icon { background: var(--imp-1); }
 .cell-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .cell-title { font-size: var(--fs-body); line-height: 1.3; overflow-wrap: anywhere; }
@@ -58,12 +58,10 @@ button.cell:active, .cell.tap:active { background: var(--cell-hl); }
 .cell-sub.warn { color: var(--imp-2); font-weight: 600; }
 /* Cambios que no han llegado a la nube: un punto en el botón de los ajustes */
 .gear-btn { position: relative; }
-html[data-sync="offline"] .gear-btn::after, html[data-sync="error"] .gear-btn::after, html[data-sync="unverified"] .gear-btn::after,
-html[data-sync="offline"] .avatar-btn::after, html[data-sync="error"] .avatar-btn::after, html[data-sync="unverified"] .avatar-btn::after {
+html[data-sync="offline"] .gear-btn::after, html[data-sync="error"] .gear-btn::after, html[data-sync="unverified"] .gear-btn::after {
   content: ''; position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%;
   background: var(--imp-2); box-shadow: 0 0 0 2px var(--bg);
 }
-.avatar-btn { position: relative; }
 .cell-value { flex: none; display: inline-flex; align-items: center; gap: 6px; max-width: 58%; color: var(--t3); font-size: var(--fs-body); }
 .cell-value > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chev { width: .5rem; height: .875rem; flex: none; color: var(--chev-c); stroke-width: 2.4; }
@@ -231,6 +229,8 @@ html[data-theme="light"] input[type="date"], html[data-theme="light"] input[type
 .check svg { width: 12px; height: 12px; fill: none; stroke: var(--on-color); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset .25s var(--ease) .04s; }
 .check.on { background: var(--accent); border-color: var(--accent); }
 .check.on.p-star, .check.on.p-purple, .check.on.p-danger { background: var(--pc); border-color: var(--pc); }
+.check.on svg { stroke: var(--on-accent); }
+.check.on.p-danger svg, .check.on.p-purple svg { stroke: var(--on-color); }
 .check.on.p-star svg { stroke: var(--on-imp-3); }
 .check.on svg { stroke-dashoffset: 0; }
 .check.pop { animation: check-pop .3s var(--spring); }
@@ -502,6 +502,7 @@ kbd {
 .task.selected .task-body { background: rgba(var(--accent-rgb), .12); }
 body.select-mode .task .check { border-style: dashed; }
 body.select-mode .task.selected .check { border-style: solid; border-color: var(--accent); background: var(--accent); }
+body.select-mode .task.selected .check svg { stroke: var(--on-accent); }
 .drag-ghost { position: fixed; top: -100px; left: -100px; padding: 8px 14px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 13px; font-weight: 700; box-shadow: var(--sh-float); }
 .bulkbar {
   position: fixed; z-index: 40; left: 12px; right: 12px; bottom: calc(var(--safe-b) + 12px);

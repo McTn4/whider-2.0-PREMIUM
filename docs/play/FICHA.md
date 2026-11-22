@@ -32,17 +32,19 @@ NADA MÁS ABRIR, LO QUE TOCA HOY
 TAREAS QUE SE ESCRIBEN SOLAS
 • Escribe «Llamar a Ana mañana a las 10» y WHIDER entiende el día y la hora.
 • Categorías con color, subtareas, repeticiones (también días sueltos de la semana) y avisos.
+• Las tareas de cada día salen en Inicio y tienen su lista en Tareas.
 
 CALENDARIO
 • Mes, semana por horas y agenda, con tus tareas y sus repeticiones.
+• Toca un día o una hora y escribe la tarea ahí mismo.
 
 CUADERNO
 • Páginas con títulos, listas, casillas, tablas, bases de datos, imágenes y archivos adjuntos.
 • Plantillas para proyectos, reuniones y más.
 
-HECHA A TU MEDIDA
-• Al empezar, eliges para qué la usarás (estudios, trabajo, casa, salud o con otras personas) y WHIDER prepara tus categorías.
-• Si no la usas con nadie, oculta la pestaña Personas.
+SOLO LO TUYO
+• Empieza vacía: sin tareas ni categorías de ejemplo. Creas las categorías que quieras, si las quieres.
+• Si no la usas con nadie, la pestaña Personas ni aparece.
 
 CON OTRAS PERSONAS
 • Contactos, equipos con su Cuaderno compartido y chats.
@@ -77,7 +79,7 @@ sitio web `https://whider-red.vercel.app`.
 | Gráfico de funciones (1024 × 500, sin transparencia) | [`grafico-de-funciones.jpg`](grafico-de-funciones.jpg) | 1024 × 500 |
 | Capturas del teléfono (de 2 a 8; lado largo ≤ 2 × lado corto) | [`captura-1-hoy.jpg`](captura-1-hoy.jpg) … [`captura-4-cuaderno.jpg`](captura-4-cuaderno.jpg) | 1080 × 1920 |
 
-Orden recomendado de las capturas: Hoy, Tareas, Calendario y Cuaderno.
+Orden recomendado de las capturas: Inicio, Tareas, Calendario y Cuaderno.
 
 ## Antes de pulsar «Enviar a revisión»
 

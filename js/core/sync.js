@@ -194,6 +194,13 @@ window.Whider = window.Whider || {};
         .sort(function (x, y) { return (x.createdAt || 0) - (y.createdAt || 0); });
 
       var newer = function (key, field) { return (sa[key] || 0) >= (sb[key] || 0) ? a[field] : b[field]; };
+      // Categorías: las más recientes. Si nadie las ha tocado nunca (las dos en 0), las que tengan alguna: un
+      // dispositivo recién estrenado, que empieza sin categorías, no deja sin la suya a las tareas de la cuenta
+      var listsOf = function () {
+        var la = sa.listsAt || 0, lb = sb.listsAt || 0;
+        if (!la && !lb) return (a.lists && a.lists.length ? a.lists : b.lists) || a.lists;
+        return newer('listsAt', 'lists');
+      };
 
       // Si un dispositivo restableció los datos después de los cambios del otro, ese reinicio manda
       var resetA = sa.resetAt || 0, resetB = sb.resetAt || 0;
@@ -279,7 +286,7 @@ window.Whider = window.Whider || {};
       return {
         v: 1,
         tasks: tasks,
-        lists: newer('listsAt', 'lists') || a.lists || b.lists,
+        lists: listsOf() || a.lists || b.lists,
         settings: newer('settingsAt', 'settings') || a.settings || b.settings,
         profile: newer('profileAt', 'profile') || a.profile || b.profile,
         focus: maxMap('focus', true),
@@ -361,8 +368,10 @@ window.Whider = window.Whider || {};
       Sync.setStatus('connecting');
       var resolveFirst;
       firstSyncPromise = new Promise(function (r) { resolveFirst = r; });
-      setTimeout(function () { resolveFirst(); }, 5000);
-      Sync.push(true).then(resolveFirst, resolveFirst);
+      // Si tarda más de 5 s, se sigue sin esperarla (y se toma como no hecha)
+      setTimeout(function () { resolveFirst(false); }, 5000);
+      // true si la primera sincronización ha ido bien (con lo de la nube ya aquí); false si no
+      Sync.push(true).then(function () { resolveFirst(true); }, function () { resolveFirst(false); });
       watch();
       clearInterval(poll);
       // Respaldo: solo se mira la nube cada cierto tiempo si no se está escuchando

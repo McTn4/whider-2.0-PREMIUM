@@ -2,9 +2,9 @@
  * WHIDER · Presentación inicial (solo la primera vez): adapta la app a quien la usa.
  *  1. Bienvenida (solo sin cuentas).
  *  2. Tu perfil: nombre y foto.
- *  3. Para qué la vas a usar (estudios, trabajo, casa, salud, con otras personas): según lo que elijas, tus
- *     categorías de partida, los ejemplos que te propone y si la pestaña Personas está en la barra.
+ *  3. Si la vas a usar con otras personas: con eso, la pestaña Personas está o no en la barra.
  *  4. Avisos: si quieres que te avise a la hora de tus tareas.
+ * No crea categorías ni tareas: empiezas con la app vacía y añades lo tuyo.
  * Todo se puede cambiar después en Ajustes; «Omitir» deja la app como viene.
  */
 window.Whider = window.Whider || {};
@@ -14,42 +14,14 @@ window.Whider = window.Whider || {};
   var U = W.U, S = function () { return W.State; };
   var root = null, steps = [], step = 0, data = {};
 
-  /** Usos que se pueden elegir (el orden es el de la pantalla) */
-  var USES = [
-    { id: 'study', icon: 'book', title: W.t('Estudios'), sub: W.t('Clases, exámenes y entregas') },
-    { id: 'work', icon: 'briefcase', title: W.t('Trabajo'), sub: W.t('Reuniones, plazos y proyectos') },
-    { id: 'home', icon: 'home', title: W.t('Casa y vida personal'), sub: W.t('Recados, compras y citas') },
-    { id: 'health', icon: 'heart', title: W.t('Salud y deporte'), sub: W.t('Rutinas, entrenos y descanso') },
-    { id: 'people', icon: 'users', title: W.t('Con otras personas'), sub: W.t('Chats, equipos y tareas compartidas') }
-  ];
-
-  /**
-   * Categorías de partida según el uso. Solo con la app recién estrenada (sin tareas y sin haber tocado las
-   * categorías): nunca cambia las de una cuenta que ya tiene datos.
-   */
-  function adaptLists(uses) {
-    var st = S();
-    if (st.tasks.length || st.syncMeta.listsAt) return;
-    var want = { personal: true, work: uses.indexOf('work') >= 0, health: uses.indexOf('health') >= 0 };
-    st.lists.slice().forEach(function (l) { if (want[l.id] === false && st.lists.length > 1) st.removeList(l.id); });
-    var first = null;
-    if (uses.indexOf('study') >= 0 && !st.lists.some(function (l) { return l.icon === 'book'; })) first = st.addList(W.t('Estudios'), 'iris', 'book');
-    var main = first ? first.id : uses.indexOf('work') >= 0 && uses.indexOf('home') < 0 ? 'work' : 'personal';
-    if (st.getList(main)) st.setSetting('defaultList', main);
-  }
-
   function finish(skipped) {
     var st = S(), prof = st.getProfile() || {};
     var patch = {};
     if (data.name && data.name !== st.displayName()) patch.name = data.name;
     if (data.photo && data.photo !== prof.photo) patch.photo = data.photo;
     if (Object.keys(patch).length) { st.setProfile(patch); if (patch.name && W.Auth) W.Auth.updateName(patch.name); }
-    if (!skipped && data.uses) {
-      st.setSetting('uses', data.uses.join(','));
-      // Sin «Con otras personas», la barra se queda con lo tuyo (Personas sigue en Ajustes)
-      st.setSetting('peopleTab', data.uses.indexOf('people') >= 0);
-      adaptLists(data.uses);
-    }
+    // Solo para ti: la barra se queda con lo tuyo (Personas sigue en Ajustes → Lo que ves)
+    if (!skipped && data.people != null) st.setSetting('peopleTab', !!data.people);
     st.setMeta('onboarded', true);
     root.classList.remove('open');
     document.body.classList.remove('no-tabs');
@@ -98,44 +70,35 @@ window.Whider = window.Whider || {};
     ];
   }
 
-  /** Para qué la vas a usar (varias respuestas) */
-  function renderUses() {
-    if (!data.uses) data.uses = String(S().settings.uses || '').split(',').filter(Boolean);
-    var rows = USES.map(function (u) {
-      var on = data.uses.indexOf(u.id) >= 0;
-      var b = U.el('button.ob-use' + (on ? '.on' : ''), { attrs: { type: 'button', 'aria-pressed': on ? 'true' : 'false' } }, [
-        U.el('span.ob-use-ic', [U.icon(u.icon)]),
-        U.el('span.ob-use-main', [U.el('b', { text: u.title }), U.el('small', { text: u.sub })]),
-        U.el('span.ob-use-check', { attrs: { 'aria-hidden': 'true' } }, [U.icon('check', 'xs')])
-      ]);
-      b.addEventListener('click', function () {
-        var i = data.uses.indexOf(u.id);
-        if (i >= 0) data.uses.splice(i, 1); else data.uses.push(u.id);
-        W.Audio.select();
-        render();
-      });
-      return b;
-    });
+  /** Una opción de las que se eligen con un toque (con otras personas, avisos) */
+  function choice(on, icon, title, sub, onPick) {
+    var b = U.el('button.ob-use' + (on ? '.on' : ''), { attrs: { type: 'button', role: 'radio', 'aria-checked': on ? 'true' : 'false' } }, [
+      U.el('span.ob-use-ic', [U.icon(icon)]),
+      U.el('span.ob-use-main', [U.el('b', { text: title }), U.el('small', { text: sub })]),
+      U.el('span.ob-use-check', { attrs: { 'aria-hidden': 'true' } }, [U.icon('check', 'xs')])
+    ]);
+    b.addEventListener('click', function () { onPick(); W.Audio.select(); render(); });
+    return b;
+  }
+
+  /** Con otras personas o solo para ti: decide si la pestaña Personas está en la barra */
+  function renderPeople() {
+    if (data.people == null) data.people = S().settings.peopleTab !== false;
+    var opt = function (val, icon, title, sub) { return choice(data.people === val, icon, title, sub, function () { data.people = val; }); };
     return [
-      U.el('h1', { text: W.t('¿Para qué la vas a usar?') }),
-      U.el('p', { text: W.t('Elige todo lo que quieras. Con eso preparo tus categorías y lo que ves; puedes cambiarlo después.') }),
-      U.el('div.ob-uses', rows)
+      U.el('h1', { text: W.t('¿La vas a usar con otras personas?') }),
+      U.el('p', { text: W.t('Así la barra tiene solo lo que vas a usar. Puedes cambiarlo en Ajustes → Lo que ves.') }),
+      U.el('div.ob-uses', { attrs: { role: 'radiogroup', 'aria-label': W.t('Con otras personas') } }, [
+        opt(false, 'user', W.t('Solo para mí'), W.t('Tus tareas, tu calendario y tus notas')),
+        opt(true, 'users', W.t('También con otras personas'), W.t('Chats, equipos y tareas compartidas'))
+      ])
     ];
   }
 
   /** Avisos: la decisión, aquí; el permiso del sistema se pide al terminar */
   function renderNotify() {
     if (data.notify == null) data.notify = true;
-    var opt = function (val, icon, title, sub) {
-      var on = data.notify === val;
-      var b = U.el('button.ob-use' + (on ? '.on' : ''), { attrs: { type: 'button', role: 'radio', 'aria-checked': on ? 'true' : 'false' } }, [
-        U.el('span.ob-use-ic', [U.icon(icon)]),
-        U.el('span.ob-use-main', [U.el('b', { text: title }), U.el('small', { text: sub })]),
-        U.el('span.ob-use-check', { attrs: { 'aria-hidden': 'true' } }, [U.icon('check', 'xs')])
-      ]);
-      b.addEventListener('click', function () { data.notify = val; W.Audio.select(); render(); });
-      return b;
-    };
+    var opt = function (val, icon, title, sub) { return choice(data.notify === val, icon, title, sub, function () { data.notify = val; }); };
     return [
       U.el('h1', { text: W.t('¿Te aviso?') }),
       U.el('p', { text: W.t('A la hora de cada tarea y de tus tareas de cada día. Nada más.') }),
@@ -149,7 +112,7 @@ window.Whider = window.Whider || {};
   function render() {
     U.clear(root);
     var kind = steps[step];
-    var body = kind === 'welcome' ? renderWelcome() : kind === 'uses' ? renderUses() : kind === 'notify' ? renderNotify() : renderProfile();
+    var body = kind === 'welcome' ? renderWelcome() : kind === 'people' ? renderPeople() : kind === 'notify' ? renderNotify() : renderProfile();
     var last = step === steps.length - 1;
     var cta = U.el('button.btn.primary.block', { text: last ? W.t('Empezar') : W.t('Continuar'), on: { click: function () {
       if (kind === 'profile') { var i = U.$('.ob-input', root); if (i) data.name = i.value.trim(); }
@@ -171,14 +134,13 @@ window.Whider = window.Whider || {};
   }
 
   W.Onboarding = {
-    USES: USES,
     isOpen: function () { return !!root && root.classList.contains('open'); },
     back: function () { if (step > 0) { step--; render(); } return true; },
     start: function () {
       root = document.getElementById('onboardingRoot');
       if (!root || W.Onboarding.isOpen()) return;   // nunca se reinicia a medias
       var accounts = W.Auth && W.Auth.configured() && !S().meta.guest;
-      steps = (accounts ? [] : ['welcome']).concat(['profile', 'uses']).concat(W.Notify.permission() === 'default' ? ['notify'] : []);
+      steps = (accounts ? [] : ['welcome']).concat(['profile', 'people']).concat(W.Notify.permission() === 'default' ? ['notify'] : []);
       step = 0; data = {};
       root.style.display = 'flex';
       document.body.classList.add('no-tabs');

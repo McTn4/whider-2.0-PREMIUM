@@ -180,7 +180,7 @@ window.Whider = window.Whider || {};
         var n = (t.listName || '').trim(), l = n ? byName[n.toLowerCase()] : null;
         if (n && !l) { l = st.addList(n, null, 'list'); byName[n.toLowerCase()] = l; created.push(l.id); }
         return { id: U.uid(), text: t.text, notes: t.notes, date: t.date, time: t.time, done: t.done, doneOn: t.doneOn, doneAt: t.doneAt, highlight: t.highlight,
-          repeat: t.repeat, days: t.days, duration: t.duration, listId: l ? l.id : (n ? null : st.settings.defaultList), subtasks: t.subtasks, warn: false };
+          repeat: t.repeat, days: t.days, duration: t.duration, listId: l ? l.id : (n ? null : st.defaultListId()), subtasks: t.subtasks, warn: false };
       });
       var n = st.importTasks(items);
       st.setMeta('lastImport', { at: Date.now(), from: src.title, ids: items.map(function (x) { return x.id; }), lists: created });
@@ -203,7 +203,7 @@ window.Whider = window.Whider || {};
       if (!x) return 0;
       var ids = x.ids.filter(function (id) { return !!st.find(id); });
       if (ids.length) st.bulkRemove(ids);
-      (x.lists || []).forEach(function (lid) { if (st.getList(lid) && !st.tasks.some(function (t) { return t.listId === lid; }) && st.lists.length > 1) st.removeList(lid); });
+      (x.lists || []).forEach(function (lid) { if (st.getList(lid) && !st.tasks.some(function (t) { return t.listId === lid; })) st.removeList(lid); });
       st.setMeta('lastImport', null);
       W.Toast.show({ text: W.t('Importación deshecha: {n}', { n: U.plural(ids.length, 'tarea quitada', 'tareas quitadas') }), icon: 'undo' });
       return ids.length;

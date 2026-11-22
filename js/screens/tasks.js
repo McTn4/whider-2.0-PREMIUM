@@ -1,7 +1,7 @@
 /**
  * WHIDER · Tareas, organizadas por categorías:
- *  - Vistas automáticas: Hoy · Programadas · Todas · Prioritarias
- *  - Mis categorías (Personal, Trabajo…), cada una con su icono
+ *  - Vistas automáticas: Hoy · Cada día · Programadas · Prioritarias · Todas
+ *  - Mis categorías (las que crees: al empezar no hay ninguna), cada una con su icono
  *  - Filtros guardados (varias categorías, prioridades, fechas o un texto)
  * Cada una abre su propia página; la búsqueda filtra todas las tareas.
  */
@@ -13,9 +13,11 @@ window.Whider.Screens = window.Whider.Screens || {};
   var U = W.U, S = function () { return W.State; };
   var SMART = {
     today: { title: W.t('Hoy'), icon: 'sun' },
+    // Las tareas que se repiten (cada día, laborables o algunos días): las mismas que salen en Inicio
+    daily: { title: W.t('Cada día'), icon: 'repeat' },
     scheduled: { title: W.t('Programadas'), icon: 'calendar' },
-    all: { title: W.t('Todas'), icon: 'tray' },
-    flagged: { title: W.t('Prioritarias'), icon: 'flag' }
+    flagged: { title: W.t('Prioritarias'), icon: 'flag' },
+    all: { title: W.t('Todas'), icon: 'tray' }
   };
   var SORTS = [
     { value: 'smart', label: W.t('Fecha') },
@@ -88,7 +90,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         name,
         W.UI.section({ header: W.t('Icono'), items: U.el('div.group', [U.el('div.cell.col', [picker])]) }),
         W.UI.section({ header: W.t('Color'), items: U.el('div.group', [U.el('div.cell.col', [tintPick])]), footer: W.t('Opcional. Se ve como un punto junto al nombre de la categoría.') }),
-        list && st.lists.length > 1 ? U.el('div.group', [W.UI.cell({ title: W.t('Eliminar la categoría'), center: true, danger: true, onTap: function () {
+        list ? U.el('div.group', [W.UI.cell({ title: W.t('Eliminar la categoría'), center: true, danger: true, onTap: function () {
           removeList(list, function () { s.close(); if (afterRemove) afterRemove(); });
         } })]) : null
       ]
@@ -97,7 +99,6 @@ window.Whider.Screens = window.Whider.Screens || {};
   }
   function removeList(list, after) {
     var st = S();
-    if (st.lists.length <= 1) { W.Toast.show({ text: W.t('Necesitas al menos una categoría'), icon: 'info' }); return; }
     W.Sheet.confirm({ title: W.t('¿Eliminar «{name}»?', { name: list.name }), text: W.t('Sus tareas no se borran: quedarán sin categoría.'), ok: W.t('Eliminar'), danger: true })
       .then(function (ok) { if (ok) { st.removeList(list.id); if (after) after(); } });
   }
@@ -122,6 +123,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     return st.tasks.filter(function (t) {
       if (t.done) return false;
       if (id === 'today') return t.date === td || st.isOverdue(t);
+      if (id === 'daily') return W.Schema.isRoutine(t);
       if (id === 'scheduled') return !!t.date;
       if (id === 'flagged') return t.highlight !== 'none';
       return true;
@@ -136,7 +138,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   /** Grupos de una página: [{ title, red, items, ctx }] + completadas */
   function buildGroups(st, v) {
     var td = U.today(), tm = U.addDays(td, 1), wk = U.addDays(td, 7), cmp = sorter(st);
-    var inView = function (t) { return v.type === 'list' ? t.listId === v.id : v.id === 'flagged' ? t.highlight !== 'none' : true; };
+    var inView = function (t) { return v.type === 'list' ? t.listId === v.id : v.id === 'flagged' ? t.highlight !== 'none' : v.id === 'daily' ? W.Schema.isRoutine(t) : true; };
     var flt = v.type === 'filter' ? st.getFilter(v.id) : null;
     var pool = flt ? st.filterTasks(flt) : st.tasks.filter(inView);
     var pend = pool.filter(function (t) { return !t.done; });
@@ -148,6 +150,11 @@ window.Whider.Screens = window.Whider.Screens || {};
       groups = [G(W.t('Urgentes'), pend.filter(function (t) { return t.highlight === 'danger'; })),
         G(W.t('Importantes'), pend.filter(function (t) { return t.highlight === 'purple'; })),
         G(W.t('Destacadas'), pend.filter(function (t) { return t.highlight === 'star'; }))];
+    } else if (v.id === 'daily') {
+      // Una fila por tarea de cada día (la próxima vez que toca); las hechas hoy, abajo
+      groups = [G(W.t('Hoy'), pend.filter(function (t) { return !t.date || t.date <= td; }), { ctx: 'today' }),
+        G(W.t('Mañana'), pend.filter(function (t) { return t.date === tm; }), { ctx: 'day' }),
+        G(W.t('Más adelante'), pend.filter(function (t) { return t.date > tm; }))];
     } else if (v.id === 'today') {
       groups = [G(W.t('Vencidas'), over, { red: true, ctx: 'alerts' }), G(W.t('Hoy'), rest.filter(function (t) { return t.date === td; }), { ctx: 'today' })];
     } else if (v.id === 'scheduled') {
@@ -169,7 +176,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       ];
     }
     groups = groups.filter(function (g) { return g.items.length; });
-    var done = v.id === 'scheduled' ? [] : pool.filter(function (t) { return t.done && (v.id !== 'today' || t.doneOn === td || t.date === td); })
+    var done = v.id === 'scheduled' ? [] : pool.filter(function (t) { return t.done && ((v.id !== 'today' && v.id !== 'daily') || t.doneOn === td || t.date === td); })
       .sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
     return { groups: groups, done: done };
   }
@@ -241,7 +248,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     if ((v.type === 'list' && !list) || (v.type === 'filter' && !flt)) { st.ui.taskView = null; return home(root); }
     var title = viewTitle(st, v);
     var b = buildGroups(st, v);
-    var preset = list ? { listId: list.id } : v.id === 'flagged' ? { highlight: 'star' } : flt ? {} : { date: U.today() };
+    var preset = list ? { listId: list.id } : v.id === 'flagged' ? { highlight: 'star' } : v.id === 'daily' ? { date: U.today(), repeat: 'daily' } : flt ? {} : { date: U.today() };
     if (flt) {
       if (flt.lists.length === 1 && flt.lists[0]) preset.listId = flt.lists[0];
       if (flt.priorities.length === 1 && flt.priorities[0] !== 'none') preset.highlight = flt.priorities[0];
@@ -349,7 +356,7 @@ window.Whider.Screens = window.Whider.Screens || {};
   function home(root) {
     var st = S();
     var pendingAll = st.tasks.filter(function (t) { return !t.done; }).length;
-    var head = W.UI.header({ title: W.t('Tareas'), profile: true, sub: pendingAll ? U.plural(pendingAll, 'tarea pendiente', 'tareas pendientes') : W.t('Todo al día') });
+    var head = W.UI.header({ title: W.t('Tareas'), sub: pendingAll ? U.plural(pendingAll, 'tarea pendiente', 'tareas pendientes') : W.t('Todo al día') });
     var input = U.el('input.input', { attrs: { type: 'search', placeholder: W.t('Buscar'), 'aria-label': W.t('Buscar tareas'), enterkeyhint: 'search', autocomplete: 'off' } });
     input.value = st.ui.query || '';
     var search = U.el('div.search' + (input.value ? '.has-value' : ''), [U.icon('search'), input,

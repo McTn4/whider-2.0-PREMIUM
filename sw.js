@@ -63,7 +63,6 @@ var ASSETS = [
   './js/ui/filters.js',
   './js/ui/help.js',
   './js/ui/calsubs.js',
-  './js/ui/firststeps.js',
   './js/ui/importwiz.js',
   './js/ui/install.js',
   './js/ui/keys.js',

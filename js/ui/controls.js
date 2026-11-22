@@ -33,11 +33,6 @@ window.Whider = window.Whider || {};
     return b;
   }
 
-  /** Tu foto, arriba a la izquierda (como en X): abre los Ajustes, con tu cuenta lo primero */
-  function profileBtn() {
-    return U.el('button.avatar-btn', { attrs: { 'aria-label': W.t('Tu cuenta y tus ajustes'), title: W.t('Tu cuenta y tus ajustes') },
-      on: { click: function () { W.Settings.open(); } } }, [W.Profile.avatar()]);
-  }
   function gearBtn() {
     // Con cambios sin subir por un fallo, el engranaje lleva un punto (y lo dice al lector de pantalla)
     var unsaved = !!(W.Sync && W.Sync.unsaved && W.Sync.unsaved());
@@ -51,15 +46,14 @@ window.Whider = window.Whider || {};
 
     /**
      * Cabecera de pantalla: barra superior fija + título.
-     * header({ title, sub, back: { label, onTap }, actions: [spec], profile, gear })
-     *  - profile: foto a la izquierda (abre el Perfil) · gear: engranaje a la derecha (abre Ajustes)
+     * header({ title, sub, back: { label, onTap }, actions: [spec], gear })
+     *  - gear: el engranaje de los Ajustes, arriba a la derecha (como siempre); gear: false lo quita
      */
     header: function (o) {
-      // En el ordenador, la foto y los ajustes están en la barra lateral
+      // En el ordenador, los ajustes están abajo en la barra lateral
       var desk = W.Layout && W.Layout.desktop;
-      var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: W.t('Volver a {label}', { label: o.back.label }), onTap: o.back.onTap, back: true }) : o.profile && !desk ? profileBtn() : null]);
-      // El engranaje solo donde no está tu foto (que ya abre los Ajustes)
-      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false || desk || (o.profile && !o.back) ? [] : [gearBtn()]));
+      var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: W.t('Volver a {label}', { label: o.back.label }), onTap: o.back.onTap, back: true }) : null]);
+      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false || desk ? [] : [gearBtn()]));
       var nav = U.el('header.nav', [lead, U.el('div.nav-title', { text: o.compact || o.title }), trail]);
       var lt = U.el('div.lt', [
         U.el('div.lt-text', [

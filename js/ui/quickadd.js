@@ -35,8 +35,8 @@ window.Whider = window.Whider || {};
         if (!p.text) return;
         st.addTask({
           text: p.text, date: p.date !== undefined ? p.date : (preset.date !== undefined ? preset.date : null),
-          time: p.time || null, listId: p.listId || preset.listId || st.settings.defaultList,
-          highlight: p.highlight || preset.highlight || 'none', repeat: p.repeat || 'none', days: p.days,
+          time: p.time || null, listId: p.listId || preset.listId || st.defaultListId(),
+          highlight: p.highlight || preset.highlight || 'none', repeat: p.repeat || preset.repeat || 'none', days: p.days,
           warn: st.settings.defaultWarn, notes: '', subtasks: []
         });
         W.Audio.vibrate([8]);
@@ -48,7 +48,7 @@ window.Whider = window.Whider || {};
       return U.el('label.inline-add', [U.icon('plus'), input, U.el('span.ia-hint', [U.el('kbd', { text: W.t('Intro') })])]);
     },
 
-    /** open({ date, time, listId, highlight }) — valores de partida según la pantalla */
+    /** open({ date, time, listId, highlight, repeat }) — valores de partida según la pantalla */
     open: function (preset) {
       if (current) return current;
       preset = preset || {};
@@ -56,9 +56,9 @@ window.Whider = window.Whider || {};
       var base = {
         date: preset.date !== undefined ? preset.date : U.today(),
         time: preset.time || null,
-        listId: preset.listId || st.settings.defaultList,
+        listId: preset.listId || st.defaultListId(),
         highlight: preset.highlight || 'none',
-        repeat: 'none'
+        repeat: preset.repeat || 'none'
       };
       if (base.listId && !st.getList(base.listId)) base.listId = null;
       var manual = {};          // lo que el usuario fijó con los botones (manda sobre lo detectado)

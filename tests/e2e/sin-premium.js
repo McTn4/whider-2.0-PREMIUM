@@ -66,7 +66,7 @@ async function run(label, ctxOpts, desk) {
   });
   ok(fx.filters >= 5, label + ': más de 3 filtros guardados (' + fx.filters + ')');
   if (desk) {
-    await p.evaluate(() => { Whider.State.ui.taskLayout = 'board'; Whider.Router.go('tasks'); Whider.Sidebar.openView({ type: 'list', id: 'personal' }); }); await sleep(700);
+    await p.evaluate(() => { const l = Whider.State.addList('Personal', 'iris', 'user'); Whider.State.ui.taskLayout = 'board'; Whider.Router.go('tasks'); Whider.Sidebar.openView({ type: 'list', id: l.id }); }); await sleep(700);
     ok(await p.evaluate(() => !!document.querySelector('#screen-tasks .board')), label + ': vista de tablero disponible');
     await p.evaluate(() => { Whider.State.ui.taskLayout = 'list'; });
     const sb = await p.evaluate(() => document.getElementById('sidebar').innerText);

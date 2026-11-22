@@ -57,7 +57,7 @@ window.Whider = window.Whider || {};
       foot: [U.el('button.btn.primary', { on: { click: function () {
         var st = S(), t = st.addTask({
           text: title(ev).slice(0, 200), date: ev.date, time: ev.allDay ? null : ev.time, duration: ev.allDay ? 0 : Math.min(ev.durMin || 0, 720),
-          listId: st.settings.defaultList, highlight: 'none', repeat: 'none', warn: st.settings.defaultWarn,
+          listId: st.defaultListId(), highlight: 'none', repeat: 'none', warn: st.settings.defaultWarn,
           notes: [ev.location, ev.notes].filter(Boolean).join('\n\n').slice(0, 2000), subtasks: []
         });
         s.close();
@@ -197,7 +197,7 @@ window.Whider = window.Whider || {};
     var s = W.Sheet.open({
       title: W.t('Añadir un calendario'), className: 'editor cal-add',
       body: [
-        U.el('p.sheet-lead-text', { text: W.t('Pega el enlace del calendario en formato iCal (.ics o webcal://). Sus eventos se verán en tu calendario y en Hoy.') }),
+        U.el('p.sheet-lead-text', { text: W.t('Pega el enlace del calendario en formato iCal (.ics o webcal://). Sus eventos se verán en tu calendario y en Inicio.') }),
         U.el('div.group', [U.el('label.cell', [url]), U.el('label.cell', [name])]),
         msg
       ],

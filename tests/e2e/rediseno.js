@@ -1,4 +1,4 @@
-// Rediseño: la presentación adapta la app (para qué la usas → categorías y pestaña Personas), Hoy por importancia con
+// Rediseño: la presentación adapta la app (con quién la usas → pestaña Personas) y empieza vacía, Inicio por importancia con
 // el campo de arriba (importancia y «Cada día»), los hábitos convertidos en tareas de cada día (con su aviso de una vez),
 // las de cada día que se quedan sin hacer pasan solas a hoy, el editor elige días de la semana y el aspecto nuevo
 // (Inter, barra inferior de cinco pestañas, «+» flotante, barra lateral como la de X).
@@ -41,39 +41,37 @@ async function abrir(b, opts, seed) {
 (async () => {
   const b = await chromium.launch();
 
-  /* 1. Presentación: para qué la usas → categorías y pestaña Personas */
+  /* 1. Presentación: con quién la usas → pestaña Personas; nada de ejemplo */
   {
     const { ctx, p, errs } = await abrir(b, { ...devices['Pixel 7'] }, { 'whider.meta.v1': { onboarded: false, createdAt: Date.now() } });
     ok(await p.evaluate(() => Whider.Onboarding.isOpen()), 'la presentación se abre la primera vez');
-    // Bienvenida → perfil → para qué la usas
+    // Bienvenida → perfil → con quién la usas
     await p.click('.ob-foot .btn.primary');
     await sleep(300);
     await p.fill('.ob-input', 'Lucía');
     await p.click('.ob-foot .btn.primary');
     await sleep(300);
-    ok(await p.isVisible('text=¿Para qué la vas a usar?'), 'pregunta para qué la vas a usar');
-    await p.click('.ob-use:has-text("Estudios")');
-    await p.click('.ob-use:has-text("Salud y deporte")');
-    const marcadas = await p.$$eval('.ob-use.on b', (n) => n.map((x) => x.textContent));
-    ok(marcadas.join() === 'Estudios,Salud y deporte', 'se marcan varias respuestas', marcadas);
+    ok(await p.isVisible('text=¿La vas a usar con otras personas?'), 'pregunta si la vas a usar con otras personas');
+    await p.click('.ob-use:has-text("Solo para mí")');
+    const marcada = await p.$$eval('.ob-use.on b', (n) => n.map((x) => x.textContent));
+    ok(marcada.join() === 'Solo para mí', 'se elige una de las dos', marcada);
     // Hasta el final (con o sin el paso de los avisos)
     for (let i = 0; i < 3 && (await p.evaluate(() => Whider.Onboarding.isOpen())); i++) {
       await p.click('.ob-foot .btn.primary');
       await sleep(400);
     }
     const st = await p.evaluate(() => ({
-      uses: Whider.State.settings.uses,
       people: Whider.State.settings.peopleTab,
-      lists: Whider.State.lists.map((l) => l.name),
-      def: Whider.State.getList(Whider.State.settings.defaultList).name,
+      lists: Whider.State.lists.length,
+      tasks: Whider.State.tasks.length,
+      steps: !!document.querySelector('#screen-home .first-steps, #screen-home .fs-step'),
       attr: document.documentElement.getAttribute('data-people'),
       tab: getComputedStyle(document.querySelector('.dock .tab[data-go="friends"]')).display,
       name: Whider.State.displayName()
     }));
-    ok(st.uses === 'study,health' && st.name === 'Lucía', 'guarda para qué la usas y tu nombre', st);
-    ok(st.lists.join() === 'Personal,Salud,Estudios', 'categorías según el uso (sin «Trabajo», con «Estudios»)', st.lists);
-    ok(st.def === 'Estudios', 'la categoría por defecto es la de estudios', st.def);
-    ok(st.people === false && st.attr === 'off' && st.tab === 'none', 'sin «Con otras personas», la pestaña Personas no está', st);
+    ok(st.name === 'Lucía', 'guarda tu nombre', st);
+    ok(st.lists === 0 && st.tasks === 0 && !st.steps, 'empieza vacía: sin categorías, sin tareas y sin tutorial de ejemplo', st);
+    ok(st.people === false && st.attr === 'off' && st.tab === 'none', 'solo para ti: la pestaña Personas no está', st);
     // Ajustes → Lo que ves → Personas: vuelve
     await p.evaluate(() => Whider.Settings.open('custom'));
     await sleep(500);
@@ -201,7 +199,7 @@ async function abrir(b, opts, seed) {
       };
     });
     ok(sb.n === 5 && sb.activo === 'home', 'cinco secciones; Hoy activa', sb);
-    ok(+sb.peso >= 700 && sb.relleno === '#i-sun-fill', 'la sección activa, en negrita y con su icono relleno', sb);
+    ok(+sb.peso >= 700 && sb.relleno === '#i-home-fill', 'la sección activa, en negrita y con su icono relleno', sb);
     ok(sb.orden === 'sb-brand,sb-search,sb-nav,sb-actions', 'logotipo, buscar, secciones y «Nueva tarea» debajo', sb.orden);
     ok(sb.fab === 'none', 'en el ordenador no hay «+» flotante (está «Nueva tarea»)', sb.fab);
     ok(!errs.length, 'sin errores (ordenador)', errs);

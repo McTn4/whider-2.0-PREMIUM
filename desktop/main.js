@@ -243,7 +243,7 @@ function buildMenu() {
     { role: 'cut', label: t('Cortar') }, { role: 'copy', label: t('Copiar') }, { role: 'paste', label: t('Pegar') }, { role: 'selectAll', label: t('Seleccionar todo') }
   ] });
   template.push({ label: t('Ver'), submenu: [
-    go(t('Hoy'), 'home', '1'), go(t('Tareas'), 'tasks', '2'), go(t('Calendario'), 'calendar', '3'), go(t('Cuaderno'), 'notes', '4'), go(t('Personas'), 'friends', '5'), { type: 'separator' },
+    go(t('Inicio'), 'home', '1'), go(t('Tareas'), 'tasks', '2'), go(t('Calendario'), 'calendar', '3'), go(t('Cuaderno'), 'notes', '4'), go(t('Personas'), 'friends', '5'), { type: 'separator' },
     { label: t('Chats'), click: function () { command('go:chats'); } }, { type: 'separator' },
     { role: 'resetZoom', label: t('Tamaño real') }, { role: 'zoomIn', label: t('Ampliar') }, { role: 'zoomOut', label: t('Reducir') }, { type: 'separator' },
     { role: 'togglefullscreen', label: t('Pantalla completa') }

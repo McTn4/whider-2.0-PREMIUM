@@ -34,6 +34,7 @@ const EN = {
   'Seleccionar todo': 'Select all',
   Ver: 'View',
   Hoy: 'Today',
+  Inicio: 'Home',
   Tareas: 'Tasks',
   Calendario: 'Calendar',
   Cuaderno: 'Notebook',

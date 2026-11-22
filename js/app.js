@@ -140,9 +140,15 @@ window.Whider = window.Whider || {};
   var onboardingChecked = false;
   /** Tras entrar (o elegir modo sin cuenta): presentación solo si hace falta */
   function afterAuth() {
-    var go = function () {
+    var go = function (synced) {
       if (onboardingChecked) return;
       onboardingChecked = true;
+      // Una vez por dispositivo, ya con lo de la nube: fuera las categorías de ejemplo de versiones anteriores
+      // que nadie usa (si la nube no respondió, se intenta la próxima vez)
+      if (!S.meta.exampleListsChecked && synced !== false) {
+        S.dropExampleLists();
+        S.setMeta('exampleListsChecked', true);
+      }
       if (!S.meta.onboarded) W.Onboarding.start();
     };
     // Con cuenta, se espera a la primera sincronización: si ya hiciste la presentación en otro

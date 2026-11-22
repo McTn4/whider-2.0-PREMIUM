@@ -28,8 +28,10 @@ async function setup(b, viewport, mobile) {
   await p.evaluate(() => {
     Whider.Notify.check = function () {};
     const S = Whider.State;
+    // Sin categorías de serie: la de Trabajo la crea quien la quiere
+    const work = S.addList('Trabajo', 'iris', 'briefcase').id;
     const t = Whider.U.today(),
-      add = (text, h, time, repeat) => S.addTask({ text, date: t, time: time || null, highlight: h || 'none', listId: 'work', warn: false, repeat: repeat || 'none' });
+      add = (text, h, time, repeat) => S.addTask({ text, date: t, time: time || null, highlight: h || 'none', listId: work, warn: false, repeat: repeat || 'none' });
     add('Preparar la propuesta', 'danger', '10:00');
     add('Llamar a Ana', 'purple', '12:00');
     add('Revisar correo');
@@ -49,9 +51,9 @@ async function setup(b, viewport, mobile) {
       cada: [...document.querySelectorAll('#screen-home .daily-sec .task-title')].map((x) => x.textContent),
       todo: [...document.querySelectorAll('#screen-home .todo-sec .task-title')].map((x) => x.textContent)
     }));
-    ok('Hoy: «Cada día» con la diaria', hoy.cada.join() === 'Leer 20 minutos', hoy.cada);
-    ok('Hoy: «Por hacer» por importancia (urgente, importante, destacada, normal)', hoy.todo[0] === 'Preparar la propuesta' && hoy.todo[1] === 'Llamar a Ana' && hoy.todo[2] === 'Comprar pan', hoy.todo);
-    ok('barra lateral: Hoy, Tareas, Calendario, Cuaderno y Personas', await p.evaluate(() => [...document.querySelectorAll('#sidebar .sb-nav .sb-label')].map((x) => x.textContent).join()) === 'Hoy,Tareas,Calendario,Cuaderno,Personas');
+    ok('Inicio: «Cada día» con la diaria', hoy.cada.join() === 'Leer 20 minutos', hoy.cada);
+    ok('Inicio: «Por hacer» por importancia (urgente, importante, destacada, normal)', hoy.todo[0] === 'Preparar la propuesta' && hoy.todo[1] === 'Llamar a Ana' && hoy.todo[2] === 'Comprar pan', hoy.todo);
+    ok('barra lateral: Inicio, Tareas, Calendario, Cuaderno y Personas', await p.evaluate(() => [...document.querySelectorAll('#sidebar .sb-nav .sb-label')].map((x) => x.textContent).join()) === 'Inicio,Tareas,Calendario,Cuaderno,Personas');
     ok('foto de perfil con la inicial', await p.evaluate(() => !!document.querySelector('#sidebar .sb-profile .avatar')));
     if (OUT) await p.screenshot({ path: OUT + '/d-home.png' });
     for (const [k, scr] of [
@@ -89,8 +91,8 @@ async function setup(b, viewport, mobile) {
     // Móvil
     const { p, errs } = await setup(b, { width: 390, height: 844 }, true);
     await sleep(400);
-    ok('barra inferior: Hoy, Tareas, Calendario, Cuaderno y Personas', (await p.evaluate(() => [...document.querySelectorAll('.dock .tab-label')].map((x) => x.textContent).join(','))) === 'Hoy,Tareas,Calendario,Cuaderno,Personas');
-    ok('Hoy móvil: «Cada día» y «Por hacer»', await p.evaluate(() => !!document.querySelector('#screen-home .daily-sec') && document.querySelectorAll('#screen-home .todo-sec .task').length === 5));
+    ok('barra inferior: Inicio, Tareas, Calendario, Cuaderno y Personas', (await p.evaluate(() => [...document.querySelectorAll('.dock .tab-label')].map((x) => x.textContent).join(','))) === 'Inicio,Tareas,Calendario,Cuaderno,Personas');
+    ok('Inicio móvil: «Cada día» y «Por hacer»', await p.evaluate(() => !!document.querySelector('#screen-home .daily-sec') && document.querySelectorAll('#screen-home .todo-sec .task').length === 5));
     if (OUT) await p.screenshot({ path: OUT + '/m-home.png' });
     await p.click('.dock .tab[data-go="notes"]');
     await sleep(450);
@@ -114,9 +116,10 @@ async function setup(b, viewport, mobile) {
     await p.evaluate(() => Whider.Router.go('chats'));
     await sleep(400);
     ok('Chats: la pestaña marcada es Personas', await p.evaluate(() => document.querySelector('.dock .tab[data-go="friends"]').classList.contains('active')));
-    await p.click('.screen.active .avatar-btn');
+    ok('sin la foto arriba a la izquierda: el engranaje, a la derecha', await p.evaluate(() => !document.querySelector('.screen.active .avatar-btn') && !!document.querySelector('.screen.active .nav-trail .gear-btn')));
+    await p.click('.screen.active .gear-btn');
     await sleep(500);
-    ok('tu foto abre los Ajustes', await p.evaluate(() => Whider.Settings.isOpen()));
+    ok('el engranaje abre los Ajustes', await p.evaluate(() => Whider.Settings.isOpen()));
     ok('sin errores (móvil)', errs.length === 0, errs.slice(0, 6));
   }
   await b.close();

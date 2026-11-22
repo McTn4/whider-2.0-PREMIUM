@@ -33,21 +33,6 @@
 .daily-sec .sec-t, .todo-sec .sec-t { padding-bottom: 2px; }
 .done-sec { margin-top: 18px; }
 
-/* ---------- Primeros pasos ---------- */
-.fs-list { display: flex; flex-direction: column; }
-.fs-step { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 58px; padding: 10px 16px; text-align: left; border-top: .5px solid var(--sep); }
-.fs-step:first-child { border-top: 0; }
-.fs-step:not(:disabled):hover { background: var(--fill-3); }
-.fs-check { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.75px var(--imp-0); }
-.fs-step.done .fs-check { background: var(--accent); box-shadow: none; color: var(--on-accent); }
-.fs-step.done .fs-check .ic { stroke-width: 3; }
-.fs-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.fs-main b { font-weight: 600; }
-.fs-main small { color: var(--t3); font-size: var(--fs-sub); letter-spacing: 0; }
-.fs-step.done .fs-main b { color: var(--t3); font-weight: 500; text-decoration: line-through; text-decoration-color: var(--t4); }
-.fs-step .chev { color: var(--t4); }
-.sec.first-steps .sec-t .cell-row { gap: 12px; align-items: center; }
-
 /* ---------- Novedades: aviso en Hoy tras actualizar y hoja con las notas ---------- */
 .wn-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 10px; align-items: center; padding: 12px 10px 14px 14px; margin: 14px 0 4px; border-radius: var(--r-cell); background: rgba(var(--accent-rgb), .1); }
 .wn-badge { grid-row: 1 / span 2; align-self: start; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-accent); }
@@ -125,6 +110,8 @@
 
 /* ---------- Tareas: listas automáticas ---------- */
 .smart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* Cinco listas: la última («Todas») ocupa la fila entera */
+.smart-grid > .smart:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .smart {
   position: relative; display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: var(--r-cell); overflow: hidden;
   background: var(--s1); text-align: left; transition: transform .12s var(--ease), background-color .15s;
@@ -200,8 +187,9 @@
   font-variant-numeric: tabular-nums; font-size: 1rem; transition: background-color .15s, color .15s;
 }
 .cal-day.past .cal-num { color: var(--t3); }
-.cal-day.today .cal-num { color: var(--link); font-weight: 700; }
-.cal-day.selected .cal-num { background: var(--t1); color: var(--bg); font-weight: 700; }
+/* Hoy: con un aro (el color ya no lo distingue); el día elegido, relleno */
+.cal-day.today .cal-num { color: var(--t1); font-weight: 800; box-shadow: inset 0 0 0 1.5px var(--t1); }
+.cal-day.selected .cal-num { background: var(--t1); color: var(--bg); font-weight: 700; box-shadow: none; }
 .cal-day.selected.today .cal-num { background: var(--accent); color: var(--on-accent); }
 .cal-dots { display: flex; gap: 3px; height: 5px; }
 .cal-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--t3); }
@@ -214,11 +202,20 @@
 .day-head strong { display: block; font-size: var(--fs-title3); font-weight: 800; letter-spacing: -.02em; }
 .day-head span { display: block; margin-top: 2px; font-size: var(--fs-foot); color: var(--t2); }
 .day-progress { width: 64px; }
-.quick-day { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 0 6px 0 14px; border-radius: 999px; background: var(--fill-3); }
-.quick-day .ic { color: var(--t2); }
-.quick-day input { flex: 1; min-width: 0; height: 46px; border: 0; background: transparent; color: var(--t1); font-size: var(--fs-sub); }
-.quick-day input::placeholder { color: var(--t3); }
-.quick-day .btn { min-height: 34px; padding: 0 12px; }
+/* Añadir en el propio calendario: el campo aparece justo donde se toca (día, hueco de una hora o «Sin hora») */
+.cal-new { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 0 8px; border-radius: 8px; background: var(--s2); box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--t2); cursor: text; }
+.cal-new .ic { flex: none; width: 14px; height: 14px; }
+.cal-new input { flex: 1; min-width: 0; height: 30px; border: 0; background: transparent; color: var(--t1); font-size: var(--fs-sub); outline: none; }
+.cal-new input::placeholder { color: var(--t3); }
+.cal-new.slot { position: absolute; z-index: 4; left: 0; right: 0; }
+.cal-new.slot input { height: 100%; }
+.allday .cal-new { width: 100%; }
+.allday, .hours { cursor: pointer; }
+/* Mes del móvil: la fila para escribir, bajo la semana del día elegido */
+.cal-add-host { grid-column: 1 / -1; padding: 4px 2px 6px; }
+.cal-new.row { height: 40px; padding: 0 12px; border-radius: 10px; background: var(--fill-3); box-shadow: none; }
+.cal-new.row:focus-within { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.cal-new.row input { height: 40px; }
 .timeline .task-body { gap: 12px; }
 .tl-time { flex: none; width: 3.2rem; padding-top: 2px; font-variant-numeric: tabular-nums; font-size: .8125rem; color: var(--t3); }
 .tl-time.none { color: var(--t3); }
@@ -281,7 +278,6 @@
 .blk.lifted { z-index: 5; transform: scale(1.02); box-shadow: var(--sh-float), 0 0 0 1.5px var(--link); transition: box-shadow .2s, transform .2s; }
 .now-line { position: absolute; z-index: 3; left: -6px; right: 0; height: 1.5px; background: var(--imp-1); border-radius: 2px; pointer-events: none; }
 .now-line::before { content: ''; position: absolute; left: -4px; top: -4px; width: 9px; height: 9px; border-radius: 50%; background: var(--imp-1); }
-.slot-hint { position: absolute; z-index: 1; left: 0; right: 0; height: 28px; border-radius: 8px; background: rgba(var(--accent-rgb), .12); border: 1px dashed var(--link); pointer-events: none; display: grid; place-items: center; font-variant-numeric: tabular-nums; font-size: var(--fs-cap); color: var(--link); }
 /* Agenda */
 .ag-day { margin-top: var(--gap); }
 .ag-day:first-child { margin-top: 14px; }
@@ -350,7 +346,7 @@
 .ob-use:active { background: var(--cell-hl); }
 .ob-use-ic { flex: none; display: grid; place-items: center; width: 29px; height: 29px; border-radius: 7px; background: var(--tile); color: var(--on-color); }
 .ob-use-ic .ic { width: 17px; height: 17px; stroke-width: 2; }
-.ob-use.on .ob-use-ic { background: var(--accent); }
+.ob-use.on .ob-use-ic { background: var(--accent); color: var(--on-accent); }
 .ob-use-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .ob-use-main b { font-weight: 600; }
 .ob-use-main small { color: var(--t3); font-size: var(--fs-sub); letter-spacing: 0; }

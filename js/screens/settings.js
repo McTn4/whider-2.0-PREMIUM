@@ -11,7 +11,7 @@ window.Whider = window.Whider || {};
   /** «1.1.0», «1.1.0 beta 1» (la versión sale de package.json vía js/core/version.js) */
   function versionText() { return W.WhatsNew ? W.WhatsNew.label(W.VERSION) : String(W.VERSION || ''); }
   var SCREENS = [
-    { value: 'home', label: W.t('Hoy') }, { value: 'tasks', label: W.t('Tareas') }, { value: 'calendar', label: W.t('Calendario') },
+    { value: 'home', label: W.t('Inicio') }, { value: 'tasks', label: W.t('Tareas') }, { value: 'calendar', label: W.t('Calendario') },
     { value: 'notes', label: W.t('Cuaderno') }, { value: 'friends', label: W.t('Personas') }
   ];
   var REWARN = [{ value: 0, label: W.t('Solo una vez') }, { value: 10, label: W.t('Cada 10 minutos') }, { value: 20, label: W.t('Cada 20 minutos') }, { value: 60, label: W.t('Cada hora') }];
@@ -99,11 +99,7 @@ window.Whider = window.Whider || {};
             onTap: function () { U.openExternal(location.origin + '/#descargar'); } })
         ].filter(Boolean) }) : null,
         W.UI.section({ header: W.t('Ayuda'), items: [
-          W.UI.cell({ icon: 'info', title: W.t('Primeros pasos'), sub: W.t('Lo esencial de WHIDER en cinco pasos'), onTap: function () {
-            W.FirstSteps.show();
-            if (W.FirstSteps.visible()) { nav.close(); W.Router.go('home'); W.Router.refresh(); } else W.Toast.show({ text: W.t('Ya has completado los primeros pasos'), icon: 'check' });
-          } }),
-          W.UI.cell({ icon: 'sliders', title: W.t('Adaptar WHIDER a ti'), sub: W.t('Vuelve a la presentación: para qué la usas y los avisos'), onTap: function () { nav.close(); setTimeout(function () { W.Onboarding.start(); }, 300); } }),
+          W.UI.cell({ icon: 'sliders', title: W.t('Adaptar WHIDER a ti'), sub: W.t('Vuelve a la presentación: tu perfil, con quién la usas y los avisos'), onTap: function () { nav.close(); setTimeout(function () { W.Onboarding.start(); }, 300); } }),
           W.UI.cell({ icon: 'star', title: W.t('Novedades'), sub: W.t('Qué ha cambiado en cada versión'), onTap: function () { W.WhatsNew.open(); } }),
           W.UI.cell({ icon: 'book', title: W.t('Preguntas frecuentes'), onTap: function () { W.Help.faq(); } }),
           W.UI.cell({ icon: 'send', title: W.t('Enviar comentarios'), sub: W.t('Una idea, algo que no funciona u otra cosa'), onTap: function () { W.Help.feedback(); } }),
@@ -171,13 +167,14 @@ window.Whider = window.Whider || {};
 
   function tasksPage(nav) {
     var st = S(), cfg = st.settings, set = st.setSetting;
-    var lists = st.lists.map(function (l) { return { value: l.id, label: l.name }; });
+    // Sin categoría por defecto (lo de siempre al empezar) o una de las tuyas
+    var lists = [{ value: null, label: W.t('Ninguna') }].concat(st.lists.map(function (l) { return { value: l.id, label: l.name }; }));
     return {
       title: W.t('Tareas y categorías'),
       body: [
         W.UI.group([
           W.UI.cell({ icon: 'list', title: W.t('Categorías'), value: String(st.lists.length), onTap: function () { nav.push(listsPage); } }),
-          menuCell({ icon: 'tray', title: W.t('Categoría por defecto'), value: cfg.defaultList, options: lists, onChange: function (v) { set('defaultList', v); } }, nav),
+          menuCell({ icon: 'tray', title: W.t('Categoría por defecto'), value: st.defaultListId(), options: lists, onChange: function (v) { set('defaultList', v); } }, nav),
           W.UI.cell({ icon: 'edit', title: W.t('Escribir tareas rápido'), sub: W.t('Fecha, hora y categoría en el propio texto'), onTap: function () { nav.push(quickHelpPage); } })
         ]),
         W.UI.section({ items: [toggleCell({ icon: 'trash', title: W.t('Confirmar antes de eliminar'), value: cfg.confirmDelete, onChange: function (v) { set('confirmDelete', v); } })],
@@ -310,7 +307,7 @@ window.Whider = window.Whider || {};
     var st = S(), cfg = st.settings, dk = cfg.desk, desk = W.Layout.desktop;
     var people = W.UI.section({ header: W.t('Pestañas'), items: [
       toggleCell({ icon: 'users', title: W.t('Personas'), sub: W.t('Chats, contactos y equipos'), value: cfg.peopleTab !== false, onChange: function (v) { st.setSetting('peopleTab', v); } })
-    ], footer: W.t('Si no trabajas con otras personas, quítala y la barra se queda con lo tuyo: Hoy, Tareas, Calendario y Cuaderno.') });
+    ], footer: W.t('Si no trabajas con otras personas, quítala y la barra se queda con lo tuyo: Inicio, Tareas, Calendario y Cuaderno.') });
     if (!desk) return { title: W.t('Lo que ves'), body: [people, U.el('p.hint', { text: W.t('En el ordenador también eliges cómo se ve la barra lateral y el calendario.') })] };
     var saveDesk = function () { st.saveSettings('settings:desk'); };
     var sb = dk.sidebar;

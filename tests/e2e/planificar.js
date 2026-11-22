@@ -26,6 +26,9 @@ const ok = (c, m, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (!c && e
   const ids = await p.evaluate(() => {
     Whider.Notify.check = function () {};
     const S = Whider.State, U = Whider.U, t = U.today();
+    // Las categorías ya no vienen de serie: se crean con los mismos identificadores que antes
+    S.lists.push({ id: 'personal', name: 'Personal', color: 'iris', icon: 'user' }, { id: 'work', name: 'Trabajo', color: 'ember', icon: 'briefcase' });
+    S.notify('lists');
     const add = (o) => S.addTask(Object.assign({ warn: false, highlight: 'none', repeat: 'none', listId: 'personal' }, o)).id;
     const r = {
       informe: add({ text: 'Escribir el informe', date: null, highlight: 'danger', listId: 'work' }),

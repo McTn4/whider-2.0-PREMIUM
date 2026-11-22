@@ -8,6 +8,50 @@ Este archivo es la fuente de las notas que enseña la app (Ajustes → Ayuda →
 Las secciones «Novedades», «Mejoras», «Correcciones» y «Seguridad» se ven en la app; «Para desarrolladores», solo aquí.
 Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VERSION.md).
 
+## [Sin publicar]
+
+«Hoy» pasa a llamarse **Inicio**, el calendario deja añadir tareas tocando directamente en él, las tareas de cada día
+tienen su lista en Tareas y la app empieza vacía: sin tutorial ni categorías de ejemplo. Y un diseño más propio: el
+engranaje de los ajustes vuelve arriba a la derecha y lo que era azul pasa a blanco.
+
+### Novedades
+
+- **Inicio**: la pantalla principal (antes «Hoy») se llama así en la barra, en el ordenador y en los atajos. Lo de
+  dentro no cambia: lo que toca hoy, por importancia, y tus tareas de cada día.
+- **Calendario más hábil**: toca un día (mes) o una hora (semana y día) y escribe la tarea ahí mismo; Intro la añade
+  a ese día y a esa hora, y entiende lo mismo que «Nueva tarea» (hora, categoría, importancia). En el mes del móvil,
+  el campo aparece bajo la semana del día elegido y sigue abierto para añadir varias; en «Sin hora», tareas sin hora.
+- **«Cada día» en Tareas**: una lista con todas las tareas que se repiten (hoy, mañana y más adelante), las mismas
+  que salen en Inicio. Lo que añades desde ella nace como tarea de cada día.
+
+### Mejoras
+
+- **Empieza vacía**: sin la tarjeta de «Primeros pasos» ni categorías de ejemplo. Las categorías las creas tú si las
+  quieres; las tareas funcionan igual sin categoría. Las de ejemplo de versiones anteriores (Personal, Trabajo, Salud
+  y Estudios) se quitan solas si siguen vacías y con su nombre de siempre; las que usas no se tocan.
+- **La presentación**, más corta: tu nombre y tu foto, si la vas a usar con otras personas (si no, la pestaña
+  Personas no está) y los avisos.
+- **Ajustes**: el engranaje vuelve arriba a la derecha de cada pantalla, en lugar de tu foto a la izquierda.
+- **Blanco en lugar de azul** en botones, enlaces, el «+» y lo elegido (negro en el tema claro); hoy, en el
+  calendario, lleva un aro. En el ordenador, una barra lateral más sobria.
+- Deshacer una importación quita también la categoría que creó, aunque sea la única.
+
+### Para desarrolladores
+
+- `DEFAULT_LISTS` vacío y `defaultList: null`; `State.defaultListId()` (la categoría por defecto si existe),
+  `removeList` admite quitar la última y `State.dropExampleLists()` + `Schema.isExampleList()` quitan las de ejemplo
+  sin usar. La app la llama una vez por dispositivo (`meta.exampleListsChecked`), ya con lo de la nube:
+  `Sync.firstSync()` resuelve `true`/`false` según haya ido la primera sincronización (o `false` si tarda más de 5 s).
+- Sincronización de categorías: si ninguno de los dos lados las ha tocado (`listsAt` 0 en ambos), gana el que tiene
+  alguna, para que un dispositivo nuevo (sin categorías) no deje sin la suya a las tareas de la cuenta.
+- Fuera `js/ui/firststeps.js`. La presentación pregunta «¿La vas a usar con otras personas?» (paso `people`).
+- Calendario: `inlineAdd()` en `js/screens/calendar.js` (campo en la casilla, en el hueco de la hora, en «Sin hora»
+  y en la fila bajo la semana del mes del móvil); tras añadir, `reopen` lo vuelve a abrir en el mismo sitio. Fuera el
+  campo del panel del día (`quickDay`) y el doble clic que abría «Nueva tarea».
+- Tareas: lista automática `daily` (`W.Schema.isRoutine`); `QuickAdd` acepta `repeat` de partida.
+- Tokens: `--accent`/`--link` blancos (`#0F1419` en el tema claro) y `--on-accent` negro; lo que va sobre el acento
+  usa `--on-accent`. Icono `i-home-fill`. Pruebas: `tests/unit/categorias.test.js` y las de extremo a extremo al día.
+
 ## [2.0.0] · 2026-11-22
 
 WHIDER 2.0: más sencilla y con un diseño nuevo. Nada más abrirla, lo que tienes que hacer hoy, ordenado por

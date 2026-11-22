@@ -355,14 +355,40 @@ window.Whider = window.Whider || {};
       State.notify('lists');
     },
     removeList: function (id) {
-      if (State.lists.length <= 1) return false;
+      if (!State.getList(id)) return false;
       State.lists = State.lists.filter(function (l) { return l.id !== id; });
       State.tasks.forEach(function (t) { if (t.listId === id) t.listId = null; });
-      if (State.settings.defaultList === id) State.settings.defaultList = State.lists[0].id;
+      // Sin categoría por defecto: las tareas nuevas quedan sin categoría
+      if (State.settings.defaultList === id) { State.settings.defaultList = null; State.saveSettings('settings:defaultList'); }
       if (State.ui.listFilter === id) State.ui.listFilter = null;
       State.syncMeta.listsAt = Date.now();
       State.notify('lists');
       return true;
+    },
+    /** La categoría por defecto para una tarea nueva, si existe (si no, ninguna) */
+    defaultListId: function () {
+      var id = State.settings.defaultList;
+      return id && State.getList(id) ? id : null;
+    },
+    /**
+     * Las categorías de ejemplo de versiones anteriores (Personal, Trabajo, Salud y «Estudios») se quitan si
+     * nadie las usa: sin tareas (tampoco archivadas), sin filtros que las nombren y con su nombre de siempre.
+     * La app la llama una vez por dispositivo, ya con lo de la nube. Devuelve cuántas ha quitado.
+     */
+    dropExampleLists: function () {
+      var used = {};
+      State.tasks.concat(State.archived()).forEach(function (t) { if (t && t.listId) used[t.listId] = true; });
+      State.filters.forEach(function (f) { (f.lists || []).forEach(function (id) { used[id] = true; }); });
+      var gone = State.lists.filter(function (l) { return !used[l.id] && X.isExampleList(l); });
+      if (!gone.length) return 0;
+      var ids = {};
+      gone.forEach(function (l) { ids[l.id] = true; });
+      State.lists = State.lists.filter(function (l) { return !ids[l.id]; });
+      if (ids[State.settings.defaultList]) { State.settings.defaultList = null; State.saveSettings('settings:defaultList'); }
+      if (ids[State.ui.listFilter]) State.ui.listFilter = null;
+      State.syncMeta.listsAt = Date.now();
+      State.notify('lists');
+      return gone.length;
     },
 
     /* ---------- Tareas ---------- */

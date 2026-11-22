@@ -35,19 +35,19 @@ async function abrir(b, opts, meta) {
 (async () => {
   const b = await chromium.launch();
 
-  /* 1. Móvil · persona nueva: primeros pasos, sin tareas de ejemplo */
+  /* 1. Móvil · persona nueva: Inicio vacío, sin tutorial ni tareas ni categorías de ejemplo */
   {
     const { ctx, p, errs } = await abrir(b, { ...devices['Pixel 7'] });
-    const fs = await p.evaluate(() => {
-      const sec = document.querySelector('#screen-home .sec.first-steps');
-      return { hay: !!sec, n: sec ? sec.querySelectorAll('.fs-step').length : 0, cuenta: sec ? sec.querySelector('.sec-t small').textContent : '', tareas: Whider.State.tasks.length };
-    });
-    ok(fs.hay && fs.n === 5 && fs.cuenta === '0 de 5' && fs.tareas === 0, 'persona nueva: «Primeros pasos» con 5 pasos y ninguna tarea de ejemplo', fs);
-    // «Añade algo de cada día» lleva al campo de Hoy con «Cada día» ya elegido
-    await p.click('#screen-home .fs-step:has-text("Añade algo de cada día")');
-    await sleep(500);
-    ok(await p.evaluate(() => document.activeElement && document.activeElement.closest('.composer') && document.querySelector('#screen-home .cp-opt[aria-pressed="true"]')), 'el paso «cada día» lleva al campo con «Cada día» elegido');
-    await p.keyboard.type('Leer 20 minutos');
+    const ini = await p.evaluate(() => ({
+      tutorial: !!document.querySelector('#screen-home .first-steps, #screen-home .fs-step'),
+      tareas: Whider.State.tasks.length,
+      categorias: Whider.State.lists.length,
+      campo: !!document.querySelector('#screen-home .composer input')
+    }));
+    ok(!ini.tutorial && ini.tareas === 0 && ini.categorias === 0 && ini.campo, 'persona nueva: Inicio con su campo, sin tutorial, tareas ni categorías de ejemplo', ini);
+    // «Cada día» junto al campo: la tarea nace como tarea de cada día
+    await p.click('#screen-home .cp-opt:has-text("Cada día")');
+    await p.fill('#screen-home .composer input', 'Leer 20 minutos');
     await p.keyboard.press('Enter');
     await sleep(500);
     await p.evaluate(() => {
@@ -55,18 +55,9 @@ async function abrir(b, opts, meta) {
       Whider.Router.refresh();
     });
     await sleep(500);
-    const hechos = await p.evaluate(() => [...document.querySelectorAll('#screen-home .fs-step.done b')].map((x) => x.textContent));
-    ok(hechos.includes('Escribe tu primera tarea') && hechos.includes('Marca lo importante') && hechos.includes('Añade algo de cada día'), 'los pasos se marcan solos al cumplirse', hechos);
     const orden = await p.evaluate(() => [...document.querySelectorAll('#screen-home .sec-t > span:first-child')].map((x) => x.textContent));
-    ok(orden.indexOf('Primeros pasos') > orden.indexOf('Por hacer') && orden.indexOf('Cada día') < orden.indexOf('Por hacer'), 'arriba lo de cada día y lo que hay que hacer; los primeros pasos, después', orden);
-    await p.click('#screen-home .first-steps button:has-text("Ocultar")');
-    await sleep(500);
-    ok(await p.evaluate(() => !document.querySelector('#screen-home .first-steps') && Whider.State.meta.firstSteps.hidden === true), '«Ocultar» quita la tarjeta');
-    await p.evaluate(() => Whider.Settings.open());
-    await sleep(700);
-    await p.click('.sheet .cell:has-text("Primeros pasos")');
-    await sleep(900);
-    ok(await p.evaluate(() => !!document.querySelector('#screen-home .first-steps')), 'Ajustes → Ayuda → Primeros pasos la vuelve a enseñar');
+    ok(orden.indexOf('Cada día') >= 0 && orden.indexOf('Cada día') < orden.indexOf('Por hacer'), 'arriba lo de cada día y después lo que hay que hacer', orden);
+    ok(await p.evaluate(() => Whider.State.tasks.some((t) => t.text === 'Leer 20 minutos' && t.repeat === 'daily')), '«Cada día» junto al campo crea una tarea de cada día');
     ok(!errs.length, 'sin errores (persona nueva)', errs);
     await ctx.close();
   }

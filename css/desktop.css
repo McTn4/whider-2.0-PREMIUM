@@ -25,28 +25,28 @@ html[data-layout="desktop"] .sidebar {
 .sb-brand { display: flex; align-items: center; gap: 10px; flex: none; height: 52px; padding: 0 12px; font-size: 1.1875rem; font-weight: 800; letter-spacing: -.02em; color: var(--t1); }
 .sb-brand svg { width: 28px; height: 28px; flex: none; }
 .sb-search {
-  display: flex; align-items: center; gap: 10px; flex: none; height: 40px; margin: 4px 0 8px; padding: 0 10px 0 14px; border-radius: 999px;
+  display: flex; align-items: center; gap: 10px; flex: none; height: 38px; margin: 4px 0 8px; padding: 0 10px 0 12px; border-radius: 10px;
   background: var(--fill-3); color: var(--t3); font-size: var(--fs-sub); text-align: left; letter-spacing: 0;
   transition: background-color .15s, color .15s;
 }
 .sb-search span { flex: 1; }
 .sb-nav { display: flex; flex-direction: column; gap: 2px; flex: none; }
 .sb-item {
-  position: relative; display: flex; align-items: center; gap: 16px; width: 100%; height: 50px; padding: 0 16px 0 12px; border-radius: 999px;
-  color: var(--t1); font-size: 1.1875rem; font-weight: 400; letter-spacing: -.01em; text-align: left;
+  position: relative; display: flex; align-items: center; gap: 12px; width: 100%; height: 40px; padding: 0 12px; border-radius: 10px;
+  color: var(--t1); font-size: var(--fs-body); font-weight: 500; letter-spacing: -.01em; text-align: left;
   transition: background-color .15s, color .15s;
 }
-.sb-item .ic { width: 26px; height: 26px; flex: none; stroke-width: 1.7; }
+.sb-item .ic { width: 21px; height: 21px; flex: none; stroke-width: 1.8; }
 .sb-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb-item.active { font-weight: 800; }
+.sb-item.active { font-weight: 700; background: var(--fill-3); }
 .sb-count { flex: none; font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 500; color: var(--t3); letter-spacing: 0; }
 .sb-count.strong {
   display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
   background: var(--accent); color: var(--on-accent); font-weight: 700;
 }
-.sb-actions { display: flex; flex-direction: column; gap: 8px; flex: none; margin: 14px 0 18px; }
-.sb-new { width: 100%; min-height: 50px; font-size: 1.0625rem; font-weight: 800; }
-.sb-new .ic { width: 20px; height: 20px; stroke-width: 2.4; }
+.sb-actions { display: flex; flex-direction: column; gap: 8px; flex: none; margin: 12px 0 18px; }
+.sb-new { width: 100%; min-height: 42px; border-radius: 10px; font-size: var(--fs-body); font-weight: 700; }
+.sb-new .ic { width: 18px; height: 18px; stroke-width: 2.4; }
 .sb-sec { display: flex; flex-direction: column; gap: 0; flex: none; }
 .sb-sec + .sb-sec { margin-top: 14px; }
 .sb-who .sb-unsaved { color: var(--imp-2); font-weight: 600; }
@@ -82,8 +82,8 @@ body[data-screen="notes"] .sb-search span,
 body[data-screen="notes"] .sb-search kbd,
 body[data-screen="notes"] .sb-who { display: none; }
 body[data-screen="notes"] .sb-item,
-body[data-screen="notes"] .sb-search { justify-content: center; gap: 0; padding: 0; width: 50px; }
-body[data-screen="notes"] .sb-new { width: 50px; min-height: 50px; padding: 0; border-radius: 50%; }
+body[data-screen="notes"] .sb-search { justify-content: center; gap: 0; padding: 0; width: 44px; }
+body[data-screen="notes"] .sb-new { width: 44px; min-height: 42px; padding: 0; border-radius: 10px; }
 body[data-screen="notes"] .sb-actions { margin: 10px 0; }
 body[data-screen="notes"] .sb-foot { flex-direction: column; }
 body[data-screen="notes"] .sb-profile { flex: none; justify-content: center; padding: 4px; }
@@ -110,7 +110,8 @@ html[data-layout="desktop"] .nav {
 }
 html[data-layout="desktop"] .lt { padding: 4px 0 16px; }
 html[data-layout="desktop"] .lt h1 { font-size: 2rem; }
-html[data-layout="desktop"] .smart-grid { grid-template-columns: repeat(4, 1fr); }
+html[data-layout="desktop"] .smart-grid { grid-template-columns: repeat(5, 1fr); }
+html[data-layout="desktop"] .smart-grid > .smart:last-child:nth-child(odd) { grid-column: auto; }
 
 /* Dos columnas: lo principal y un lateral que acompaña al desplazarse */
 .desk-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 36px; align-items: start; }
@@ -383,3 +384,11 @@ html[data-layout="desktop"] #screen-friends { --content-max: 760px; }
 .pl-drop { display: none; margin: 8px 2px 0; padding: 10px 8px; border: 1.5px dashed var(--link); border-radius: 10px; font-size: 12px; text-align: center; color: var(--link); }
 .cal-plan.drop-on .pl-drop { display: block; }
 .ct-plan.on { background: rgba(var(--accent-rgb), .14); color: var(--link); }
+
+/* Calendario: un clic en un día (mes) o en «Sin hora» abre un campo dentro de la casilla */
+.mg-cell { cursor: pointer; }
+.mg-cell .cal-new.cell, .wg-adcell .cal-new.cell { margin-top: 2px; height: 28px; }
+.mg-cell .cal-new.cell input, .wg-adcell .cal-new.cell input { height: 28px; font-size: var(--fs-cap); }
+.wg-adcell { cursor: pointer; }
+.wg-col { cursor: pointer; }
+.wg-col .cal-new.slot { left: 3px; right: 3px; }

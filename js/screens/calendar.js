@@ -137,20 +137,76 @@ window.Whider.Screens = window.Whider.Screens || {};
     return ul;
   }
 
-  /** Campo para añadir directamente al día elegido (entiende hora, lista y prioridad) */
-  function quickDay(st, ds) {
-    var input = U.el('input', { attrs: { type: 'text', maxlength: 200, placeholder: W.t('Añadir a {day}…', { day: U.inline(dayName(ds)) }), enterkeyhint: 'done', 'aria-label': W.t('Añadir tarea a este día') } });
-    var add = function () {
-      var raw = input.value.trim();
-      if (!raw) { input.focus(); return; }
-      var p = W.Parse.task(raw, { lists: st.lists });
-      st.addTask({ text: p.text, date: ds, time: p.time || null, listId: p.listId || st.ui.calList || st.settings.defaultList, highlight: p.highlight || 'none',
-        repeat: p.repeat || 'none', days: p.days, warn: st.settings.defaultWarn, notes: '', subtasks: [] });
-      W.Audio.vibrate([8]);
-      setTimeout(function () { var i = U.$('#screen-calendar .quick-day input'); if (i) i.focus(); }, 60);
+  /* ---------- Añadir en el propio calendario: el campo aparece justo donde tocas ---------- */
+  // Tras añadir se vuelve a pintar el calendario: «reopen» dice dónde volver a abrir el campo (para seguir añadiendo)
+  var reopen = null, openBox = null, afterMount = [];
+  function closeInline() { if (openBox) openBox.close(); }
+  /**
+   * inlineAdd(st, host, { date, time, kind, keep, persistent, cls, style, focus })
+   *  - date / time: el día (y la hora, en un hueco del día por horas) de la tarea nueva
+   *  - kind: dónde está (para volver a abrirlo tras añadir) · keep: sigue abierto para añadir más
+   *  - persistent: no se quita al salir de él (la fila bajo la semana en el mes del móvil)
+   * Entiende lo mismo que «Nueva tarea»: hora, categoría e importancia en el propio texto.
+   */
+  function inlineAdd(st, host, o) {
+    if (!o.persistent) closeInline();
+    var day = U.inline(dayName(o.date));
+    var input = U.el('input', { attrs: { type: 'text', maxlength: 200, enterkeyhint: 'done', autocomplete: 'off',
+      placeholder: o.time ? W.t('{time} · Nueva tarea…', { time: U.fmtTime(o.time) }) : o.persistent ? W.t('Añadir a {day}…', { day: day }) : W.t('Nueva tarea…'),
+      'aria-label': o.time ? W.t('Nueva tarea el {day} a las {time}', { day: day, time: U.fmtTime(o.time) }) : W.t('Nueva tarea el {day}', { day: day }) } });
+    var box = U.el((o.persistent ? 'label' : 'div') + '.cal-new' + (o.cls ? '.' + o.cls : ''), { style: o.style || null }, [U.icon('plus', 'xs'), input]);
+    var gone = false;
+    var api = {
+      input: input,
+      close: function () {
+        if (gone) return;
+        if (o.persistent) { input.value = ''; input.blur(); return; }
+        gone = true;
+        if (box.parentNode) box.parentNode.removeChild(box);
+        if (openBox === api) openBox = null;
+      }
     };
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); add(); } });
-    return U.el('label.quick-day', [U.icon('plus'), input, U.el('button.btn.soft.sm', { text: W.t('Añadir'), on: { click: add } })]);
+    var add = function (keepOpen) {
+      var raw = input.value.trim();
+      if (!raw || gone) return false;
+      var p = W.Parse.task(raw, { lists: st.lists });
+      if (!p.text) return false;
+      gone = true;
+      if (openBox === api) openBox = null;
+      reopen = keepOpen ? { date: o.date, kind: o.kind } : null;
+      st.addTask({ text: p.text, date: o.date, time: p.time || o.time || null, listId: p.listId || st.ui.calList || st.defaultListId(),
+        highlight: p.highlight || 'none', repeat: p.repeat || 'none', days: p.days, warn: st.settings.defaultWarn, notes: '', subtasks: [] });
+      W.Audio.vibrate([8]);
+      return true;
+    };
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); if (!add(o.keep) && !input.value.trim()) api.close(); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); api.close(); }
+    });
+    // Al salir del campo, lo escrito no se pierde; si está vacío, se cierra
+    input.addEventListener('blur', function () {
+      setTimeout(function () {
+        if (gone || !box.isConnected) return;
+        if (input.value.trim()) add(false); else if (!o.persistent) api.close();
+      }, 150);
+    });
+    // Lo que se toca dentro del campo no llega al calendario (no elige otro día ni abre otro campo)
+    ['click', 'pointerdown', 'pointerup', 'dblclick'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.stopPropagation(); }); });
+    host.appendChild(box);
+    if (!o.persistent) openBox = api;
+    if (o.focus !== false) input.focus({ preventScroll: true });
+    return api;
+  }
+  /** ¿Toca volver a abrir aquí el campo (después de añadir)? Se abre en cuanto el calendario está en pantalla */
+  function reopenHere(kind, ds, fn) {
+    if (!reopen || reopen.kind !== kind || reopen.date !== ds) return;
+    reopen = null;
+    afterMount.push(fn);
+  }
+  function flushAfterMount() {
+    var list = afterMount;
+    afterMount = [];
+    list.forEach(function (fn) { try { fn(); } catch (e) { console.error(e); } });
   }
 
   function dayPanel(st, ds, data) {
@@ -163,8 +219,9 @@ window.Whider.Screens = window.Whider.Screens || {};
       real.length ? U.el('div.day-progress', [U.el('div.bar', [U.el('i', { style: { width: Math.round(done / real.length * 100) + '%' } })])]) : null
     ]);
     var body = real.length || proj.length ? dayList(st, ds, real, proj) : evs.length ? null
-      : U.el('div.group', [W.UI.empty('calendar', W.t('Día libre'), ds < U.today() ? W.t('No hubo tareas este día.') : W.t('Escribe arriba para añadir algo a este día.'), null, true)]);
-    return U.el('div.sec', [head, ds >= U.today() ? quickDay(st, ds) : null, evs.length ? U.el('div.group.ev-group', [W.CalSubs.list(evs)]) : null, body]);
+      : U.el('div.group', [W.UI.empty('calendar', W.t('Día libre'), ds < U.today() ? W.t('No hubo tareas este día.')
+        : W.Layout.desktop ? W.t('Haz clic en el día, en el calendario, para añadir algo.') : W.t('Escribe en el campo de este día, en el calendario.'), null, true)]);
+    return U.el('div.sec', [head, evs.length ? U.el('div.group.ev-group', [W.CalSubs.list(evs)]) : null, body]);
   }
 
   /* ---------- Vista Mes ---------- */
@@ -191,9 +248,24 @@ window.Whider.Screens = window.Whider.Screens || {};
         var what = pend.length ? U.plural(pend.length, 'pendiente', 'pendientes') : proj.length ? W.t('se repite') : real.length ? W.t('completado') : '';
         return { dots: dots, label: [what, evs.length ? evCount(evs.length) : ''].filter(Boolean).join(', ') };
       },
-      onPick: function (ds) { st.ui.calSelected = ds; W.Audio.select(); rerender(); }
+      onPick: function (ds) {
+        // Tocar otra vez el día elegido: a escribir en su fila
+        if (ds === st.ui.calSelected && row) { row.input.focus(); return; }
+        st.ui.calSelected = ds; W.Audio.select(); rerender();
+      }
     });
     slideDir = 0;
+    // Debajo de la semana del día elegido, una fila para añadirle tareas ahí mismo (Intro y sigue abierta)
+    var sel0 = st.ui.calSelected, row = null;
+    if (sel0 >= from && sel0 <= to) {
+      var ws0 = st.settings.weekStart, lead0 = (new Date(cm.y, cm.m, 1).getDay() - ws0 + 7) % 7;
+      var slot = lead0 + U.parse(sel0).getDate() - 1, endSlot = Math.floor(slot / 7) * 7 + 6;
+      var holder = U.el('div.cal-add-host');
+      row = inlineAdd(st, holder, { date: sel0, kind: 'row', keep: true, persistent: true, cls: 'row', focus: false });
+      var after = grid.children[7 + endSlot];
+      if (after && after.nextSibling) grid.insertBefore(holder, after.nextSibling); else grid.appendChild(holder);
+      reopenHere('row', sel0, function () { row.input.focus({ preventScroll: true }); });
+    }
     var sx = null, sy = 0;
     grid.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; });
     grid.addEventListener('pointerup', function (e) {
@@ -294,7 +366,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var startMin = firstH * 60;
 
     // Sin hora
-    var allday = U.el('div.allday', [U.el('span.allday-label', { text: untimed.length ? W.t('Sin hora') : evAllDay.length ? W.t('Todo el día') : W.t('Sin tareas sin hora · toca una hora para añadir') })]);
+    var allday = U.el('div.allday', [U.el('span.allday-label', { text: untimed.length ? W.t('Sin hora') : evAllDay.length ? W.t('Todo el día') : W.t('Sin hora · toca aquí o en una hora para añadir') })]);
     evAllDay.forEach(function (e) { allday.appendChild(W.CalSubs.chip(e)); });
     untimed.forEach(function (x) {
       var chip = U.el('button.chip' + (x.t.done && !x.proj ? '.done' : ''), { attrs: { type: 'button' } }, [
@@ -342,17 +414,20 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
     if (ds === U.today() && nowM >= startMin && nowM <= (lastH + 1) * 60) hours.appendChild(U.el('div.now-line', { style: { top: ((nowM - startMin) / 60 * HOUR_H) + 'px' } }));
 
-    // Tocar un hueco: nueva tarea a esa hora
+    // Tocar un hueco: ahí mismo, un campo para la tarea nueva a esa hora
     hours.addEventListener('click', function (e) {
-      if (e.target.closest('.blk')) return;
+      if (e.target.closest('.blk, .ev-blk, .cal-new')) return;
       var r = hours.getBoundingClientRect(), y = e.clientY - r.top;
       var m = startMin + Math.max(0, Math.floor(y / HOUR_H * 2)) * 30;
       if (m > 23 * 60 + 30) m = 23 * 60 + 30;
-      var hint = U.el('div.slot-hint', { text: U.fmtTime(U.pad(Math.floor(m / 60)) + ':' + U.pad(m % 60)), style: { top: ((m - startMin) / 60 * HOUR_H) + 'px' } });
-      hours.appendChild(hint);
-      setTimeout(function () { if (hint.parentNode) hint.parentNode.removeChild(hint); }, 900);
-      W.QuickAdd.open({ date: ds, time: U.pad(Math.floor(m / 60)) + ':' + U.pad(m % 60) });
+      inlineAdd(st, hours, { date: ds, time: U.pad(Math.floor(m / 60)) + ':' + U.pad(m % 60), kind: 'slot', cls: 'slot',
+        style: { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(34, HOUR_H * 0.75 - 2) + 'px' } });
     });
+    allday.addEventListener('click', function (e) {
+      if (e.target.closest('.chip, .cal-new')) return;
+      inlineAdd(st, allday, { date: ds, kind: 'allday', keep: true });
+    });
+    reopenHere('allday', ds, function () { inlineAdd(st, allday, { date: ds, kind: 'allday', keep: true }); });
 
     var head = U.el('div.day-head', [U.el('div', [U.el('strong', { text: dayName(ds) }),
       U.el('span', { text: (real.length || proj.length ? W.t('{n} · mantén pulsada una para cambiar su hora', { n: U.plural(real.length + proj.length, 'tarea', 'tareas') }) : W.t('Toca una hora para añadir una tarea'))
@@ -518,17 +593,23 @@ window.Whider.Screens = window.Whider.Screens || {};
         });
         cell.appendChild(U.el('div.mg-top', [U.el('span.mg-num', { text: d.getDate() === 1 ? U.fmtDayMon(ds) : d.getDate() }),
           U.el('button.mg-add', { attrs: { type: 'button', 'aria-label': W.t('Nueva tarea el {day}', { day: U.inline(U.fmtLong(ds)) }), title: W.t('Nueva tarea este día') },
-            on: { click: function (e) { e.stopPropagation(); W.QuickAdd.open({ date: ds }); } } }, [U.icon('plus', 'xs')])]));
+            on: { click: function (e) { e.stopPropagation(); openCell(); } } }, [U.icon('plus', 'xs')])]));
         var list = U.el('div.mg-items');
         items.slice(0, MG_MAX).forEach(function (x) { list.appendChild(x.ev ? W.CalSubs.chip(x.ev, 'mg-chip') : mgChip(st, x)); });
         if (items.length > MG_MAX) list.appendChild(U.el('span.mg-more', { text: W.t('+{n} más', { n: items.length - MG_MAX }) }));
         cell.appendChild(list);
-        cell.addEventListener('click', function () {
-          if (ds === st.ui.calSelected) return;
-          if (inMonth) st.ui.calSelected = ds; else { select(st, ds); slideDir = ds < U.ymd(first) ? -1 : 1; }
-          W.Audio.select(); rerender();
-        });
-        cell.addEventListener('dblclick', function () { W.QuickAdd.open({ date: ds }); });
+        // Un clic en el día: se elige y, dentro de la casilla, un campo para escribir la tarea (Intro y sigue abierto)
+        var openCell = function () {
+          if (ds !== st.ui.calSelected || !inMonth) {
+            reopen = { date: ds, kind: 'cell' };
+            if (inMonth) st.ui.calSelected = ds; else { select(st, ds); slideDir = ds < U.ymd(first) ? -1 : 1; }
+            W.Audio.select(); rerender();
+            return;
+          }
+          inlineAdd(st, cell, { date: ds, kind: 'cell', keep: true, cls: 'cell' });
+        };
+        cell.addEventListener('click', function (e) { if (!e.target.closest('.cal-new')) openCell(); });
+        reopenHere('cell', ds, function () { inlineAdd(st, cell, { date: ds, kind: 'cell', keep: true, cls: 'cell' }); });
         W.Sidebar.dropTarget(cell, function (id) { moveToDay(st, id, ds); });
         grid.appendChild(cell);
       })(U.addDays(start, k));
@@ -655,9 +736,14 @@ window.Whider.Screens = window.Whider.Screens || {};
     })));
 
     var allday = U.el('div.wg-allday', [U.el('div.wg-label', { text: W.t('Sin hora') })].concat(days.map(function (ds) {
-      var cell = U.el('div.wg-adcell', { attrs: { 'data-date': ds } });
+      var cell = U.el('div.wg-adcell', { attrs: { 'data-date': ds, title: W.t('Haz clic para añadir una tarea sin hora') } });
       perDay[ds].evDay.forEach(function (e) { cell.appendChild(W.CalSubs.chip(e, 'mg-chip')); });
       perDay[ds].untimed.forEach(function (x) { cell.appendChild(mgChip(st, x)); });
+      cell.addEventListener('click', function (e) {
+        if (e.target.closest('.mg-chip, .cal-new')) return;
+        inlineAdd(st, cell, { date: ds, kind: 'adcell', keep: true, cls: 'cell' });
+      });
+      reopenHere('adcell', ds, function () { inlineAdd(st, cell, { date: ds, kind: 'adcell', keep: true, cls: 'cell' }); });
       W.Sidebar.dropTarget(cell, function (id) { var t = st.find(id); if (t) { st.updateTask(id, { date: ds, time: null }); W.Toast.show({ text: W.t('«{text}» pasa al {day}, sin hora', { text: t.text, day: U.inline(U.fmtLong(ds)) }), icon: 'calendar' }); } });
       return cell;
     })));
@@ -688,15 +774,13 @@ window.Whider.Screens = window.Whider.Screens || {};
         col.appendChild(blk);
       });
       if (ds === td && nowM >= startMin && nowM <= (lastH + 1) * 60) col.appendChild(U.el('div.now-line', { style: { top: ((nowM - startMin) / 60 * HOUR_H) + 'px' } }));
-      // Tocar un hueco: nueva tarea ese día a esa hora
+      // Un clic en un hueco: ahí mismo, un campo para la tarea nueva ese día a esa hora
       col.addEventListener('click', function (e) {
-        if (e.target.closest('.blk')) return;
+        if (e.target.closest('.blk, .ev-blk, .cal-new')) return;
         var r = col.getBoundingClientRect(), m = startMin + Math.max(0, Math.floor((e.clientY - r.top) / HOUR_H * 2)) * 30;
         m = Math.min(m, 23 * 60 + 30);
-        var hint = U.el('div.slot-hint', { text: timeLabel(m), style: { top: ((m - startMin) / 60 * HOUR_H) + 'px' } });
-        col.appendChild(hint);
-        setTimeout(function () { if (hint.parentNode) hint.parentNode.removeChild(hint); }, 900);
-        W.QuickAdd.open({ date: ds, time: U.pad(Math.floor(m / 60)) + ':' + U.pad(m % 60) });
+        inlineAdd(st, col, { date: ds, time: U.pad(Math.floor(m / 60)) + ':' + U.pad(m % 60), kind: 'slot', cls: 'slot',
+          style: { top: ((m - startMin) / 60 * HOUR_H + 1) + 'px', height: Math.max(26, HOUR_H * 0.75 - 2) + 'px' } });
       });
       // Soltar una tarea de una lista o de otro día: ese día, a la hora del punto donde se suelta
       W.Sidebar.dropTarget(col, function (id, e) {
@@ -849,6 +933,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     key: function (e) { return W.Layout.desktop && calendarKey(e); },
     render: function (root) {
       rootEl = root;
+      openBox = null;
+      afterMount = [];
       var st = S(), v = ui(st), td = U.today();
       var cm = v.calMonth;
       var all = pool(st).filter(function (t) { return t.date && t.date.slice(0, 7) === cm.y + '-' + U.pad(cm.m + 1); });
@@ -859,12 +945,14 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (!desk && v.calView === 'day') v.calView = 'week';
       if (desk) sub = v.calView === 'agenda' ? W.t('Lo vencido y los próximos 30 días') : v.calView === 'day' ? W.t('Día · semana {n}', { n: wk }) : v.calView === 'week' ? W.t('Semana {n}', { n: wk })
         : all.length ? W.t('{done} de {total} completadas este mes', { done: nDone, total: all.length }) : W.t('Sin tareas este mes');
-      var head = W.UI.header({ title: W.t('Calendario'), profile: true, sub: sub,
+      var head = W.UI.header({ title: W.t('Calendario'), sub: sub,
         actions: isToday || v.calView === 'agenda' || desk ? [] : [{ text: W.t('Hoy'), label: W.t('Ir a hoy'), onTap: function () { select(st, td); rerender(); } }] });
       var list = v.calList ? st.getList(v.calList) : null;
-      var listChip = U.el('button.chip' + (list ? '.on' : ''), { attrs: { type: 'button' } }, [
-        U.icon(list ? W.Lists.icon(list) : 'filter'), U.el('span', { text: list ? list.name : W.t('Todas las categorías') }), U.icon('down')]);
-      listChip.addEventListener('click', function () {
+      if (v.calList && !list) v.calList = null;
+      // El filtro por categoría, solo si tienes alguna
+      var listChip = st.lists.length ? U.el('button.chip' + (list ? '.on' : ''), { attrs: { type: 'button' } }, [
+        U.icon(list ? W.Lists.icon(list) : 'filter'), U.el('span', { text: list ? list.name : W.t('Todas las categorías') }), U.icon('down')]) : null;
+      if (listChip) listChip.addEventListener('click', function () {
         W.Menu.open(listChip, [{ value: '', label: W.t('Todas las categorías'), icon: 'layers', on: !list }].concat(st.lists.map(function (l) {
           return { value: l.id, label: l.name, icon: W.Lists.icon(l), on: list && list.id === l.id };
         }))).then(function (val) { if (val !== undefined) { v.calList = val || null; rerender(); } });
@@ -874,6 +962,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (desk) {
         var deskBody = v.calView === 'week' ? deskWeek(st) : v.calView === 'day' ? deskWeek(st, true) : v.calView === 'agenda' ? [U.el('div.cal-agenda', agendaView(st))] : deskMonth(st);
         W.UI.mount(root, head, [deskToolbar(st, v, listChip, doneChip)].concat(deskBody));
+        reopen = null;
+        flushAfterMount();
         return;
       }
       var seg = W.UI.segmented(VIEWS, v.calView, function (val) { v.calView = val; rerender(); });
@@ -883,6 +973,8 @@ window.Whider.Screens = window.Whider.Screens || {};
       var first = body[0];
       if (first && first.classList && first.classList.contains('group')) first.style.marginTop = '14px';
       W.UI.mount(root, head, [seg, tools].concat(body));
+      reopen = null;
+      flushAfterMount();
     }
   };
 

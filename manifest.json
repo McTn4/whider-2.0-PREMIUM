@@ -68,8 +68,8 @@
       "description": "Una página nueva en tu Cuaderno"
     },
     {
-      "name": "Tareas de hoy",
-      "short_name": "Hoy",
+      "name": "Inicio: tareas de hoy",
+      "short_name": "Inicio",
       "url": "./app#home",
       "icons": [
         {

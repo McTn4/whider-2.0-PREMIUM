@@ -1,6 +1,6 @@
 /**
  * WHIDER · Barra lateral del ordenador.
- * Nueva tarea y búsqueda arriba; las cinco secciones (Hoy, Tareas, Calendario, Cuaderno y Personas); tus categorías y
+ * Nueva tarea y búsqueda arriba; las cinco secciones (Inicio, Tareas, Calendario, Cuaderno y Personas); tus categorías y
  * tus filtros; abajo, tu perfil y los ajustes. Las tareas (una o varias seleccionadas) se pueden soltar sobre «Hoy» o
  * sobre una categoría. Los contadores y el tamaño se eligen en Ajustes → Personalización.
  */
@@ -14,7 +14,7 @@ window.Whider = window.Whider || {};
 
   /* Las mismas cinco secciones que la barra inferior del móvil, por orden de importancia */
   var NAV = [
-    { id: 'home', label: W.t('Hoy'), icon: 'sun', key: '1' },
+    { id: 'home', label: W.t('Inicio'), icon: 'home', key: '1' },
     { id: 'tasks', label: W.t('Tareas'), icon: 'tasks', key: '2' },
     { id: 'calendar', label: W.t('Calendario'), icon: 'calendar', key: '3' },
     { id: 'notes', label: W.t('Cuaderno'), icon: 'notebook', key: '4' },
@@ -68,7 +68,7 @@ window.Whider = window.Whider || {};
   function count(n, strong) { return n && (showCounts || strong) ? U.el('span.sb-count' + (strong ? '.strong' : ''), { text: n > 99 ? '99+' : String(n) }) : null; }
 
   // Secciones con su icono relleno cuando estás en ella (como en la barra inferior del móvil)
-  var FILLED = { sun: 1, tasks: 1, calendar: 1, notebook: 1, users: 1 };
+  var FILLED = { home: 1, sun: 1, tasks: 1, calendar: 1, notebook: 1, users: 1 };
   function navItem(st, n, on, extra) {
     return U.el('button.sb-item' + (on ? '.active' : ''), {
       attrs: { 'aria-current': on ? 'page' : null, title: n.label + (n.key ? ' · ' + n.key : ''), 'data-go': n.id },

@@ -1,5 +1,5 @@
 /**
- * WHIDER · Navegación: cinco secciones (Hoy, Tareas, Calendario, Cuaderno y Personas, con sus chats y equipos), las
+ * WHIDER · Navegación: cinco secciones (Inicio, Tareas, Calendario, Cuaderno y Personas, con sus chats y equipos), las
  * mismas en la barra inferior del móvil y en la barra lateral del ordenador. URL sincronizada (#pantalla).
  */
 window.Whider = window.Whider || {};

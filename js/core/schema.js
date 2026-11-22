@@ -75,7 +75,7 @@ window.Whider = window.Whider || {};
     hideCompleted: false,
     confirmDelete: true,
     defaultWarn: true,
-    defaultList: 'personal',
+    defaultList: null,
     remindBefore: 15,
     rewarn: 20,
     sort: 'smart',
@@ -109,12 +109,18 @@ window.Whider = window.Whider || {};
     }
   };
 
-  var DEFAULT_LISTS = [
-    { id: 'personal', name: W.t('Personal'), color: 'iris', icon: 'user' },
-    { id: 'work', name: W.t('Trabajo'), color: 'ember', icon: 'briefcase' },
-    { id: 'health', name: W.t('Salud'), color: 'jade', icon: 'heart' }
-  ];
+  // Sin categorías de partida: cada persona crea las suyas si las quiere
+  var DEFAULT_LISTS = [];
   var DEFAULT_LIST_ICON = { personal: 'user', work: 'briefcase', health: 'heart' };
+  /** Las categorías de ejemplo de versiones anteriores, con su nombre de siempre (en español o en inglés) */
+  var EXAMPLE_LISTS = { personal: ['personal'], work: ['trabajo', 'work'], health: ['salud', 'health'] };
+  function isExampleList(l) {
+    if (!l) return false;
+    var n = String(l.name || '').trim().toLowerCase();
+    if (EXAMPLE_LISTS[l.id]) return EXAMPLE_LISTS[l.id].indexOf(n) >= 0;
+    // «Estudios», que la presentación de la 2.0 creaba para quien estudia
+    return l.icon === 'book' && l.color === 'iris' && (n === 'estudios' || n === 'studies');
+  }
   function cleanIcon(ic, id) { return typeof ic === 'string' && /^[a-z-]{2,20}$/.test(ic) ? ic : (DEFAULT_LIST_ICON[id] || 'list'); }
 
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -550,6 +556,7 @@ window.Whider = window.Whider || {};
     REPEATS: REPEATS,
     DEFAULT_SETTINGS: DEFAULT_SETTINGS,
     DEFAULT_LISTS: DEFAULT_LISTS,
+    isExampleList: isExampleList,
     DEFAULT_LIST_ICON: DEFAULT_LIST_ICON,
     cleanIcon: cleanIcon,
     clone: clone,

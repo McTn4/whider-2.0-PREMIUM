@@ -60,7 +60,7 @@ window.Whider = window.Whider || {};
       var isNew = !src;
       var d = isNew ? {
         text: (preset && preset.text) || '', notes: (preset && preset.notes) || '', date: preset && preset.date !== undefined ? preset.date : U.today(), time: (preset && preset.time) || null,
-        highlight: (preset && preset.highlight) || 'none', warn: st.settings.defaultWarn, listId: (preset && preset.listId) || st.ui.listFilter || st.settings.defaultList,
+        highlight: (preset && preset.highlight) || 'none', warn: st.settings.defaultWarn, listId: (preset && preset.listId) || st.ui.listFilter || st.defaultListId(),
         repeat: (preset && preset.repeat) || 'none', days: (preset && preset.days) || undefined, subtasks: [], remindBefore: null
       } : JSON.parse(JSON.stringify(src));
       if (d.listId && !st.getList(d.listId)) d.listId = null;
@@ -137,7 +137,7 @@ window.Whider = window.Whider || {};
             renderWhen();
           });
       } });
-      /* ----- Cada semana: qué días (varios = tarea de cada día, sale en «Cada día» de Hoy) ----- */
+      /* ----- Cada semana: qué días (varios = tarea de cada día, sale en «Cada día» de Inicio y de Tareas) ----- */
       var ws = st.settings.weekStart === 0 ? 0 : 1;
       var dayBtns = [0, 1, 2, 3, 4, 5, 6].map(function (i) {
         var wd = (i + ws) % 7;
@@ -166,10 +166,10 @@ window.Whider = window.Whider || {};
       });
       var prioRow = U.el('div.cell.col', [U.el('span.cell-row', [W.UI.cellIcon('flag'), U.el('span.cell-title', { text: W.t('Prioridad') })]),
         U.el('div.prio-row', prioBtns)]);
-      /* ----- En curso: ya la empezaste (sale aparte en Hoy) ----- */
+      /* ----- En curso: ya la empezaste (sale delante en Inicio) ----- */
       var doingTog = W.UI.toggle(!!d.startedAt, function (v) { d.startedAt = v ? (d.startedAt || Date.now()) : null; }, W.t('En curso'));
       var doingRow = U.el('div.cell.has-icon', [W.UI.cellIcon('play'),
-        U.el('span.cell-main', [U.el('span.cell-title', { text: W.t('En curso') }), U.el('span.cell-sub', { text: W.t('Ya la empezaste: en Hoy sale aparte') })]), doingTog]);
+        U.el('span.cell-main', [U.el('span.cell-title', { text: W.t('En curso') }), U.el('span.cell-sub', { text: W.t('Ya la empezaste: en Inicio sale delante') })]), doingTog]);
       if (d.done) doingRow.style.display = 'none';
 
       var setValue = function (row, text) { var v = row.querySelector('.cell-value > span'); if (v) v.textContent = text; };

@@ -162,7 +162,7 @@ window.Whider.Screens = window.Whider.Screens || {};
         // Los chats recientes se ponen al día solos
         W.Chat.subscribe(function (r) { if (S().activeScreen === 'friends' && r === 'list') W.Router.refresh(); });
       }
-      var head = W.UI.header({ title: W.t('Personas'), profile: true, sub: W.t('Chats, contactos y equipos') });
+      var head = W.UI.header({ title: W.t('Personas'), sub: W.t('Chats, contactos y equipos') });
       var content = [];
       var b = PE().blocker();
       if (b && !b.soft) {

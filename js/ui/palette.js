@@ -17,7 +17,7 @@ window.Whider = window.Whider || {};
     var K = W.Layout.keys;
     return [
       { icon: 'plus', label: W.t('Nueva tarea'), hint: 'N', run: function () { W.App.newTask(); } },
-      { icon: 'sun', label: W.t('Ir a Hoy'), hint: '1', run: function () { W.Router.go('home'); } },
+      { icon: 'home', label: W.t('Ir a Inicio'), hint: '1', run: function () { W.Router.go('home'); } },
       { icon: 'tasks', label: W.t('Ir a Tareas'), hint: '2', run: function () { W.Router.go('tasks'); } },
       { icon: 'calendar', label: W.t('Ir al Calendario'), hint: '3', run: function () { W.Router.go('calendar'); } },
       { icon: 'notebook', label: W.t('Ir al Cuaderno'), hint: '4', run: function () { W.Router.go('notes'); } },
@@ -101,7 +101,7 @@ window.Whider = window.Whider || {};
   function createTask(raw) {
     var st = S(), p = W.Parse.task(raw, { lists: st.lists });
     if (!p.text) return;
-    var t = st.addTask({ text: p.text, date: p.date !== undefined ? p.date : U.today(), time: p.time || null, listId: p.listId || st.settings.defaultList,
+    var t = st.addTask({ text: p.text, date: p.date !== undefined ? p.date : U.today(), time: p.time || null, listId: p.listId || st.defaultListId(),
       highlight: p.highlight || 'none', repeat: p.repeat || 'none', days: p.days, warn: st.settings.defaultWarn, notes: '', subtasks: [] });
     if (t) W.Toast.show({ text: W.t('Tarea creada: {text}', { text: t.text }), type: 'success', icon: 'check' });
   }

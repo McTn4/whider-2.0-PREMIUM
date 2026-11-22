@@ -189,9 +189,9 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
     };
     ok(await p.evaluate(() => Whider.I18n.lang === 'es' && /Idioma/.test(document.body.innerText) === false), 'por defecto, en español');
     await elegir('Idioma', 'English');
-    ok(await p.evaluate(() => Whider.I18n.lang === 'en' && document.documentElement.lang === 'en' && /Today/.test(document.getElementById('sidebar').innerText)), 'Ajustes → Idioma → English: la app pasa a inglés');
+    ok(await p.evaluate(() => Whider.I18n.lang === 'en' && document.documentElement.lang === 'en' && /Home/.test(document.getElementById('sidebar').innerText)), 'Ajustes → Idioma → English: la app pasa a inglés');
     await elegir('Language', 'Español');
-    ok(await p.evaluate(() => Whider.I18n.lang === 'es' && /Hoy/.test(document.getElementById('sidebar').innerText)), 'Settings → Language → Español: vuelve a español');
+    ok(await p.evaluate(() => Whider.I18n.lang === 'es' && /Inicio/.test(document.getElementById('sidebar').innerText)), 'Settings → Language → Español: vuelve a español');
     ok(!errs.length, 'cambio de idioma sin errores', errs);
     await ctx.close();
   }
