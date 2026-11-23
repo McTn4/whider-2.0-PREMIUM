@@ -4,11 +4,12 @@
 // y desbloquear lo deshace.
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
+const { simular, entrar } = require('./_cuentas');
 
 const EMU = 'http://127.0.0.1:9099', FS = 'http://127.0.0.1:8085', PROJECT = 'demo-whider';
 const cfg = {
   firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' },
-  googleWebClientId: 'x', requireAccount: true, allowGuest: true, allowedEmailDomains: [],
+  googleWebClientId: 'x', requireAccount: true,
   emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 }, links: { base: 'https://whider-red.vercel.app' }
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -18,6 +19,7 @@ const list = async (p) => { const r = await (await fetch(`${FS}/v1/projects/${PR
 async function device(b, label) {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 860 } });
   await ctx.addInitScript((c) => { window.WHIDER_CONFIG = c; }, cfg);
+  await ctx.addInitScript(simular);
   const p = await ctx.newPage();
   p.errs = [];
   p.setDefaultTimeout(10000);
@@ -27,15 +29,7 @@ async function device(b, label) {
   return p;
 }
 async function register(p, name, email) {
-  await p.fill('#authRoot input[autocomplete=name]', name);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-check .check');
-  await p.click('#authRoot .auth-submit');
-  await sleep(2500);
-  const r = await (await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/oobCodes`)).json();
-  await fetch(r.oobCodes.filter((c) => c.email === email).pop().oobLink);
-  await p.click('text=Ya lo he verificado');
+  await entrar(p, email, name);
   await sleep(2500);
   await p.evaluate(() => { if (Whider.Onboarding.isOpen()) document.querySelector('#onboardingRoot .nav-btn').click(); });
   await sleep(700);

@@ -19,10 +19,15 @@ rules_version = '2';
 //  - reports/{id}         Denuncias: se crean desde la app y solo se leen desde la consola de Firebase (moderación).
 //  - errors/, feedback/   Informes de errores (con permiso) y comentarios: sin nombre ni cuenta; solo la consola los lee.
 // Límites de tamaño en lo que otros escriben en tu buzón y en tu perfil, para que nadie pueda llenarlo.
-// Todo exige un correo verificado (las cuentas de Google ya vienen verificadas).
+// Todo exige haber entrado con Google, Microsoft o Apple (las cuentas de Microsoft pueden no traer el correo marcado
+// como verificado) o, en las cuentas con correo y contraseña de antes de la 2.1, un correo verificado.
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function signedIn() {
+      return request.auth != null
+        && (request.auth.token.firebase.sign_in_provider in ['google.com', 'microsoft.com', 'apple.com']
+          || request.auth.token.email_verified == true);
+    }
     function isMe(uid) { return signedIn() && request.auth.uid == uid; }
     function team(sid) { return get(/databases/$(database)/documents/spaces/$(sid)).data; }
     function isMember(sid) { return signedIn() && request.auth.uid in team(sid).members; }

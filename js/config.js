@@ -1,7 +1,7 @@
 /**
  * WHIDER · Configuración de cuentas (Firebase)
  *
- * Para activar el registro con correo y con Google, crea un proyecto gratuito en
+ * Para activar las cuentas (Google, Microsoft y Apple), crea un proyecto gratuito en
  * https://console.firebase.google.com y copia aquí su configuración web.
  * Los pasos completos están en docs/CONFIGURAR-CUENTAS.md.
  *
@@ -22,15 +22,10 @@ window.WHIDER_CONFIG = window.WHIDER_CONFIG || {
   // Necesario para "Continuar con Google" dentro del APK de Android.
   googleWebClientId: '173378261361-4je18n2pg7h9g39ei2prjmnasobc8m6v.apps.googleusercontent.com',
 
-  // Pedir iniciar sesión o crear cuenta al abrir la app
+  // Pedir que entres con tu cuenta al abrir la app. Desde la 2.1, WHIDER solo se usa con una cuenta de Google,
+  // Microsoft o Apple: ya no hay «Continuar sin cuenta» ni se crean cuentas nuevas con correo y contraseña (las que ya
+  // había pueden seguir entrando).
   requireAccount: true,
-
-  // Permitir "Continuar sin cuenta" (los datos se quedan solo en el dispositivo)
-  allowGuest: true,
-
-  // Restringir el registro con correo a dominios profesionales concretos, p. ej. ['miempresa.com'].
-  // Vacío = cualquier correo.
-  allowedEmailDomains: [],
 
   // Enlaces de invitación (contactos y equipos). Es la web donde está publicada la app: los enlaces
   // https://…/i/?… abren la invitación en la app (Android, ordenador) o en la web.

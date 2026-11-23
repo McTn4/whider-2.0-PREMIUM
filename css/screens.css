@@ -359,27 +359,26 @@
 .auth-card { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 26rem; padding: 6px 0 24px; animation: fade-up .4s var(--ease-out) both; }
 .auth-card h1 { margin-top: -2px; font-size: var(--fs-large); font-weight: 800; line-height: 1.12; letter-spacing: var(--track-title); text-align: center; }
 .auth-sub { margin-top: -10px; font-size: var(--fs-sub); color: var(--t2); line-height: 1.5; text-align: center; }
-/* Botón de Google con su estilo oscuro oficial */
-.google-btn { background: #131314; color: #E3E3E3; border: 1px solid #8E918F; font-weight: 500; }
-/* Con el tema claro, la versión clara del botón de Google (sus colores oficiales) */
-html[data-theme="light"] .google-btn { background: #FFFFFF; color: #1F1F1F; border-color: #747775; }
-.google-btn .g-logo { display: inline-flex; width: 1.2rem; height: 1.2rem; }
-.google-btn .g-logo svg { width: 100%; height: 100%; }
-.auth-divider { display: flex; align-items: center; gap: 12px; color: var(--t3); font-size: var(--fs-foot); }
-.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--line-2); }
+/*
+ * Google, Microsoft y Apple: los tres iguales, con el estilo neutro oficial de Google (oscuro o claro según el tema)
+ * y el logotipo de cada uno. El de Apple va del color del texto (blanco en oscuro, negro en claro), como pide Apple.
+ */
+.auth-providers { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.provider-btn { position: relative; gap: 12px; background: #131314; color: #E3E3E3; border: 1px solid #8E918F; font-weight: 500; }
+html[data-theme="light"] .provider-btn { background: #FFFFFF; color: #1F1F1F; border-color: #747775; }
+@media (hover: hover) and (pointer: fine) {
+  .provider-btn:hover { background: #1F1F21; }
+  html[data-theme="light"] .provider-btn:hover { background: #F2F2F2; }
+}
+.provider-btn .p-logo { display: inline-flex; width: 1.2rem; height: 1.2rem; }
+.provider-btn .p-logo svg { width: 100%; height: 100%; }
+.provider-btn.apple .p-logo { width: 1.25rem; height: 1.25rem; margin-top: -2px; }
+.auth-legal { margin-top: -4px; font-size: var(--fs-foot); color: var(--t3); line-height: 1.5; text-align: center; }
+.auth-legal .link-btn { padding: 0; font-size: inherit; }
 .auth-form { display: flex; flex-direction: column; gap: 12px; }
 .auth-form .cell { padding-top: 13px; padding-bottom: 13px; }
 .auth-eye { display: grid; place-items: center; width: 32px; height: 32px; margin: -6px -8px -6px 0; color: var(--t3); }
 .auth-eye.on { color: var(--t1); }
-.pw-meter { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 6px; align-items: center; margin: -2px 4px 0; }
-.pw-meter i { height: 3px; border-radius: 2px; background: var(--fill); transition: background-color .3s, box-shadow .3s; }
-.pw-meter i.on.s0, .pw-meter i.on.s1 { background: var(--t3); }
-.pw-meter i.on.s2 { background: var(--t2); }
-.pw-meter i.on.s3, .pw-meter i.on.s4 { background: var(--ok); }
-.pw-meter span { min-width: 4.5rem; font-size: var(--fs-cap); font-weight: 500; color: var(--t2); text-align: right; }
-.auth-check { display: flex; align-items: center; gap: 10px; padding: 0 4px; font-size: var(--fs-sub); color: var(--t2); }
-.auth-check .check { margin: 0; }
-.auth-check .link-btn { padding: 0; }
 .auth-forgot { align-self: center; }
 .auth-error { display: none; padding: 12px 14px; border-radius: var(--r-field); background: rgba(var(--danger-rgb), .12); font-size: var(--fs-sub); color: var(--t1); line-height: 1.45; }
 .auth-error.show { display: block; }
@@ -388,7 +387,7 @@ html[data-theme="light"] .google-btn { background: #FFFFFF; color: #1F1F1F; bord
 .verify-ic { width: 3.2rem; height: 3.2rem; margin: 24px auto 4px; color: var(--t1); stroke-width: 1.4; }
 .btn .spinner { display: none; width: 1.05rem; height: 1.05rem; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
 .btn.loading .spinner { display: inline-block; }
-.google-btn.loading .g-logo { display: none; }
+.provider-btn.loading .p-logo { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- Campo de código (añadir contactos con su código WH-…) ---------- */

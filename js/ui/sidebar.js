@@ -160,9 +160,6 @@ window.Whider = window.Whider || {};
       ]);
     }
 
-    var name = st.displayName();
-    var sync = W.Auth && W.Auth.user ? W.Sync.statusText() : (W.Auth && W.Auth.configured() ? W.t('Sin cuenta') : W.t('En este dispositivo'));
-
     U.clear(el);
     el.appendChild(U.el('div.sb-brand', [
       U.svg('svg', { viewBox: '0 0 64 64', 'aria-hidden': 'true' }, [U.svg('use', { href: '#logo' })]),
@@ -183,13 +180,8 @@ window.Whider = window.Whider || {};
       lists
     ]));
     if (filtersSec) el.appendChild(filtersSec);
-    el.appendChild(U.el('div.sb-foot', [
-      U.el('button.sb-profile', { attrs: { title: W.t('Tu cuenta y tus ajustes') }, on: { click: function () { W.Settings.open(W.Auth && W.Auth.user ? 'account' : null); } } }, [
-        W.Profile.avatar(),
-        U.el('span.sb-who', [U.el('strong', { text: name || W.t('Tu perfil') }), U.el('small' + (W.Sync && W.Sync.unsaved && W.Sync.unsaved() ? '.sb-unsaved' : ''), { text: sync })])
-      ]),
-      U.el('button.nav-icon.sb-gear', { attrs: { 'aria-label': W.t('Ajustes'), title: W.t('Ajustes · {0}', { 0: W.Layout.keys(',') }) }, on: { click: function () { W.Settings.open(); } } }, [U.icon('gear')])
-    ]));
+    // Abajo, solo tu foto y tu nombre: abren el menú de tu cuenta (ajustes, ayuda, cerrar sesión…)
+    el.appendChild(U.el('div.sb-foot', [W.AccountMenu.sidebarButton()]));
   }
 
   var Sidebar = {

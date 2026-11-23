@@ -299,7 +299,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       if (b && !b.soft) {
         listEl = convEl = null;
         var head = W.UI.header({ title: W.t('Chats') });
-        W.UI.mount(root, head, [U.el('div.group', [W.UI.empty('users', b.title, b.text, b.id === 'guest' && W.Auth.configured() ? U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open({ mode: 'login' }); } } }, [U.icon('user', 'sm'), W.t('Iniciar sesión')]) : null)])]);
+        W.UI.mount(root, head, [U.el('div.group', [W.UI.empty('users', b.title, b.text, b.id === 'guest' && W.Auth.configured() ? U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open(); } } }, [U.icon('user', 'sm'), W.t('Iniciar sesión')]) : null)])]);
         return;
       }
       if (desk()) {

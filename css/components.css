@@ -56,12 +56,40 @@ button.cell:active, .cell.tap:active { background: var(--cell-hl); }
 .cell-sub.accent { color: var(--link); }
 .cell-sub.red { color: var(--imp-1); font-weight: 500; }
 .cell-sub.warn { color: var(--imp-2); font-weight: 600; }
-/* Cambios que no han llegado a la nube: un punto en el botón de los ajustes */
-.gear-btn { position: relative; }
-html[data-sync="offline"] .gear-btn::after, html[data-sync="error"] .gear-btn::after, html[data-sync="unverified"] .gear-btn::after {
-  content: ''; position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%;
+/* ---------- Tu foto: la entrada a tu cuenta y a los ajustes (en la barra superior del móvil) ---------- */
+.me-btn { position: relative; display: grid; place-items: center; flex: none; width: 44px; height: 44px; margin-right: -4px; border-radius: 50%; }
+.me-btn .avatar { width: 32px; height: 32px; font-size: 14px; }
+.me-btn:active .avatar { opacity: .8; }
+.me-btn:focus-visible { outline: 2px solid var(--link); outline-offset: -2px; }
+.me-av { position: relative; display: inline-grid; flex: none; }
+/* Cambios que no han llegado a la nube: un punto en tu foto */
+html[data-sync="offline"] .me-av::after, html[data-sync="error"] .me-av::after, html[data-sync="unverified"] .me-av::after {
+  content: ''; position: absolute; top: -1px; right: -1px; width: 10px; height: 10px; border-radius: 50%;
   background: var(--imp-2); box-shadow: 0 0 0 2px var(--bg);
 }
+
+/* ---------- El menú de tu cuenta: panel amplio en el ordenador, hoja en el móvil ---------- */
+.acct-head { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; text-align: left; border-radius: inherit; transition: background-color .15s; }
+.acct-head:active { background: var(--cell-hl); }
+.acct-head .avatar { width: 52px; height: 52px; font-size: 21px; }
+.acct-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.acct-who strong { font-size: var(--fs-title3); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-who small { font-size: var(--fs-sub); color: var(--t3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0; }
+.acct-who .acct-sync.warn { color: var(--imp-2); font-weight: 600; }
+.acct-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 4px 0; }
+.btn.acct-out { color: var(--imp-1); }
+.acct-version { padding: 12px 4px 4px; font-size: var(--fs-foot); color: var(--t3); text-align: center; letter-spacing: 0; }
+/* Ordenador: un panel a lo ancho junto a tu nombre, con los ajustes y la ayuda en dos columnas */
+.menu.acct-pop { width: min(600px, calc(100vw - 24px)); max-width: none; max-height: calc(100vh - 24px); padding: 10px 12px 8px; border-radius: 18px; }
+.acct-pop .acct-head { margin-bottom: 4px; padding: 12px; border-radius: 12px; }
+@media (hover: hover) and (pointer: fine) { .acct-head:hover { background: var(--cell-hl); } }
+.acct-pop .sec { margin-top: 10px; }
+.acct-pop .sec-h { padding: 0 12px 6px; }
+.acct-pop .group { background: var(--fill-3); }
+.acct-pop .cell { min-height: 40px; padding-top: 6px; padding-bottom: 6px; }
+.acct-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; align-items: start; }
+.acct-pop .acct-foot { padding: 14px 4px 0; }
+.acct-pop .acct-version { padding: 10px 4px 2px; }
 .cell-value { flex: none; display: inline-flex; align-items: center; gap: 6px; max-width: 58%; color: var(--t3); font-size: var(--fs-body); }
 .cell-value > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chev { width: .5rem; height: .875rem; flex: none; color: var(--chev-c); stroke-width: 2.4; }
@@ -117,9 +145,10 @@ html[data-sync="offline"] .gear-btn::after, html[data-sync="error"] .gear-btn::a
   background: var(--knob-on); box-shadow: 0 3px 8px rgba(0, 0, 0, .15), 0 3px 1px rgba(0, 0, 0, .06);
   transition: transform .28s var(--spring);
 }
-.switch input:checked + .track { background: var(--ok); }
-.switch input:checked + .track::after { transform: translateX(20px); }
-.switch input:focus-visible + .track { box-shadow: 0 0 0 2px var(--link); }
+/* Encendido: del color de la app (blanco con la bola negra en el tema oscuro; negro con la bola blanca en el claro) */
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(20px); background: var(--on-accent); }
+.switch input:focus-visible + .track { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--link); }
 .switch input:disabled + .track { opacity: .4; }
 
 /* ---------- Control segmentado (como el de Apple) ---------- */

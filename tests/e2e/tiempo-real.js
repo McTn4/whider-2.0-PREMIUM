@@ -4,11 +4,12 @@
 // funcionando como antes; y con otra cuenta, la solicitud de contacto, los mensajes y las reacciones llegan al momento.
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
+const { simular, entrar } = require('./_cuentas');
 
 const EMU = 'http://127.0.0.1:9099', FS = 'http://127.0.0.1:8085', PROJECT = 'demo-whider';
 const cfg = {
   firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' },
-  googleWebClientId: 'x', requireAccount: true, allowGuest: true, allowedEmailDomains: [],
+  googleWebClientId: 'x', requireAccount: true,
   emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 }, links: { base: 'https://whider-red.vercel.app' }
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -26,6 +27,7 @@ async function waitFor(p, fn, arg, ms) {
 async function device(b, label, extra) {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 860 } });
   await ctx.addInitScript((c) => { window.WHIDER_CONFIG = c; }, Object.assign({}, cfg, extra || {}));
+  await ctx.addInitScript(simular);
   const p = await ctx.newPage();
   p.errs = [];
   p.setDefaultTimeout(10000);
@@ -42,23 +44,11 @@ async function afterAuth(p) {
   await p.evaluate(() => { Whider.Notify.check = function () {}; });
 }
 async function register(p, name, email) {
-  await p.fill('#authRoot input[autocomplete=name]', name);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-check .check');
-  await p.click('#authRoot .auth-submit');
-  await sleep(2500);
-  const r = await (await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/oobCodes`)).json();
-  await fetch(r.oobCodes.filter((c) => c.email === email).pop().oobLink);
-  await p.click('text=Ya lo he verificado');
+  await entrar(p, email, name);
   await afterAuth(p);
 }
 async function login(p, email) {
-  await p.click('#authRoot >> text=Iniciar sesión');
-  await sleep(300);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-submit');
+  await entrar(p, email);
   await afterAuth(p);
 }
 // Cuenta las veces que se consulta la nube (cada subida es una transacción que la lee)

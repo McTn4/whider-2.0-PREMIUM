@@ -18,6 +18,9 @@ contextBridge.exposeInMainWorld('WhiderDesktop', {
   /** Acceso con Google en el navegador del ordenador → { ok, idToken, accessToken } o { ok: false, kind } */
   googleSignIn: function () { return ipcRenderer.invoke('whider:google-sign-in'); },
   cancelGoogle: function () { return ipcRenderer.invoke('whider:google-cancel'); },
+  /** Acceso con Microsoft o Apple en el navegador del ordenador → { ok, user } (la sesión) o { ok: false, kind } */
+  browserSignIn: function (provider) { return ipcRenderer.invoke('whider:browser-sign-in', String(provider)); },
+  cancelBrowserSignIn: function () { return ipcRenderer.invoke('whider:browser-cancel'); },
   /** { openAtLogin, closeToTray, version } */
   getSettings: function () { return ipcRenderer.invoke('whider:get-settings'); },
   setSetting: function (key, value) { return ipcRenderer.invoke('whider:set-setting', String(key), !!value); },

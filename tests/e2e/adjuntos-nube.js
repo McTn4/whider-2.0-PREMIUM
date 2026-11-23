@@ -4,10 +4,11 @@
 // Firebase Storage con sus reglas (storage.rules).
 const { chromium } = require('playwright');
 const { APP, FX, fixtures } = require('./_util');
+const { simular, entrar } = require('./_cuentas');
 const fs = require('fs'), path = require('path');
 const EMU = 'http://127.0.0.1:9099', FS = 'http://127.0.0.1:8085', PROJECT = 'demo-whider';
 const STORAGE = process.env.WHIDER_ADJUNTOS === 'storage', ST = 'http://127.0.0.1:9199', BUCKET = 'demo-whider.appspot.com';
-const cfg = { storage: STORAGE, firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1', storageBucket: BUCKET }, googleWebClientId: 'x', requireAccount: true, allowGuest: true, allowedEmailDomains: [], emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085, storageHost: '127.0.0.1', storagePort: 9199 }, links: { base: 'https://whider-red.vercel.app' } };
+const cfg = { storage: STORAGE, firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1', storageBucket: BUCKET }, googleWebClientId: 'x', requireAccount: true, emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085, storageHost: '127.0.0.1', storagePort: 9199 }, links: { base: 'https://whider-red.vercel.app' } };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); if (!c) fails++; };
 const get = async p => { const r = await fetch(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/${p}`, { headers: { Authorization: 'Bearer owner' } }); return r.status === 200 ? r.json() : null; };
@@ -18,6 +19,7 @@ async function waitFor(p, fn, arg, ms) { const end = Date.now() + (ms || 20000);
 async function device(b, label) {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 860 }, acceptDownloads: true });
   await ctx.addInitScript(c => { window.WHIDER_CONFIG = c; }, cfg);
+  await ctx.addInitScript(simular);
   const p = await ctx.newPage(); p.errs = []; p.setDefaultTimeout(10000);
   p.on('pageerror', e => p.errs.push(label + ': ' + e.message));
   p.on('console', m => { if (m.type() === 'error' && !/400|401|403|404|ERR_|permission|insufficient/i.test(m.text())) p.errs.push(label + ': ' + m.text()); });
@@ -30,21 +32,11 @@ async function afterAuth(p) {
   await p.evaluate(() => { Whider.Notify.check = function () {}; });
 }
 async function register(p, name, email) {
-  await p.fill('#authRoot input[autocomplete=name]', name);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-check .check');
-  await p.click('#authRoot .auth-submit'); await sleep(2500);
-  const r = await (await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/oobCodes`)).json();
-  await fetch(r.oobCodes.filter(c => c.email === email).pop().oobLink);
-  await p.click('text=Ya lo he verificado');
+  await entrar(p, email, name);
   await afterAuth(p);
 }
 async function login(p, email) {
-  await p.click('#authRoot >> text=Iniciar sesión'); await sleep(300);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-submit');
+  await entrar(p, email);
   await afterAuth(p);
 }
 async function openPage(p, id) { await p.evaluate(id => { Whider.Router.go('notes'); setTimeout(() => Whider.Notes.openPage(id), 300); }, id); await sleep(1500); }

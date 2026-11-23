@@ -74,8 +74,8 @@ window.Whider = window.Whider || {};
     if (!b || b.soft) return false;
     savePending(inv);
     if (b.id === 'guest' && W.AuthScreen && W.Auth.configured()) {
-      W.Toast.show({ text: W.t('Entra o crea tu cuenta y te conectamos enseguida'), icon: 'users', duration: 5000 });
-      W.AuthScreen.open({ mode: 'register' });
+      W.Toast.show({ text: W.t('Entra con tu cuenta y te conectamos enseguida'), icon: 'users', duration: 5000 });
+      W.AuthScreen.open();
     } else W.Toast.show({ text: b.title + '. ' + b.text, icon: 'info', duration: 6000 });
     return true;
   }
@@ -278,6 +278,10 @@ window.Whider = window.Whider || {};
     retryPending: function () { var inv = takePending(); if (inv) setTimeout(function () { open(inv); }, 500); }
   };
   W.Invite = Invite;
-  // Enlaces whider:// que llegan desde Android (antes de que la app esté lista se guardan)
-  window.WhiderOpenLink = function (url) { open(url); };
+  // Enlaces whider:// que llegan desde Android (antes de que la app esté lista se guardan). whider://auth es la vuelta
+  // de la página de acceso con Microsoft o Apple (ver Auth.onBrowserLink)
+  window.WhiderOpenLink = function (url) {
+    if (/^whider:\/\/auth\b/i.test(String(url || ''))) { if (W.Auth && W.Auth.onBrowserLink) W.Auth.onBrowserLink(String(url)); return; }
+    open(url);
+  };
 })(window.Whider);

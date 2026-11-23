@@ -2,7 +2,9 @@
 
 WHIDER usa **Firebase** (de Google) para las cuentas de usuario y la copia en la nube. El plan gratuito ("Spark") es suficiente para empezar. Configurarlo lleva unos 15 minutos y solo hay que hacerlo una vez.
 
-Mientras no lo configures, la app funciona igual pero **sin cuentas**: los datos se guardan solo en el dispositivo.
+Desde la 2.1, **WHIDER solo se usa con una cuenta de Google, Microsoft o Apple** (ya no hay «Continuar sin cuenta» ni
+se crean cuentas nuevas con correo y contraseña; las que ya existían siguen entrando). Mientras no configures Firebase
+(`firebase: null` en `js/config.js`, como en las pruebas), la app funciona sin cuentas y guarda todo en el dispositivo.
 
 ---
 
@@ -29,33 +31,65 @@ firebase: {
 
 > Estos valores no son secretos: identifican tu proyecto. La seguridad la dan las reglas del paso 4.
 
-## 3. Activar los métodos de acceso
+## 3. Activar los métodos de acceso: Google, Microsoft y Apple
 
-En **Compilación → Authentication → Comenzar → Método de acceso**:
+En **Compilación → Authentication → Comenzar → Método de acceso**. La dirección de vuelta que piden Microsoft y Apple
+es la que enseña Firebase al abrir cada proveedor: `https://<tu-proyecto>.firebaseapp.com/__/auth/handler` (para
+WHIDER, `https://whider.firebaseapp.com/__/auth/handler`).
 
-1. Activa **Correo electrónico/contraseña** (deja desactivado "Vínculo de correo electrónico").
-2. Activa **Google**, elige un correo de asistencia y guarda.
-3. Vuelve a abrir el proveedor **Google**, despliega **Configuración del SDK web** y copia el **ID de cliente web** en `js/config.js`:
+### Google
+
+1. Activa **Google**, elige un correo de asistencia y guarda.
+2. Vuelve a abrir el proveedor **Google**, despliega **Configuración del SDK web** y copia el **ID de cliente web** en `js/config.js`:
 
 ```js
 googleWebClientId: '1234567890-xxxxxxxx.apps.googleusercontent.com',
 ```
 
-### Correos con aspecto profesional
+### Microsoft
 
-En **Authentication → Plantillas**:
+1. En <https://entra.microsoft.com> (o el portal de Azure): **Registros de aplicaciones → Nuevo registro**.
+   - Tipos de cuenta: **cuentas de cualquier directorio organizativo y cuentas Microsoft personales** (Outlook, Hotmail, Xbox…).
+   - URI de redirección: **Web**, con la dirección de vuelta de Firebase (arriba).
+2. Copia el **Id. de aplicación (cliente)**. En **Certificados y secretos → Nuevo secreto de cliente**, copia su **valor**
+   (caduca: apunta la fecha y renuévalo antes; si caduca, nadie podrá entrar con Microsoft).
+3. En Firebase activa **Microsoft** y pega el Id. de aplicación y el secreto.
 
-- Cambia el idioma de las plantillas a **Español**.
-- Personaliza el **nombre del remitente** (p. ej. `WHIDER`) y el texto de los correos de verificación y de recuperación de contraseña.
-- Para enviarlos desde tu propio dominio (p. ej. `no-responder@tuempresa.com`), usa **Personalizar dominio** y añade los registros DNS que te indica Firebase.
+Algunas cuentas de Microsoft no traen el correo marcado como verificado: la app y las reglas del paso 4 las aceptan
+igual (lo que cuenta es haber entrado con Microsoft).
 
-### Solo correos de empresa (opcional)
+### Apple
 
-Si quieres que solo puedan registrarse correos de tu organización, indícalo en `js/config.js`:
+Hace falta el **Apple Developer Program** (de pago). En <https://developer.apple.com/account>:
 
-```js
-allowedEmailDomains: ['tuempresa.com'],
-```
+1. **Identifiers → App IDs**: un App ID (por ejemplo `com.whider.app`) con **Sign in with Apple** activado.
+2. **Identifiers → Services IDs**: un Services ID (por ejemplo `com.whider.web`), con **Sign in with Apple →
+   Configure**: el App ID del paso anterior, el dominio `whider.firebaseapp.com` y la dirección de vuelta de Firebase.
+3. **Keys**: una clave con **Sign in with Apple**. Descarga el archivo `.p8` (solo se puede una vez) y apunta su
+   **Key ID** y tu **Team ID** (arriba a la derecha de la cuenta).
+4. En Firebase activa **Apple** y rellena el Services ID, el Team ID, el Key ID y la clave privada (el contenido del `.p8`).
+
+Quien entra con Apple puede ocultar su correo: Apple da una dirección de reenvío (`…@privaterelay.appleid.com`).
+WHIDER no envía correos a esas cuentas, así que no hace falta configurar nada más.
+
+### Correo y contraseña (solo las cuentas de antes)
+
+Deja activado **Correo electrónico/contraseña**: lo usan las cuentas creadas antes de la 2.1, que siguen entrando
+(«¿Tu cuenta es de correo y contraseña?») y pueden recuperar la contraseña. La app ya no crea cuentas así. Si lo
+desactivas, esas personas no podrán entrar hasta que lo vuelvas a activar.
+
+En **Authentication → Plantillas** puedes poner el idioma de los correos en **Español** y el nombre del remitente
+(p. ej. `WHIDER`) para el de recuperar la contraseña.
+
+### Dominios autorizados
+
+En **Authentication → Configuración → Dominios autorizados** tienen que estar:
+
+- `localhost`: viene por defecto. Lo usa la **app de ordenador**, que abre el acceso en el navegador del sistema
+  (`http://localhost:PUERTO/entrar`).
+- El dominio de la web, para WHIDER `whider-red.vercel.app`: la app web y la página **`/entrar/`**, que usa la **app de
+  Android** para Microsoft y Apple (se abre en el navegador del móvil y vuelve a la app ya con la sesión).
+- `<tu-proyecto>.firebaseapp.com`: viene por defecto.
 
 ## 4. Crear la base de datos y sus reglas
 
@@ -63,7 +97,7 @@ allowedEmailDomains: ['tuempresa.com'],
 2. Elige una ubicación en Europa (por ejemplo `eur3` o `europe-west1`) y el **modo de producción**.
 3. En la pestaña **Reglas**, sustituye el contenido por el del archivo [`firestore.rules`](../firestore.rules) de este repositorio y pulsa **Publicar**.
 
-Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios datos**, y solo con el correo verificado. Además cubren lo que se comparte con otras personas:
+Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios datos**, y solo si ha entrado con Google, Microsoft o Apple (o, en las cuentas de correo de antes, con el correo verificado). Además cubren lo que se comparte con otras personas:
 
 | Colección | Quién puede |
 | --- | --- |
@@ -73,6 +107,8 @@ Estas reglas hacen que cada persona solo pueda leer y escribir **sus propios dat
 | `spaces/{id}`, `spaces/{id}/pages` y `spaces/{id}/files` | Equipos, sus páginas y los archivos de esas páginas: solo sus miembros (quien tenga el enlace del equipo puede entrar) |
 | `chats/{id}` y `chats/{id}/msgs` | Solo los miembros del chat; cada uno edita o borra sus mensajes |
 
+> **Al actualizar a la 2.1, vuelve a copiar y publicar el archivo completo** (y [`storage.rules`](../storage.rules), si usas Storage). La 2.1 deja entrar a las cuentas de Google, Microsoft y Apple aunque el proveedor no marque su correo como verificado; sin las reglas nuevas, algunas cuentas de Microsoft entran en la app pero la nube rechaza sus datos («La nube no ha aceptado los cambios»).
+>
 > **Al actualizar a la 8.0, vuelve a copiar y publicar el archivo completo.** La 8.0 añade la regla de `spaces/{id}/files` (fotos y archivos adjuntos de las páginas de equipo); sin ella, los archivos de un equipo no se suben ni se descargan. Tus propios archivos (`users/{uid}/files`) ya los cubre la regla de tus datos. (Si vienes de una versión anterior a la 7.0, sin las reglas nuevas tampoco conectan *Personas*, *Chats* ni las páginas de equipo.)
 >
 > **Espacio**: los archivos se guardan en Firestore en trozos de menos de 1 MB (no hace falta Cloud Storage, que exige el plan de pago). Cada archivo puede pesar hasta 15 MB y en el plan gratuito de Firebase caben 1 GB de datos en total; lo que ya no usa ninguna página se borra solo a los 3 días. Si crecen mucho, pueden ir a Firebase Storage (apartado siguiente).
@@ -130,7 +166,7 @@ La app muestra el motivo exacto. El más habitual es **"Google no reconoce esta 
 
 ## 6. Versión web (opcional)
 
-Si publicas la app en una web (Vercel, Firebase Hosting, GitHub Pages…), añade su dominio en **Authentication → Configuración → Dominios autorizados** (para WHIDER: `whider-red.vercel.app`). Sin él, *Continuar con Google* no funciona en esa web. `localhost` ya viene autorizado para probar con `python serve.py`.
+Si publicas la app en una web (Vercel, Firebase Hosting, GitHub Pages…), añade su dominio en **Authentication → Configuración → Dominios autorizados** (para WHIDER: `whider-red.vercel.app`). Sin él, no se puede entrar con Google, Microsoft ni Apple en esa web, ni desde Android con Microsoft o Apple (usan su página `/entrar/`). `localhost` ya viene autorizado para probar con `python serve.py`.
 
 ### Enlaces de invitación y códigos QR
 
@@ -166,7 +202,7 @@ cd android
 
 ## Probar sin tocar el proyecto real (emuladores)
 
-Puedes probar el registro y la sincronización en tu ordenador con los emuladores oficiales de Firebase:
+Puedes probar las cuentas y la sincronización en tu ordenador con los emuladores oficiales de Firebase:
 
 ```bash
 npx firebase-tools emulators:start --only auth,firestore,storage --project demo-whider
@@ -180,11 +216,13 @@ emulator: { auth: 'http://127.0.0.1:9099', firestoreHost: '127.0.0.1', firestore
 // storage: true,   // para probar los adjuntos en Storage
 ```
 
-Los correos de verificación no se envían de verdad: el emulador muestra los enlaces en su consola.
+El emulador abre su propia ventana para Google, Microsoft y Apple, con cuentas de prueba (necesita poder cargar
+`apis.google.com`). Las pruebas automáticas no la abren: entran con la credencial de prueba que acepta el emulador
+(ver `tests/e2e/_cuentas.js`).
 
 ## Preguntas frecuentes
 
-- **¿Qué pasa con los datos que ya tenía?** Se conservan. Si usabas la app sin cuenta, al crear la cuenta todo se sube a ella.
+- **¿Qué pasa con los datos que ya tenía?** Se conservan. Si usabas la app sin cuenta, al entrar con tu cuenta todo se sube a ella.
 - **¿Y si uso dos móviles?** Los cambios se fusionan: no se pierde lo hecho en ninguno. Si algo se borra en uno, también desaparece en el otro.
 - **¿Funciona sin internet?** Sí. Todo se guarda al momento en el dispositivo y se sincroniza al volver la conexión.
-- **¿Cómo se borra una cuenta?** **Ajustes** (el engranaje) **→ Cuenta → Eliminar la cuenta**. Sin la app, desde la web: `https://whider-red.vercel.app/app#cuenta` abre esa misma pantalla al iniciar sesión (es el enlace que pide Google Play). Se borran la cuenta y todo lo suyo en la nube: tareas y ajustes, el Cuaderno, el perfil público, el código de contacto y su sitio en los equipos (si era el único miembro, el equipo también). Es un requisito de Google Play. Si hace rato que se inició sesión, Firebase pide entrar otra vez antes de borrar nada. Los mensajes ya enviados siguen en los chats de las otras personas, como en cualquier mensajería.
+- **¿Cómo se borra una cuenta?** Tocando **tu foto** (arriba a la derecha; en el ordenador, abajo en la barra lateral) **→ tu nombre → Eliminar la cuenta**. Sin la app, desde la web: `https://whider-red.vercel.app/app#cuenta` abre esa misma pantalla al iniciar sesión (es el enlace que pide Google Play). Se borran la cuenta y todo lo suyo en la nube: tareas y ajustes, el Cuaderno, el perfil público, el código de contacto y su sitio en los equipos (si era el único miembro, el equipo también). Es un requisito de Google Play. Si hace rato que se inició sesión, Firebase pide entrar otra vez antes de borrar nada. Los mensajes ya enviados siguen en los chats de las otras personas, como en cualquier mensajería.

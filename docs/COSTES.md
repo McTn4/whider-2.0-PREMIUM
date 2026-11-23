@@ -1,7 +1,7 @@
 # Costes y sostenibilidad de la nube
 
-WHIDER usa Firebase (Authentication y Cloud Firestore). La app funciona sin cuenta y sin red; la nube
-solo guarda la copia y sincroniza dispositivos. Este documento estima cuánto gasta cada persona y qué
+WHIDER usa Firebase (Authentication y Cloud Firestore). Desde la 2.1 se entra con una cuenta de Google, Microsoft o
+Apple; la app funciona sin red y la nube guarda la copia y sincroniza dispositivos. Este documento estima cuánto gasta cada persona y qué
 se ha hecho en la 1.1 y después (escuchas en tiempo real) para que el proyecto siga siendo gratuito el mayor tiempo
 posible.
 

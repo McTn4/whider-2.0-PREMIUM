@@ -3,12 +3,17 @@ rules_version = '2';
 // (sin él, los archivos van a Firestore en trozos y aquí no se escribe nada).
 //  - users/{uid}/files/{id}    Los de tus páginas: solo tú.
 //  - spaces/{sid}/files/{id}   Los de las páginas de un equipo: sus miembros (según Firestore).
-// Como en firestore.rules, todo exige un correo verificado. Como mucho 15 MB por archivo (el límite de la app), y nada
+// Como en firestore.rules, todo exige haber entrado con Google, Microsoft o Apple (o, en las cuentas con correo de
+// antes de la 2.1, un correo verificado). Como mucho 15 MB por archivo (el límite de la app), y nada
 // que un navegador ejecute al abrirlo (HTML, SVG, XML): la app los sube como binario genérico.
 // Desplegar: firebase deploy --only storage (la primera vez, la consola pide permiso para leer Firestore desde aquí).
 service firebase.storage {
   match /b/{bucket}/o {
-    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function signedIn() {
+      return request.auth != null
+        && (request.auth.token.firebase.sign_in_provider in ['google.com', 'microsoft.com', 'apple.com']
+          || request.auth.token.email_verified == true);
+    }
     function okUpload(id) {
       return id.matches('[A-Za-z0-9_-]{3,60}') && request.resource.size <= 15 * 1024 * 1024 + 1024
         && !request.resource.contentType.matches('(?i)(text/html|application/xhtml[+]xml|image/svg[+]xml|text/xml|application/xml).*');

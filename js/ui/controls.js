@@ -33,27 +33,19 @@ window.Whider = window.Whider || {};
     return b;
   }
 
-  function gearBtn() {
-    // Con cambios sin subir por un fallo, el engranaje lleva un punto (y lo dice al lector de pantalla)
-    var unsaved = !!(W.Sync && W.Sync.unsaved && W.Sync.unsaved());
-    var b = navBtn({ icon: 'gear', label: unsaved ? W.t('Ajustes (hay cambios sin guardar en la nube)') : W.t('Ajustes'), onTap: function () { W.Settings.open(); } });
-    b.classList.add('gear-btn');
-    return b;
-  }
-
   var UI = {
     navBtn: navBtn,
 
     /**
      * Cabecera de pantalla: barra superior fija + título.
-     * header({ title, sub, back: { label, onTap }, actions: [spec], gear })
-     *  - gear: el engranaje de los Ajustes, arriba a la derecha (como siempre); gear: false lo quita
+     * header({ title, sub, back: { label, onTap }, actions: [spec], account })
+     *  - account: tu foto de perfil (tu cuenta y los ajustes), arriba a la derecha; account: false la quita
      */
     header: function (o) {
-      // En el ordenador, los ajustes están abajo en la barra lateral
+      // En el ordenador, tu foto y tu nombre están abajo en la barra lateral
       var desk = W.Layout && W.Layout.desktop;
       var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: W.t('Volver a {label}', { label: o.back.label }), onTap: o.back.onTap, back: true }) : null]);
-      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.gear === false || desk ? [] : [gearBtn()]));
+      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.account === false || desk || !W.AccountMenu ? [] : [W.AccountMenu.button()]));
       var nav = U.el('header.nav', [lead, U.el('div.nav-title', { text: o.compact || o.title }), trail]);
       var lt = U.el('div.lt', [
         U.el('div.lt-text', [

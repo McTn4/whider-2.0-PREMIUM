@@ -142,8 +142,8 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
     const menu = await leerHojas(p, '.bk-menu');
     ok(menu.length > 10 && !menu.filter((l) => ESPANOL.test(l)).length, donde + ': menú de bloques sin textos en español', menu.length > 10 ? menu.filter((l) => ESPANOL.test(l)) : menu);
     await p.keyboard.press('Escape');
-    // La pantalla de acceso: crear cuenta, iniciar sesión y verificar el correo
-    for (const [modo, vista] of [['register', 'form'], ['login', 'form'], ['login', 'verify']]) {
+    // La pantalla de acceso: Google, Microsoft y Apple; las cuentas de correo de antes; y verificar el correo
+    for (const [modo, vista] of [['providers', 'form'], ['email', 'form'], ['email', 'verify']]) {
       await p.evaluate(([m, v]) => Whider.AuthScreen.open({ mode: m, view: v }), [modo, vista]);
       await sleep(400);
       const texto = await leerHojas(p, '#authRoot');
@@ -152,6 +152,14 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
       await p.evaluate(() => Whider.AuthScreen.close());
       await sleep(500);
     }
+    // Tu cuenta (la foto de perfil): el menú con lo rápido, los ajustes y la ayuda
+    await p.evaluate(() => Whider.AccountMenu.open(document.querySelector('.screen.active .me-btn') || document.querySelector('#sidebar .sb-profile')));
+    await sleep(600);
+    const cuenta = await leerHojas(p, '.acct-pop, .acct-sheet');
+    const restosCuenta = cuenta.filter((l) => ESPANOL.test(l));
+    ok(cuenta.length > 10 && !restosCuenta.length, donde + ': el menú de tu cuenta sin textos en español', restosCuenta.length ? restosCuenta : cuenta);
+    await p.evaluate(() => Whider.AccountMenu.close());
+    await sleep(500);
     // La presentación inicial, paso a paso (sin terminarla, para no cambiar el nombre ni el personaje)
     await p.evaluate(() => Whider.Onboarding.start());
     for (let paso = 1; paso <= 3; paso++) {

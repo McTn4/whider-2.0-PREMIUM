@@ -54,7 +54,19 @@ async function setup(b, viewport, mobile) {
     ok('Inicio: «Cada día» con la diaria', hoy.cada.join() === 'Leer 20 minutos', hoy.cada);
     ok('Inicio: «Por hacer» por importancia (urgente, importante, destacada, normal)', hoy.todo[0] === 'Preparar la propuesta' && hoy.todo[1] === 'Llamar a Ana' && hoy.todo[2] === 'Comprar pan', hoy.todo);
     ok('barra lateral: Inicio, Tareas, Calendario, Cuaderno y Personas', await p.evaluate(() => [...document.querySelectorAll('#sidebar .sb-nav .sb-label')].map((x) => x.textContent).join()) === 'Inicio,Tareas,Calendario,Cuaderno,Personas');
-    ok('foto de perfil con la inicial', await p.evaluate(() => !!document.querySelector('#sidebar .sb-profile .avatar')));
+    ok('abajo, solo tu foto (con la inicial) y tu nombre; sin engranaje', await p.evaluate(() => {
+      const f = document.querySelector('#sidebar .sb-foot');
+      return !!f.querySelector('.sb-profile .avatar') && f.querySelectorAll('button').length === 1 && !document.querySelector('use[href="#i-gear"]');
+    }));
+    await p.click('#sidebar .sb-profile');
+    await sleep(500);
+    const pop = await p.evaluate(() => { const m = document.querySelector('.menu.acct-pop'); return m ? { w: m.offsetWidth, text: m.textContent, sw: m.querySelectorAll('.switch').length } : null; });
+    ok('tu nombre abre un panel amplio con los ajustes, la ayuda e interruptores', !!pop && pop.w >= 540 && /Apariencia/.test(pop.text) && /Novedades/.test(pop.text) && pop.sw >= 2, pop && { w: pop.w, sw: pop.sw });
+    const on = await p.evaluate(() => { const i = [...document.querySelectorAll('.acct-pop .switch input')].find((x) => x.checked); return i ? getComputedStyle(i.nextElementSibling).backgroundColor : ''; });
+    ok('interruptores encendidos en blanco (no en verde)', on === 'rgb(255, 255, 255)', on);
+    await p.keyboard.press('Escape');
+    await sleep(300);
+    ok('Escape cierra el panel', await p.evaluate(() => !document.querySelector('.menu.acct-pop')));
     if (OUT) await p.screenshot({ path: OUT + '/d-home.png' });
     for (const [k, scr] of [
       ['2', 'tasks'],
@@ -116,10 +128,14 @@ async function setup(b, viewport, mobile) {
     await p.evaluate(() => Whider.Router.go('chats'));
     await sleep(400);
     ok('Chats: la pestaña marcada es Personas', await p.evaluate(() => document.querySelector('.dock .tab[data-go="friends"]').classList.contains('active')));
-    ok('sin la foto arriba a la izquierda: el engranaje, a la derecha', await p.evaluate(() => !document.querySelector('.screen.active .avatar-btn') && !!document.querySelector('.screen.active .nav-trail .gear-btn')));
-    await p.click('.screen.active .gear-btn');
-    await sleep(500);
-    ok('el engranaje abre los Ajustes', await p.evaluate(() => Whider.Settings.isOpen()));
+    ok('sin engranaje: tu foto, arriba a la derecha', await p.evaluate(() => !document.querySelector('use[href="#i-gear"]') && !!document.querySelector('.screen.active .nav-trail .me-btn .avatar')));
+    await p.click('.screen.active .me-btn');
+    await sleep(600);
+    const menu = await p.evaluate(() => { const s = document.querySelector('.acct-sheet'); return s ? s.textContent : ''; });
+    ok('tu foto abre tu cuenta: rápido, ajustes y ayuda', /Tema oscuro/.test(menu) && /Apariencia/.test(menu) && /Preguntas frecuentes/.test(menu) && /Todos los ajustes/.test(menu), menu.slice(0, 120));
+    await p.click('.acct-sheet .acct-all');
+    await sleep(700);
+    ok('«Todos los ajustes» abre los Ajustes', await p.evaluate(() => Whider.Settings.isOpen() && !document.querySelector('.acct-sheet')));
     ok('sin errores (móvil)', errs.length === 0, errs.slice(0, 6));
   }
   await b.close();

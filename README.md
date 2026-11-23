@@ -6,7 +6,7 @@
 
 **Web: [whider-red.vercel.app](https://whider-red.vercel.app)** — la portada presenta WHIDER, sus novedades y preguntas frecuentes, y ofrece la descarga para tu dispositivo (en el ordenador, Windows, macOS o Linux; en el iPhone, cómo añadirla desde Safari; en Android, Google Play, próximamente). También [en inglés](https://whider-red.vercel.app/en/). La app está en español y en inglés (Ajustes → Idioma); en el ordenador y en Android, el inglés llega con su próxima versión. La app en el navegador está en [`/app`](https://whider-red.vercel.app/app).
 
-**Diseño sencillo, a lo Apple**: fondo negro (o blanco), texto casi blanco, **líneas finas** en lugar de tarjetas con sombra, títulos grandes y **blanco** (negro en el tema claro) para lo que se puede tocar. El único color «de verdad» es el de la **importancia** de cada tarea: **urgente en rojo, importante en naranja, destacada en amarillo** y normal en gris. Una sola tipografía, **Inter**, en todo; iconos de trazo redondeado, como los de Apple, que se rellenan en la pestaña activa. En el móvil, cinco pestañas abajo, un **«+» flotante** y el engranaje de los ajustes arriba a la derecha; en el ordenador, una barra lateral sobria con **«Nueva tarea»** arriba.
+**Diseño sencillo, a lo Apple**: fondo negro (o blanco), texto casi blanco, **líneas finas** en lugar de tarjetas con sombra, títulos grandes y **blanco** (negro en el tema claro) para lo que se puede tocar. El único color «de verdad» es el de la **importancia** de cada tarea: **urgente en rojo, importante en naranja, destacada en amarillo** y normal en gris. Una sola tipografía, **Inter**, en todo; iconos de trazo redondeado, como los de Apple, que se rellenan en la pestaña activa. En el móvil, cinco pestañas abajo, un **«+» flotante** y **tu foto** arriba a la derecha (tu cuenta y los ajustes); en el ordenador, una barra lateral sobria con **«Nueva tarea»** arriba y tu foto y tu nombre abajo.
 
 <p align="center">
   <img src="sitio/img/pc-hoy.webp" width="900" alt="WHIDER en el ordenador: Inicio con el campo para añadir, «Cada día» y «Por hacer» por importancia">
@@ -81,8 +81,8 @@ La portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.ve
 - Ventana con la franja de título integrada en el diseño (Windows y macOS); recuerda su tamaño y posición.
 - **Sigue en la bandeja del sistema** al cerrar la ventana para avisarte de tus tareas, y puede **abrirse al iniciar el ordenador** (Ajustes → Ordenador). Desde la bandeja: abrir, nueva tarea, buscar, las tareas de hoy, una página nueva y salir.
 - Notificaciones del sistema y aviso en el icono de la barra de tareas cuando hay tareas vencidas.
-- **Entrar con Google**: se abre tu navegador, eliges la cuenta y vuelves a la app (Google no permite iniciar sesión dentro de otras apps). Con correo y contraseña se entra directamente.
-- Funciona sin conexión: la app web va dentro y tus datos se guardan en el ordenador (y en tu cuenta, si has iniciado sesión).
+- **Entrar con Google, Microsoft o Apple**: se abre tu navegador, eliges la cuenta y vuelves a la app ya dentro (ninguno de los tres permite iniciar sesión dentro de otras apps). Las cuentas de correo y contraseña de antes entran directamente.
+- Funciona sin conexión: la app web va dentro y tus datos se guardan en el ordenador y en tu cuenta.
 
 <p align="center">
   <img src="docs/capturas/pc-02-calendario-mes.jpg" width="440" alt="Calendario: mes">
@@ -101,14 +101,14 @@ En el ordenador, las secciones están en la barra lateral, de lo más importante
 
 | Pestaña | Qué encontrarás |
 | --- | --- |
-| **Inicio** | Arriba, un **campo para escribir** la tarea, con su **importancia** y **«Cada día»**. Debajo, **«Cada día»** (lo que repites a diario, tachado en su sitio cuando lo haces) y **«Por hacer»**: lo de hoy y lo vencido, **de lo más importante a lo menos** (lo que ya empezaste, delante; lo vencido, con su fecha en rojo). Lo hecho, plegado al final, y la agenda de tus calendarios. Arriba a la derecha, el **engranaje** de los Ajustes. |
+| **Inicio** | Arriba, un **campo para escribir** la tarea, con su **importancia** y **«Cada día»**. Debajo, **«Cada día»** (lo que repites a diario, tachado en su sitio cuando lo haces) y **«Por hacer»**: lo de hoy y lo vencido, **de lo más importante a lo menos** (lo que ya empezaste, delante; lo vencido, con su fecha en rojo). Lo hecho, plegado al final, y la agenda de tus calendarios. Arriba a la derecha, **tu foto**: tu cuenta y los Ajustes. |
 | **Tareas** | Buscador, **listas inteligentes** (Hoy · Cada día · Programadas · Prioritarias · Todas) y **Mis categorías** (las que crees: al empezar no hay ninguna), cada una con su página, y tus **filtros**. |
 | **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**: **toca un día o una hora y escribe la tarea ahí mismo**. Con tus tareas que se repiten, los eventos de tus calendarios y, si tienes categorías, su filtro. |
 | **Cuaderno** | Tus páginas: favoritas, recientes y todas, con búsqueda, plantillas y papelera. |
 | **Personas** | Tu tarjeta para invitar (enlace, QR o código), las solicitudes, **tus chats recientes**, tus **contactos** y tus **equipos**. |
 | **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la categoría y la importancia. |
 
-Arriba a la derecha de cada pantalla, el **engranaje** abre los **Ajustes**, con tu cuenta lo primero.
+Arriba a la derecha de cada pantalla está **tu foto**: abre tu cuenta, con unos interruptores rápidos (tema oscuro, sonidos), los **Ajustes**, la ayuda y «Cerrar sesión». En el ordenador, tu foto y tu nombre están abajo en la barra lateral y abren lo mismo en un panel amplio.
 
 ---
 
@@ -141,11 +141,11 @@ Arriba a la derecha de cada pantalla, el **engranaje** abre los **Ajustes**, con
 - Tus contactos solo ven tu **nombre y tu foto** (o tu inicial); nunca tus tareas ni tu Cuaderno, salvo lo que compartas.
 
 **Cuentas y copia en la nube**
-- Registro con **correo y contraseña** (con verificación del correo, medidor de seguridad de la contraseña y recuperación por correo) o con **Google** (en Android, con el selector nativo de cuentas del teléfono).
-- Opción para admitir **solo correos de empresa** (`allowedEmailDomains`).
+- Se entra con **Google, Microsoft o Apple** (en Android, Google con el selector nativo de cuentas del teléfono; Microsoft y Apple, en el navegador, que vuelve a la app ya dentro). No hace falta crear otra contraseña.
+- Las cuentas con **correo y contraseña** de versiones anteriores siguen entrando (y recuperan la contraseña por correo); ya no se crean cuentas nuevas así.
 - Tus tareas, categorías, tu Cuaderno y tus ajustes se guardan en tu cuenta y se **sincronizan al momento** entre dispositivos; los cambios de varios dispositivos se fusionan sin perder nada.
-- Funciona sin internet y sincroniza al volver la conexión. Cerrar sesión y **eliminar la cuenta** desde Ajustes → Cuenta.
-- Modo **sin cuenta** opcional: los datos se quedan en el dispositivo y se suben a la cuenta si la creas más tarde.
+- Funciona sin internet y sincroniza al volver la conexión. Cerrar sesión y **eliminar la cuenta** desde tu cuenta (toca tu foto).
+- Si usabas WHIDER **sin cuenta**, tus datos siguen en el dispositivo y pasan a tu cuenta al entrar.
 - Configuración: [docs/CONFIGURAR-CUENTAS.md](docs/CONFIGURAR-CUENTAS.md).
 
 **Tareas y listas**
@@ -282,7 +282,7 @@ npm start
 │   │                       #   auth (cuentas), sync (nube), files (archivos adjuntos del Cuaderno), pages y pagesync
 │   │                       #   (Cuaderno), calendars e ical (calendarios suscritos), community (personas y equipos),
 │   │                       #   chat (chats) e invite (enlaces y QR)
-│   ├── ui/                 # avisos, menús, hojas, controles, perfil, editor, creación rápida, fila de tarea,
+│   ├── ui/                 # avisos, menús, hojas, controles, perfil, tu cuenta (account), editor, creación rápida, fila de tarea,
 │   │                       #   diseño (layout), barra lateral, búsqueda, atajos, selección múltiple (select),
 │   │                       #   filtros, fotos de perfil (avatar) y, para el Cuaderno, blocks (editor)
 │   │                       #   y dbview (bases de datos)
@@ -292,7 +292,8 @@ npm start
 │   └── app.js
 ├── icons/                  # Logotipo (SVG) e iconos PNG 192/512/maskable
 ├── fonts/                  # Inter (variable, 100–900 y tamaño óptico), local, con su licencia OFL
-├── desktop/                # App de escritorio (Electron): ventana, bandeja, acceso con Google por el navegador
+├── desktop/                # App de escritorio (Electron): ventana, bandeja, acceso por el navegador (lib/acceso.js)
+├── entrar/                 # Página web para entrar con Microsoft o Apple desde la app de Android
 ├── android/                # Proyecto nativo (WebView + recordatorios + notificaciones), API 36
 ├── tools/
 │   ├── web-build.js        # Prepara la web para Vercel en dist/ (portada en /, app en /app)
@@ -316,13 +317,13 @@ Cómo instalar, ejecutar, probar y compilar todo desde cero: [docs/DESARROLLO.md
 
 - **Versiones**: la versión está en `package.json` y se cambia con `node tools/version.js 1.2.0`; al subirla a `main`, GitHub publica la versión con todos los instaladores y las notas de [`CHANGELOG.md`](CHANGELOG.md). Paso a paso: [`docs/PUBLICAR-UNA-VERSION.md`](docs/PUBLICAR-UNA-VERSION.md).
 - **Google Play**: la guía paso a paso (clave de subida, secretos de GitHub, Play Console, seguridad de los datos y las huellas de la firma de Google) está en [`docs/PUBLICAR-EN-GOOGLE-PLAY.md`](docs/PUBLICAR-EN-GOOGLE-PLAY.md).
-- **Cuentas y nube**: [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md). Publica las reglas de [`firestore.rules`](firestore.rules) en *Firebase → Firestore Database → Reglas* cada vez que cambien.
+- **Cuentas y nube**: [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md) (Google, Microsoft y Apple). Publica las reglas de [`firestore.rules`](firestore.rules) en *Firebase → Firestore Database → Reglas* (y [`storage.rules`](storage.rules), si usas Storage) cada vez que cambien.
 - **Archivos del Cuaderno**: se guardan en Firestore en trozos de menos de 1 MB, sin Cloud Storage (que exige el plan de pago de Firebase); en el plan gratuito caben 1 GB de datos en total. Si crecen mucho, pueden ir a Firebase Storage con `storage: true` en `js/config.js` (preparado y probado; pasos en [`docs/CONFIGURAR-CUENTAS.md`](docs/CONFIGURAR-CUENTAS.md)).
 - **Sincronización**: los cambios se suben al momento y lo que cambia en otro dispositivo llega en un par de segundos (la app escucha la nube en lugar de consultarla cada poco; sin escuchas, la consulta cada 15 segundos); si algún día se queda corto el plan gratuito de Firebase (50 000 lecturas al día), basta con pasar al plan de pago por uso. Cifras en [docs/COSTES.md](docs/COSTES.md).
 
 ## 🔒 Privacidad
 
-Sin cuenta, todo se queda en el dispositivo. Con cuenta, los datos se guardan además en tu proyecto de Firebase, protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (tu nombre y tu foto o tu inicial), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestiona Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde Ajustes o, sin la app, desde la web (`https://whider-red.vercel.app/app#cuenta`). Política completa: [`privacidad/index.html`](privacidad/index.html), publicada en `https://whider-red.vercel.app/privacidad/`.
+Se entra con Google, Microsoft o Apple, y los datos se guardan en tu proyecto de Firebase (y en el dispositivo, para usarla sin conexión), protegidos por reglas que solo permiten a cada usuario acceder a lo suyo ([`firestore.rules`](firestore.rules)). Tus contactos solo ven tu perfil público (tu nombre y tu foto o tu inicial), nunca tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo y sus archivos adjuntos, solo los miembros del equipo. WHIDER nunca ve ni guarda contraseñas (las gestionan Google, Microsoft, Apple o, en las cuentas de correo de antes, Firebase Authentication), no muestra publicidad y permite eliminar la cuenta y todos sus datos de la nube (también el Cuaderno con sus archivos, el perfil público y el código de contacto) desde tu cuenta o, sin la app, desde la web (`https://whider-red.vercel.app/app#cuenta`). Política completa: [`privacidad/index.html`](privacidad/index.html), publicada en `https://whider-red.vercel.app/privacidad/`.
 
 ---
 

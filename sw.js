@@ -70,6 +70,7 @@ var ASSETS = [
   './js/ui/menu.js',
   './js/ui/palette.js',
   './js/ui/profile.js',
+  './js/ui/account.js',
   './js/ui/quickadd.js',
   './js/ui/select.js',
   './js/ui/sheet.js',

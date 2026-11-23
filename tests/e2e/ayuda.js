@@ -3,11 +3,12 @@
 // correos). Las reglas impiden leerlos desde la app, firmarlos o mandar textos enormes.
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
+const { simular, entrar } = require('./_cuentas');
 
 const EMU = 'http://127.0.0.1:9099', FS = 'http://127.0.0.1:8085', PROJECT = 'demo-whider';
 const cfg = {
   firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' },
-  googleWebClientId: 'x', requireAccount: true, allowGuest: true, allowedEmailDomains: [],
+  googleWebClientId: 'x', requireAccount: true,
   emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 }, links: { base: 'https://whider-red.vercel.app' }
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -30,21 +31,14 @@ const intenta = (p, fn, arg) => p.evaluate(async ({ src, arg }) => {
   /* ---------- Con cuenta ---------- */
   const ctx = await b.newContext({ viewport: { width: 1280, height: 860 } });
   await ctx.addInitScript((c) => { window.WHIDER_CONFIG = c; localStorage.setItem('whider.seenVersion', '999.0.0'); }, cfg);
+  await ctx.addInitScript(simular);
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', (e) => { if (!/Fallo de prueba|Otro fallo/.test(e.message)) errs.push(e.message); });
   p.setDefaultTimeout(10000);
   await p.goto(APP);
   await sleep(2300);
-  await p.fill('#authRoot input[autocomplete=name]', 'Ana');
-  await p.fill('#authRoot input[type=email]', 'ana.ayuda@ejemplo.com');
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-check .check');
-  await p.click('#authRoot .auth-submit');
-  await sleep(2500);
-  const oob = await (await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/oobCodes`)).json();
-  await fetch(oob.oobCodes.filter((c) => c.email === 'ana.ayuda@ejemplo.com').pop().oobLink);
-  await p.click('text=Ya lo he verificado');
+  await entrar(p, 'ana.ayuda@ejemplo.com', 'Ana');
   await sleep(2500);
   await p.evaluate(() => { if (Whider.Onboarding.isOpen()) document.querySelector('#onboardingRoot .nav-btn').click(); Whider.Notify.check = function () {}; });
   await sleep(700);
@@ -57,7 +51,7 @@ const intenta = (p, fn, arg) => p.evaluate(async ({ src, arg }) => {
   const n = await p.evaluate(() => document.querySelectorAll('#sheetRoot .hp-q').length);
   await p.click('#sheetRoot .hp-q:has-text("varios dispositivos"), #sheetRoot .hp-q:has-text("móvil y en el ordenador")');
   await sleep(200);
-  ok(n === 12 && /misma cuenta/.test(await sheetText(p)), 'doce preguntas frecuentes (con «Cada día» y el orden de Hoy) que se abren con un toque', n);
+  ok(n === 13 && /misma cuenta/.test(await sheetText(p)), 'trece preguntas frecuentes (con «Cada día», el orden de Inicio y dónde están los ajustes) que se abren con un toque', n);
   await cerrar(p);
 
   // Comentarios

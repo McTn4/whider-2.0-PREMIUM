@@ -293,7 +293,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var head = W.UI.header({
       title: title,
       back: { label: W.t('Tareas'), onTap: function () { Screen.back(); } },
-      actions: [{ icon: 'dots', label: W.t('Más opciones'), onTap: more }], gear: false,
+      actions: [{ icon: 'dots', label: W.t('Más opciones'), onTap: more }], account: false,
       sub: flt ? W.Filters.describe(flt) : b.groups.length || b.done.length ? U.plural(b.groups.reduce(function (a, g) { return a + g.items.length; }, 0), 'pendiente', 'pendientes') + (b.done.length ? ' · ' + U.plural(b.done.length, 'completada', 'completadas') : '') : null
     });
     var content = [];

@@ -138,7 +138,7 @@ window.Whider = window.Whider || {};
 
   /* ---------- Cuentas ---------- */
   var onboardingChecked = false;
-  /** Tras entrar (o elegir modo sin cuenta): presentación solo si hace falta */
+  /** Tras entrar (o al abrir, si no hay cuentas configuradas): presentación solo si hace falta */
   function afterAuth() {
     var go = function (synced) {
       if (onboardingChecked) return;
@@ -195,7 +195,7 @@ window.Whider = window.Whider || {};
     } else {
       W.Sync.stop();
       // La sesión se cerró fuera de la app (caducada o revocada): se pide entrar otra vez
-      if (S.meta.owner && !W.AuthScreen.isOpen()) W.AuthScreen.open({ mode: 'login' });
+      if (S.meta.owner && !W.AuthScreen.isOpen()) W.AuthScreen.open();
     }
     applyAppearance();
     W.Router.refresh();
@@ -209,7 +209,7 @@ window.Whider = window.Whider || {};
       onboardingChecked = false;
       applyAppearance();
       W.Router.go('home');
-      W.AuthScreen.open({ mode: 'login' });
+      W.AuthScreen.open();
     });
   }
 
@@ -219,7 +219,7 @@ window.Whider = window.Whider || {};
       onboardingChecked = false;
       applyAppearance();
       W.Router.go('home');
-      W.AuthScreen.open({ mode: 'register' });
+      W.AuthScreen.open();
       W.Toast.show({ text: W.t('Tu cuenta y sus datos se han eliminado'), icon: 'trash' });
     }).catch(function (e) {
       W.Toast.show({ text: W.Auth.message(e), type: 'danger', duration: 6000 });
@@ -305,10 +305,9 @@ window.Whider = window.Whider || {};
       else if (reason !== 'sync') W.Sync.schedule();
     });
 
-    // Estado de la nube: el engranaje dice si hay cambios sin subir y la barra lateral se pone al día
+    // Estado de la nube: tu foto dice si hay cambios sin subir y la barra lateral se pone al día
     W.Sync.onStatus(function () {
-      var unsaved = W.Sync.unsaved();
-      U.$$('.gear-btn').forEach(function (b) { b.setAttribute('aria-label', unsaved ? W.t('Ajustes (hay cambios sin guardar en la nube)') : W.t('Ajustes')); });
+      W.AccountMenu.refreshLabels();
       if (W.Sidebar) W.Sidebar.refresh();
     });
     // Android: el widget «Hoy» recibe las tareas de hoy cada vez que cambian
@@ -358,10 +357,12 @@ window.Whider = window.Whider || {};
       }
     } catch (e) { /* sin parámetros */ }
 
-    // Decisión inmediata (sin esperar a Firebase): quien ya tiene sesión entra directo
+    // Decisión inmediata (sin esperar a Firebase): quien ya tiene sesión entra directo; sin sesión, a entrar con
+    // Google, Microsoft o Apple (lo que hubiera en el dispositivo sin cuenta se queda y se une a la cuenta al entrar)
     var accounts = W.Auth.configured();
-    if (accounts && !S.meta.owner && !S.meta.guest && CFG.requireAccount !== false) W.AuthScreen.open();
-    else if (!accounts || S.meta.guest) afterAuth();
+    var mustSignIn = accounts && CFG.requireAccount !== false;
+    if (mustSignIn && !S.meta.owner) W.AuthScreen.open();
+    else if (!mustSignIn) afterAuth();
 
     // Lo demás, cuando la pantalla ya está pintada
     requestAnimationFrame(function () {

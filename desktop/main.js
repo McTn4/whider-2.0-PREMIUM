@@ -7,7 +7,7 @@
  *    y posición recordados.
  *  - Bandeja del sistema: al cerrar la ventana, WHIDER sigue abierta para avisarte de tus
  *    tareas (se puede desactivar en Ajustes → Ordenador). También puede abrirse al iniciar.
- *  - Google: el acceso se completa en el navegador del ordenador (ver lib/google.js).
+ *  - Google, Microsoft y Apple: el acceso se completa en el navegador del ordenador (ver lib/acceso.js).
  *  - Las exportaciones (CSV, JSON, texto) se guardan donde elijas.
  *  - Actualizaciones: solas en Windows y Linux AppImage; aviso con enlace en macOS y .deb (lib/updates.js).
  */
@@ -17,7 +17,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const prefs = require('./lib/prefs');
-const google = require('./lib/google');
+const acceso = require('./lib/acceso');
 const updatesLib = require('./lib/updates');
 const backupsLib = require('./lib/backups');
 const i18n = require('./lib/i18n');
@@ -278,13 +278,17 @@ function setOpenAtLogin(on) {
 }
 
 /* ---------- Puente con la app web ---------- */
-ipcMain.handle('whider:google-sign-in', function () {
-  return google.signIn({ www: WWW, open: openExternal, config: process.env.WHIDER_E2E_CONFIG || null }).then(function (r) {
+/** Entrar con Google, Microsoft o Apple en el navegador del ordenador (lib/acceso.js); al terminar, la ventana delante */
+function browserSignIn(provider) {
+  return acceso.signIn({ provider: provider, www: WWW, open: openExternal, config: process.env.WHIDER_E2E_CONFIG || null }).then(function (r) {
     if (r.ok) showWindow();
     return r;
   });
-});
-ipcMain.handle('whider:google-cancel', function () { google.cancel(); });
+}
+ipcMain.handle('whider:google-sign-in', function () { return browserSignIn('google.com'); });
+ipcMain.handle('whider:browser-sign-in', function (_e, provider) { return browserSignIn(String(provider || '')); });
+ipcMain.handle('whider:google-cancel', function () { acceso.cancel(); });
+ipcMain.handle('whider:browser-cancel', function () { acceso.cancel(); });
 ipcMain.handle('whider:get-settings', function () {
   return { openAtLogin: getOpenAtLogin(), closeToTray: prefs.get('closeToTray') !== false, version: app.getVersion() };
 });

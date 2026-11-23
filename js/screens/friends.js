@@ -167,7 +167,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       var b = PE().blocker();
       if (b && !b.soft) {
         var action = null;
-        if (b.id === 'guest' && W.Auth.configured()) action = U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open({ mode: 'login' }); } } }, [U.icon('user', 'sm'), W.t('Iniciar sesión')]);
+        if (b.id === 'guest' && W.Auth.configured()) action = U.el('button.btn.sm.primary', { on: { click: function () { W.AuthScreen.open(); } } }, [U.icon('user', 'sm'), W.t('Iniciar sesión')]);
         else if (b.id === 'unverified') action = U.el('button.btn.sm.primary', { on: { click: function () { W.Auth.refresh().then(function () { W.Router.refresh(); }).catch(function () { W.Router.refresh(); }); } } }, [U.icon('check', 'sm'), W.t('Ya lo he verificado')]);
         else if (b.id === 'permission') action = U.el('button.btn.sm.soft', { on: { click: function () { PE().poll(true); } } }, [U.icon('refresh', 'sm'), W.t('Reintentar')]);
         content.push(U.el('div.group', [W.UI.empty('users', b.title, b.text, action)]));

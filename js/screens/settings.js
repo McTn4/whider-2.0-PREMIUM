@@ -57,7 +57,7 @@ window.Whider = window.Whider || {};
       sub: u ? W.t('Cuenta: sesión, contraseña y copia en la nube') : accounts ? W.t('Inicia sesión para guardar tus datos en la nube') : W.t('Nombre y foto'),
       onTap: function () {
         if (u) nav.push(accountPage);
-        else if (accounts) { nav.close(); W.AuthScreen.open({ mode: 'register' }); }
+        else if (accounts) { nav.close(); W.AuthScreen.open(); }
         else W.Profile.edit(function () { nav.refresh(); });
       }
     });
@@ -135,7 +135,7 @@ window.Whider = window.Whider || {};
       body: [
         U.el('div.profile-head', [W.Profile.avatar('xl'), U.el('strong', { text: st.displayName() || u.displayName || W.t('Tu cuenta') }), U.el('span', { text: u.email || '' }),
           U.el('button.link-btn', { text: W.t('Editar nombre y foto'), on: { click: function () { W.Profile.edit(function () { nav.refresh(); }); } } })]),
-        W.UI.section({ items: rows, footer: A.provider() === 'google' ? W.t('Has iniciado sesión con Google.') : verified ? W.t('Tus datos se guardan en tu cuenta y en este dispositivo.') : null }),
+        W.UI.section({ items: rows, footer: A.providerName() ? W.t('Has iniciado sesión con {name}.', { name: A.providerName() }) : verified ? W.t('Tus datos se guardan en tu cuenta y en este dispositivo.') : null }),
         W.UI.group([W.UI.cell({ title: W.t('Cerrar sesión'), center: true, danger: true, onTap: function () {
           W.Sheet.confirm({ title: W.t('¿Cerrar sesión?'), text: W.t('Tus datos quedan guardados en tu cuenta.'), ok: W.t('Cerrar sesión'), danger: true })
             .then(function (ok) { if (ok) { nav.close(); W.App.logout(); } });
@@ -553,13 +553,13 @@ window.Whider = window.Whider || {};
   // Cada párrafo, entero y con su HTML, es una clave del catálogo (js/i18n/en.js)
   W.PRIVACY_HTML = [
     W.t('<p><b>Qué guardamos.</b> Tu nombre, tu correo y lo que creas en la app: tareas (también las de cada día), categorías, tu Cuaderno, tus chats y ajustes. Si usaste una versión anterior, sus datos (hábitos, enfoque, marcas y personaje) se conservan en tu cuenta aunque la app ya no los muestre.</p>'),
-    W.t('<p><b>Dónde.</b> En tu dispositivo y, si inicias sesión, en tu cuenta de WHIDER alojada en Google Firebase, para que puedas recuperarlo en otros dispositivos.</p>'),
+    W.t('<p><b>Dónde.</b> En tu cuenta de WHIDER, alojada en Google Firebase, y en tu dispositivo, para que funcione sin conexión. Entras con Google, Microsoft o Apple: comprueban quién eres y nos dan tu nombre y tu correo.</p>'),
     W.t('<p><b>Personas y chats.</b> Tus contactos ven tu perfil público: tu nombre y tu foto (o tu inicial). Nunca ven tus tareas ni tu Cuaderno. Los mensajes de un chat solo los leen sus miembros, y las páginas de un equipo, solo sus miembros. Los chats van cifrados en tránsito y en los servidores, pero no de extremo a extremo.</p>'),
     W.t('<p><b>Bloquear y denunciar.</b> Quien bloqueas no puede escribirte ni mandarte mensajes en vuestro chat. Si denuncias, se guarda el motivo y, si es un mensaje, un extracto, para revisarlo.</p>'),
     W.t('<p><b>Comentarios e informes de errores.</b> Son opcionales y van sin tu nombre ni tu cuenta: el texto que escribas, la versión de WHIDER, el sistema y, si lo permites, los errores de la app. Nunca tus tareas ni tu Cuaderno.</p>'),
     W.t('<p><b>Calendarios suscritos.</b> Si añades uno, su enlace va con tus ajustes y sus eventos se quedan en tu dispositivo. El servidor de WHIDER lo descarga por ti sin guardarlo.</p>'),
     W.t('<p><b>Para qué.</b> Solo para que la app funcione. No vendemos ni compartimos tus datos ni mostramos publicidad.</p>'),
-    W.t('<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde Ajustes → Cuenta.</p>'),
+    W.t('<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde tu cuenta (toca tu foto).</p>'),
     W.t('<p><b>Contraseñas.</b> WHIDER nunca ve ni guarda tu contraseña: la gestiona Firebase Authentication de forma cifrada.</p>')
   ].join('');
 
@@ -584,6 +584,9 @@ window.Whider = window.Whider || {};
       return current;
     },
     isOpen: function () { return !!current; },
-    refresh: function () { if (current) current.refresh(); }
+    refresh: function () { if (current) current.refresh(); },
+    /** El selector de idioma (también desde el menú de tu cuenta) y el nombre del idioma actual */
+    chooseLang: chooseLang,
+    langName: function () { return LANGS[W.I18n.lang] || 'Español'; }
   };
 })(window.Whider);

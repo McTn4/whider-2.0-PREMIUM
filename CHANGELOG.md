@@ -10,11 +10,22 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-«Hoy» pasa a llamarse **Inicio**, el calendario deja añadir tareas tocando directamente en él, las tareas de cada día
-tienen su lista en Tareas y la app empieza vacía: sin tutorial ni categorías de ejemplo. Y un diseño más propio: el
-engranaje de los ajustes vuelve arriba a la derecha y lo que era azul pasa a blanco.
+WHIDER se usa con tu cuenta de **Google, Microsoft o Apple**, y tu foto de perfil sustituye al engranaje: al tocarla,
+tu cuenta, los ajustes y la ayuda. Además, «Hoy» pasa a llamarse **Inicio**, el calendario deja añadir tareas tocando
+directamente en él, las tareas de cada día tienen su lista en Tareas y la app empieza vacía: sin tutorial ni
+categorías de ejemplo. Y lo que era azul (o verde, en los interruptores) pasa a blanco.
 
 ### Novedades
+
+- **Entra con Google, Microsoft o Apple**: es lo único que hace falta para usar WHIDER (ya no hay «Continuar sin
+  cuenta» ni se crean cuentas con correo y contraseña). En la web se abre la ventana de cada uno; en el ordenador y en
+  Android, Microsoft y Apple se completan en el navegador y vuelves a la app ya dentro. Si usabas WHIDER sin cuenta,
+  tus tareas siguen ahí y pasan a tu cuenta al entrar. Las cuentas de correo y contraseña que ya existían siguen
+  entrando («¿Tu cuenta es de correo y contraseña?»), y recuperan la contraseña igual.
+- **Tu foto, en lugar del engranaje**: arriba a la derecha en el móvil y, en el ordenador, abajo en la barra lateral
+  con tu nombre (nada más). Al tocarla se abre tu cuenta: en el ordenador, un panel amplio con interruptores rápidos
+  (tema oscuro, sonidos, contenido a todo el ancho), los ajustes, la ayuda, «Todos los ajustes» y «Cerrar sesión»; en
+  el móvil, lo mismo en una hoja. Si hay cambios sin subir a la nube, la foto lleva un punto.
 
 - **Inicio**: la pantalla principal (antes «Hoy») se llama así en la barra, en el ordenador y en los atajos. Lo de
   dentro no cambia: lo que toca hoy, por importancia, y tus tareas de cada día.
@@ -31,12 +42,31 @@ engranaje de los ajustes vuelve arriba a la derecha y lo que era azul pasa a bla
   y Estudios) se quitan solas si siguen vacías y con su nombre de siempre; las que usas no se tocan.
 - **La presentación**, más corta: tu nombre y tu foto, si la vas a usar con otras personas (si no, la pestaña
   Personas no está) y los avisos.
-- **Ajustes**: el engranaje vuelve arriba a la derecha de cada pantalla, en lugar de tu foto a la izquierda.
 - **Blanco en lugar de azul** en botones, enlaces, el «+» y lo elegido (negro en el tema claro); hoy, en el
   calendario, lleva un aro. En el ordenador, una barra lateral más sobria.
+- **Interruptores blancos** (con la bola negra) en lugar de verdes; en el tema claro, negros.
+- La pantalla de acceso, más sencilla: los tres botones, la política de privacidad y nada más.
 - Deshacer una importación quita también la categoría que creó, aunque sea la única.
 
+### Seguridad
+
+- Las reglas de Firestore y de Storage aceptan las cuentas que entran con Google, Microsoft o Apple aunque el
+  proveedor no marque el correo como verificado (pasa con algunas cuentas de Microsoft); las de correo y contraseña
+  siguen necesitando el correo verificado. Hay que publicarlas (docs/CONFIGURAR-CUENTAS.md).
+
 ### Para desarrolladores
+
+- Acceso: `Auth.oauth(id)` (`microsoft()`, `apple()`) con `OAuthProvider` (añadido a `js/vendor/firebase.js`). En el
+  ordenador, `desktop/lib/acceso.js` (antes `google.js`) sirve la página de Google, Microsoft o Apple en un servidor
+  local de un solo uso; con Microsoft y Apple devuelve la sesión de Firebase (`user.toJSON()`) y la app la adopta
+  (`Auth.adopt`: la guarda donde Firebase la busca al arrancar y recarga). En Android, la página `entrar/` de la web
+  vuelve con `intent://auth?s=…&u=…#Intent;scheme=whider;package=com.whider.app;end` y `Auth.onBrowserLink` la acepta
+  solo con el código que generó la app (un intento, 15 minutos). Fuera `Auth.register`, el medidor de contraseña y
+  `allowGuest`/`allowedEmailDomains` de `js/config.js`; `Auth.providerName()`.
+- Tu cuenta: `js/ui/account.js` (`W.AccountMenu`) y `Menu.panel()`; `UI.header({ account: false })` sustituye a
+  `gear: false`. `Settings.chooseLang()` y `Settings.langName()`.
+- Pruebas: `tests/e2e/entrar.js` (nube) y `tests/e2e/_cuentas.js`, que simula solo la ventana del proveedor (el
+  emulador acepta credenciales de prueba); las de la nube entran así. `tests/unit/acceso-escritorio.test.js`.
 
 - `DEFAULT_LISTS` vacío y `defaultList: null`; `State.defaultListId()` (la categoría por defecto si existe),
   `removeList` admite quitar la última y `State.dropExampleLists()` + `Schema.isExampleList()` quitan las de ejemplo

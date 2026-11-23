@@ -33,7 +33,8 @@ dominio se van con él); se volvió a añadir, sin redirección. Dos reglas:
    **Production**. Dejar `whider-red.vercel.app` tal cual, **sin redirección**.
 2. **Comprobar** que `https://whider.com` enseña la portada y `https://whider.com/app` la app.
 3. **Firebase** → *Authentication → Settings → Authorized domains*: añadir `whider.com` (si no, no se puede entrar con
-   Google desde él). En *Templates*, el dominio de los correos (con sus registros SPF y DKIM).
+   Google, Microsoft ni Apple desde él, ni desde Android con Microsoft o Apple, que usan su página `/entrar/`). En
+   *Templates*, el dominio de los correos (con sus registros SPF y DKIM).
 4. **La app** (lo hace el desarrollo): la dirección base de los enlaces (`links.base` en
    [`js/config.js`](../js/config.js)) y las páginas que la repiten (`sitio/`, `i/index.html`, `privacidad/`, `privacy/`,
    `js/core/invite.js`, `js/screens/settings.js`, `storage-cors.json`, `tools/version.js`).
@@ -41,9 +42,9 @@ dominio se van con él); se volvió a añadir, sin redirección. Dos reglas:
    [`AndroidManifest.xml`](../android/app/src/main/AndroidManifest.xml) y `MainActivity.java`) y
    [`.well-known/assetlinks.json`](../.well-known/assetlinks.json) servido desde el dominio nuevo.
 6. **Política de privacidad y Google Play**: las direcciones de la política y de «eliminar la cuenta» en la ficha.
-7. **Solo entonces**, que la dirección antigua lleve a la nueva. Ojo: quien usaba la web **sin cuenta** tiene sus datos
-   guardados en el navegador **con la dirección antigua**; con una redirección sin más, en la nueva vería la app vacía.
-   Antes de redirigir hay que darle una forma de llevárselos (la dirección antigua sigue sirviendo la app y ofrece
-   «Llevar mis datos a whider.com»); con cuenta basta con entrar en la nueva.
+7. **Solo entonces**, que la dirección antigua lleve a la nueva. Desde la 2.1 se entra siempre con cuenta, y quien
+   usaba la web sin cuenta sube sus datos a ella al entrar en la dirección antigua; con una redirección sin más, quien
+   no haya vuelto a entrar desde entonces vería la app vacía en la nueva. Antes de redirigir, conviene dejar un tiempo
+   la dirección antigua tal cual (o que ofrezca «Llevar mis datos a whider.com»); con cuenta basta con entrar en la nueva.
 
 Después, `npm run test:todo` y una prueba a mano de invitación por enlace en el móvil.

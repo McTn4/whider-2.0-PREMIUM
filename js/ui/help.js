@@ -14,17 +14,18 @@ window.Whider = window.Whider || {};
 
   /** Preguntas frecuentes: [pregunta, respuesta] */
   var FAQ = [
-    [W.t('¿Dónde se guardan mis datos?'), W.t('En tu dispositivo. Si inicias sesión, también en tu cuenta en la nube, y solo tú puedes leerlos. Sin cuenta, nadie más los ve, pero tampoco se recuperan si pierdes el dispositivo: guarda copias en Ajustes → Datos.')],
-    [W.t('¿Cómo uso WHIDER en el móvil y en el ordenador?'), W.t('Inicia sesión con la misma cuenta en los dos (correo o Google). Todo se sincroniza solo: tareas, Cuaderno y ajustes.')],
+    [W.t('¿Dónde se guardan mis datos?'), W.t('En tu cuenta, en la nube, y en tu dispositivo, para que WHIDER funcione sin conexión. Solo tú puedes leerlos.')],
+    [W.t('¿Dónde están los ajustes?'), W.t('En tu foto: arriba a la derecha en el móvil y, en el ordenador, abajo en la barra lateral, con tu nombre. Ahí están tu cuenta, los ajustes, la ayuda y «Cerrar sesión».')],
+    [W.t('¿Cómo uso WHIDER en el móvil y en el ordenador?'), W.t('Entra con la misma cuenta en los dos (Google, Microsoft o Apple). Todo se sincroniza solo: tareas, Cuaderno y ajustes.')],
     [W.t('¿Qué pasa si cambio lo mismo en dos dispositivos a la vez?'), W.t('Se conservan los dos cambios si son distintos (uno cambia la fecha y otro la completa). Si los dos editan el mismo bloque del Cuaderno, se queda el más reciente y la otra versión, justo debajo.')],
     [W.t('¿Dónde están mis hábitos?'), W.t('Ahora son tareas de cada día: salen en Inicio y en Tareas, en «Cada día», con su horario y su aviso. Al completarlas vuelven el siguiente día que les toca. Su historial sigue guardado en tu cuenta.')],
     [W.t('¿En qué orden salen mis tareas en Inicio?'), W.t('Por importancia: urgente (rojo), importante (naranja), destacada (amarillo) y normal. A igual importancia, primero lo vencido y después por hora. Elige la importancia al escribirla o tocando la tarea.')],
     [W.t('¿Cómo escribo una tarea con fecha rápido?'), W.t('Escríbelo tal cual: «Llamar a Ana mañana a las 10» o «Pagar el alquiler el día 1». Añade «#trabajo» para la categoría, «!!» para marcarla importante («!!!», urgente) y «cada día» o «cada lunes y jueves» para que se repita.')],
     [W.t('No me llegan los avisos'), W.t('Comprueba que WHIDER tiene permiso para notificar (Ajustes → Avisos). En Android, activa los avisos a la hora exacta para que no se retrasen. En el iPhone, añade WHIDER a la pantalla de inicio: Safari solo avisa así.')],
     [W.t('¿Cómo traigo mis tareas de otra app?'), W.t('Ajustes → Datos → Importar desde otras apps: Todoist, Google Tasks, Notion, calendarios (.ics) o cualquier hoja de cálculo (CSV). Verás una vista previa y podrás deshacerlo durante un día.')],
-    [W.t('¿Cómo guardo una copia de seguridad?'), W.t('Ajustes → Datos → Guardar una copia. En el ordenador y en Android, sin cuenta, WHIDER guarda además una copia automática cada día.')],
+    [W.t('¿Cómo guardo una copia de seguridad?'), W.t('Tus datos ya están en tu cuenta. Si además quieres un archivo: Ajustes → Datos → Guardar una copia. En el ordenador y en Android también puedes activar una copia automática cada día.')],
     [W.t('¿Cómo bloqueo o denuncio a alguien?'), W.t('Desde sus opciones en Personas o en un chat: «Denunciar…» o «Bloquear». Las personas bloqueadas están en Ajustes → Privacidad.')],
-    [W.t('¿Cómo elimino mi cuenta?'), W.t('Ajustes → Cuenta → Eliminar la cuenta. Se borran tus datos de la nube. También puedes hacerlo desde la web, en /app#cuenta.')],
+    [W.t('¿Cómo elimino mi cuenta?'), W.t('Toca tu foto y después tu nombre: «Eliminar la cuenta», al final. Se borran tus datos de la nube. También puedes hacerlo desde la web, en /app#cuenta.')],
     [W.t('¿WHIDER es gratis?'), W.t('Sí. Todas las funciones, sin anuncios ni compras dentro de la app.')]
   ];
 

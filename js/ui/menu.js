@@ -108,6 +108,39 @@ window.Whider = window.Whider || {};
       });
     },
 
+    /**
+     * Panel junto a un botón, como un menú pero con lo que se quiera dentro (el menú de tu cuenta en el ordenador):
+     * panel(anchor, node, { title, cls, onClose }) → { close }. Se cierra con un clic fuera, con Escape o con Atrás.
+     */
+    panel: function (anchor, node, opts) {
+      opts = opts || {};
+      Menu.close();
+      var layer = U.el('div.menu-layer');
+      var menu = U.el('div.menu.menu-panel' + (opts.cls ? '.' + opts.cls : ''), { attrs: { role: 'dialog', 'aria-label': opts.title || W.t('Opciones'), tabindex: '-1' } }, [node]);
+      // Lo de dentro no cierra el panel (los interruptores, por ejemplo); lo que abre otra cosa lo cierra antes
+      menu.addEventListener('click', function (e) { e.stopPropagation(); });
+      layer.appendChild(menu);
+      layer.addEventListener('click', function () { api.close(); });
+      layer.addEventListener('contextmenu', function (e) { e.preventDefault(); api.close(); });
+      root().appendChild(layer);
+      place(menu, anchor);
+      var closed = false;
+      var api = {
+        close: function () {
+          if (closed) return;
+          closed = true;
+          if (current === api) current = null;
+          if (layer.contains(document.activeElement)) document.activeElement.blur();
+          layer.classList.remove('open');
+          setTimeout(function () { if (layer.parentNode) layer.parentNode.removeChild(layer); }, 200);
+          if (opts.onClose) try { opts.onClose(); } catch (e) { console.error(e); }
+        }
+      };
+      current = api;
+      requestAnimationFrame(function () { layer.classList.add('open'); menu.focus({ preventScroll: true }); });
+      return api;
+    },
+
     /** Selección simple: choose(anchor, { value, options:[{value,label,desc,icon,color}] }) */
     choose: function (anchor, o) {
       return Menu.open(anchor, o.options.map(function (op) {

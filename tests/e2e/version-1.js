@@ -2,10 +2,11 @@
 // enlaces externos, página de privacidad y selector de hora de «Nueva tarea»
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
+const { simular, entrar } = require('./_cuentas');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const BASE = APP.replace(/app$/, ''), EMU = 'http://127.0.0.1:9099', PROJECT = 'demo-whider';
 const cfg = { firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' },
-  emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 }, requireAccount: true, allowGuest: true, allowedEmailDomains: [], links: { base: 'https://whider-red.vercel.app' } };
+  emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 }, requireAccount: true, links: { base: 'https://whider-red.vercel.app' } };
 let fails = 0; const ok = (c, m, x) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (x !== undefined && !c ? '  → ' + JSON.stringify(x) : '')); if (!c) fails++; };
 (async () => {
   const b = await chromium.launch();
@@ -53,16 +54,10 @@ let fails = 0; const ok = (c, m, x) => { console.log((c ? 'OK   ' : 'FAIL ') + m
     await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/accounts`, { method: 'DELETE' });
     const ctx = await b.newContext({ viewport: { width: 1280, height: 860 } });
     await ctx.addInitScript(c => { window.WHIDER_CONFIG = c; }, cfg);
+    await ctx.addInitScript(simular);
     const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
     await p.goto(BASE + 'index.html'); await sleep(2300);
-    await p.fill('#authRoot input[autocomplete=name]', 'Ana Prueba');
-    await p.fill('#authRoot input[type=email]', 'ana@ejemplo.com');
-    await p.fill('#authRoot input[type=password]', 'Secreta123');
-    await p.click('#authRoot .auth-check .check');
-    await p.click('#authRoot .auth-submit'); await sleep(2500);
-    const r = await (await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/oobCodes`)).json();
-    await fetch(r.oobCodes.filter(c => c.email === 'ana@ejemplo.com').pop().oobLink);
-    await p.click('text=Ya lo he verificado'); await sleep(2500);
+    await entrar(p, 'ana@ejemplo.com', 'Ana Prueba'); await sleep(2500);
     // Otra pestaña con el enlace de la política: la sesión ya está iniciada
     const q = await ctx.newPage(); q.on('pageerror', e => errs.push(e.message));
     await q.goto(BASE + 'index.html#cuenta'); await sleep(3500);

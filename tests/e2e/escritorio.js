@@ -32,6 +32,14 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   }
   const txt = await win.evaluate(() => document.body.innerText);
   ok(!/premium|suscrib|planes y precios/i.test(txt), 'sin rastro de Premium en el ordenador');
+  // 2.1: Microsoft y Apple se completan en el navegador (el puente llega al proceso principal; con otro proveedor, nada)
+  const puente = await win.evaluate(async () => ({ fns: typeof window.WhiderDesktop.browserSignIn === 'function' && typeof window.WhiderDesktop.cancelBrowserSignIn === 'function', otro: await window.WhiderDesktop.browserSignIn('facebook.com') }));
+  ok(puente.fns && puente.otro && puente.otro.ok === false && puente.otro.detail === 'provider', 'el puente para entrar con Microsoft y Apple en el navegador ' + JSON.stringify(puente.otro));
+  // Sin engranaje: tu foto y tu nombre abren el panel de tu cuenta
+  await win.evaluate(() => Whider.Router.go('home')); await sleep(400);
+  await win.click('#sidebar .sb-profile'); await sleep(500);
+  ok(await win.evaluate(() => !!document.querySelector('.menu.acct-pop') && !document.querySelector('use[href="#i-gear"]')), 'tu foto abre el panel de tu cuenta (sin engranaje)');
+  await win.keyboard.press('Escape'); await sleep(300);
   await win.evaluate(() => Whider.Settings.open()); await sleep(600);
   ok((await win.evaluate(() => document.querySelector('.sheet-root').innerText)).includes('WHIDER ' + LABEL), 'Ajustes muestra «WHIDER ' + LABEL + '»');
   await win.evaluate(() => { while (Whider.Sheet.closeTop()); Whider.Router.go('home'); }); await sleep(500);

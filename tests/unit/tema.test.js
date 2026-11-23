@@ -10,9 +10,9 @@ const CSS = path.join(__dirname, '..', '..', 'css');
 const FILES = ['components.css', 'cuaderno.css', 'desktop.css', 'layout.css', 'screens.css', 'social.css'];
 // Se ven igual en los dos temas: la tarjeta del QR (blanca, para poder escanearla), el escáner y el visor de
 // archivos (sobre negro), los botones sobre fotos, la impresión, el informe (es papel), las portadas del Cuaderno y
-// los fondos de avatar (son como imágenes), el icono de la app y el botón de Google (con su versión clara oficial)
+// los fondos de avatar (son como imágenes), el icono de la app y los botones de Google, Microsoft y Apple (con su versión clara)
 const SAME =
-  /\.qr-|\.qr\b|\.scan-|\.fv-|\.bk-img-tool|printing-page|\.rp-|\.cv-|\.av-bg-|^\.av-in\b|\.app-icon|\.google-btn/;
+  /\.qr-|\.qr\b|\.scan-|\.fv-|\.bk-img-tool|printing-page|\.rp-|\.cv-|\.av-bg-|^\.av-in\b|\.app-icon|\.provider-btn/;
 // Las sombras son negras en los dos temas
 const SHADOW = /^(box-shadow|text-shadow|filter|-webkit-filter)$/;
 

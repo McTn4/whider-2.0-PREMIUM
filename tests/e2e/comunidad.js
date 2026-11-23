@@ -1,11 +1,12 @@
 // 7.0 con dos cuentas (emuladores): enlace de invitación, chat, equipo, enlace del equipo y páginas compartidas
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
+const { simular, entrar } = require('./_cuentas');
 const base = process.argv[2] || APP, OUT = process.argv[3];
 const EMU = 'http://127.0.0.1:9099', PROJECT = 'demo-whider';
 const cfg = {
   firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' },
-  googleWebClientId: 'test-client', requireAccount: true, allowGuest: true, allowedEmailDomains: [],
+  googleWebClientId: 'test-client', requireAccount: true,
   emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 }, links: { base: 'https://whider-red.vercel.app' }
 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -15,6 +16,7 @@ async function waitFor(p, fn, arg, ms) { const end = Date.now() + (ms || 15000);
 async function device(browser, viewport, mobile, hash) {
   const ctx = await browser.newContext(Object.assign({ viewport }, mobile ? { isMobile: true, hasTouch: true, userAgent: 'Mozilla/5.0 (Linux; Android 14) Mobile' } : {}));
   await ctx.addInitScript(c => { window.WHIDER_CONFIG = c; }, cfg);
+  await ctx.addInitScript(simular);
   const p = await ctx.newPage(); p.errs = []; p.setDefaultTimeout(8000);
   p.on('pageerror', e => p.errs.push(e.message));
   p.on('console', m => {
@@ -28,14 +30,7 @@ async function device(browser, viewport, mobile, hash) {
   return p;
 }
 async function register(p, name, email) {
-  await p.fill('#authRoot input[autocomplete=name]', name);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-check .check');
-  await p.click('#authRoot .auth-submit'); await sleep(2500);
-  const r = await (await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/oobCodes`)).json();
-  await fetch(r.oobCodes.filter(c => c.email === email).pop().oobLink);
-  await p.click('text=Ya lo he verificado'); await sleep(2500);
+  await entrar(p, email, name); await sleep(2500);
   await p.evaluate(() => { if (Whider.Onboarding.isOpen()) document.querySelector('#onboardingRoot .nav-btn').click(); }); await sleep(700);
   await p.evaluate(() => { Whider.Notify.check = function () {}; });
 }

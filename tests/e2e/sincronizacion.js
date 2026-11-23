@@ -4,11 +4,12 @@
 // mismo bloque del Cuaderno editado a la vez en dos sitios conserva las dos versiones.
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
+const { simular, entrar } = require('./_cuentas');
 
 const EMU = 'http://127.0.0.1:9099', FS = 'http://127.0.0.1:8085', PROJECT = 'demo-whider';
 const cfg = {
   firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' },
-  googleWebClientId: 'x', requireAccount: true, allowGuest: true, allowedEmailDomains: [],
+  googleWebClientId: 'x', requireAccount: true,
   emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 }, links: { base: 'https://whider-red.vercel.app' }
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -27,6 +28,7 @@ async function waitFor(p, fn, arg, ms) {
 async function device(b, label) {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 860 } });
   await ctx.addInitScript((c) => { window.WHIDER_CONFIG = c; }, cfg);
+  await ctx.addInitScript(simular);
   const p = await ctx.newPage();
   p.errs = [];
   p.setDefaultTimeout(10000);
@@ -43,23 +45,11 @@ async function afterAuth(p) {
   await p.evaluate(() => { Whider.Notify.check = function () {}; });
 }
 async function register(p, name, email) {
-  await p.fill('#authRoot input[autocomplete=name]', name);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-check .check');
-  await p.click('#authRoot .auth-submit');
-  await sleep(2500);
-  const r = await (await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/oobCodes`)).json();
-  await fetch(r.oobCodes.filter((c) => c.email === email).pop().oobLink);
-  await p.click('text=Ya lo he verificado');
+  await entrar(p, email, name);
   await afterAuth(p);
 }
 async function login(p, email) {
-  await p.click('#authRoot >> text=Iniciar sesión');
-  await sleep(300);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-submit');
+  await entrar(p, email);
   await afterAuth(p);
 }
 const push = (p) => p.evaluate(() => Whider.Sync.push());
@@ -99,9 +89,9 @@ const push = (p) => p.evaluate(() => Whider.Sync.push());
   await B.context().setOffline(true);
   await B.evaluate(() => { window.dispatchEvent(new Event('offline')); Whider.State.addTask({ text: 'Escrita sin conexión' }); });
   await sleep(1800);
-  const off = await B.evaluate(() => ({ st: Whider.Sync.status, unsaved: Whider.Sync.unsaved(), attr: document.documentElement.getAttribute('data-sync'), text: Whider.Sync.statusText(), lateral: !!document.querySelector('.sb-unsaved') }));
+  const off = await B.evaluate(() => ({ st: Whider.Sync.status, unsaved: Whider.Sync.unsaved(), attr: document.documentElement.getAttribute('data-sync'), text: Whider.Sync.statusText(), lateral: getComputedStyle(document.querySelector('.sb-profile .me-av'), '::after').content !== 'none' && /sin guardar/.test(document.querySelector('.sb-profile').textContent) }));
   ok(off.st === 'offline' && off.unsaved && off.attr === 'offline' && /Sin conexión/.test(off.text), 'sin conexión: estado claro y cambios marcados como pendientes', off);
-  ok(off.lateral, 'la barra lateral avisa de los cambios sin subir');
+  ok(off.lateral, 'tu foto en la barra lateral avisa de los cambios sin subir');
   await B.context().setOffline(false);
   await B.evaluate(() => window.dispatchEvent(new Event('online')));
   ok(await waitFor(B, () => Whider.Sync.status === 'synced' && !Whider.Sync.pendingSince, null, 20000), 'al volver la conexión se suben solos y desaparece el aviso');

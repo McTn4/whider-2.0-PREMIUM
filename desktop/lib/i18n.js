@@ -1,5 +1,5 @@
 /**
- * Textos de la app de escritorio (menús, bandeja, avisos, diálogos, actualizaciones y la página de Google) en el
+ * Textos de la app de escritorio (menús, bandeja, avisos, diálogos, actualizaciones y la página de acceso) en el
  * idioma de la app. La ventana lo comunica al arrancar (js/app.js → WhiderDesktop.setLang) y se guarda en las
  * preferencias, así que los menús salen en ese idioma también al abrir la app la vez siguiente. Como en la app
  * (js/i18n/en.js), la clave es el propio texto en español; lo que no esté en el catálogo sale en español.
@@ -72,23 +72,29 @@ const EN = {
   'WHIDER {version} se instalará al cerrar la app.': 'WHIDER {version} will be installed when you close the app.',
   'Hay una versión nueva de WHIDER': "There's a new version of WHIDER",
   'La {version} ya se puede descargar.': '{version} is ready to download.',
-  // Página para entrar con Google en el navegador
+  // Página para entrar con Google, Microsoft o Apple en el navegador (lib/acceso.js)
   'Entrar en WHIDER': 'Sign in to WHIDER',
-  'Pulsa el botón para continuar con tu cuenta de Google. Después vuelve a la app.':
-    'Press the button to continue with your Google account. Then go back to the app.',
-  'Continuar con Google': 'Continue with Google',
+  'WHIDER · Entrar con {name}': 'WHIDER · Sign in with {name}',
+  'Pulsa el botón para continuar con tu cuenta de {name}. Después vuelve a la app.':
+    'Press the button to continue with your {name} account. Then go back to the app.',
+  'Continuar con {name}': 'Continue with {name}',
   'Esta copia de WHIDER no tiene cuentas configuradas.': "This copy of WHIDER doesn't have accounts set up.",
-  'Elige tu cuenta en la ventana de Google…': 'Choose your account in the Google window…',
+  'Elige tu cuenta en la ventana de {name}…': 'Choose your account in the {name} window…',
   'Listo. Ya puedes cerrar esta pestaña y volver a WHIDER.': 'Done. You can close this tab and go back to WHIDER.',
-  'Has cerrado la ventana de Google. Pulsa el botón para intentarlo otra vez.':
-    'You closed the Google window. Press the button to try again.',
-  'El navegador ha bloqueado la ventana de Google. Permite las ventanas emergentes de esta página e inténtalo otra vez.':
-    'The browser blocked the Google window. Allow pop-ups for this page and try again.',
+  'Has cerrado la ventana de {name}. Pulsa el botón para intentarlo otra vez.':
+    'You closed the {name} window. Press the button to try again.',
+  'El navegador ha bloqueado la ventana de {name}. Permite las ventanas emergentes de esta página e inténtalo otra vez.':
+    'The browser blocked the {name} window. Allow pop-ups for this page and try again.',
   'Falta «localhost» en los dominios autorizados de Firebase (Authentication → Configuración).':
     '“localhost” is missing from the authorized domains in Firebase (Authentication → Settings).',
-  'Este enlace ya no es válido. Vuelve a WHIDER y pulsa otra vez «Continuar con Google».':
-    'This link is no longer valid. Go back to WHIDER and press “Continue with Google” again.',
-  'No se pudo entrar con Google': "Couldn't sign in with Google",
+  'Este enlace ya no es válido. Vuelve a WHIDER y pulsa otra vez «Continuar con {name}».':
+    'This link is no longer valid. Go back to WHIDER and press “Continue with {name}” again.',
+  'Este enlace ya no es válido. Vuelve a WHIDER.': 'This link is no longer valid. Go back to WHIDER.',
+  'Ya tienes una cuenta de WHIDER con ese correo. Entra con el método que usaste la primera vez (por ejemplo, Google).':
+    'You already have a WHIDER account with that email. Sign in with the method you used the first time (for example, Google).',
+  '{name} no está activado en Firebase (Authentication → Método de acceso).':
+    "{name} isn't enabled in Firebase (Authentication → Sign-in method).",
+  'No se pudo entrar con {name}': "Couldn't sign in with {name}",
   '. Inténtalo otra vez.': '. Try again.'
 };
 const CATALOGS = { en: EN };
@@ -113,23 +119,4 @@ function t(es, vars) {
   return s;
 }
 
-/**
- * Traduce un HTML ya hecho (la página de Google): cambia cada frase del catálogo que aparezca (nunca palabras
- * sueltas, que podrían estar en el código), de las más largas a las más cortas para que una no pise a otra, y el
- * atributo lang. Las frases van también dentro de cadenas de JavaScript entre comillas simples: por eso el
- * apóstrofo pasa a ser el tipográfico (’).
- */
-function html(page) {
-  const c = CATALOGS[lang()];
-  if (!c) return page;
-  let out = page.replace('<html lang="es">', '<html lang="' + lang() + '">');
-  Object.keys(c)
-    .filter((k) => k.indexOf(' ') >= 0 && !/\{\w+\}/.test(k))
-    .sort((a, b) => b.length - a.length)
-    .forEach((k) => {
-      out = out.split(k).join(c[k].replace(/'/g, '’'));
-    });
-  return out;
-}
-
-module.exports = { t, lang, html, CATALOGS };
+module.exports = { t, lang, CATALOGS };

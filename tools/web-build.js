@@ -5,7 +5,8 @@
  *   dist/index.html  ← sitio/index.html   la portada (qué es WHIDER y la descarga para cada dispositivo)
  *   dist/en/index.html ← sitio/en/index.html   la portada en inglés (/en/; la política de privacidad, en /privacy/)
  *   dist/app.html    ← index.html         la app; vercel.json la sirve en /app (empaquetada: ver más abajo)
- *   y el resto de la web tal cual: css, js, fuentes, iconos, invitaciones (i/), privacidad, sitio/, .well-known…
+ *   y el resto de la web tal cual: css, js, fuentes, iconos, invitaciones (i/), acceso desde Android (entrar/),
+ *   privacidad, sitio/, .well-known…
  *
  * Android y la app de escritorio siguen usando index.html como la app: para ellos no cambia nada.
  * En local: «node tools/web-build.js» y sirve dist/ con las mismas reglas que vercel.json
@@ -21,7 +22,7 @@ const esbuild = require('esbuild');
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'dist');
 // Solo lo que forma parte de la web (nada de android/, desktop/, docs/, herramientas ni registros)
-const WEB = ['index.html', 'manifest.json', 'sw.js', 'css', 'js', 'fonts', 'icons', 'i', 'privacidad', 'privacy', 'sitio', '.well-known'];
+const WEB = ['index.html', 'manifest.json', 'sw.js', 'css', 'js', 'fonts', 'icons', 'i', 'entrar', 'privacidad', 'privacy', 'sitio', '.well-known'];
 
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });

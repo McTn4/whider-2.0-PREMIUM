@@ -1,29 +1,23 @@
 // Eliminar la cuenta borra también el Cuaderno, el perfil público, el código, el buzón y los equipos
 const { chromium } = require('playwright');
 const { APP } = require('./_util');
+const { simular, entrar } = require('./_cuentas');
 const EMU = 'http://127.0.0.1:9099', FS = 'http://127.0.0.1:8085', PROJECT = 'demo-whider';
-const cfg = { firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' }, googleWebClientId: 'x', requireAccount: true, allowGuest: true, allowedEmailDomains: [], emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 } };
+const cfg = { firebase: { apiKey: 'demo-key', authDomain: 'demo-whider.firebaseapp.com', projectId: PROJECT, appId: '1:1:web:1' }, googleWebClientId: 'x', requireAccount: true, emulator: { auth: EMU, firestoreHost: '127.0.0.1', firestorePort: 8085 } };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let fails = 0;
 const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); if (!c) fails++; };
 const doc = async path => (await fetch(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/${path}`, { headers: { Authorization: 'Bearer owner' } })).status;
 const list = async path => { const r = await (await fetch(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/${path}`, { headers: { Authorization: 'Bearer owner' } })).json(); return (r.documents || []).length; };
 async function register(p, name, email) {
-  await p.fill('#authRoot input[autocomplete=name]', name);
-  await p.fill('#authRoot input[type=email]', email);
-  await p.fill('#authRoot input[type=password]', 'Secreta123');
-  await p.click('#authRoot .auth-check .check');
-  await p.click('#authRoot .auth-submit'); await sleep(2500);
-  const r = await (await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/oobCodes`)).json();
-  await fetch(r.oobCodes.filter(c => c.email === email).pop().oobLink);
-  await p.click('text=Ya lo he verificado'); await sleep(2500);
+  await entrar(p, email, name); await sleep(2500);
   await p.evaluate(() => { if (Whider.Onboarding.isOpen()) document.querySelector('#onboardingRoot .nav-btn').click(); }); await sleep(600);
 }
 (async () => {
   await fetch(`${EMU}/emulator/v1/projects/${PROJECT}/accounts`, { method: 'DELETE' });
   await fetch(`${FS}/emulator/v1/projects/${PROJECT}/databases/(default)/documents`, { method: 'DELETE' });
   const browser = await chromium.launch();
-  const mk = async () => { const ctx = await browser.newContext(); await ctx.addInitScript(c => { window.WHIDER_CONFIG = c; }, cfg); const p = await ctx.newPage(); p.setDefaultTimeout(8000); p.on('pageerror', e => { console.log('pageerror', e.message); fails++; }); await p.goto(APP); await sleep(2200); return p; };
+  const mk = async () => { const ctx = await browser.newContext(); await ctx.addInitScript(c => { window.WHIDER_CONFIG = c; }, cfg); await ctx.addInitScript(simular); const p = await ctx.newPage(); p.setDefaultTimeout(8000); p.on('pageerror', e => { console.log('pageerror', e.message); fails++; }); await p.goto(APP); await sleep(2200); return p; };
   const A = await mk();
   await register(A, 'Ana Ruiz', 'ana@ejemplo.com');
   const uid = await A.evaluate(() => Whider.Auth.user.uid);
