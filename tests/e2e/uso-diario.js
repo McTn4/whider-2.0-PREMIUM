@@ -1,6 +1,6 @@
 // Uso diario: «Primeros pasos» (que se cumplen solos), Hoy por importancia (lo empezado delante, lo vencido con
 // su fecha en rojo y lo hecho plegado), la importancia escrita y en color, colores de categoría, «En curso»
-// desde el menú y el editor, y la barra lateral del ordenador.
+// desde el menú y el editor, y el panel de Tareas del ordenador.
 const { chromium, devices } = require('playwright');
 const { APP } = require('./_util');
 
@@ -141,7 +141,7 @@ async function abrir(b, opts, meta) {
     await ctx.close();
   }
 
-  /* 3. Ordenador · color de categoría desde su editor, «En curso» desde el menú y la barra lateral */
+  /* 3. Ordenador · color de categoría desde su editor, «En curso» desde el menú y el panel de Tareas */
   {
     const { ctx, p, errs } = await abrir(b, { viewport: { width: 1440, height: 900 } });
     await p.evaluate(() => Whider.Lists.edit(null));
@@ -152,11 +152,48 @@ async function abrir(b, opts, meta) {
     await sleep(500);
     const l = await p.evaluate(() => Whider.State.lists.find((x) => x.name === 'Estudio'));
     ok(l && l.tint === 'violeta', 'el editor de categoría guarda su color', l);
+    await p.evaluate(() => Whider.Router.go('tasks'));
+    await sleep(400);
     const icono = await p.evaluate(() => {
-      const it = [...document.querySelectorAll('.sb-item')].find((x) => x.textContent.includes('Estudio'));
+      const it = [...document.querySelectorAll('#screen-tasks .tp-item')].find((x) => x.textContent.includes('Estudio'));
       return it ? getComputedStyle(it.querySelector('.ic')).color : null;
     });
-    ok(icono === 'rgb(144, 133, 233)', 'la barra lateral pinta su icono de violeta', icono);
+    ok(icono === 'rgb(144, 133, 233)', 'el panel de Tareas pinta su icono de violeta', icono);
+    const sb = await p.evaluate(() => [...document.querySelectorAll('#screen-tasks .tp-head')].map((x) => ({ t: x.textContent, tt: getComputedStyle(x).textTransform, fs: parseFloat(getComputedStyle(x).fontSize) })));
+    ok(sb.length && sb.every((x) => x.tt === 'none' && x.fs >= 13), 'panel de Tareas: grupos en minúsculas y a 13 px o más', sb);
+    // Buscar en el panel: la lista cambia al escribir, pero el campo no se rehace (no se pierden los acentos que se
+    // escriben en dos pulsaciones) y, mientras se compone una letra, no se busca
+    await p.evaluate(() => ['Comprar pan', 'Pan integral', 'Leche'].forEach((text) => Whider.State.addTask({ text })));
+    await sleep(400);
+    await p.click('#screen-tasks .tasks-pane input[type=search]');
+    await p.keyboard.type('p');
+    await sleep(400);
+    await p.evaluate(() => { window.__campo = document.querySelector('#screen-tasks .tasks-pane input[type=search]'); });
+    await p.keyboard.type('an');
+    await sleep(400);
+    const busca = await p.evaluate(() => {
+      const inp = document.querySelector('#screen-tasks .tasks-pane input[type=search]');
+      return { mismo: inp === window.__campo, foco: document.activeElement === inp, valor: inp.value, tareas: [...document.querySelectorAll('#screen-tasks .tasks-main .task-title')].map((x) => x.textContent) };
+    });
+    ok(busca.mismo && busca.foco && busca.valor === 'pan' && busca.tareas.includes('Comprar pan') && busca.tareas.includes('Pan integral') && !busca.tareas.includes('Leche'), 'buscar en el panel: cambia la lista y el campo sigue siendo el mismo', busca);
+    const compone = await p.evaluate(async () => {
+      const inp = document.querySelector('#screen-tasks .tasks-pane input[type=search]');
+      inp.dispatchEvent(new CompositionEvent('compositionstart'));
+      inp.value = 'pan ´';
+      inp.dispatchEvent(new InputEvent('input', { isComposing: true }));
+      await new Promise((r) => setTimeout(r, 400));
+      const durante = Whider.State.ui.query;
+      inp.value = 'pan í';
+      inp.dispatchEvent(new CompositionEvent('compositionend'));
+      await new Promise((r) => setTimeout(r, 400));
+      return { durante, despues: Whider.State.ui.query, mismo: inp === document.querySelector('#screen-tasks .tasks-pane input[type=search]') };
+    });
+    ok(compone.durante === 'pan' && compone.despues === 'pan í' && compone.mismo, 'mientras se compone una letra (´ + i) no se busca ni se rehace el campo', compone);
+    await p.evaluate(() => {
+      const S = Whider.State;
+      S.ui.query = '';
+      S.tasks.filter((t) => ['Comprar pan', 'Pan integral', 'Leche'].includes(t.text)).forEach((t) => S.removeTask(t.id));
+    });
     const id = await p.evaluate(() => {
       const S = Whider.State,
         td = Whider.U.today();
@@ -183,8 +220,6 @@ async function abrir(b, opts, meta) {
     await p.click('.sheet.editor button:has-text("Guardar cambios")');
     await sleep(600);
     ok(await p.evaluate((x) => Whider.State.find(x).startedAt === null, id), 'y desde el editor se vuelve a pendiente');
-    const sb = await p.evaluate(() => [...document.querySelectorAll('.sb-head')].map((x) => ({ t: x.textContent, tt: getComputedStyle(x).textTransform, fs: parseFloat(getComputedStyle(x).fontSize) })));
-    ok(sb.length && sb.every((x) => x.tt === 'none' && x.fs >= 13), 'barra lateral: grupos en minúsculas y a 13 px o más', sb);
     ok(await p.evaluate(() => !!document.querySelector('.desk-side .side-card')), 'a la derecha de Hoy, los próximos días');
     ok(!errs.length, 'sin errores (ordenador)', errs);
     await ctx.close();

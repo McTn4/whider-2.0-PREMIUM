@@ -1,6 +1,6 @@
 /**
  * WHIDER · Navegación: cinco secciones (Inicio, Tareas, Calendario, Cuaderno y Personas, con sus chats y equipos), las
- * mismas en la barra inferior del móvil y en la barra lateral del ordenador. URL sincronizada (#pantalla).
+ * mismas en la barra inferior del móvil y en la barra superior del ordenador. URL sincronizada (#pantalla).
  */
 window.Whider = window.Whider || {};
 
@@ -119,7 +119,7 @@ window.Whider = window.Whider || {};
       setTitle(id === 'home' ? 'WHIDER' : W.Screens[id].title + ' · WHIDER');
       W.Screens[id].render(root, true);
       if (!opts.initial) animate(root, isTab(id) ? 'enter' : 'push');
-      if (W.Sidebar) W.Sidebar.refresh();
+      if (W.Topbar) W.Topbar.refresh();
     },
 
     /** Marca la pestaña de la pantalla abierta (o la de su sección: los chats, Personas) */
@@ -143,7 +143,7 @@ window.Whider = window.Whider || {};
       if (!root) return;
       root.classList.remove('scrolled');
       animate(root, kind);
-      if (W.Sidebar) W.Sidebar.refresh();
+      if (W.Topbar) W.Topbar.refresh();
     },
 
     /** Vuelve a pintar la pantalla actual tras un cambio (varios cambios seguidos = un solo pintado) */
@@ -158,7 +158,7 @@ window.Whider = window.Whider || {};
         var y = root.scrollTop;
         W.Screens[id].render(root, false);
         root.scrollTop = y;
-        if (W.Sidebar) W.Sidebar.refresh();
+        if (W.Topbar) W.Topbar.refresh();
         if (W.Select && W.Select.active()) W.Select.repaint();
       });
     }

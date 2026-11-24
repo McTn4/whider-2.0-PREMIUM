@@ -1,7 +1,7 @@
 /* ==========================================================================
-   WHIDER · Estructura: base, pantalla de carga, pantallas, barra superior, barra inferior y botón «+»
+   WHIDER · Estructura: base, pantalla de carga, pantallas, cabecera y la barra flotante del móvil (con el «+»)
    La app ocupa exactamente la pantalla (position: fixed; inset: 0) y solo hace scroll el contenido de cada
-   pantalla. Barras translúcidas con desenfoque, como en X y en las apps de Apple.
+   pantalla. La cabecera se vuelve translúcida al bajar; la barra de abajo flota, redondeada, sobre el contenido.
    ========================================================================== */
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -72,7 +72,7 @@ input:focus-visible, textarea:focus-visible { outline: none; }
   display: none;
   overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  padding-bottom: calc(var(--dock-h) + var(--safe-b) + 6rem);
+  padding-bottom: calc(var(--dock-h) + var(--dock-gap) + var(--safe-b) + 4rem);
 }
 .screen::-webkit-scrollbar { display: none; }
 .screen.active { display: block; }
@@ -135,22 +135,25 @@ input:focus-visible, textarea:focus-visible { outline: none; }
 .lt-sub { display: block; margin-top: 4px; font-size: var(--fs-sub); color: var(--t3); letter-spacing: 0; }
 .lt-sub b { color: var(--t1); font-weight: 600; }
 
-/* ---------- Barra inferior: cinco pestañas a todo el ancho, translúcida ---------- */
+/*
+ * ---------- Barra de abajo: una isla flotante y redondeada con cuatro secciones y el «+» en el centro ----------
+ * Personas está arriba, junto a tu foto (controls.js).
+ */
 .dock {
-  position: fixed; z-index: 30; left: 0; right: 0; bottom: 0;
-  height: calc(var(--dock-h) + var(--safe-b)); padding: 0 max(6px, var(--safe-r)) var(--safe-b) max(6px, var(--safe-l));
-  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: stretch;
-  background: var(--dock-bg); box-shadow: 0 -.5px 0 var(--line);
+  position: fixed; z-index: 30; left: 50%; bottom: calc(var(--dock-gap) + var(--safe-b));
+  width: min(440px, calc(100% - 24px - var(--safe-l) - var(--safe-r))); height: var(--dock-h); padding: 0 6px;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) auto repeat(2, minmax(0, 1fr)); align-items: center;
+  transform: translateX(-50%);
+  border-radius: calc(var(--dock-h) / 2); background: var(--dock-bg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .28), 0 0 0 .5px rgba(var(--ink-rgb), .1);
   -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
 }
-/* Pestaña Personas, fuera si no la usas (Ajustes → Lo que ves) */
-html[data-people="off"] .dock .tab[data-go="friends"] { display: none; }
 /*
  * Pestañas: icono de trazo (inactiva) o relleno (activa) y su nombre debajo.
  * inactiva: gris · activa: casi blanco y relleno · pulsada: se atenúa · foco de teclado: anillo azul.
  */
 .tab {
-  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0;
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; height: 100%;
   color: var(--t3); font-size: 10.5px; font-weight: 500; letter-spacing: 0;
   transition: color .15s, opacity .15s;
 }
@@ -171,18 +174,18 @@ html[data-people="off"] .dock .tab[data-go="friends"] { display: none; }
   box-shadow: 0 0 0 2px var(--bg); }
 .tab-badge.show { display: block; }
 
-/* ---------- Botón «+» flotante (abajo a la derecha, encima de la barra) ---------- */
-.fab {
-  position: fixed; z-index: 31; right: calc(16px + var(--safe-r)); bottom: calc(var(--dock-h) + var(--safe-b) + 16px);
-  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%;
-  color: var(--on-accent); background: var(--accent); box-shadow: var(--sh-float);
-  transition: transform .18s var(--spring), background-color .15s, opacity .2s;
+/* ---------- «+» en el centro de la barra: nueva tarea (o lo que toque en cada sección) ---------- */
+.dock-add {
+  display: grid; place-items: center; width: 52px; height: 52px; margin: 0 6px; border-radius: 50%;
+  color: var(--on-accent); background: var(--accent);
+  transition: transform .18s var(--spring), background-color .15s;
 }
-.fab .ic { width: 26px; height: 26px; stroke-width: 2.3; transition: transform .25s var(--spring); }
-.fab:active { transform: scale(.92); background: var(--accent-press); }
-.fab:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; border-radius: 50%; }
-.fab.open .ic { transform: rotate(45deg); }
-body.no-tabs .fab, body.chat-open .fab { display: none; }
+.dock-add .ic { width: 26px; height: 26px; stroke-width: 2.3; transition: transform .25s var(--spring); }
+.dock-add:active { transform: scale(.92); background: var(--accent-press); }
+.dock-add:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; border-radius: 50%; }
+.dock-add.open .ic { transform: rotate(45deg); }
+/* Personas, arriba junto a tu foto, con los chats sin leer */
+.people-btn .tab-badge { top: 2px; left: auto; right: 0; }
 
 /* Tablet / escritorio: contenido centrado y algo más de aire */
 @media (min-width: 720px) {
@@ -200,6 +203,17 @@ html.desktop-app.os-win32 .titlebar, html.desktop-app.os-darwin .titlebar {
   -webkit-app-region: drag; app-region: drag;
 }
 html.desktop-app .sheet-root, html.desktop-app .toast-root { -webkit-app-region: no-drag; app-region: no-drag; }
+/*
+ * Con el diseño de ordenador, la barra superior es la franja de título: desde ella se arrastra la ventana, y deja hueco
+ * a los botones de la ventana (a la izquierda en macOS y a la derecha en Windows). La franja fina se queda para el
+ * diseño de móvil (ventana estrecha).
+ */
+html.desktop-app.os-win32[data-layout="desktop"], html.desktop-app.os-darwin[data-layout="desktop"] { --titlebar-h: 0px; --safe-t: 0px; }
+html.desktop-app.os-win32[data-layout="desktop"] .titlebar, html.desktop-app.os-darwin[data-layout="desktop"] .titlebar { display: none; }
+html.desktop-app.os-win32[data-layout="desktop"] .topbar, html.desktop-app.os-darwin[data-layout="desktop"] .topbar { -webkit-app-region: drag; app-region: drag; }
+html.desktop-app[data-layout="desktop"] .topbar button { -webkit-app-region: no-drag; app-region: no-drag; }
+html.desktop-app.os-darwin[data-layout="desktop"] .topbar { padding-left: 92px; }
+html.desktop-app.os-win32[data-layout="desktop"] .topbar { padding-right: 156px; }
 
-/* Barra lateral: solo en el ordenador (desktop.css) */
-.sidebar { display: none; }
+/* Barra superior: solo en el ordenador (desktop.css) */
+.topbar { display: none; }

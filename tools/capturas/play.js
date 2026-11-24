@@ -89,13 +89,13 @@ async function grafico(b) {
   await p.setContent(`<!doctype html><html><head><style>
   @font-face { font-family: Inter; src: url(data:font/woff2;base64,${b64('fonts/inter-latin-opsz-normal.woff2')}) format('woff2'); font-weight: 100 900; }
   * { box-sizing: border-box; margin: 0; }
-  body { width: 1024px; height: 500px; overflow: hidden; background: #000000; color: #E7E9EA; font-family: Inter, sans-serif; position: relative; }
+  body { width: 1024px; height: 500px; overflow: hidden; background: #121316; color: #ECEDEF; font-family: Inter, sans-serif; position: relative; }
   .txt { position: absolute; left: 60px; top: 70px; width: 470px; }
-  .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.02em; font-size: 23px; color: #E7E9EA; }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.02em; font-size: 23px; color: #ECEDEF; }
   .brand svg { width: 34px; height: 34px; }
   h1 { font-family: Inter; font-weight: 800; font-size: 66px; line-height: 1; letter-spacing: -.035em; margin-top: 40px; }
-  p { margin-top: 22px; font-size: 21px; line-height: 1.38; color: #A1A5AB; }
-  .phone { position: absolute; top: 46px; width: 216px; border-radius: 26px; overflow: hidden; box-shadow: 0 0 0 1px #3E4144; }
+  p { margin-top: 22px; font-size: 21px; line-height: 1.38; color: #A9ADB4; }
+  .phone { position: absolute; top: 46px; width: 216px; border-radius: 26px; overflow: hidden; box-shadow: 0 0 0 1px #3D4048; }
   .phone img { display: block; width: 100%; }
   .a { left: 560px; }
   .b { left: 790px; top: 86px; }

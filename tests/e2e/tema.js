@@ -1,6 +1,6 @@
 // 1.1 · Tema claro
 //  - Ajustes → Apariencia → Tema: Oscuro (el de siempre), Claro o «Como el sistema». Se aplica al momento en toda la
-//    app (fondo, superficies, barra inferior, hojas) y queda guardado.
+//    app (fondo, superficies, barra de abajo, hojas) y queda guardado.
 //  - Sin destello al abrir: el tema ya está puesto antes de que se pinte la página.
 //  - «Como el sistema» sigue al dispositivo, también si cambia con la app abierta.
 //  - Contraste AA (axe, color-contrast) en claro en todas las pantallas, Ajustes, nueva tarea y personaje.
@@ -55,7 +55,7 @@ async function contrast(p, label, bad) {
     await p.evaluate(() => { const S = Whider.State, td = Whider.U.today(); S.addTask({ text: 'Enviar el presupuesto', date: td, time: '10:00', highlight: 'danger' }); S.addTask({ text: 'Revisar el informe', date: td, highlight: 'purple' }); Whider.Router.refresh(); });
 
     let s = await state(p);
-    ok(s.th === 'dark' && s.atBody === 'dark' && s.bg === 'rgb(0, 0, 0)' && s.meta === '#000000', nombre + ': por defecto, el tema oscuro (fondo negro)', s);
+    ok(s.th === 'dark' && s.atBody === 'dark' && s.bg === 'rgb(18, 19, 22)' && s.meta === '#121316', nombre + ': por defecto, el tema oscuro (fondo grafito)', s);
 
     // Ajustes → Apariencia → Tema → Claro
     await p.evaluate(() => Whider.Settings.open('appearance'));
@@ -64,18 +64,18 @@ async function contrast(p, label, bad) {
     ok(opts === 'Oscuro Claro Como el sistema', nombre + ': Apariencia empieza por el tema (Oscuro, Claro, Como el sistema)', opts);
     await pick(p, 'Claro');
     s = await state(p);
-    ok(s.th === 'light' && s.bg === 'rgb(255, 255, 255)' && s.meta === '#FFFFFF', nombre + ': «Claro» se aplica al momento (fondo y barra del navegador)', s);
+    ok(s.th === 'light' && s.bg === 'rgb(246, 247, 249)' && s.meta === '#F6F7F9', nombre + ': «Claro» se aplica al momento (fondo y barra del navegador)', s);
     ok(s.saved === 'light' && s.ui.th === 'light' && !s.ui.sys, nombre + ': y queda guardado', s);
     const sheet = await p.evaluate(() => { const el = document.querySelector('#sheetRoot .sheet-layer:last-child .sheet'), cs = getComputedStyle(el); return { bg: cs.backgroundColor, cell: cs.getPropertyValue('--cell').trim(), t1: getComputedStyle(document.documentElement).getPropertyValue('--t1').trim() }; });
-    ok(sheet.bg === 'rgb(255, 255, 255)' && /^#F3F4F6$/i.test(sheet.cell) && /^#0F1419$/i.test(sheet.t1), nombre + ': hojas blancas con celdas grises claras y texto casi negro', sheet);
+    ok(sheet.bg === 'rgb(255, 255, 255)' && /^#F3F4F6$/i.test(sheet.cell) && /^#14161A$/i.test(sheet.t1), nombre + ': hojas blancas con celdas grises claras y texto casi negro', sheet);
     await closeAll(p);
     await sleep(400);
     if (nombre === 'móvil') {
       const dock = await p.evaluate(() => getComputedStyle(document.querySelector('.dock')).backgroundColor);
-      ok(/^rgba?\(255, 255, 255/.test(dock), 'móvil: la barra inferior, clara (translúcida)', dock);
+      ok(/^rgba?\(255, 255, 255/.test(dock), 'móvil: la barra flotante, clara (translúcida)', dock);
     } else {
-      const logo = await p.evaluate(() => getComputedStyle(document.querySelector('.sb-brand svg')).color);
-      ok(logo === 'rgb(15, 20, 25)', 'ordenador: el logotipo de la barra lateral se ve (oscuro sobre claro)', logo);
+      const logo = await p.evaluate(() => getComputedStyle(document.querySelector('#topbar .tb-brand svg')).color);
+      ok(logo === 'rgb(20, 22, 26)', 'ordenador: el logotipo de la barra superior se ve (oscuro sobre claro)', logo);
     }
 
     // Sin destello: al recargar, el tema ya está puesto cuando aparece <body>
@@ -129,7 +129,7 @@ async function contrast(p, label, bad) {
     await p.emulateMedia({ colorScheme: 'light' });
     await sleep(300);
     s = await state(p);
-    ok(s.th === 'light' && s.meta === '#FFFFFF', nombre + ': el dispositivo pasa a claro con la app abierta → claro al momento', s);
+    ok(s.th === 'light' && s.meta === '#F6F7F9', nombre + ': el dispositivo pasa a claro con la app abierta → claro al momento', s);
     await closeAll(p);
     await p.reload();
     await sleep(1500);
@@ -144,7 +144,7 @@ async function contrast(p, label, bad) {
     await sleep(600);
     await pick(p, 'Oscuro');
     s = await state(p);
-    ok(s.th === 'dark' && s.bg === 'rgb(0, 0, 0)' && s.saved === 'dark', nombre + ': «Oscuro» vuelve al tema de siempre', s);
+    ok(s.th === 'dark' && s.bg === 'rgb(18, 19, 22)' && s.saved === 'dark', nombre + ': «Oscuro» vuelve al tema de siempre', s);
 
     ok(!errs.length, nombre + ': sin errores', errs.slice(0, 3));
     await ctx.close();

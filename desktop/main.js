@@ -89,7 +89,10 @@ function saveBounds() {
 }
 
 /** Colores de la ventana para cada tema (los mismos que --bg y --t2 en css/tokens.css) */
-function themeColors(light) { return light ? { bg: '#FFFFFF', symbol: '#3C4650' } : { bg: '#000000', symbol: '#A1A5AB' }; }
+/** Botones de la ventana de macOS, centrados en la franja de título */
+function macButtons(h) { return h === 60 ? { x: 20, y: 22 } : { x: 14, y: 10 }; }
+
+function themeColors(light) { return light ? { bg: '#F6F7F9', symbol: '#3D424A' } : { bg: '#121316', symbol: '#A9ADB4' }; }
 
 function createWindow(show) {
   const st = prefs.get('window') || {};
@@ -106,8 +109,10 @@ function createWindow(show) {
     }
   };
   if (visibleBounds(st)) { opts.x = st.x; opts.y = st.y; }
-  if (IS_WIN) Object.assign(opts, { titleBarStyle: 'hidden', titleBarOverlay: { color: tc.bg, symbolColor: tc.symbol, height: 34 } });
-  if (IS_MAC) Object.assign(opts, { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 14, y: 10 } });
+  // La franja de título: la barra superior de la app (60) o, con la ventana estrecha, la franja fina (34)
+  const tbh = prefs.get('titlebarH') === 60 ? 60 : 34;
+  if (IS_WIN) Object.assign(opts, { titleBarStyle: 'hidden', titleBarOverlay: { color: tc.bg, symbolColor: tc.symbol, height: tbh } });
+  if (IS_MAC) Object.assign(opts, { titleBarStyle: 'hiddenInset', trafficLightPosition: macButtons(tbh) });
 
   win = new BrowserWindow(opts);
   if (st.maximized) win.maximize();
@@ -289,6 +294,14 @@ ipcMain.handle('whider:google-sign-in', function () { return browserSignIn('goog
 ipcMain.handle('whider:browser-sign-in', function (_e, provider) { return browserSignIn(String(provider || '')); });
 ipcMain.handle('whider:google-cancel', function () { acceso.cancel(); });
 ipcMain.handle('whider:browser-cancel', function () { acceso.cancel(); });
+// La web avisa del alto de su franja de título (barra superior del ordenador o franja fina del móvil)
+ipcMain.on('whider:set-titlebar', function (_e, h) {
+  const height = h === 60 ? 60 : 34;
+  prefs.set('titlebarH', height);
+  if (!win || win.isDestroyed()) return;
+  if (IS_WIN) { try { win.setTitleBarOverlay({ height: height }); } catch (e) { /* sin barra propia */ } }
+  if (IS_MAC && typeof win.setWindowButtonPosition === 'function') { try { win.setWindowButtonPosition(macButtons(height)); } catch (e) { /* versión antigua */ } }
+});
 ipcMain.handle('whider:get-settings', function () {
   return { openAtLogin: getOpenAtLogin(), closeToTray: prefs.get('closeToTray') !== false, version: app.getVersion() };
 });

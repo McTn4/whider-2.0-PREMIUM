@@ -15,7 +15,7 @@ window.Whider = window.Whider || {};
   /** Preguntas frecuentes: [pregunta, respuesta] */
   var FAQ = [
     [W.t('¿Dónde se guardan mis datos?'), W.t('En tu cuenta, en la nube, y en tu dispositivo, para que WHIDER funcione sin conexión. Solo tú puedes leerlos.')],
-    [W.t('¿Dónde están los ajustes?'), W.t('En tu foto: arriba a la derecha en el móvil y, en el ordenador, abajo en la barra lateral, con tu nombre. Ahí están tu cuenta, los ajustes, la ayuda y «Cerrar sesión».')],
+    [W.t('¿Dónde están los ajustes?'), W.t('En tu foto, arriba a la derecha (en el ordenador, con tu nombre). Ahí están tu cuenta, los ajustes, la ayuda y «Cerrar sesión».')],
     [W.t('¿Cómo uso WHIDER en el móvil y en el ordenador?'), W.t('Entra con la misma cuenta en los dos (Google, Microsoft o Apple). Todo se sincroniza solo: tareas, Cuaderno y ajustes.')],
     [W.t('¿Qué pasa si cambio lo mismo en dos dispositivos a la vez?'), W.t('Se conservan los dos cambios si son distintos (uno cambia la fecha y otro la completa). Si los dos editan el mismo bloque del Cuaderno, se queda el más reciente y la otra versión, justo debajo.')],
     [W.t('¿Dónde están mis hábitos?'), W.t('Ahora son tareas de cada día: salen en Inicio y en Tareas, en «Cada día», con su horario y su aviso. Al completarlas vuelven el siguiente día que les toca. Su historial sigue guardado en tu cuenta.')],

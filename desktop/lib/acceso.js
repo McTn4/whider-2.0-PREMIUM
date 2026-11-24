@@ -64,10 +64,10 @@ function page(state, id) {
   @font-face { font-family: 'Inter'; src: url('/font.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #000000; color: #E7E9EA;
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #121316; color: #ECEDEF;
     font: 16px/1.5 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-  main { width: min(26rem, 100%); padding: 36px 28px 30px; border-radius: 22px; text-align: center; background: #111113;
-    border: 1px solid rgba(255,255,255,.08); box-shadow: 0 30px 70px -30px #000, inset 0 1px 0 rgba(255,255,255,.05); }
+  main { width: min(26rem, 100%); padding: 36px 28px 30px; border-radius: 22px; text-align: center; background: #1C1E22;
+    border: 1px solid rgba(255,255,255,.08); box-shadow: 0 30px 70px -30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05); }
   svg.w { width: 64px; height: 64px; filter: drop-shadow(0 0 12px rgba(255,255,255,.35)); }
   h1 { margin: 14px 0 6px; font-family: 'Inter', system-ui, sans-serif; font-size: 1.6rem; font-weight: 800; letter-spacing: -.025em; }
   p { margin: 0 0 22px; color: #A3A3A3; font-size: .95rem; }

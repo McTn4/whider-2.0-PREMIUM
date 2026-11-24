@@ -135,7 +135,7 @@ window.Whider = window.Whider || {};
       ] },
       { title: W.t('En una página de tareas'), rows: [
         [W.t('Moverse entre tareas'), ['↑', '↓']], [W.t('Completar o desmarcar'), [W.t('Espacio')]], [W.t('Abrir el editor'), [W.t('Intro')]],
-        [W.t('Eliminar'), [W.t('Supr')]], [W.t('Más opciones'), null, W.t('Clic derecho')], [W.t('Cambiar de categoría o pasar a hoy'), null, W.t('Arrástrala a la barra lateral')]
+        [W.t('Eliminar'), [W.t('Supr')]], [W.t('Más opciones'), null, W.t('Clic derecho')], [W.t('Cambiar de categoría o pasar a hoy'), null, W.t('Arrástrala a Inicio o a una categoría')]
       ] },
       { title: W.t('Varias tareas a la vez'), rows: [
         [W.t('Añadir o quitar de la selección'), [K(W.t('clic'))]], [W.t('Seleccionar un tramo'), [W.t('Mayús'), W.t('clic')]], [W.t('Seleccionar todas'), [K('A')]],

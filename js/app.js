@@ -10,7 +10,7 @@ window.Whider = window.Whider || {};
   var U = W.U, S = W.State;
   var CFG = window.WHIDER_CONFIG || {};
 
-  /** Aplica tamaño de texto, densidad, animaciones, la prioridad en color (opcional) y la barra inferior */
+  /** Aplica tamaño de texto, densidad, animaciones, la prioridad en color (opcional) y si se ve Personas */
   /** El tema que toca ahora: el elegido o, con «Como el sistema», el del dispositivo */
   var themeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
   function resolvedTheme() {
@@ -28,7 +28,7 @@ window.Whider = window.Whider || {};
     applyTheme.last = key;
     html.setAttribute('data-theme', th);
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', th === 'light' ? '#FFFFFF' : '#000000');
+    if (meta) meta.setAttribute('content', th === 'light' ? '#F6F7F9' : '#121316');
     // La barra de título del ordenador y las barras del sistema en Android, a juego
     var D = window.WhiderDesktop, A = window.WhiderAndroid;
     try { if (D && D.setTheme) D.setTheme(th, sys); } catch (e) { /* sin puente */ }
@@ -44,7 +44,7 @@ window.Whider = window.Whider || {};
     html.setAttribute('data-motion', cfg.reduceMotion ? 'reduced' : 'full');
     html.setAttribute('data-contrast', cfg.contrast === 'high' ? 'high' : 'normal');
     html.setAttribute('data-prio-color', cfg.prioColor ? 'on' : 'off');
-    // Pestaña Personas: fuera de la barra si no la usas
+    // Personas, fuera si no la usas (su botón del móvil y su sección del ordenador: controls.js y topbar.js)
     html.setAttribute('data-people', cfg.peopleTab === false ? 'off' : 'on');
     // Personalización del ordenador: contenido a todo el ancho
     html.setAttribute('data-wide', cfg.desk && cfg.desk.wide ? 'true' : 'false');
@@ -305,25 +305,23 @@ window.Whider = window.Whider || {};
       else if (reason !== 'sync') W.Sync.schedule();
     });
 
-    // Estado de la nube: tu foto dice si hay cambios sin subir y la barra lateral se pone al día
+    // Estado de la nube: tu foto dice si hay cambios sin subir y la barra superior se pone al día
     W.Sync.onStatus(function () {
       W.AccountMenu.refreshLabels();
-      if (W.Sidebar) W.Sidebar.refresh();
+      if (W.Topbar) W.Topbar.refresh();
     });
     // Android: el widget «Hoy» recibe las tareas de hoy cada vez que cambian
     pushWidget();
     S.subscribe(function () { pushWidget(); });
     W.Keys.init();
-    W.Sidebar.init();
+    W.Topbar.init();
     W.People.init();
     W.Chat.init();
-    // Los chats y las solicitudes cambian el contador de la pestaña Personas y de la barra lateral
-    W.Chat.subscribe(function (r) { if (r === 'list') { W.Notify.emitBadge(); W.Sidebar.refresh(); } });
-    W.People.subscribe(function (r) { if (r === 'requests' || r === 'poll') { W.Notify.emitBadge(); W.Sidebar.refresh(); } });
-    // Páginas nuevas, borradas o recuperadas: contador del Cuaderno en la barra lateral
-    W.Pages.subscribe(function (r) { if (r.create || r.trash || r.restore || r.destroy || r.import || r.remote) W.Sidebar.refresh(); });
+    // Los chats y las solicitudes cambian el contador de Personas (arriba en el móvil y en la barra superior)
+    W.Chat.subscribe(function (r) { if (r === 'list') { W.Notify.emitBadge(); W.Topbar.refresh(); } });
+    W.People.subscribe(function (r) { if (r === 'requests' || r === 'poll') { W.Notify.emitBadge(); W.Topbar.refresh(); } });
     // Al pasar de móvil a ordenador (o al revés) se vuelve a pintar con el otro diseño
-    W.Layout.onChange(function () { W.Menu.close(); W.Router.refresh(); W.Sidebar.refresh(); });
+    W.Layout.onChange(function () { W.Menu.close(); W.Router.refresh(); W.Topbar.refresh(); });
     initDesktopApp();
     // Versiones nuevas: en el ordenador y en el APK instalado desde GitHub
     W.Updates.init();

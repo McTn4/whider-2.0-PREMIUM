@@ -6,7 +6,7 @@
 
 **Web: [whider-red.vercel.app](https://whider-red.vercel.app)** — la portada presenta WHIDER, sus novedades y preguntas frecuentes, y ofrece la descarga para tu dispositivo (en el ordenador, Windows, macOS o Linux; en el iPhone, cómo añadirla desde Safari; en Android, Google Play, próximamente). También [en inglés](https://whider-red.vercel.app/en/). La app está en español y en inglés (Ajustes → Idioma); en el ordenador y en Android, el inglés llega con su próxima versión. La app en el navegador está en [`/app`](https://whider-red.vercel.app/app).
 
-**Diseño sencillo, a lo Apple**: fondo negro (o blanco), texto casi blanco, **líneas finas** en lugar de tarjetas con sombra, títulos grandes y **blanco** (negro en el tema claro) para lo que se puede tocar. El único color «de verdad» es el de la **importancia** de cada tarea: **urgente en rojo, importante en naranja, destacada en amarillo** y normal en gris. Una sola tipografía, **Inter**, en todo; iconos de trazo redondeado, como los de Apple, que se rellenan en la pestaña activa. En el móvil, cinco pestañas abajo, un **«+» flotante** y **tu foto** arriba a la derecha (tu cuenta y los ajustes); en el ordenador, una barra lateral sobria con **«Nueva tarea»** arriba y tu foto y tu nombre abajo.
+**Diseño sencillo y propio**: fondo grafito (o un gris muy claro), texto casi blanco, **líneas finas** en lugar de tarjetas con sombra, títulos grandes y **blanco** (negro en el tema claro) para lo que se puede tocar. El único color «de verdad» es el de la **importancia** de cada tarea: **urgente en rojo, importante en naranja, destacada en amarillo** y normal en gris. Una sola tipografía, **Inter**, en todo; iconos de trazo redondeado, como los de Apple, que se rellenan en la pestaña activa. En el móvil, una **barra flotante** y redondeada con cuatro secciones y el **«+» en el centro**, y arriba a la derecha Personas y **tu foto** (tu cuenta y los ajustes); en el ordenador, una **barra superior** con las secciones en una cápsula en el centro y, a la derecha, buscar, **«Nueva tarea»** y tu foto con tu nombre.
 
 <p align="center">
   <img src="sitio/img/pc-hoy.webp" width="900" alt="WHIDER en el ordenador: Inicio con el campo para añadir, «Cada día» y «Por hacer» por importancia">
@@ -60,7 +60,7 @@ La portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.ve
 - **Editor en un panel a la derecha**, sin perder de vista la lista; diálogos centrados y la creación rápida arriba, como una barra de comandos.
 - **Campo para añadir** en Inicio y en cada lista (y, en el calendario, un clic en un día o en una hora): escribe y pulsa Intro (entiende fecha, hora, `#lista`, `!` de importancia y «cada día»).
 - **Clic derecho** en una tarea: completar, editar, pasarla a hoy, a mañana o al lunes, cambiar la importancia o la lista, marcarla «En curso» o eliminarla.
-- **Arrastra** una tarea a una lista de la barra lateral para moverla, a «Inicio» para hacerla hoy o a un día del calendario.
+- **Arrastra** una tarea a una categoría del panel de Tareas para moverla; a «Inicio» (en la barra superior) o a «Hoy» para hacerla hoy; o a un día del calendario.
 - **Buscar** (`Ctrl K` / `⌘ K`): encuentra tareas y listas, ve a cualquier sección o crea la tarea con lo que has escrito.
 
 **Atajos de teclado** (pulsa `?` para verlos en la app)
@@ -97,18 +97,18 @@ La portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.ve
 
 ## 🧭 Organización
 
-En el ordenador, las secciones están en la barra lateral, de lo más importante a lo menos. En el móvil, una barra abajo con **cinco pestañas** (Personas solo si trabajas con otros; se elige en la presentación y en *Ajustes → Lo que ves*) y el botón **+** flotante, abajo a la derecha:
+En el ordenador, las secciones están en la **barra superior**, en una cápsula en el centro; Tareas tiene además su propio panel a la izquierda (vistas, categorías y filtros) e Inicio, el mes a la derecha. En el móvil, una **barra flotante** abajo con cuatro secciones y el botón **+** en el centro; **Personas** está arriba, junto a tu foto (solo si trabajas con otros; se elige en la presentación y en *Ajustes → Lo que ves*):
 
 | Pestaña | Qué encontrarás |
 | --- | --- |
 | **Inicio** | Arriba, un **campo para escribir** la tarea, con su **importancia** y **«Cada día»**. Debajo, **«Cada día»** (lo que repites a diario, tachado en su sitio cuando lo haces) y **«Por hacer»**: lo de hoy y lo vencido, **de lo más importante a lo menos** (lo que ya empezaste, delante; lo vencido, con su fecha en rojo). Lo hecho, plegado al final, y la agenda de tus calendarios. Arriba a la derecha, **tu foto**: tu cuenta y los Ajustes. |
-| **Tareas** | Buscador, **listas inteligentes** (Hoy · Cada día · Programadas · Prioritarias · Todas) y **Mis categorías** (las que crees: al empezar no hay ninguna), cada una con su página, y tus **filtros**. |
+| **Tareas** | Buscador, **listas inteligentes** (Hoy · Cada día · Programadas · Prioritarias · Todas) y **Mis categorías** (las que crees: al empezar no hay ninguna), cada una con su página, y tus **filtros**. En el ordenador, todo eso en un panel a la izquierda y la lista a la derecha. |
 | **Calendario** | Vistas de **Mes**, **Semana por horas** y **Agenda**: **toca un día o una hora y escribe la tarea ahí mismo**. Con tus tareas que se repiten, los eventos de tus calendarios y, si tienes categorías, su filtro. |
 | **Cuaderno** | Tus páginas: favoritas, recientes y todas, con búsqueda, plantillas y papelera. |
-| **Personas** | Tu tarjeta para invitar (enlace, QR o código), las solicitudes, **tus chats recientes**, tus **contactos** y tus **equipos**. |
-| **+** | **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la categoría y la importancia. |
+| **Personas** | Tu tarjeta para invitar (enlace, QR o código), las solicitudes, **tus chats recientes**, tus **contactos** y tus **equipos**. En el móvil, arriba junto a tu foto. |
+| **+** | En el centro de la barra (en el ordenador, «Nueva tarea», arriba). **Creación rápida** desde cualquier pantalla: escribe «Llamar a Ana mañana a las 10 #trabajo !!» y WHIDER pone la fecha, la hora, la categoría y la importancia. |
 
-Arriba a la derecha de cada pantalla está **tu foto**: abre tu cuenta, con unos interruptores rápidos (tema oscuro, sonidos), los **Ajustes**, la ayuda y «Cerrar sesión». En el ordenador, tu foto y tu nombre están abajo en la barra lateral y abren lo mismo en un panel amplio.
+Arriba a la derecha de cada pantalla está **tu foto**: abre tu cuenta, con unos interruptores rápidos (tema oscuro, sonidos), los **Ajustes**, la ayuda y «Cerrar sesión». En el ordenador, tu foto y tu nombre están en la barra superior y abren lo mismo en un panel amplio.
 
 ---
 
@@ -132,12 +132,12 @@ Arriba a la derecha de cada pantalla está **tu foto**: abre tu cuenta, con unos
 - **Importancia** en cuatro niveles: **urgente** (rojo), **importante** (naranja), **destacada** (amarillo) y normal. Se ve en el círculo de cada tarea, se escribe al lado («Urgente», «Importante») y ordena Inicio. Se elige al escribir la tarea (con el botón *Importancia* o con `!`, `!!` y `!!!`) o tocándola.
 - **Tareas de cada día**: una tarea puede repetirse **cada día**, los **días laborables** o los **días de la semana que elijas** («Gimnasio cada lunes, miércoles y viernes a las 7»). Salen en «Cada día» de Inicio y tienen su lista en Tareas; si un día se quedan sin hacer, **pasan solas al siguiente día que les toca**: no se acumulan como vencidas.
 - **Tus hábitos de antes** son ahora tareas de cada día, con su horario (que pasa a ser su aviso) y su objetivo en el título; su historial sigue guardado en tu cuenta.
-- **Empieza vacía**: sin tareas, tutoriales ni categorías de ejemplo; añades solo lo tuyo. La presentación pide tu nombre, si la usarás con otras personas (si no, la pestaña Personas no está) y los avisos. Se repite en *Ajustes → Ayuda → Adaptar WHIDER a ti*.
+- **Empieza vacía**: sin tareas, tutoriales ni categorías de ejemplo; añades solo lo tuyo. La presentación pide tu nombre, si la usarás con otras personas (si no, la sección Personas no está) y los avisos. Se repite en *Ajustes → Ayuda → Adaptar WHIDER a ti*.
 
 **Personas, equipos y chats**
 - **Contactos** (de amigos o de trabajo), en una sola lista. Se añaden con tu **enlace de invitación**, tu **código QR** (se escanea con la cámara del móvil o del ordenador) o tu código `WH-…`. El enlace funciona aunque la otra persona aún no tenga la app: la página de invitación la abre o le dice dónde descargarla.
 - **Equipos** con sus miembros, su enlace para entrar, su **chat** y sus **páginas del Cuaderno**.
-- **Chats** con cada contacto y con cada equipo: responder, reaccionar, editar y borrar tus mensajes, y compartir **tareas**, **páginas** y ánimos (quien los recibe los añade a lo suyo con un toque). Avisos de mensajes nuevos con la app abierta y contadores en la barra lateral y en la pestaña Personas.
+- **Chats** con cada contacto y con cada equipo: responder, reaccionar, editar y borrar tus mensajes, y compartir **tareas**, **páginas** y ánimos (quien los recibe los añade a lo suyo con un toque). Avisos de mensajes nuevos con la app abierta y contadores en Personas (en la barra superior del ordenador y arriba, junto a tu foto, en el móvil).
 - Tus contactos solo ven tu **nombre y tu foto** (o tu inicial); nunca tus tareas ni tu Cuaderno, salvo lo que compartas.
 
 **Cuentas y copia en la nube**
@@ -151,7 +151,7 @@ Arriba a la derecha de cada pantalla está **tu foto**: abre tu cuenta, con unos
 **Tareas y listas**
 - **Creación rápida en lenguaje natural**: «mañana», «el lunes», «el 15», «20/11», «en 3 días», «a las 5 de la tarde», «cada día», «cada lunes y jueves», «#lista» y «!»/«!!»/«!!!» para la importancia. Lo detectado aparece en etiquetas que puedes descartar; con Intro se añade y queda listo para la siguiente.
 - **En curso**: marca una tarea como empezada (clic derecho o el editor) y sale la primera en Inicio, con medio círculo relleno.
-- **Color de categoría** opcional (verde, azul, turquesa, violeta o rosa): un punto junto a su nombre en las tareas, el calendario y la barra lateral.
+- **Color de categoría** opcional (verde, azul, turquesa, violeta o rosa): un punto junto a su nombre en las tareas y el calendario, y su icono en color en el panel de Tareas.
 - **Listas** propias, más cinco **listas automáticas** que se rellenan solas (Hoy, Cada día, Programadas, Prioritarias y Todas).
 - **Importar desde otras apps** (*Ajustes → Datos* o la paleta de comandos): **Todoist** (CSV de cada proyecto), **Google Tasks** (Google Takeout), **Notion** (CSV de una base de datos), **calendarios** `.ics` de Google, Outlook o Apple (con su hora y zona horaria, duración y repetición) y cualquier **hoja de cálculo** CSV eligiendo qué columna es cada cosa. Antes de importar se ve una vista previa con las categorías nuevas, las tareas que ya tienes (no se duplican) y lo que no se entendió; durante un día se puede **deshacer**.
 - **Compartir con WHIDER**: desde otra app (Android) o desde el menú *Compartir* del sistema (web instalada), un texto o un enlace se convierte en una tarea nueva.
@@ -178,7 +178,7 @@ Arriba a la derecha de cada pantalla está **tu foto**: abre tu cuenta, con unos
 **Ajustes**
 - Tamaño de texto (4 niveles), densidad cómoda o compacta y movimiento reducido.
 - Pantalla al abrir, lista por defecto, aviso por defecto, primer día de la semana, formato 12/24 h y confirmación al eliminar.
-- *Lo que ves*: la pestaña Personas y, en el ordenador, la barra lateral, el calendario y el orden de las categorías.
+- *Lo que ves*: la sección Personas y, en el ordenador, el panel de Tareas (filtros y contadores), el calendario y el orden de las categorías.
 
 ---
 
@@ -266,12 +266,12 @@ npm start
 ├── .well-known/            # assetlinks.json: los enlaces de invitación abren la app de Android (App Links)
 ├── css/
 │   ├── tokens.css          # Colores (y los de la importancia), Inter, radios de esquina, tamaños y movimiento
-│   ├── layout.css          # Pantalla de carga, estructura, barra superior, barra inferior y el «+» flotante
+│   ├── layout.css          # Pantalla de carga, estructura, cabecera y la barra flotante del móvil (con el «+»)
 │   ├── components.css      # Filas de tarea, celdas agrupadas, botones en cápsula, hojas, alertas, menús, interruptores…
 │   ├── screens.css         # Estilos de cada pantalla
 │   ├── social.css          # Personas, chats, fotos de perfil, invitaciones y QR
 │   ├── cuaderno.css        # Cuaderno: editor por bloques y bases de datos (se carga al abrirlo)
-│   └── desktop.css         # Ordenador: barra lateral, diálogos, calendario grande, ratón y teclado
+│   └── desktop.css         # Ordenador: barra superior, panel de Tareas, diálogos, calendario grande, ratón y teclado
 ├── firestore.rules         # Reglas de seguridad: tus datos solo tuyos; perfiles, buzón, equipos y chats solo de sus miembros
 ├── firebase.json           # Configuración de Firebase (reglas, hosting y emuladores)
 ├── vercel.json             # Publicación de la web: compilación (tools/web-build.js), /app y /descargar
@@ -283,7 +283,7 @@ npm start
 │   │                       #   (Cuaderno), calendars e ical (calendarios suscritos), community (personas y equipos),
 │   │                       #   chat (chats) e invite (enlaces y QR)
 │   ├── ui/                 # avisos, menús, hojas, controles, perfil, tu cuenta (account), editor, creación rápida, fila de tarea,
-│   │                       #   diseño (layout), barra lateral, búsqueda, atajos, selección múltiple (select),
+│   │                       #   diseño (layout), barra superior (topbar), búsqueda, atajos, selección múltiple (select),
 │   │                       #   filtros, fotos de perfil (avatar) y, para el Cuaderno, blocks (editor)
 │   │                       #   y dbview (bases de datos)
 │   ├── screens/            # home (Inicio), tasks, calendar, notes (Cuaderno), friends (Personas), chats, onboarding

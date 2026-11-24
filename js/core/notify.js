@@ -175,7 +175,7 @@ window.Whider = window.Whider || {};
         b.textContent = n > 9 ? '9+' : String(n);
         b.classList.toggle('show', n > 0);
       });
-      // Chats sin leer y solicitudes: en la pestaña Personas
+      // Chats sin leer y solicitudes: en Personas (arriba en el móvil; en la barra superior del ordenador)
       var unread = W.Chat ? W.Chat.unreadCount() : 0;
       var social = unread + (W.People ? W.People.pendingCount() : 0);
       U.$$('[data-badge="chats"]').forEach(function (b) {

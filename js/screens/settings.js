@@ -302,13 +302,13 @@ window.Whider = window.Whider || {};
     };
   }
 
-  /** Lo que ves: la pestaña Personas y, en el ordenador, la barra lateral, el calendario y el orden de las categorías */
+  /** Lo que ves: la sección Personas y, en el ordenador, el panel de Tareas, el calendario y el orden de las categorías */
   function customPage(nav) {
     var st = S(), cfg = st.settings, dk = cfg.desk, desk = W.Layout.desktop;
-    var people = W.UI.section({ header: W.t('Pestañas'), items: [
+    var people = W.UI.section({ header: W.t('Secciones'), items: [
       toggleCell({ icon: 'users', title: W.t('Personas'), sub: W.t('Chats, contactos y equipos'), value: cfg.peopleTab !== false, onChange: function (v) { st.setSetting('peopleTab', v); } })
-    ], footer: W.t('Si no trabajas con otras personas, quítala y la barra se queda con lo tuyo: Inicio, Tareas, Calendario y Cuaderno.') });
-    if (!desk) return { title: W.t('Lo que ves'), body: [people, U.el('p.hint', { text: W.t('En el ordenador también eliges cómo se ve la barra lateral y el calendario.') })] };
+    ], footer: W.t('Si no trabajas con otras personas, quítala de arriba y te quedas con lo tuyo: Inicio, Tareas, Calendario y Cuaderno.') });
+    if (!desk) return { title: W.t('Lo que ves'), body: [people, U.el('p.hint', { text: W.t('En el ordenador también eliges cómo se ven el panel de Tareas y el calendario.') })] };
     var saveDesk = function () { st.saveSettings('settings:desk'); };
     var sb = dk.sidebar;
     var lists = st.lists.map(function (l, i) {
@@ -322,10 +322,9 @@ window.Whider = window.Whider || {};
       title: W.t('Lo que ves'),
       body: [
         people,
-        W.UI.section({ header: W.t('Barra lateral'), items: [
+        W.UI.section({ header: W.t('Panel de Tareas'), items: [
           toggleCell({ icon: 'filter', title: W.t('Filtros guardados'), value: sb.filters !== false, onChange: function (v) { sb.filters = v; saveDesk(); } }),
-          toggleCell({ icon: 'hash', title: W.t('Mostrar los contadores'), value: sb.counts !== false, onChange: function (v) { sb.counts = v; saveDesk(); } }),
-          toggleCell({ icon: 'list', title: W.t('Barra compacta'), value: !!sb.compact, onChange: function (v) { sb.compact = v; saveDesk(); } })
+          toggleCell({ icon: 'hash', title: W.t('Mostrar los contadores'), value: sb.counts !== false, onChange: function (v) { sb.counts = v; saveDesk(); } })
         ] }),
         W.UI.section({ header: W.t('Calendario'), items: [
           menuCell({ icon: 'calendar', title: W.t('Vista al abrir'), value: dk.calView, options: calViews, onChange: function (v) { dk.calView = v; st.ui.calView = v; saveDesk(); } }, nav),

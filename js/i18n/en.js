@@ -521,9 +521,7 @@ window.Whider.I18n.add('en', {
   'Semana': 'Week',
   'Día': 'Day',
   'Agenda': 'Agenda',
-  'Barra lateral': 'Sidebar',
   'Mostrar los contadores': 'Show counters',
-  'Barra compacta': 'Compact bar',
   'Vista al abrir': 'View when opening',
   'La semana empieza a las': 'The day starts at',
   'Y termina a las': 'And ends at',
@@ -836,7 +834,6 @@ window.Whider.I18n.add('en', {
   'Supr': 'Delete',
   'Clic derecho': 'Right-click',
   'Cambiar de categoría o pasar a hoy': 'Change category or move to today',
-  'Arrástrala a la barra lateral': 'Drag it to the sidebar',
   'Varias tareas a la vez': 'Several tasks at once',
   'Añadir o quitar de la selección': 'Add to or remove from the selection',
   'clic': 'click',
@@ -1843,7 +1840,6 @@ window.Whider.I18n.add('en', {
   'Adaptar WHIDER a ti': 'Adapt WHIDER to you',
   'Recordatorios y tareas vencidas': 'Reminders and overdue tasks',
   'Completar tareas y terminar el día': 'Completing tasks and finishing the day',
-  'En el ordenador también eliges cómo se ve la barra lateral y el calendario.': 'On a computer you also choose how the sidebar and the calendar look.',
   'Todo: tareas, Cuaderno y ajustes (JSON)': 'Everything: tasks, Notebook and settings (JSON)',
   'Se borrarán tus tareas y tu Cuaderno. No se puede deshacer.': 'Your tasks and your Notebook will be deleted. This can\'t be undone.',
   'Borra tus tareas y tu Cuaderno, también en tu cuenta.': 'Deletes your tasks and your Notebook, in your account too.',
@@ -1943,7 +1939,6 @@ window.Whider.I18n.add('en', {
   'También con otras personas': 'With other people too',
   // js/screens/settings.js
   'Vuelve a la presentación: tu perfil, con quién la usas y los avisos': 'Go back to the welcome: your profile, who you use it with and reminders',
-  'Si no trabajas con otras personas, quítala y la barra se queda con lo tuyo: Inicio, Tareas, Calendario y Cuaderno.': 'If you don\'t work with other people, remove it and the tab bar keeps just yours: Home, Tasks, Calendar and Notebook.',
   // js/core/auth.js
   'Has cerrado la ventana de inicio de sesión.': 'You closed the sign-in window.',
   'El navegador bloqueó la ventana de inicio de sesión.': 'The browser blocked the sign-in window.',
@@ -1978,7 +1973,6 @@ window.Whider.I18n.add('en', {
   // js/ui/help.js
   'En tu cuenta, en la nube, y en tu dispositivo, para que WHIDER funcione sin conexión. Solo tú puedes leerlos.': 'In your account, in the cloud, and on your device, so WHIDER works offline. Only you can read them.',
   '¿Dónde están los ajustes?': 'Where are the settings?',
-  'En tu foto: arriba a la derecha en el móvil y, en el ordenador, abajo en la barra lateral, con tu nombre. Ahí están tu cuenta, los ajustes, la ayuda y «Cerrar sesión».': 'In your photo: top right on your phone and, on the computer, at the bottom of the sidebar, with your name. That\'s where your account, settings, help and “Sign out” are.',
   'Entra con la misma cuenta en los dos (Google, Microsoft o Apple). Todo se sincroniza solo: tareas, Cuaderno y ajustes.': 'Sign in with the same account on both (Google, Microsoft or Apple). Everything syncs on its own: tasks, Notebook and settings.',
   'Tus datos ya están en tu cuenta. Si además quieres un archivo: Ajustes → Datos → Guardar una copia. En el ordenador y en Android también puedes activar una copia automática cada día.': 'Your data is already in your account. If you also want a file: Settings → Data → Save a backup. On the computer and on Android you can also turn on an automatic backup every day.',
   'Toca tu foto y después tu nombre: «Eliminar la cuenta», al final. Se borran tus datos de la nube. También puedes hacerlo desde la web, en /app#cuenta.': 'Tap your photo and then your name: “Delete account”, at the end. Your data in the cloud is deleted. You can also do it from the web, at /app#cuenta.',
@@ -1986,5 +1980,24 @@ window.Whider.I18n.add('en', {
   '<p><b>Dónde.</b> En tu cuenta de WHIDER, alojada en Google Firebase, y en tu dispositivo, para que funcione sin conexión. Entras con Google, Microsoft o Apple: comprueban quién eres y nos dan tu nombre y tu correo.</p>': '<p><b>Where.</b> In your WHIDER account, hosted on Google Firebase, and on your device, so it works offline. You sign in with Google, Microsoft or Apple: they confirm who you are and give us your name and email.</p>',
   '<p><b>Tus derechos.</b> Puedes exportar tus datos (Ajustes → Datos), cerrar sesión o eliminar tu cuenta y todos sus datos cuando quieras, desde tu cuenta (toca tu foto).</p>': '<p><b>Your rights.</b> You can export your data (Settings → Data), sign out or delete your account and all its data whenever you like, from your account (tap your photo).</p>',
   // js/ui/account.js
-  'hay cambios sin guardar en la nube': 'there are changes not saved to the cloud'
+  'hay cambios sin guardar en la nube': 'there are changes not saved to the cloud',
+  // js/ui/controls.js
+  'Personas ({n} sin ver)': 'People ({n} unseen)',
+  // js/ui/help.js
+  'En tu foto, arriba a la derecha (en el ordenador, con tu nombre). Ahí están tu cuenta, los ajustes, la ayuda y «Cerrar sesión».': 'In your photo, at the top right (on a computer, with your name). That\'s where your account, settings, help and “Sign out” are.',
+  // js/ui/keys.js
+  'Arrástrala a Inicio o a una categoría': 'Drag it to Home or to a category',
+  // js/ui/topbar.js
+  'Secciones': 'Sections',
+  'tarea vencida': 'overdue task',
+  'tareas vencidas': 'overdue tasks',
+  'novedad': 'update',
+  'novedades': 'updates',
+  // js/screens/settings.js
+  'Si no trabajas con otras personas, quítala de arriba y te quedas con lo tuyo: Inicio, Tareas, Calendario y Cuaderno.': 'If you don\'t work with other people, remove it from the top and keep just your own: Home, Tasks, Calendar and Notebook.',
+  'En el ordenador también eliges cómo se ven el panel de Tareas y el calendario.': 'On a computer you also choose how the Tasks panel and the calendar look.',
+  'Panel de Tareas': 'Tasks panel',
+  // js/screens/tasks.js
+  'Crea una categoría para ordenar tus tareas': 'Create a category to organize your tasks',
+  'Vistas, categorías y filtros': 'Views, categories and filters'
 });

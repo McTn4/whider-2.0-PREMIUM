@@ -1,7 +1,7 @@
-// Rediseño: la presentación adapta la app (con quién la usas → pestaña Personas) y empieza vacía, Inicio por importancia con
+// Rediseño: la presentación adapta la app (con quién la usas → sección Personas) y empieza vacía, Inicio por importancia con
 // el campo de arriba (importancia y «Cada día»), los hábitos convertidos en tareas de cada día (con su aviso de una vez),
 // las de cada día que se quedan sin hacer pasan solas a hoy, el editor elige días de la semana y el aspecto nuevo
-// (Inter, barra inferior de cinco pestañas, «+» flotante, barra lateral como la de X).
+// (Inter, la barra flotante del móvil con el «+» en el centro y la barra superior del ordenador).
 const { chromium, devices } = require('playwright');
 const { APP } = require('./_util');
 
@@ -41,7 +41,7 @@ async function abrir(b, opts, seed) {
 (async () => {
   const b = await chromium.launch();
 
-  /* 1. Presentación: con quién la usas → pestaña Personas; nada de ejemplo */
+  /* 1. Presentación: con quién la usas → sección Personas; nada de ejemplo */
   {
     const { ctx, p, errs } = await abrir(b, { ...devices['Pixel 7'] }, { 'whider.meta.v1': { onboarded: false, createdAt: Date.now() } });
     ok(await p.evaluate(() => Whider.Onboarding.isOpen()), 'la presentación se abre la primera vez');
@@ -66,18 +66,18 @@ async function abrir(b, opts, seed) {
       tasks: Whider.State.tasks.length,
       steps: !!document.querySelector('#screen-home .first-steps, #screen-home .fs-step'),
       attr: document.documentElement.getAttribute('data-people'),
-      tab: getComputedStyle(document.querySelector('.dock .tab[data-go="friends"]')).display,
+      tab: document.querySelector('#screen-home .people-btn') ? 'shown' : 'none',
       name: Whider.State.displayName()
     }));
     ok(st.name === 'Lucía', 'guarda tu nombre', st);
     ok(st.lists === 0 && st.tasks === 0 && !st.steps, 'empieza vacía: sin categorías, sin tareas y sin tutorial de ejemplo', st);
-    ok(st.people === false && st.attr === 'off' && st.tab === 'none', 'solo para ti: la pestaña Personas no está', st);
+    ok(st.people === false && st.attr === 'off' && st.tab === 'none', 'solo para ti: Personas no está (tampoco arriba)', st);
     // Ajustes → Lo que ves → Personas: vuelve
     await p.evaluate(() => Whider.Settings.open('custom'));
     await sleep(500);
     await p.click('.sheet .cell:has-text("Personas") .switch');
     await sleep(300);
-    ok(await p.evaluate(() => Whider.State.settings.peopleTab === true && getComputedStyle(document.querySelector('.dock .tab[data-go="friends"]')).display !== 'none'), 'Ajustes → Lo que ves la vuelve a poner');
+    ok(await p.evaluate(() => Whider.State.settings.peopleTab === true && !!document.querySelector('#screen-home .people-btn')), 'Ajustes → Lo que ves la vuelve a poner (arriba, junto a tu foto)');
     ok(!errs.length, 'sin errores (presentación)', errs);
     await ctx.close();
   }
@@ -87,8 +87,8 @@ async function abrir(b, opts, seed) {
     const { ctx, p, errs } = await abrir(b, { ...devices['Pixel 7'] });
     const fuente = await p.evaluate(() => ({ body: getComputedStyle(document.body).fontFamily, h1: getComputedStyle(document.querySelector('#screen-home .lt h1')).fontFamily, ok: document.fonts.check('16px Inter') }));
     ok(/^"?Inter/.test(fuente.body) && /^"?Inter/.test(fuente.h1) && fuente.ok, 'todo en Inter (texto y títulos)', fuente);
-    const barra = await p.evaluate(() => ({ tabs: [...document.querySelectorAll('.dock .tab')].map((t) => t.dataset.go).join(), fab: getComputedStyle(document.getElementById('fab')).position }));
-    ok(barra.tabs === 'home,tasks,calendar,notes,friends' && barra.fab === 'fixed', 'cinco pestañas y el «+» flotante', barra);
+    const barra = await p.evaluate(() => ({ items: [...document.querySelector('.dock').children].map((t) => t.dataset.go || t.id).join(), pos: getComputedStyle(document.querySelector('.dock')).position }));
+    ok(barra.items === 'home,tasks,fab,calendar,notes' && barra.pos === 'fixed', 'cuatro secciones y el «+» en el centro de la barra', barra);
     // Una normal, una urgente (con el menú) y una importante (escrita con !!)
     await p.fill('#screen-home .composer input', 'Comprar pan');
     await p.press('#screen-home .composer input', 'Enter');
@@ -182,26 +182,54 @@ async function abrir(b, opts, seed) {
     await ctx.close();
   }
 
-  /* 4. Ordenador: barra lateral como la de X */
+  /* 4. Ordenador: barra superior (las secciones en una cápsula en el centro) y Tareas con su panel */
   {
     const { ctx, p, errs } = await abrir(b, { viewport: { width: 1440, height: 900 } });
-    const sb = await p.evaluate(() => {
-      const items = [...document.querySelectorAll('.sb-nav .sb-item')];
-      const act = document.querySelector('.sb-nav .sb-item.active');
-      const kids = [...document.querySelector('#sidebar').children].map((c) => c.className.split(' ')[0]);
+    const tb = await p.evaluate(() => {
+      const items = [...document.querySelectorAll('#topbar .tb-nav .tb-item')];
+      const act = document.querySelector('#topbar .tb-item.active');
+      const kids = [...document.querySelector('#topbar').children].map((c) => c.className.split(' ')[0]);
+      const nav = document.querySelector('#topbar .tb-nav').getBoundingClientRect();
       return {
         n: items.length,
         activo: act && act.dataset.go,
-        peso: act && getComputedStyle(act).fontWeight,
         relleno: act && act.querySelector('use').getAttribute('href'),
-        orden: kids.slice(0, 4).join(),
-        fab: getComputedStyle(document.getElementById('fab')).display
+        fondo: act && getComputedStyle(act).backgroundColor,
+        orden: kids.join(),
+        centro: Math.round(Math.abs(nav.left + nav.width / 2 - innerWidth / 2)),
+        arriba: Math.round(document.getElementById('topbar').getBoundingClientRect().top),
+        dock: getComputedStyle(document.querySelector('.dock')).display,
+        nueva: !!document.querySelector('#topbar .tb-new'),
+        foto: !!document.querySelector('#topbar .tb-me .me-av')
       };
     });
-    ok(sb.n === 5 && sb.activo === 'home', 'cinco secciones; Hoy activa', sb);
-    ok(+sb.peso >= 700 && sb.relleno === '#i-home-fill', 'la sección activa, en negrita y con su icono relleno', sb);
-    ok(sb.orden === 'sb-brand,sb-search,sb-nav,sb-actions', 'logotipo, buscar, secciones y «Nueva tarea» debajo', sb.orden);
-    ok(sb.fab === 'none', 'en el ordenador no hay «+» flotante (está «Nueva tarea»)', sb.fab);
+    ok(tb.n === 5 && tb.activo === 'home', 'cinco secciones; Inicio activa', tb);
+    ok(tb.relleno === '#i-home-fill' && tb.fondo !== 'rgba(0, 0, 0, 0)', 'la sección activa, rellena y con su icono relleno', tb);
+    ok(tb.orden === 'tb-brand,tb-nav,tb-tools' && tb.centro <= 2 && tb.arriba === 0, 'arriba: el logotipo, las secciones en el centro y las herramientas a la derecha', tb);
+    ok(tb.nueva && tb.foto && tb.dock === 'none', 'buscar, «Nueva tarea» y tu foto arriba; sin barra de abajo', tb);
+    // Nada se pisa: a 1440 px se ve tu nombre; más estrecha, la barra se recoge por pasos (y tampoco se pisa)
+    const medir = () => p.evaluate(() => {
+      const t = document.getElementById('topbar'), r = (s) => t.querySelector(s).getBoundingClientRect(), n = t.querySelector('.tb-name');
+      return { hueco: Math.round(r('.tb-tools').left - r('.tb-nav').right), nombre: !!n && n.offsetWidth > 0, clases: t.className };
+    });
+    const ancha = await medir();
+    ok(ancha.hueco >= 16 && ancha.nombre, 'a 1440 px no se pisa nada y se ve tu nombre', ancha);
+    await p.setViewportSize({ width: 1000, height: 800 });
+    await sleep(400);
+    const estrecha = await medir();
+    ok(estrecha.hueco >= 16 && /tb-c\d/.test(estrecha.clases), 'a 1000 px la barra se recoge y no se pisa', estrecha);
+    await p.setViewportSize({ width: 1440, height: 900 });
+    await sleep(400);
+    ok((await medir()).hueco >= 16, 'al volver a 1440 px, todo en su sitio');
+    // Tareas: un panel con las vistas, las categorías y los filtros, al lado de la lista
+    await p.evaluate(() => { Whider.State.addList('Trabajo', null, 'briefcase'); Whider.Router.go('tasks'); });
+    await sleep(500);
+    const tp = await p.evaluate(() => ({
+      pane: !!document.querySelector('#screen-tasks .tasks-pane'),
+      cat: [...document.querySelectorAll('#screen-tasks .tasks-pane .tp-item')].some((i) => /Trabajo/.test(i.textContent)),
+      main: !!document.querySelector('#screen-tasks .tasks-main')
+    }));
+    ok(tp.pane && tp.cat && tp.main, 'Tareas: las categorías en su panel, al lado de la lista', tp);
     ok(!errs.length, 'sin errores (ordenador)', errs);
     await ctx.close();
   }

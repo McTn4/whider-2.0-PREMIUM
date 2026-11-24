@@ -100,9 +100,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_MIGRATED = "migrated_file_origin";
     private static final String PREF_ASKED_NOTIF = "asked_notifications";
     /** Fondo de la app (el mismo que --bg en css/tokens.css): se ve detrás de las barras del sistema */
-    private static final int APP_BG = 0xFF000000;
+    private static final int APP_BG = 0xFF121316;
     /** El mismo fondo con el tema claro (--bg del tema claro) */
-    private static final int APP_BG_LIGHT = 0xFFFFFFFF;
+    private static final int APP_BG_LIGHT = 0xFFF6F7F9;
     /** Último tema que pidió la web: al abrir, las barras y el fondo ya salen a juego */
     private static final String PREF_LIGHT = "light_theme";
     private FrameLayout rootView;

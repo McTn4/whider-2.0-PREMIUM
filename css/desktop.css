@@ -1,94 +1,111 @@
 /* ==========================================================================
    WHIDER · Ordenador
    Solo se aplica con 1000 px o más (se carga con media="(min-width: 1000px)",
-   así en el móvil no retrasa el primer pintado): barra lateral, contenido ancho,
+   así en el móvil no retrasa el primer pintado): barra superior, contenido ancho,
    diálogos centrados, el editor como panel a la derecha y el calendario grande.
    Lo común a cualquier tamaño (ratón, teclado, búsqueda) está en components.css
    y la franja de título de la app de escritorio, en layout.css.
    ========================================================================== */
 
-/* ---------- Barra lateral (como la de X): logotipo, secciones grandes y «Nueva tarea» en cápsula ---------- */
+/*
+ * ---------- Barra superior: logotipo, las secciones en una cápsula, buscar, «Nueva tarea» y tu foto ----------
+ * Debajo, el contenido a todo el ancho. Tus categorías y filtros están dentro de Tareas, en su panel.
+ */
 html[data-layout="desktop"] {
-  --sidebar-w: 264px;
+  --topbar-h: 60px;
   --content-max: 1080px;
   --nav-h: 56px;
 }
-html[data-layout="desktop"] .dock, html[data-layout="desktop"] .fab { display: none; }
-html[data-layout="desktop"] .stage { left: var(--sidebar-w); }
-html[data-layout="desktop"] .sidebar {
-  position: absolute; z-index: 5; top: 0; bottom: 0; left: var(--safe-l); width: var(--sidebar-w);
-  display: flex; flex-direction: column; gap: 2px; padding: calc(var(--safe-t) + 8px) 12px 12px;
-  background: var(--bg); border-right: .5px solid var(--line);
-  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+html[data-layout="desktop"] .dock { display: none; }
+html[data-layout="desktop"] .stage { top: calc(var(--safe-t) + var(--topbar-h)); }
+html[data-layout="desktop"] .topbar {
+  position: absolute; z-index: 25; top: var(--safe-t); left: 0; right: 0; height: var(--topbar-h);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px;
+  padding: 0 max(20px, var(--safe-r)) 0 max(20px, var(--safe-l));
+  background: var(--bg); box-shadow: 0 .5px 0 var(--line);
 }
-.sidebar::-webkit-scrollbar { display: none; }
-.sb-brand { display: flex; align-items: center; gap: 10px; flex: none; height: 52px; padding: 0 12px; font-size: 1.1875rem; font-weight: 800; letter-spacing: -.02em; color: var(--t1); }
-.sb-brand svg { width: 28px; height: 28px; flex: none; }
-.sb-search {
-  display: flex; align-items: center; gap: 10px; flex: none; height: 38px; margin: 4px 0 8px; padding: 0 10px 0 12px; border-radius: 10px;
-  background: var(--fill-3); color: var(--t3); font-size: var(--fs-sub); text-align: left; letter-spacing: 0;
+.tb-brand { justify-self: start; display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 1.125rem; font-weight: 800; letter-spacing: -.02em; color: var(--t1); }
+.tb-brand svg { width: 26px; height: 26px; flex: none; }
+.tb-nav {
+  justify-self: center; display: flex; align-items: center; gap: 2px; padding: 4px;
+  border-radius: 999px; background: var(--s1); box-shadow: inset 0 0 0 .5px var(--line);
+}
+.tb-item {
+  position: relative; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 999px;
+  color: var(--t2); font-size: var(--fs-sub); font-weight: 600; letter-spacing: -.005em; white-space: nowrap;
   transition: background-color .15s, color .15s;
 }
-.sb-search span { flex: 1; }
-.sb-nav { display: flex; flex-direction: column; gap: 2px; flex: none; }
-.sb-item {
-  position: relative; display: flex; align-items: center; gap: 12px; width: 100%; height: 40px; padding: 0 12px; border-radius: 10px;
-  color: var(--t1); font-size: var(--fs-body); font-weight: 500; letter-spacing: -.01em; text-align: left;
+.tb-item .ic { width: 18px; height: 18px; stroke-width: 1.9; }
+.tb-item.active { background: var(--accent); color: var(--on-accent); }
+.tb-item.drop-on { box-shadow: inset 0 0 0 1.5px var(--link); background: rgba(var(--accent-rgb), .16); color: var(--t1); }
+.tb-badge {
+  display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--fill); color: var(--t1); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0;
+}
+.tb-badge.late { background: var(--imp-1); color: var(--on-color); }
+.tb-item.active .tb-badge { background: var(--on-accent); color: var(--accent); }
+.tb-tools { justify-self: end; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tb-search {
+  display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px 0 12px; border-radius: 999px;
+  background: var(--s1); box-shadow: inset 0 0 0 .5px var(--line); color: var(--t3); font-size: var(--fs-sub); letter-spacing: 0;
   transition: background-color .15s, color .15s;
 }
-.sb-item .ic { width: 21px; height: 21px; flex: none; stroke-width: 1.8; }
-.sb-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb-item.active { font-weight: 700; background: var(--fill-3); }
-.sb-count { flex: none; font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 500; color: var(--t3); letter-spacing: 0; }
-.sb-count.strong {
-  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
-  background: var(--accent); color: var(--on-accent); font-weight: 700;
+.tb-search kbd { padding: 1px 6px; border-radius: 6px; background: var(--fill-3); font: 600 11px var(--font); color: var(--t3); }
+.tb-new { min-height: 36px; padding: 0 14px; gap: 6px; font-size: var(--fs-sub); font-weight: 700; white-space: nowrap; }
+.tb-new .ic { width: 16px; height: 16px; stroke-width: 2.4; }
+.tb-me {
+  display: flex; align-items: center; gap: 8px; width: auto; max-width: 200px; height: 40px; margin: 0; padding: 2px 14px 2px 2px; border-radius: 999px;
+  text-align: left; transition: background-color .15s;
 }
-.sb-actions { display: flex; flex-direction: column; gap: 8px; flex: none; margin: 12px 0 18px; }
-.sb-new { width: 100%; min-height: 42px; border-radius: 10px; font-size: var(--fs-body); font-weight: 700; }
-.sb-new .ic { width: 18px; height: 18px; stroke-width: 2.4; }
-.sb-sec { display: flex; flex-direction: column; gap: 0; flex: none; }
-.sb-sec + .sb-sec { margin-top: 14px; }
-.sb-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 4px 14px; font-size: var(--fs-sub); font-weight: 800; letter-spacing: -.01em; color: var(--t1); }
-.sb-add { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--link); transition: background-color .15s, color .15s; }
-.sb-add .ic { width: 14px; height: 14px; stroke-width: 2.4; }
-.sb-lists .sb-item { height: 38px; gap: 12px; font-size: var(--fs-body); padding-left: 14px; }
-.sb-lists .sb-item .ic { width: 19px; height: 19px; color: var(--t3); }
-.sb-lists .sb-item.active { font-weight: 700; background: var(--fill-3); }
-.sb-lists .sb-item.active .ic { color: var(--t1); }
-.sb-lists .sb-item.tinted .ic { color: var(--tint); }
-.sb-item.drop-on { background: rgba(var(--accent-rgb), .16); box-shadow: inset 0 0 0 1.5px var(--link); }
-.sb-foot { display: flex; align-items: center; gap: 6px; flex: none; margin-top: auto; padding-top: 12px; }
-.sb-profile { flex: 1; min-width: 0; width: auto; height: auto; margin: 0; display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 10px 12px; border-radius: 999px; text-align: left; transition: background-color .15s; }
-.sb-profile .avatar { width: 40px; height: 40px; font-size: 16px; }
-.sb-profile:focus-visible { outline: 2px solid var(--link); outline-offset: 0; }
-.sb-profile.active { background: var(--fill-3); }
-
+.tb-me .avatar { width: 34px; height: 34px; font-size: 14px; }
+.tb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sub); font-weight: 600; }
+.tb-me:focus-visible { outline: 2px solid var(--link); outline-offset: 0; }
 /*
- * En el Cuaderno la barra se queda en iconos: así hay una sola columna de navegación (el índice
- * de páginas) y la página gana anchura. Todo sigue a un clic, con su nombre al pasar el ratón.
+ * Si no cabe todo, la barra se recoge por pasos (topbar.js mide si algo se pisa y pone tb-c1…tb-c5, que se suman):
+ * el atajo de buscar; buscar y el logotipo, en icono; «Nueva tarea», en icono; tu nombre; las secciones, en icono.
  */
-html[data-layout="desktop"] body[data-screen="notes"] { --sidebar-w: 72px; }
-body[data-screen="notes"] .sidebar { padding-left: 10px; padding-right: 10px; align-items: center; }
-body[data-screen="notes"] .sb-brand { justify-content: center; padding: 0; }
-body[data-screen="notes"] .sb-brand span,
-body[data-screen="notes"] .sb-label,
-body[data-screen="notes"] .sb-count,
-body[data-screen="notes"] .sb-head,
-body[data-screen="notes"] .sb-sec,
-body[data-screen="notes"] .sb-new span,
-body[data-screen="notes"] .sb-search span,
-body[data-screen="notes"] .sb-search kbd,
-body[data-screen="notes"] .sb-who { display: none; }
-body[data-screen="notes"] .sb-item,
-body[data-screen="notes"] .sb-search { justify-content: center; gap: 0; padding: 0; width: 44px; }
-body[data-screen="notes"] .sb-new { width: 44px; min-height: 42px; padding: 0; border-radius: 10px; }
-body[data-screen="notes"] .sb-actions { margin: 10px 0; }
-body[data-screen="notes"] .sb-foot { flex-direction: column; }
-body[data-screen="notes"] .sb-profile { flex: none; justify-content: center; padding: 4px; }
-.sb-who { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.sb-who strong { font-size: var(--fs-body); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb-who small { font-size: var(--fs-foot); color: var(--t3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0; }
+.topbar.tb-c1 .tb-search kbd { display: none; }
+.topbar.tb-c1 .tb-search { padding: 0 14px 0 12px; }
+.topbar.tb-c2 .tb-search-label, .topbar.tb-c2 .tb-brand span { display: none; }
+.topbar.tb-c2 .tb-search { padding: 0 10px; }
+.topbar.tb-c3 .tb-new span { display: none; }
+.topbar.tb-c3 .tb-new { padding: 0 10px; }
+.topbar.tb-c4 .tb-name { display: none; }
+.topbar.tb-c4 .tb-me { padding-right: 2px; }
+.topbar.tb-c5 .tb-item { padding: 0 12px; }
+.topbar.tb-c5 .tb-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- Tareas: panel con las vistas, tus categorías y tus filtros, y la vista elegida a su lado ---------- */
+html[data-layout="desktop"] #screen-tasks.split.active { display: grid; grid-template-columns: 272px minmax(0, 1fr); align-items: start; }
+.tasks-pane {
+  position: sticky; top: 0; display: flex; flex-direction: column; gap: 2px;
+  height: calc(100vh - var(--safe-t) - var(--topbar-h)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  padding: 16px 12px 24px; border-right: .5px solid var(--line);
+}
+.tasks-pane::-webkit-scrollbar { display: none; }
+.tasks-main { min-width: 0; }
+.tp-search { margin: 0 0 10px; }
+.tp-item {
+  position: relative; display: flex; align-items: center; gap: 12px; width: 100%; height: 38px; padding: 0 12px; border-radius: 10px;
+  color: var(--t1); font-size: var(--fs-body); font-weight: 500; text-align: left; letter-spacing: -.005em;
+  transition: background-color .15s, color .15s;
+}
+.tp-item .ic { width: 19px; height: 19px; flex: none; color: var(--t3); stroke-width: 1.8; }
+.tp-item.tinted .ic { color: var(--tint); }
+.tp-item.active { font-weight: 700; background: var(--fill-3); }
+.tp-item.active .ic { color: var(--t1); }
+.tp-item.drop-on { background: rgba(var(--accent-rgb), .16); box-shadow: inset 0 0 0 1.5px var(--link); }
+.tp-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tp-count { flex: none; font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 500; color: var(--t3); letter-spacing: 0; }
+.tp-head { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 0 4px 4px 12px; font-size: var(--fs-sub); font-weight: 800; letter-spacing: -.01em; color: var(--t1); }
+.tp-add { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--link); transition: background-color .15s, color .15s; }
+.tp-add .ic { width: 14px; height: 14px; stroke-width: 2.4; }
+.tp-empty { display: block; width: 100%; padding: 6px 12px; border-radius: 10px; text-align: left; font-size: var(--fs-foot); color: var(--t3); letter-spacing: 0; }
+
+/* ---------- Inicio: el mes de un vistazo, arriba en la columna de la derecha ---------- */
+.mini-cal .cal-grid { gap: 2px; }
+.mini-cal .cal-day { min-height: 34px; }
+.mini-cal .card-head { margin-bottom: 6px; }
 
 /* ---------- Contenido ---------- */
 html[data-layout="desktop"] .screen {
@@ -178,7 +195,7 @@ html[data-layout="desktop"] .sheet.editor .sheet-foot { border-radius: 0; }
 html[data-layout="desktop"] .sheet.palette { max-width: 640px; max-height: min(70vh, 620px); }
 
 /* ---------- Avisos breves ---------- */
-html[data-layout="desktop"] .toast-root { left: var(--sidebar-w); right: 0; bottom: 24px; }
+html[data-layout="desktop"] .toast-root { left: 0; right: 0; bottom: 24px; }
 html[data-layout="desktop"] body.sheet-open .toast-root { top: auto; bottom: 24px; }
 html[data-layout="desktop"] body.sheet-open .toast { animation-name: toast-in; }
 
@@ -283,18 +300,9 @@ body.grabbing, body.grabbing * { cursor: grabbing !important; }
 .desk-solo { max-width: 780px; }
 
 /* Barra lateral: análisis y herramientas, filtros y modo compacto */
-.sb-group { display: flex; flex-direction: column; gap: 2px; }
-.sb-sec + .sb-sec { margin-top: 14px; }
-.sb-empty { display: block; width: 100%; padding: 6px 14px; border-radius: 999px; text-align: left; font-size: var(--fs-foot); color: var(--t3); letter-spacing: 0; }
-.sb-empty:hover { color: var(--t2); background: var(--fill-3); }
-.sidebar.compact .sb-item { height: 40px; font-size: var(--fs-body); }
-.sidebar.compact .sb-lists .sb-item { height: 32px; font-size: var(--fs-sub); }
-.sidebar.compact .sb-item .ic { width: 22px; height: 22px; }
-.sidebar.compact .sb-actions { margin: 10px 0 12px; }
-.sidebar.compact .sb-new { min-height: 42px; }
 
 /* ---------- Selección en el ordenador: barra flotante sobre el contenido ---------- */
-.bulkbar.desk { left: calc(50% + var(--sidebar-w) / 2); right: auto; bottom: 22px; width: max-content; max-width: calc(100vw - var(--sidebar-w) - 48px); flex-direction: row; align-items: center; gap: 14px; padding: 8px 10px; translate: -50% 0; border-radius: 16px; }
+.bulkbar.desk { left: 50%; right: auto; bottom: 22px; width: max-content; max-width: calc(100vw - 48px); flex-direction: row; align-items: center; gap: 14px; padding: 8px 10px; translate: -50% 0; border-radius: 16px; }
 .bulkbar.desk .bb-head { padding: 0; }
 .bulkbar.desk .bb-head strong { flex: none; min-width: 7.5rem; }
 .bulkbar.desk .bb-btn { flex-direction: row; min-width: 0; height: 36px; gap: 7px; padding: 0 12px; border-radius: 10px; font-size: 13px; }

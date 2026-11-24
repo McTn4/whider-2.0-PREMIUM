@@ -10,15 +10,15 @@ const b64 = f => fs.readFileSync(R + f).toString('base64');
   await p.setContent(`<!doctype html><html><head><style>
   @font-face { font-family: Inter; src: url(data:font/woff2;base64,${b64('fonts/inter-latin-opsz-normal.woff2')}) format('woff2'); font-weight: 100 900; }
   * { box-sizing: border-box; margin: 0; }
-  body { width: 1200px; height: 630px; overflow: hidden; background: #000000; color: #E7E9EA; font-family: Inter, sans-serif; position: relative; }
+  body { width: 1200px; height: 630px; overflow: hidden; background: #121316; color: #ECEDEF; font-family: Inter, sans-serif; position: relative; }
   .txt { position: absolute; left: 72px; top: 74px; width: 520px; }
-  .brand { display: flex; align-items: center; gap: 14px; font-weight: 800; letter-spacing: -.02em; font-size: 26px; color: #E7E9EA; }
+  .brand { display: flex; align-items: center; gap: 14px; font-weight: 800; letter-spacing: -.02em; font-size: 26px; color: #ECEDEF; }
   .brand svg { width: 40px; height: 40px; }
   h1 { font-family: Inter; font-weight: 800; font-size: 84px; line-height: .98; letter-spacing: -.035em; margin-top: 54px; }
-  p { margin-top: 26px; font-size: 26px; line-height: 1.35; color: #A1A5AB; }
+  p { margin-top: 26px; font-size: 26px; line-height: 1.35; color: #A9ADB4; }
   .tags { position: absolute; left: 72px; bottom: 64px; display: flex; gap: 10px; }
-  .tags span { padding: 9px 16px; border-radius: 999px; border: 1px solid #3E4144; color: #E7E9EA; font-size: 18px; font-weight: 500; }
-  .shot { position: absolute; left: 640px; top: 96px; width: 760px; border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px #3E4144; }
+  .tags span { padding: 9px 16px; border-radius: 999px; border: 1px solid #3D4048; color: #ECEDEF; font-size: 18px; font-weight: 500; }
+  .shot { position: absolute; left: 640px; top: 96px; width: 760px; border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px #3D4048; }
   .shot img { display: block; width: 100%; }
   </style></head><body>
   <div class="shot"><img src="data:image/webp;base64,${b64('sitio/img/pc-hoy.webp')}"></div>

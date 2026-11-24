@@ -1,7 +1,7 @@
 /**
  * WHIDER · Fotos de perfil
  *
- * En toda la app (barra lateral, personas, chats, equipos, bases de datos) cada persona aparece con su foto o, si no
+ * En toda la app (barra superior, personas, chats, equipos, bases de datos) cada persona aparece con su foto o, si no
  * tiene, con su inicial en un círculo. Los perfiles antiguos con personaje se ven con la inicial.
  */
 window.Whider = window.Whider || {};

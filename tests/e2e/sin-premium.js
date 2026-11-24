@@ -47,7 +47,7 @@ async function run(label, ctxOpts, desk) {
     t = await p.evaluate(() => document.querySelector('.sheet-root').innerText);
     const m = t.match(/.{0,30}(premium|desbloquear|plan gratuito).{0,30}/i);
     ok(!m, label + ': Ajustes → ' + page + (m ? ' → «' + m[0] + '»' : ''));
-    if (page === 'custom' && desk) ok(/Barra lateral/i.test(t) && /Calendario/i.test(t), label + ': «Lo que ves» completo sin pagar');
+    if (page === 'custom' && desk) ok(/Panel de Tareas/i.test(t) && /Calendario/i.test(t), label + ': «Lo que ves» completo sin pagar');
   }
   // 7 toques en la versión: ya no abren nada
   await p.evaluate(() => Whider.Sheet.closeTop()); await sleep(250);
@@ -69,8 +69,8 @@ async function run(label, ctxOpts, desk) {
     await p.evaluate(() => { const l = Whider.State.addList('Personal', 'iris', 'user'); Whider.State.ui.taskLayout = 'board'; Whider.Router.go('tasks'); Whider.Sidebar.openView({ type: 'list', id: l.id }); }); await sleep(700);
     ok(await p.evaluate(() => !!document.querySelector('#screen-tasks .board')), label + ': vista de tablero disponible');
     await p.evaluate(() => { Whider.State.ui.taskLayout = 'list'; });
-    const sb = await p.evaluate(() => document.getElementById('sidebar').innerText);
-    ok(!BAD.test(sb), label + ': barra lateral sin Premium');
+    const sb = await p.evaluate(() => document.getElementById('topbar').innerText + '\n' + (document.querySelector('#screen-tasks .tasks-pane') || {}).innerText);
+    ok(!BAD.test(sb), label + ': barra superior y panel de Tareas sin Premium');
     await p.evaluate(() => Whider.Palette.open()); await sleep(400);
     await p.keyboard.type('plan'); await sleep(300);
     const pal = await p.evaluate(() => document.body.innerText);

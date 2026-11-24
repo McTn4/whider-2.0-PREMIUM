@@ -1,7 +1,7 @@
 /**
  * WHIDER · Filtros guardados (listas personalizadas).
  * Un filtro reúne tareas de varias listas, prioridades y fechas, o que contienen un texto:
- * por ejemplo «Urgente del trabajo» o «Sin fecha». Aparecen en la barra lateral del
+ * por ejemplo «Urgente del trabajo» o «Sin fecha». Aparecen en el panel de Tareas del
  * ordenador y se abren como una página más de Tareas.
  */
 window.Whider = window.Whider || {};
@@ -111,7 +111,7 @@ window.Whider = window.Whider || {};
     });
   }
 
-  /** Menú del botón derecho (barra lateral) */
+  /** Menú del botón derecho (panel de Tareas) */
   function menu(f, at) {
     var st = S(), i = st.filters.indexOf(f);
     W.Menu.open(at, [

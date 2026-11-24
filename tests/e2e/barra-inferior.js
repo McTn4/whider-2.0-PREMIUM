@@ -1,4 +1,5 @@
-// Barra inferior del móvil: cinco pestañas fijas, una sola activa siempre y el «pulsado» solo en la pestaña tocada
+// Barra flotante del móvil: cuatro secciones con el «+» en el centro, una sola activa siempre, el «pulsado» solo en la
+// pestaña tocada y Personas arriba, junto a tu foto
 const { chromium, devices } = require('playwright');
 const path = require('path');
 const { APP, OUT: CAPTURAS } = require('./_util');
@@ -16,13 +17,24 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
     await p.evaluate(() => { Whider.Notify.check = function () {}; Whider.State.addTask({ text: 'Vencida', date: Whider.U.addDays(Whider.U.today(), -1) }); Whider.Router.refresh(); });
     const actives = () => p.evaluate(() => [...document.querySelectorAll('.dock .tab.active')].map(t => t.dataset.go).join(','));
     ok((await actives()) === 'home', name + ': al abrir, solo Hoy activa (' + await actives() + ')');
-    ok((await p.evaluate(() => [...document.querySelectorAll('.dock .tab')].map(t => t.dataset.go).join())) === 'home,tasks,calendar,notes,friends', name + ': Hoy, Tareas, Calendario, Cuaderno y Personas');
-    const seq = ['tasks', 'calendar', 'notes', 'friends', 'home', 'tasks', 'notes'];
+    ok((await p.evaluate(() => [...document.querySelector('.dock').children].map(t => t.dataset.go || t.id).join())) === 'home,tasks,fab,calendar,notes', name + ': Inicio, Tareas, «+», Calendario y Cuaderno');
+    // Flota: separada de los bordes, redondeada y con el «+» en el centro de la pantalla
+    const geo = await p.evaluate(() => {
+      const d = document.querySelector('.dock').getBoundingClientRect(), f = document.getElementById('fab').getBoundingClientRect();
+      return { left: d.left, right: innerWidth - d.right, bottom: innerHeight - d.bottom, radius: parseFloat(getComputedStyle(document.querySelector('.dock')).borderTopLeftRadius), center: Math.abs(f.left + f.width / 2 - innerWidth / 2) };
+    });
+    ok(geo.left >= 8 && geo.right >= 8 && geo.bottom >= 8 && geo.radius >= 24 && geo.center < 2, name + ': barra flotante y «+» centrado ' + JSON.stringify(geo));
+    // Personas: arriba, junto a tu foto
+    ok(await p.evaluate(() => { const b = document.querySelector('#screen-home .people-btn'); return !!b && b.offsetWidth > 0; }), name + ': Personas está arriba, junto a tu foto');
+    await p.tap('#screen-home .people-btn'); await sleep(350);
+    ok(await p.evaluate(() => Whider.State.activeScreen === 'friends'), name + ': el botón de Personas abre Personas');
+    ok((await actives()) === '', name + ': en Personas no se marca ninguna pestaña de abajo (' + await actives() + ')');
+    const seq = ['tasks', 'calendar', 'notes', 'home', 'tasks', 'notes', 'calendar'];
     let good = true;
     for (const id of seq) { await p.tap('.dock .tab[data-go="' + id + '"]'); await sleep(250); const a = await actives(); if (a !== id) { good = false; console.log('   tras ' + id + ' → ' + a); } }
     ok(good, name + ': tras 7 cambios de pestaña, siempre una sola activa');
     await p.evaluate(() => Whider.Router.go('chats')); await sleep(300);
-    ok((await actives()) === 'friends', name + ': dentro de Chats, activa solo Personas');
+    ok((await actives()) === '', name + ': dentro de Chats no se marca ninguna pestaña de abajo');
     // Pulsar y mantener: solo cambia la cápsula de la pestaña tocada
     const cdp = await ctx.newCDPSession(p);
     const bg = () => p.evaluate(() => [...document.querySelectorAll('.dock .tab')].map(t => getComputedStyle(t).opacity + '|' + getComputedStyle(t.querySelector('.tab-ic')).backgroundColor));

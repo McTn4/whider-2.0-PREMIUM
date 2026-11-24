@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>WHIDER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#121316">
   <meta name="color-scheme" content="dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -34,7 +34,7 @@
         if (ui && ui.t) html.setAttribute('data-text', ui.t);
         var light = ui && (ui.sys ? window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches : ui.th === 'light');
         html.setAttribute('data-theme', light ? 'light' : 'dark');
-        if (light) { var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', '#FFFFFF'); }
+        if (light) { var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', '#F6F7F9'); }
       } catch (e) { /* valores por defecto */ }
       html.setAttribute('data-layout', window.matchMedia && window.matchMedia('(min-width: 1000px)').matches ? 'desktop' : 'mobile');
       if (window.WhiderDesktop) html.className += ' desktop-app os-' + window.WhiderDesktop.platform;
@@ -210,8 +210,8 @@
 <div class="titlebar" id="titlebar" aria-hidden="true"></div>
 
 <div class="app" id="app">
-  <!-- Barra lateral (solo en pantallas de ordenador) -->
-  <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+  <!-- Barra superior (solo en pantallas de ordenador): logotipo, secciones, buscar, «Nueva tarea» y tu foto -->
+  <header class="topbar" id="topbar" aria-label="Navegación"></header>
 
   <main class="stage" id="stage">
     <section class="screen" id="screen-home" data-screen="home" aria-label="Inicio"></section>
@@ -222,15 +222,14 @@
     <section class="screen" id="screen-friends" data-screen="friends" aria-label="Personas"></section>
   </main>
 
-  <!-- Cinco secciones, siempre las mismas; «+» flota encima, a la derecha -->
+  <!-- Móvil: barra flotante con cuatro secciones y el «+» en el centro (Personas, arriba, junto a tu foto) -->
   <nav class="dock" aria-label="Navegación principal">
     <button class="tab" data-go="home"><span class="tab-ic"><svg class="ic off"><use href="#i-home"/></svg><svg class="ic on"><use href="#i-home-fill"/></svg><span class="tab-badge" data-badge="alerts"></span></span><span class="tab-label">Inicio</span></button>
     <button class="tab" data-go="tasks"><span class="tab-ic"><svg class="ic off"><use href="#i-tasks"/></svg><svg class="ic on"><use href="#i-tasks-fill"/></svg></span><span class="tab-label">Tareas</span></button>
+    <button class="dock-add" id="fab" type="button" aria-label="Nueva tarea"><svg class="ic"><use href="#i-plus"/></svg></button>
     <button class="tab" data-go="calendar"><span class="tab-ic"><svg class="ic off"><use href="#i-calendar"/></svg><svg class="ic on"><use href="#i-calendar-fill"/></svg></span><span class="tab-label">Calendario</span></button>
     <button class="tab" data-go="notes"><span class="tab-ic"><svg class="ic off"><use href="#i-notebook"/></svg><svg class="ic on"><use href="#i-notebook-fill"/></svg></span><span class="tab-label">Cuaderno</span></button>
-    <button class="tab" data-go="friends"><span class="tab-ic"><svg class="ic off"><use href="#i-users"/></svg><svg class="ic on"><use href="#i-users-fill"/></svg><span class="tab-badge" data-badge="social"></span></span><span class="tab-label">Personas</span></button>
   </nav>
-  <button class="fab" id="fab" aria-label="Nueva tarea"><svg class="ic"><use href="#i-plus"/></svg></button>
 </div>
 
 <div class="sheet-root" id="sheetRoot"></div>
@@ -280,7 +279,7 @@
 <script src="js/ui/install.js"></script>
 <script src="js/ui/help.js"></script>
 <script src="js/ui/calsubs.js"></script>
-<script src="js/ui/sidebar.js"></script>
+<script src="js/ui/topbar.js"></script>
 <script src="js/ui/palette.js"></script>
 <script src="js/ui/keys.js"></script>
 <script src="js/screens/home.js"></script>

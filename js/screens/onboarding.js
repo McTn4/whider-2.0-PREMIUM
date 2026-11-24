@@ -2,7 +2,7 @@
  * WHIDER · Presentación inicial (solo la primera vez): adapta la app a quien la usa.
  *  1. Bienvenida (solo sin cuentas).
  *  2. Tu perfil: nombre y foto.
- *  3. Si la vas a usar con otras personas: con eso, la pestaña Personas está o no en la barra.
+ *  3. Si la vas a usar con otras personas: con eso, la sección Personas está o no.
  *  4. Avisos: si quieres que te avise a la hora de tus tareas.
  * No crea categorías ni tareas: empiezas con la app vacía y añades lo tuyo.
  * Todo se puede cambiar después en Ajustes; «Omitir» deja la app como viene.
@@ -81,7 +81,7 @@ window.Whider = window.Whider || {};
     return b;
   }
 
-  /** Con otras personas o solo para ti: decide si la pestaña Personas está en la barra */
+  /** Con otras personas o solo para ti: decide si la sección Personas está */
   function renderPeople() {
     if (data.people == null) data.people = S().settings.peopleTab !== false;
     var opt = function (val, icon, title, sub) { return choice(data.people === val, icon, title, sub, function () { data.people = val; }); };

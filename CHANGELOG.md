@@ -10,20 +10,40 @@ Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VE
 
 ## [Sin publicar]
 
-WHIDER se usa con tu cuenta de **Google, Microsoft o Apple**, y tu foto de perfil sustituye al engranaje: al tocarla,
-tu cuenta, los ajustes y la ayuda. Además, «Hoy» pasa a llamarse **Inicio**, el calendario deja añadir tareas tocando
-directamente en él, las tareas de cada día tienen su lista en Tareas y la app empieza vacía: sin tutorial ni
-categorías de ejemplo. Y lo que era azul (o verde, en los interruptores) pasa a blanco.
+WHIDER estrena **aspecto y orden propios**: un fondo grafito en lugar del negro y, en el ordenador, una **barra
+superior** con las secciones en el centro en lugar de la barra lateral; en el móvil, una **barra flotante** con el «+»
+en el centro. Además, se usa con tu cuenta de **Google, Microsoft o Apple**, y tu foto de perfil sustituye al
+engranaje: al tocarla, tu cuenta, los ajustes y la ayuda. «Hoy» pasa a llamarse **Inicio**, el calendario deja añadir
+tareas tocando directamente en él, las tareas de cada día tienen su lista en Tareas y la app empieza vacía: sin
+tutorial ni categorías de ejemplo. Y lo que era azul (o verde, en los interruptores) pasa a blanco.
 
 ### Novedades
+
+- **Fondo grafito**: el negro puro deja paso a un gris grafito muy oscuro, con las tarjetas y los paneles un punto más
+  claros; en el tema claro, un gris muy suave con tarjetas blancas. También en la ventana del ordenador, en Android
+  (y su widget), en la pantalla de acceso y en la web.
+- **Barra superior en el ordenador**, en lugar de la barra lateral: las secciones (Inicio, Tareas, Calendario,
+  Cuaderno y Personas) en una cápsula en el centro, con la abierta resaltada y el número de tareas vencidas en
+  Inicio; a la derecha, buscar (Ctrl K), «Nueva tarea» y tu foto con tu nombre. El contenido gana todo el ancho. Con
+  la ventana más estrecha (o el texto más grande) se recoge por pasos para que nada se pise; tu nombre es de lo último
+  en irse. En la app de Windows y macOS hace además de barra de título: desde ella se mueve la ventana, con sus
+  botones a la misma altura. Arrastra una tarea a Inicio para pasarla a hoy.
+- **Tareas con su propio panel** (ordenador): a la izquierda, buscar, las vistas (Hoy, Cada día, Programadas,
+  Prioritarias y Todas), tus categorías y tus filtros guardados, con sus contadores; a la derecha, la lista, que se
+  abre en «Todas». Arrastra una tarea a una categoría para moverla (o a «Hoy»), y con el botón derecho abres, editas,
+  ordenas o quitas una categoría.
+- **El mes, en Inicio** (ordenador): a la derecha, un calendario del mes con un punto en los días con tareas (en rojo
+  si quedó algo sin hacer); toca un día para abrirlo en el Calendario. Debajo siguen los próximos días.
+- **Barra flotante en el móvil**: una isla redondeada que flota sobre el contenido, con Inicio, Tareas, Calendario y
+  Cuaderno y el «+» en el centro. Personas pasa arriba, junto a tu foto, con el número de chats y solicitudes sin ver.
 
 - **Entra con Google, Microsoft o Apple**: es lo único que hace falta para usar WHIDER (ya no hay «Continuar sin
   cuenta» ni se crean cuentas con correo y contraseña). En la web se abre la ventana de cada uno; en el ordenador y en
   Android, Microsoft y Apple se completan en el navegador y vuelves a la app ya dentro. Si usabas WHIDER sin cuenta,
   tus tareas siguen ahí y pasan a tu cuenta al entrar. Las cuentas de correo y contraseña que ya existían siguen
   entrando («¿Tu cuenta es de correo y contraseña?»), y recuperan la contraseña igual.
-- **Tu foto, en lugar del engranaje**: arriba a la derecha en el móvil y, en el ordenador, abajo en la barra lateral
-  con tu nombre (nada más). Al tocarla se abre tu cuenta: en el ordenador, un panel amplio con interruptores rápidos
+- **Tu foto, en lugar del engranaje**: arriba a la derecha; en el ordenador, en la barra superior y con tu nombre
+  (nada más). Al tocarla se abre tu cuenta: en el ordenador, un panel amplio con interruptores rápidos
   (tema oscuro, sonidos, contenido a todo el ancho), los ajustes, la ayuda, «Todos los ajustes» y «Cerrar sesión»; en
   el móvil, lo mismo en una hoja. Si hay cambios sin subir a la nube, la foto lleva un punto.
 
@@ -40,10 +60,10 @@ categorías de ejemplo. Y lo que era azul (o verde, en los interruptores) pasa a
 - **Empieza vacía**: sin la tarjeta de «Primeros pasos» ni categorías de ejemplo. Las categorías las creas tú si las
   quieres; las tareas funcionan igual sin categoría. Las de ejemplo de versiones anteriores (Personal, Trabajo, Salud
   y Estudios) se quitan solas si siguen vacías y con su nombre de siempre; las que usas no se tocan.
-- **La presentación**, más corta: tu nombre y tu foto, si la vas a usar con otras personas (si no, la pestaña
+- **La presentación**, más corta: tu nombre y tu foto, si la vas a usar con otras personas (si no, la sección
   Personas no está) y los avisos.
 - **Blanco en lugar de azul** en botones, enlaces, el «+» y lo elegido (negro en el tema claro); hoy, en el
-  calendario, lleva un aro. En el ordenador, una barra lateral más sobria.
+  calendario, lleva un aro.
 - **Interruptores blancos** (con la bola negra) en lugar de verdes; en el tema claro, negros.
 - La pantalla de acceso, más sencilla: los tres botones, la política de privacidad y nada más.
 - Deshacer una importación quita también la categoría que creó, aunque sea la única.
@@ -63,8 +83,19 @@ categorías de ejemplo. Y lo que era azul (o verde, en los interruptores) pasa a
   vuelve con `intent://auth?s=…&u=…#Intent;scheme=whider;package=com.whider.app;end` y `Auth.onBrowserLink` la acepta
   solo con el código que generó la app (un intento, 15 minutos). Fuera `Auth.register`, el medidor de contraseña y
   `allowGuest`/`allowedEmailDomains` de `js/config.js`; `Auth.providerName()`.
-- Tu cuenta: `js/ui/account.js` (`W.AccountMenu`) y `Menu.panel()`; `UI.header({ account: false })` sustituye a
-  `gear: false`. `Settings.chooseLang()` y `Settings.langName()`.
+- Tu cuenta: `js/ui/account.js` (`W.AccountMenu`, con `topButton()` para la barra superior) y `Menu.panel()`;
+  `UI.header({ account: false })` sustituye a `gear: false`. `Settings.chooseLang()` y `Settings.langName()`.
+- Estructura: `js/ui/sidebar.js` pasa a `js/ui/topbar.js` (`W.Topbar`, con `W.Sidebar` como alias para
+  `DRAG_TYPE`, `dropTarget()` y `openView()`), con `<header id="topbar">` en `index.html` y su CSS en `css/desktop.css`
+  (`.tb-*`); `Topbar.fit()` mide si algo se pisa y la recoge por pasos (`.tb-c1`…`.tb-c5`, al pintarla, al cambiar
+  el ancho y al cargar la letra). El panel de Tareas es parte de la pantalla (`pane()` en `js/screens/tasks.js`, clases `.tp-*`); sus
+  preferencias siguen en `settings.desk.sidebar` (`filters`, `counts`). Fuera la barra compacta y el carril de iconos
+  del Cuaderno. La barra del móvil tiene cuatro pestañas y el «+» (`.dock-add#fab`) dentro; Personas es
+  `.people-btn` en la cabecera (`UI.header`), con su contador en `[data-badge="social"]`.
+- Paleta grafito en `css/tokens.css` (`--bg #121316`, `--s1 #1C1E22`, `--t1 #ECEDEF`; claro `--bg #F6F7F9`); los
+  colores fijos del manifiesto, Android, el acceso del ordenador y la web, a juego. App de escritorio: la web avisa
+  del alto de su franja de título (`WhiderDesktop.setTitleBar(60 | 34)`) y `desktop/main.js` coloca ahí los botones de
+  la ventana (`setTitleBarOverlay` en Windows, `setWindowButtonPosition` en macOS).
 - Pruebas: `tests/e2e/entrar.js` (nube) y `tests/e2e/_cuentas.js`, que simula solo la ventana del proveedor (el
   emulador acepta credenciales de prueba); las de la nube entran así. `tests/unit/acceso-escritorio.test.js`.
 

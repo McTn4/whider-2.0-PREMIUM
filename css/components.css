@@ -335,7 +335,6 @@ html[data-theme="light"] input[type="date"], html[data-theme="light"] input[type
   border-radius: var(--r-sheet) var(--r-sheet) 0 0; background: var(--s2);
   transform: translate3d(0, 100%, 0); transition: transform .4s var(--ease-out); will-change: transform;
 }
-html[data-theme="light"] .sheet { --cell: var(--s1); }
 .sheet.full { height: calc(100% - var(--safe-t) - 12px); }
 .sheet-layer.open .sheet-scrim { opacity: 1; }
 .sheet-layer.open .sheet { transform: none; }
@@ -416,7 +415,7 @@ html[data-theme="light"] .sheet { --cell: var(--s1); }
 
 /* ---------- Avisos breves (toast) ---------- */
 .toast-root {
-  position: fixed; z-index: 80; left: 0; right: 0; bottom: calc(var(--dock-h) + var(--safe-b) + 84px);
+  position: fixed; z-index: 80; left: 0; right: 0; bottom: calc(var(--dock-h) + var(--dock-gap) + var(--safe-b) + 16px);
   display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 14px; pointer-events: none;
 }
 body.no-tabs .toast-root { bottom: calc(var(--safe-b) + 20px); }
@@ -505,7 +504,7 @@ kbd {
   .circle-btn:hover { background: var(--fill); color: var(--t1); }
   .btn.ghost:hover, .btn.soft:hover { background: var(--fill-3); }
   .btn.primary:hover { background: var(--accent-hover); }
-  .fab:hover { background: var(--accent-hover); }
+  .dock-add:hover { background: var(--accent-hover); }
   .link-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
   .check:not(.on):hover { background: color-mix(in srgb, var(--pc) 22%, transparent); }
   .cal-day:hover .cal-num { background: var(--fill-3); }
@@ -513,9 +512,11 @@ kbd {
   .wk-day:not(.selected):hover { background: var(--fill-3); }
   .blk:not(.proj):hover { background-color: var(--block-hover); }
   .toast-action:hover { background: rgba(127, 127, 127, .28); }
-  .sb-item:not(.active):hover, .sb-profile:not(.active):hover { background: var(--fill-3); }
-  .sb-search:hover { background: var(--fill-2); }
-  .sb-add:hover { background: var(--fill-2); color: var(--t1); }
+  .tb-item:not(.active):hover { background: var(--fill-3); color: var(--t1); }
+  .tb-search:hover { background: var(--fill-3); color: var(--t2); }
+  .tb-me:hover { background: var(--fill-3); }
+  .tp-item:not(.active):hover, .tp-empty:hover { background: var(--fill-3); }
+  .tp-add:hover { background: var(--fill-2); color: var(--t1); }
   .pal-item:hover:not(.active) { background: var(--fill-3); }
   .upc-row:hover { background: var(--fill-3); }
   .tab:not(.active):hover { color: var(--t2); }
@@ -557,7 +558,7 @@ body.select-mode .task.selected .check svg { stroke: var(--on-accent); }
 .bb-btn.main { background: var(--accent); color: var(--on-accent); }
 .bb-btn:active { transform: scale(.95); }
 .bb-btn:disabled { opacity: .35; pointer-events: none; }
-body.select-mode .dock, body.select-mode .fab { transform: translateY(160%); transition: transform .25s var(--ease); }
+body.select-mode .dock { transform: translate(-50%, 160%); transition: transform .25s var(--ease); }
 body.select-mode .screen { padding-bottom: calc(var(--safe-b) + 150px); }
 
 /* ---------- Ajustes ---------- */

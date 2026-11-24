@@ -116,6 +116,25 @@ window.Whider.Screens = window.Whider.Screens || {};
     });
     return U.el('div.side-card', [U.el('div.card-head', [U.el('strong', { text: W.t('Cuaderno') }), U.el('button.link-btn.muted', { text: W.t('Abrir'), on: { click: function () { W.Router.go('notes'); } } })]), U.el('div.hm-list', items)]);
   }
+  /** El mes de un vistazo (ordenador): los días con tareas, marcados; un clic abre ese día en el calendario */
+  function miniCal(st) {
+    var now = new Date(), y = now.getFullYear(), m = now.getMonth(), td = U.today(), prefix = y + '-' + U.pad(m + 1), byDay = {};
+    st.tasks.forEach(function (t) { if (!t.done && t.date && t.date.slice(0, 7) === prefix) byDay[t.date] = (byDay[t.date] || 0) + 1; });
+    var grid = W.UI.monthGrid({ y: y, m: m, selected: null,
+      mark: function (ds) { var n = byDay[ds]; return n ? { dots: [{ kind: ds < td ? 'late' : null }], label: U.plural(n, 'tarea', 'tareas') } : null; },
+      onPick: function (ds) {
+        var d = U.parse(ds);
+        st.ui.calSelected = ds;
+        st.ui.calMonth = { y: d.getFullYear(), m: d.getMonth() };
+        W.Router.go('calendar');
+      } });
+    return U.el('div.side-card.mini-cal', [
+      U.el('div.card-head', [U.el('strong', { text: U.cap(U.fmtMonth(y, m)) }),
+        U.el('button.link-btn.muted', { text: W.t('Calendario'), on: { click: function () { W.Router.go('calendar'); } } })]),
+      grid
+    ]);
+  }
+
   /** Lo que viene en los próximos 7 días, día a día */
   function upcoming(st) {
     var td = U.today(), days = [];
@@ -257,6 +276,7 @@ window.Whider.Screens = window.Whider.Screens || {};
       }
 
       if (desk) {
+        side.unshift(miniCal(st));
         side.push(upcoming(st));
         var m = messagesCard(); if (m) side.push(m);
         var p = pagesCard(); if (p) side.push(p);

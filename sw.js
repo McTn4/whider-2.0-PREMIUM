@@ -74,7 +74,7 @@ var ASSETS = [
   './js/ui/quickadd.js',
   './js/ui/select.js',
   './js/ui/sheet.js',
-  './js/ui/sidebar.js',
+  './js/ui/topbar.js',
   './js/ui/taskcard.js',
   './js/ui/toast.js',
   './js/ui/updates.js',

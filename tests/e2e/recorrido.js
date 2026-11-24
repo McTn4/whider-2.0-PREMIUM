@@ -53,12 +53,12 @@ async function setup(b, viewport, mobile) {
     }));
     ok('Inicio: «Cada día» con la diaria', hoy.cada.join() === 'Leer 20 minutos', hoy.cada);
     ok('Inicio: «Por hacer» por importancia (urgente, importante, destacada, normal)', hoy.todo[0] === 'Preparar la propuesta' && hoy.todo[1] === 'Llamar a Ana' && hoy.todo[2] === 'Comprar pan', hoy.todo);
-    ok('barra lateral: Inicio, Tareas, Calendario, Cuaderno y Personas', await p.evaluate(() => [...document.querySelectorAll('#sidebar .sb-nav .sb-label')].map((x) => x.textContent).join()) === 'Inicio,Tareas,Calendario,Cuaderno,Personas');
-    ok('abajo, solo tu foto (con la inicial) y tu nombre; sin engranaje', await p.evaluate(() => {
-      const f = document.querySelector('#sidebar .sb-foot');
-      return !!f.querySelector('.sb-profile .avatar') && f.querySelectorAll('button').length === 1 && !document.querySelector('use[href="#i-gear"]');
+    ok('barra superior: Inicio, Tareas, Calendario, Cuaderno y Personas', await p.evaluate(() => [...document.querySelectorAll('#topbar .tb-nav .tb-label')].map((x) => x.textContent).join()) === 'Inicio,Tareas,Calendario,Cuaderno,Personas');
+    ok('a la derecha: buscar, «Nueva tarea» y tu foto (con la inicial) con tu nombre; sin engranaje', await p.evaluate(() => {
+      const f = document.querySelector('#topbar .tb-tools');
+      return !!f.querySelector('.tb-me .avatar') && /Nueva tarea/.test(f.textContent) && f.querySelectorAll('button').length === 3 && !document.querySelector('use[href="#i-gear"]');
     }));
-    await p.click('#sidebar .sb-profile');
+    await p.click('#topbar .tb-me');
     await sleep(500);
     const pop = await p.evaluate(() => { const m = document.querySelector('.menu.acct-pop'); return m ? { w: m.offsetWidth, text: m.textContent, sw: m.querySelectorAll('.switch').length } : null; });
     ok('tu nombre abre un panel amplio con los ajustes, la ayuda e interruptores', !!pop && pop.w >= 540 && /Apariencia/.test(pop.text) && /Novedades/.test(pop.text) && pop.sw >= 2, pop && { w: pop.w, sw: pop.sw });
@@ -103,7 +103,8 @@ async function setup(b, viewport, mobile) {
     // Móvil
     const { p, errs } = await setup(b, { width: 390, height: 844 }, true);
     await sleep(400);
-    ok('barra inferior: Inicio, Tareas, Calendario, Cuaderno y Personas', (await p.evaluate(() => [...document.querySelectorAll('.dock .tab-label')].map((x) => x.textContent).join(','))) === 'Inicio,Tareas,Calendario,Cuaderno,Personas');
+    ok('barra flotante: Inicio, Tareas, «+», Calendario y Cuaderno', (await p.evaluate(() => [...document.querySelector('.dock').children].map((x) => (x.id === 'fab' ? '+' : x.querySelector('.tab-label').textContent)).join(','))) === 'Inicio,Tareas,+,Calendario,Cuaderno');
+    ok('Personas, arriba junto a tu foto', await p.evaluate(() => !!document.querySelector('#screen-home .nav-trail .people-btn + .me-btn')));
     ok('Inicio móvil: «Cada día» y «Por hacer»', await p.evaluate(() => !!document.querySelector('#screen-home .daily-sec') && document.querySelectorAll('#screen-home .todo-sec .task').length === 5));
     if (OUT) await p.screenshot({ path: OUT + '/m-home.png' });
     await p.click('.dock .tab[data-go="notes"]');
@@ -122,12 +123,12 @@ async function setup(b, viewport, mobile) {
     await p.evaluate(() => Whider.App.handleBack());
     await sleep(450);
     ok('Atrás vuelve a la portada del Cuaderno', await p.evaluate(() => Whider.State.activeScreen === 'notes' && !Whider.State.ui.page));
-    await p.click('.dock .tab[data-go="friends"]');
+    await p.click('#screen-notes .people-btn');
     await sleep(450);
     ok('Personas sin cuenta: explica qué falta', await p.evaluate(() => Whider.State.activeScreen === 'friends' && /cuenta|Cuentas/i.test(document.querySelector('#screen-friends').textContent)));
     await p.evaluate(() => Whider.Router.go('chats'));
     await sleep(400);
-    ok('Chats: la pestaña marcada es Personas', await p.evaluate(() => document.querySelector('.dock .tab[data-go="friends"]').classList.contains('active')));
+    ok('Chats: ninguna sección de abajo marcada (Personas está arriba)', await p.evaluate(() => !document.querySelector('.dock .tab.active')));
     ok('sin engranaje: tu foto, arriba a la derecha', await p.evaluate(() => !document.querySelector('use[href="#i-gear"]') && !!document.querySelector('.screen.active .nav-trail .me-btn .avatar')));
     await p.click('.screen.active .me-btn');
     await sleep(600);

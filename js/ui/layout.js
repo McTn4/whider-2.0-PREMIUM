@@ -1,7 +1,7 @@
 /**
  * WHIDER · Diseño según la pantalla.
  *  - Móvil: pestañas abajo (dock) y hojas que suben desde abajo.
- *  - Ordenador (1000 px o más): barra lateral, contenido ancho, diálogos centrados y
+ *  - Ordenador (1000 px o más): barra superior, contenido ancho, diálogos centrados y
  *    el editor en un panel a la derecha.
  * Marca <html data-layout="desktop|mobile"> y avisa cuando cambia (al redimensionar la ventana).
  */
@@ -29,6 +29,9 @@ window.Whider = window.Whider || {};
       var changed = d !== Layout.desktop;
       Layout.desktop = d;
       document.documentElement.setAttribute('data-layout', d ? 'desktop' : 'mobile');
+      // App de escritorio (Windows y macOS): con diseño de ordenador, la barra superior hace de franja de título, así que
+      // los botones de la ventana se colocan a su altura; con el diseño de móvil, en la franja fina de siempre
+      if (bridge && typeof bridge.setTitleBar === 'function') { try { bridge.setTitleBar(d ? 60 : 34); } catch (e) { /* opcional */ } }
       return changed;
     },
 

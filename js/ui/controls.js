@@ -33,6 +33,21 @@ window.Whider = window.Whider || {};
     return b;
   }
 
+  /**
+   * Personas, arriba a la derecha en el móvil (desde la 2.1 ya no está en la barra de abajo), con el número de chats
+   * sin leer y solicitudes. Solo si la usas (o si alguien te escribe) y fuera de Personas y de los chats.
+   */
+  function peopleBtn() {
+    var st = W.State, unread = W.Chat ? W.Chat.unreadCount() : 0, social = unread + (W.People ? W.People.pendingCount() : 0);
+    if (!st || st.activeScreen === 'friends' || st.activeScreen === 'chats') return null;
+    if (st.settings.peopleTab === false && !social) return null;
+    var label = social ? W.t('Personas ({n} sin ver)', { n: social }) : W.t('Personas');
+    return U.el('button.nav-icon.people-btn', { attrs: { type: 'button', 'aria-label': label, title: label }, on: { click: function () { W.Router.go('friends'); } } }, [
+      U.icon('users'),
+      U.el('span.tab-badge' + (social ? '.show' : ''), { text: social > 9 ? '9+' : social ? String(social) : '', attrs: { 'data-badge': 'social', 'aria-hidden': 'true' } })
+    ]);
+  }
+
   var UI = {
     navBtn: navBtn,
 
@@ -42,10 +57,10 @@ window.Whider = window.Whider || {};
      *  - account: tu foto de perfil (tu cuenta y los ajustes), arriba a la derecha; account: false la quita
      */
     header: function (o) {
-      // En el ordenador, tu foto y tu nombre están abajo en la barra lateral
+      // En el ordenador, tu foto, tu nombre y las secciones están en la barra superior
       var desk = W.Layout && W.Layout.desktop;
       var lead = U.el('div.nav-lead', [o.back ? navBtn({ icon: 'back', text: o.back.label, label: W.t('Volver a {label}', { label: o.back.label }), onTap: o.back.onTap, back: true }) : null]);
-      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.account === false || desk || !W.AccountMenu ? [] : [W.AccountMenu.button()]));
+      var trail = U.el('div.nav-trail', (o.actions || []).map(navBtn).concat(o.account === false || desk || !W.AccountMenu ? [] : [peopleBtn(), W.AccountMenu.button()]).filter(Boolean));
       var nav = U.el('header.nav', [lead, U.el('div.nav-title', { text: o.compact || o.title }), trail]);
       var lt = U.el('div.lt', [
         U.el('div.lt-text', [

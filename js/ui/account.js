@@ -1,7 +1,7 @@
 /**
  * WHIDER · Tu cuenta: la foto de perfil (y tu nombre, en el ordenador) es la entrada a todo lo tuyo; ya no hay
  * engranaje. Al tocarla se abre un menú con tu cuenta, unos interruptores rápidos, los ajustes, la ayuda y «Cerrar
- * sesión»: en el ordenador, un panel amplio junto a la barra lateral; en el móvil, una hoja.
+ * sesión»: en el ordenador, un panel amplio que baja desde la barra superior; en el móvil, una hoja.
  * Si hay cambios sin subir a la nube, la foto lleva un punto (y lo dice al lector de pantalla).
  */
 window.Whider = window.Whider || {};
@@ -107,12 +107,12 @@ window.Whider = window.Whider || {};
       return b;
     },
     /**
-     * La foto y el nombre, abajo en la barra lateral del ordenador. Su nombre para el lector de pantalla es el que se
-     * ve (tu nombre), más el aviso de cambios sin subir; lo demás, en su descripción (se repinta al cambiar la nube).
+     * Tu foto y tu nombre, arriba a la derecha en el ordenador. Su nombre para el lector de pantalla es el que se ve
+     * (tu nombre), más el aviso de cambios sin subir; lo demás, en su descripción (se repinta al cambiar la nube).
      */
-    sidebarButton: function () {
-      var b = U.el('button.sb-profile.me-btn', { attrs: { type: 'button', title: label(), 'aria-haspopup': 'true' } }, [
-        photo(), U.el('span.sb-who', [U.el('strong', { text: name() })]),
+    topButton: function () {
+      var b = U.el('button.tb-me.me-btn', { attrs: { type: 'button', title: label(), 'aria-haspopup': 'true' } }, [
+        photo(), U.el('span.tb-name', { text: name() }),
         unsaved() ? U.el('span.sr-only', { text: ' · ' + W.t('hay cambios sin guardar en la nube') }) : null
       ]);
       b.addEventListener('click', function () { Account.open(b); });
@@ -138,7 +138,7 @@ window.Whider = window.Whider || {};
     /** Al cambiar el estado de la nube: lo que dicen los botones de tu foto */
     refreshLabels: function () {
       U.$$('.me-btn').forEach(function (b) {
-        if (!b.classList.contains('sb-profile')) b.setAttribute('aria-label', label());
+        if (!b.classList.contains('tb-me')) b.setAttribute('aria-label', label());
         b.setAttribute('title', label());
       });
     }

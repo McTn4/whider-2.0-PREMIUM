@@ -1,7 +1,8 @@
 /* ==========================================================================
    WHIDER · Tokens de diseño
-   Sencillo y claro, a la manera de X y de Apple: fondo negro (o blanco), texto casi blanco (o casi negro),
-   líneas finas en lugar de tarjetas con sombra y un solo azul para lo que se puede tocar.
+   Sencillo y claro, con identidad propia: fondo grafito (gris muy oscuro, #121316) o, en el tema claro, un blanco
+   suave (#F6F7F9) con las tarjetas en blanco; texto casi blanco (o casi negro), líneas finas y blanco (negro en el
+   tema claro) para lo que se puede tocar.
    El único color «de verdad» es el de la importancia de cada tarea:
      urgente (rojo) · importante (naranja) · destacada (amarillo) · normal (gris).
    Una sola tipografía, Inter (variable, con tamaño óptico): los títulos grandes se dibujan solos con su
@@ -21,31 +22,31 @@
 :root {
   color-scheme: dark;
   /* «Tinta»: el color de los velos y los bordes (blanco en el tema oscuro, casi negro en el claro) */
-  --ink-rgb: 231, 233, 234;
+  --ink-rgb: 236, 237, 239;
 
   /* Fondos y superficies */
-  --bg: #000000;
-  --bg-2: #000000;
-  --s1: #16181C;            /* grupos de ajustes y bloques del lateral */
-  --s2: #1C1C1E;            /* hojas, menús y avisos */
-  --s3: #2C2C2E;            /* campos y pulsado */
+  --bg: #121316;
+  --bg-2: #121316;
+  --s1: #1C1E22;            /* grupos de ajustes y bloques del lateral */
+  --s2: #22252A;            /* hojas, menús y avisos */
+  --s3: #2A2D33;            /* campos y pulsado */
   --cell: var(--s1);
-  --cell-hl: #202327;
-  --bar: rgba(0, 0, 0, .72);
+  --cell-hl: #262930;
+  --bar: rgba(18, 19, 22, .72);
   --fill: rgba(118, 118, 128, .32);
   --fill-2: rgba(118, 118, 128, .24);
   --fill-3: rgba(118, 118, 128, .16);
-  --line: #2F3336;
-  --line-2: #3E4144;
-  --sep: #2F3336;
-  --rule: #2F3336;
-  --rule-strong: #E7E9EA;
+  --line: #2E3138;
+  --line-2: #3D4048;
+  --sep: #2E3138;
+  --rule: #2E3138;
+  --rule-strong: #ECEDEF;
 
   /* Texto */
-  --t1: #E7E9EA;
-  --t2: #A1A5AB;
-  --t3: #9298A0;   /* secundario: ≥ 4,5:1 sobre el fondo y sobre todas las superficies (también las celdas de las hojas) */
-  --t4: #3E4144;   /* solo decorativo o desactivado */
+  --t1: #ECEDEF;
+  --t2: #A9ADB4;
+  --t3: #9EA3AB;   /* secundario: ≥ 4,5:1 sobre el fondo y sobre todas las superficies (también las celdas de las hojas) */
+  --t4: #3D4048;   /* solo decorativo o desactivado */
 
   /* Lo que se toca: blanco sobre negro (botones en relleno blanco con texto negro; enlaces en blanco) */
   --accent: #FFFFFF;
@@ -57,16 +58,16 @@
   --accent-press: #C8C8C8;
   --on-accent-rgb: 0, 0, 0;
   --on-color: #FFFFFF;      /* texto e iconos sobre un color (botones rojos, cuadrados de los ajustes…) */
-  --on-imp-3: #1C1C1E;      /* la marca sobre el amarillo de «destacada» */
-  --tile: #5C6064;          /* cuadrado de los iconos de los ajustes */
-  --chev-c: #3E4144;        /* flecha de las filas que abren algo */
-  --grip: #3E4144;          /* asa de las hojas */
+  --on-imp-3: #22252A;      /* la marca sobre el amarillo de «destacada» */
+  --tile: #5D616A;          /* cuadrado de los iconos de los ajustes */
+  --chev-c: #3D4048;        /* flecha de las filas que abren algo */
+  --grip: #3D4048;          /* asa de las hojas */
 
   /* Importancia de las tareas (también escrita: nunca va solo el color) */
   --imp-1: #FF6961;   /* urgente */
   --imp-2: #FF9F0A;   /* importante */
   --imp-3: #FFD60A;   /* destacada */
-  --imp-0: #71767B;   /* normal: el círculo de siempre */
+  --imp-0: #7A7F87;   /* normal: el círculo de siempre */
   --ok: #30D158;      /* interruptores encendidos */
 
   /* Nombres de versiones anteriores (las reglas que aún los usan) */
@@ -79,8 +80,8 @@
   --indigo: var(--link);
   --purple: #BF5AF2;
   --pink: #FF6482;
-  --gray: #8B9096;
-  --gray-2: #5C6064;
+  --gray: #8E939B;
+  --gray-2: #5D616A;
   --danger: var(--imp-1);  --danger-rgb: 255, 105, 97;
   --warn: var(--imp-2);    --warn-rgb: 255, 159, 10;
   --success: var(--ok);    --success-rgb: 48, 209, 88;
@@ -105,51 +106,51 @@
   /* Sombras: solo para lo que flota (menús, hojas, avisos y el botón «+») */
   --sh-card: none;
   --sh-float: 0 4px 14px rgba(0, 0, 0, .55);
-  --sh-pop: 0 0 0 .5px rgba(255, 255, 255, .14), 0 12px 32px rgba(0, 0, 0, .7);
+  --sh-pop: 0 0 0 .5px rgba(255, 255, 255, .12), 0 12px 32px rgba(0, 0, 0, .6);
   --glow: none;
   --glow-soft: none;
 
   /* Componentes con su propio gris */
-  --pop-bg: #1C1C1E;              /* menús contextuales y avisos */
-  --dock-bg: rgba(0, 0, 0, .92);  /* barra inferior del móvil (casi opaca: se lee aunque no haya desenfoque) */
-  --seg-thumb: #636366;           /* opción elegida de los controles segmentados */
-  --chip-bg: #1C1C1E;             /* chips del calendario mensual */
-  --block-bg: #1C1C1E;            /* bloques de la agenda por horas */
-  --block-hover: #26262A;
-  --hover-bg: #16181C;            /* filas y opciones al pasar el ratón */
-  --active-bg: #2C2C2E;           /* opción elegida con el teclado (paleta de órdenes) */
-  --sheet-cell: #2C2C2E;          /* celdas, pulsado y campos dentro de las hojas */
-  --sheet-cell-hl: #3A3A3C;
-  --sheet-s3: #3A3A3C;
-  --avatar-from: #3A3A3C;         /* avatar con iniciales (un solo gris) */
-  --avatar-to: #3A3A3C;
+  --pop-bg: #22252A;              /* menús contextuales y avisos */
+  --dock-bg: rgba(28, 30, 34, .94);  /* barra flotante del móvil (casi opaca: se lee aunque no haya desenfoque) */
+  --seg-thumb: #5E626A;           /* opción elegida de los controles segmentados */
+  --chip-bg: #22252A;             /* chips del calendario mensual */
+  --block-bg: #22252A;            /* bloques de la agenda por horas */
+  --block-hover: #2A2D33;
+  --hover-bg: #1A1C20;            /* filas y opciones al pasar el ratón */
+  --active-bg: #2A2D33;           /* opción elegida con el teclado (paleta de órdenes) */
+  --sheet-cell: #2A2D33;          /* celdas, pulsado y campos dentro de las hojas */
+  --sheet-cell-hl: #353840;
+  --sheet-s3: #353840;
+  --avatar-from: #3A3D44;         /* avatar con iniciales (un solo gris) */
+  --avatar-to: #3A3D44;
   --knob-on: #FFFFFF;             /* bola del interruptor encendido */
   --swipe-strong: #1570EF;        /* al deslizar una tarea: completar… */
   --swipe-soft: #FF453A;          /* …y eliminar */
-  --inv-bg: #E7E9EA;              /* superficies invertidas: tus mensajes */
-  --inv-t1: #0F1419;
-  --inv-t2: #3C4650;
-  --inv-t3: #536471;
+  --inv-bg: #ECEDEF;              /* superficies invertidas: tus mensajes */
+  --inv-t1: #14161A;
+  --inv-t2: #3D424A;
+  --inv-t3: #585E68;
   --heat-1: #0E3A6E;
   --heat-2: #155BB0;
   --heat-3: #2E86F5;
-  --code-bg: #16181C;             /* bloques de código del Cuaderno */
-  --code-t: #E7E9EA;
-  --tag-t1: #D0D3D6;              /* etiquetas de las bases de datos */
-  --tag-t2: #E7E9EA;
-  --scrim: rgba(91, 112, 131, .4);   /* velo detrás de hojas y avisos (como en X) */
+  --code-bg: #1C1E22;             /* bloques de código del Cuaderno */
+  --code-t: #ECEDEF;
+  --tag-t1: #D2D5DA;              /* etiquetas de las bases de datos */
+  --tag-t2: #ECEDEF;
+  --scrim: rgba(6, 7, 9, .55);   /* velo detrás de hojas y avisos */
   --scrim-soft: rgba(0, 0, 0, .35);
-  --glass-rgb: 0, 0, 0;           /* barras translúcidas sobre el contenido */
-  --float-bar: rgba(28, 28, 30, .96);   /* barra de acciones con varias tareas elegidas */
-  --kb-bar: rgba(28, 28, 30, .96);      /* barra sobre el teclado (Cuaderno) */
-  --scroll-thumb: #3E4144;
-  --scroll-thumb-hover: #5C6064;
+  --glass-rgb: 18, 19, 22;           /* barras translúcidas sobre el contenido */
+  --float-bar: rgba(34, 37, 42, .96);   /* barra de acciones con varias tareas elegidas */
+  --kb-bar: rgba(34, 37, 42, .96);      /* barra sobre el teclado (Cuaderno) */
+  --scroll-thumb: #3D4048;
+  --scroll-thumb-hover: #5D616A;
   --logo-glow: none;
   --mark-glow: none;
-  --avf-0: #E7E9EA;
-  --avf-1: #C4C7CA;
-  --avf-2: #8B9096;
-  --avf-dot: #16181C;
+  --avf-0: #ECEDEF;
+  --avf-1: #C6C9CE;
+  --avf-2: #8E939B;
+  --avf-dot: #1C1E22;
 
   /* Tipografía: Inter para todo */
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -177,8 +178,8 @@
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
   --nav-h: 48px;
-  --dock-h: 52px;
-  --dock-gap: 0px;
+  --dock-h: 64px;     /* barra flotante del móvil */
+  --dock-gap: 12px;   /* su separación del borde de abajo */
   --content-max: 640px;
 }
 
@@ -207,38 +208,38 @@ html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-
 }
 
 /* ==========================================================================
-   Tema claro (Ajustes → Apariencia → Tema): fondo blanco, tinta casi negra y el mismo azul, algo más oscuro.
+   Tema claro (Ajustes → Apariencia → Tema): fondo blanco suave, tarjetas blancas y tinta casi negra.
    Contraste comprobado (WCAG AA): secundario ≥ 5,4:1 y la importancia escrita ≥ 4,7:1 en todas las superficies.
    ========================================================================== */
 :root[data-theme='light'] {
   color-scheme: light;
-  --ink-rgb: 15, 20, 25;
-  --bg: #FFFFFF;
-  --bg-2: #FFFFFF;
-  --s1: #F3F4F6;
+  --ink-rgb: 20, 22, 26;
+  --bg: #F6F7F9;
+  --bg-2: #F6F7F9;
+  --s1: #FFFFFF;
   --s2: #FFFFFF;
-  --s3: #E9EAEC;
-  --cell-hl: #EAEBED;
-  --bar: rgba(255, 255, 255, .8);
+  --s3: #ECEEF1;
+  --cell-hl: #ECEEF1;
+  --bar: rgba(246, 247, 249, .82);
   --fill: rgba(118, 118, 128, .2);
   --fill-2: rgba(118, 118, 128, .12);
   --fill-3: rgba(118, 118, 128, .08);
-  --line: #E4E7E9;
-  --line-2: #CFD9DE;
-  --sep: #E4E7E9;
-  --rule: #E4E7E9;
-  --rule-strong: #0F1419;
-  --t1: #0F1419;
-  --t2: #3C4650;
-  --t3: #536471;
-  --t4: #CFD9DE;
+  --line: #E3E5E9;
+  --line-2: #CDD2D9;
+  --sep: #E3E5E9;
+  --rule: #E3E5E9;
+  --rule-strong: #14161A;
+  --t1: #14161A;
+  --t2: #3D424A;
+  --t3: #585E68;
+  --t4: #CDD2D9;
   /* En el tema claro, lo mismo al revés: negro sobre blanco */
-  --accent: #0F1419;
-  --accent-rgb: 15, 20, 25;
-  --accent-2: #0F1419;
-  --link: #0F1419;
+  --accent: #14161A;
+  --accent-rgb: 20, 22, 26;
+  --accent-2: #14161A;
+  --link: #14161A;
   --on-accent: #FFFFFF;
-  --accent-hover: #272C30;
+  --accent-hover: #2A2D33;
   --accent-press: #000000;
   --on-accent-rgb: 255, 255, 255;
   --on-color: #FFFFFF;
@@ -249,55 +250,55 @@ html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-
   --imp-1: #D70015;
   --imp-2: #C93400;
   --imp-3: #8F5F00;
-  --imp-0: #8B98A5;
+  --imp-0: #768190;
   --ok: #34C759;
   --teal: #0071A4;
   --purple: #8944AB;
   --pink: #C7254E;
-  --gray: #536471;
-  --gray-2: #8B98A5;
+  --gray: #585E68;
+  --gray-2: #8A929C;
   --danger-rgb: 215, 0, 21;
   --warn-rgb: 201, 52, 0;
   --success-rgb: 52, 199, 89;
-  --sh-float: 0 4px 14px rgba(15, 20, 25, .18);
-  --sh-pop: 0 0 0 .5px rgba(15, 20, 25, .1), 0 12px 32px rgba(15, 20, 25, .16);
+  --sh-float: 0 4px 14px rgba(20, 22, 26, .16);
+  --sh-pop: 0 0 0 .5px rgba(20, 22, 26, .08), 0 12px 32px rgba(20, 22, 26, .14);
 
   --pop-bg: #FFFFFF;
   --dock-bg: rgba(255, 255, 255, .94);
   --seg-thumb: #FFFFFF;
-  --chip-bg: #F3F4F6;
-  --block-bg: #F3F4F6;
-  --block-hover: #EAEBED;
-  --hover-bg: #F7F7F8;
-  --active-bg: #EAEBED;
+  --chip-bg: #EDEFF2;
+  --block-bg: #EDEFF2;
+  --block-hover: #E4E7EB;
+  --hover-bg: #EEF0F3;
+  --active-bg: #E6E9ED;
   --sheet-cell: #F3F4F6;
   --sheet-cell-hl: #E9EAEC;
   --sheet-s3: #E9EAEC;
-  --avatar-from: #CFD9DE;
-  --avatar-to: #CFD9DE;
+  --avatar-from: #D5DAE0;
+  --avatar-to: #D5DAE0;
   --knob-on: #FFFFFF;
   --swipe-strong: #005FC8;
   --swipe-soft: #D70015;
-  --inv-bg: #0F1419;
+  --inv-bg: #14161A;
   --inv-t1: #FFFFFF;
-  --inv-t2: #D0D3D6;
-  --inv-t3: #A1A5AB;
+  --inv-t2: #D2D5DA;
+  --inv-t3: #A9ADB4;
   --heat-1: #CFE3FB;
   --heat-2: #7DB3F2;
   --heat-3: #2E86F5;
-  --code-bg: #F3F4F6;
-  --code-t: #0F1419;
-  --tag-t1: #3C4650;
-  --tag-t2: #0F1419;
+  --code-bg: #EDEFF2;
+  --code-t: #14161A;
+  --tag-t1: #3D424A;
+  --tag-t2: #14161A;
   --scrim: rgba(0, 0, 0, .4);
   --scrim-soft: rgba(0, 0, 0, .18);
-  --glass-rgb: 255, 255, 255;
+  --glass-rgb: 246, 247, 249;
   --float-bar: rgba(255, 255, 255, .97);
   --kb-bar: rgba(255, 255, 255, .96);
-  --scroll-thumb: #CFD9DE;
-  --scroll-thumb-hover: #AAB8C2;
-  --avf-0: #0F1419;
-  --avf-1: #3C4650;
-  --avf-2: #8B98A5;
+  --scroll-thumb: #CDD2D9;
+  --scroll-thumb-hover: #A9B0BA;
+  --avf-0: #14161A;
+  --avf-1: #3D424A;
+  --avf-2: #8A929C;
   --avf-dot: #FFFFFF;
 }

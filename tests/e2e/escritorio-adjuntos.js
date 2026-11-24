@@ -1,5 +1,5 @@
 // App de escritorio 8.0: adjuntos del Cuaderno con el puente nativo (abrir con la app del sistema,
-// guardar donde se elija, no abrir programas) y la barra lateral en iconos dentro del Cuaderno
+// guardar donde se elija, no abrir programas) y el Cuaderno a todo el ancho, bajo la barra superior
 const { _electron: electron } = require('playwright');
 const { FX, OUT, DESK, fixtures } = require('./_util');
 const fs = require('fs'), os = require('os'), path = require('path');
@@ -21,8 +21,8 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   const id = await win.evaluate(() => { const P = Whider.Pages; const m = P.create({ title: 'Contrato', blocks: [P.block('p', 'Adjuntos:'), P.block('p', '')] }); Whider.Notes.openPage(m.id); return m.id; });
   await sleep(1200);
   ok(await win.evaluate(() => !!window.WhiderDesktop && typeof window.WhiderDesktop.openFile === 'function' && typeof window.WhiderDesktop.saveBinary === 'function'), 'el puente de escritorio ofrece abrir y guardar archivos');
-  const rail = await win.evaluate(() => ({ w: Math.round(document.getElementById('sidebar').getBoundingClientRect().width), labels: [...document.querySelectorAll('#sidebar .sb-label')].filter(e => e.offsetParent).length }));
-  ok(rail.w <= 80 && rail.labels === 0, 'en el Cuaderno la barra lateral se queda en iconos (' + rail.w + ' px)');
+  const top = await win.evaluate(() => ({ h: Math.round(document.getElementById('topbar').getBoundingClientRect().height), left: Math.round(document.getElementById('screen-notes').getBoundingClientRect().left) }));
+  ok(top.h > 0 && top.h <= 64 && top.left === 0, 'el Cuaderno usa todo el ancho, bajo la barra superior (' + top.h + ' px)');
   await win.click('#screen-notes .bk-text >> nth=0');
   const [fc] = await Promise.all([win.waitForEvent('filechooser'), win.click('.pg-addons button:has-text("Adjuntar")')]);
   await fc.setFiles([path.join(FX, 'Factura marzo.pdf'), path.join(FX, 'instalar.bat')]); await sleep(1500);

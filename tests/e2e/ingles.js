@@ -67,9 +67,9 @@ async function abrir(b, movil) {
   });
   return p;
 }
-/** Texto visible de una pantalla (y de la barra lateral o inferior) más sus etiquetas de accesibilidad */
+/** Texto visible de una pantalla (y de la barra superior o la de abajo) más sus etiquetas de accesibilidad */
 const leer = (p, scr) => p.evaluate((s) => {
-  const zonas = [document.getElementById('screen-' + s), document.getElementById('sidebar'), document.querySelector('.dock')].filter(Boolean);
+  const zonas = [document.getElementById('screen-' + s), document.getElementById('topbar'), document.querySelector('.dock')].filter(Boolean);
   const out = [];
   for (const z of zonas) {
     if (z.offsetParent === null && z !== document.getElementById('screen-' + s)) continue;
@@ -153,7 +153,7 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
       await sleep(500);
     }
     // Tu cuenta (la foto de perfil): el menú con lo rápido, los ajustes y la ayuda
-    await p.evaluate(() => Whider.AccountMenu.open(document.querySelector('.screen.active .me-btn') || document.querySelector('#sidebar .sb-profile')));
+    await p.evaluate(() => Whider.AccountMenu.open(document.querySelector('.screen.active .me-btn') || document.querySelector('#topbar .tb-me')));
     await sleep(600);
     const cuenta = await leerHojas(p, '.acct-pop, .acct-sheet');
     const restosCuenta = cuenta.filter((l) => ESPANOL.test(l));
@@ -197,9 +197,9 @@ const leerHojas = (p, sel) => p.evaluate((selector) => {
     };
     ok(await p.evaluate(() => Whider.I18n.lang === 'es' && /Idioma/.test(document.body.innerText) === false), 'por defecto, en español');
     await elegir('Idioma', 'English');
-    ok(await p.evaluate(() => Whider.I18n.lang === 'en' && document.documentElement.lang === 'en' && /Home/.test(document.getElementById('sidebar').innerText)), 'Ajustes → Idioma → English: la app pasa a inglés');
+    ok(await p.evaluate(() => Whider.I18n.lang === 'en' && document.documentElement.lang === 'en' && /Home/.test(document.getElementById('topbar').innerText)), 'Ajustes → Idioma → English: la app pasa a inglés');
     await elegir('Language', 'Español');
-    ok(await p.evaluate(() => Whider.I18n.lang === 'es' && /Inicio/.test(document.getElementById('sidebar').innerText)), 'Settings → Language → Español: vuelve a español');
+    ok(await p.evaluate(() => Whider.I18n.lang === 'es' && /Inicio/.test(document.getElementById('topbar').innerText)), 'Settings → Language → Español: vuelve a español');
     ok(!errs.length, 'cambio de idioma sin errores', errs);
     await ctx.close();
   }

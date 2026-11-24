@@ -4,6 +4,8 @@
  *  - Mis categorías (las que crees: al empezar no hay ninguna), cada una con su icono
  *  - Filtros guardados (varias categorías, prioridades, fechas o un texto)
  * Cada una abre su propia página; la búsqueda filtra todas las tareas.
+ * En el ordenador, a la izquierda un panel con las vistas, tus categorías y tus filtros (se pueden soltar tareas en
+ * ellos), y a su lado la vista elegida («Todas», si no has elegido ninguna).
  */
 window.Whider = window.Whider || {};
 window.Whider.Screens = window.Whider.Screens || {};
@@ -26,6 +28,8 @@ window.Whider.Screens = window.Whider.Screens || {};
     { value: 'alpha', label: W.t('Título') }
   ];
   var showDone = {}, homeScroll = 0, rootEl = null;
+  /** La vista de Tareas en el ordenador cuando no has elegido otra */
+  var DEFAULT_VIEW = { type: 'smart', id: 'all' };
 
   /* ---------- Consejos que se muestran una sola vez ---------- */
   W.Tips = {
@@ -245,7 +249,7 @@ window.Whider.Screens = window.Whider.Screens || {};
     var st = S(), key = v.type + ':' + v.id;
     var list = v.type === 'list' ? st.getList(v.id) : null;
     var flt = v.type === 'filter' ? st.getFilter(v.id) : null;
-    if ((v.type === 'list' && !list) || (v.type === 'filter' && !flt)) { st.ui.taskView = null; return home(root); }
+    if ((v.type === 'list' && !list) || (v.type === 'filter' && !flt)) { st.ui.taskView = null; return W.Layout.desktop ? detail(root, DEFAULT_VIEW) : home(root); }
     var title = viewTitle(st, v);
     var b = buildGroups(st, v);
     var preset = list ? { listId: list.id } : v.id === 'flagged' ? { highlight: 'star' } : v.id === 'daily' ? { date: U.today(), repeat: 'daily' } : flt ? {} : { date: U.today() };
@@ -290,9 +294,10 @@ window.Whider.Screens = window.Whider.Screens || {};
       });
     };
 
+    // En el ordenador no hace falta volver: el panel de la izquierda está siempre a la vista
     var head = W.UI.header({
       title: title,
-      back: { label: W.t('Tareas'), onTap: function () { Screen.back(); } },
+      back: W.Layout.desktop ? null : { label: W.t('Tareas'), onTap: function () { Screen.back(); } },
       actions: [{ icon: 'dots', label: W.t('Más opciones'), onTap: more }], account: false,
       sub: flt ? W.Filters.describe(flt) : b.groups.length || b.done.length ? U.plural(b.groups.reduce(function (a, g) { return a + g.items.length; }, 0), 'pendiente', 'pendientes') + (b.done.length ? ' · ' + U.plural(b.done.length, 'completada', 'completadas') : '') : null
     });
@@ -400,11 +405,113 @@ window.Whider.Screens = window.Whider.Screens || {};
     if (focused) { input.focus(); var v = input.value; input.value = ''; input.value = v; }
   }
 
+  /* ---------- Ordenador: el panel de la izquierda ---------- */
+  function paneItem(o) {
+    var b = U.el('button.tp-item' + (o.on ? '.active' : ''), {
+      attrs: { type: 'button', title: o.title || o.label, 'aria-current': o.on ? 'page' : null },
+      on: { click: o.onTap, contextmenu: o.menu || null }
+    }, [U.icon(o.icon), U.el('span.tp-label', { text: o.label }), o.count ? U.el('span.tp-count', { text: o.count > 99 ? '99+' : String(o.count) }) : null]);
+    if (o.list) paint(b, o.list);
+    if (o.drop) W.Sidebar.dropTarget(b, o.drop);
+    return b;
+  }
+  function paneHead(label, addLabel, onAdd) {
+    return U.el('div.tp-head', [U.el('span', { text: label }),
+      U.el('button.tp-add', { attrs: { type: 'button', 'aria-label': addLabel, title: addLabel }, on: { click: onAdd } }, [U.icon('plus', 'xs')])]);
+  }
+  /** Las vistas automáticas, tus categorías y tus filtros (los contadores y los filtros, en Ajustes → Lo que ves) */
+  function pane(st) {
+    var v = st.ui.taskView || DEFAULT_VIEW, q = (st.ui.query || '').trim(), td = U.today();
+    var prefs = (st.settings.desk && st.settings.desk.sidebar) || {};
+    var counts = prefs.counts !== false;
+    var on = function (type, id) { return !q && v.type === type && v.id === id; };
+    var go = function (view) { return function () { st.ui.query = ''; Screen.open(view); }; };
+
+    var input = U.el('input.input', { attrs: { type: 'search', placeholder: W.t('Buscar'), 'aria-label': W.t('Buscar tareas'), enterkeyhint: 'search', autocomplete: 'off' } });
+    input.value = st.ui.query || '';
+    var search = U.el('div.search.tp-search' + (input.value ? '.has-value' : ''), [U.icon('search'), input,
+      U.el('button.clear', { attrs: { type: 'button', 'aria-label': W.t('Borrar búsqueda') }, on: { click: function () { st.ui.query = ''; Screen.render(rootEl); } } }, [U.icon('close')])]);
+    // Al escribir solo cambia la lista de la derecha: el campo no se vuelve a crear (así no se pierden los acentos que
+    // se escriben en dos pulsaciones). Al empezar o terminar de buscar se repinta todo, porque cambia lo marcado.
+    var composing = false;
+    var update = U.debounce(function () {
+      if (composing) return;
+      var was = !!(st.ui.query || '').trim(), now = !!input.value.trim();
+      st.ui.query = input.value;
+      var main = rootEl && rootEl.querySelector('.tasks-main');
+      if (was !== now || !main) { Screen.render(rootEl); return; }
+      search.classList.toggle('has-value', !!input.value);
+      U.clear(main);
+      if (now) searchView(main); else detail(main, st.ui.taskView || DEFAULT_VIEW);
+    }, 140);
+    input.addEventListener('compositionstart', function () { composing = true; });
+    input.addEventListener('compositionend', function () { composing = false; update(); });
+    input.addEventListener('input', update);
+
+    var kids = [search];
+    Object.keys(SMART).forEach(function (id) {
+      kids.push(paneItem({ label: SMART[id].title, icon: SMART[id].icon, count: counts ? smartCount(st, id) : 0, on: on('smart', id), onTap: go({ type: 'smart', id: id }),
+        drop: id === 'today' ? function (tid) {
+          var t = st.find(tid); if (!t) return;
+          st.updateTask(tid, { date: td });
+          W.Toast.show({ text: W.t('«{text}» pasa a hoy', { text: t.text }), icon: 'sun' });
+        } : null }));
+    });
+
+    kids.push(paneHead(W.t('Categorías'), W.t('Nueva categoría'), function () { editList(null, function (l) { Screen.open({ type: 'list', id: l.id }); }); }));
+    if (!st.lists.length) kids.push(U.el('button.tp-empty', { text: W.t('Crea una categoría para ordenar tus tareas'), attrs: { type: 'button' },
+      on: { click: function () { editList(null, function (l) { Screen.open({ type: 'list', id: l.id }); }); } } }));
+    st.lists.forEach(function (l, i) {
+      var n = st.tasks.filter(function (t) { return t.listId === l.id && !t.done; }).length;
+      kids.push(paneItem({ label: l.name, icon: listIcon(l), list: l, count: counts ? n : 0, on: on('list', l.id), onTap: go({ type: 'list', id: l.id }),
+        menu: function (e) {
+          e.preventDefault();
+          W.Menu.open({ x: e.clientX, y: e.clientY }, [
+            { value: 'open', label: W.t('Abrir'), icon: listIcon(l) },
+            { value: 'edit', label: W.t('Editar…'), icon: 'edit' },
+            { value: 'up', label: W.t('Subir'), icon: 'up', gap: true, disabled: i === 0 },
+            { value: 'down', label: W.t('Bajar'), icon: 'down', disabled: i === st.lists.length - 1 },
+            { value: 'remove', label: W.t('Eliminar la categoría'), icon: 'trash', destructive: true, gap: true }
+          ]).then(function (a) {
+            if (a === 'open') Screen.open({ type: 'list', id: l.id });
+            else if (a === 'edit') editList(l);
+            else if (a === 'up') st.moveList(l.id, -1);
+            else if (a === 'down') st.moveList(l.id, 1);
+            else if (a === 'remove') removeList(l, function () { if (on('list', l.id)) Screen.back(); });
+          });
+        },
+        drop: function (tid) {
+          var t = st.find(tid); if (!t || t.listId === l.id) return;
+          st.updateTask(tid, { listId: l.id });
+          W.Toast.show({ text: W.t('«{text}» movida a {name}', { text: t.text, name: l.name }), icon: 'list' });
+        } }));
+    });
+
+    if (prefs.filters !== false && W.Filters) {
+      var newFilter = function () { W.Filters.edit(null, function (f) { Screen.open({ type: 'filter', id: f.id }); }); };
+      kids.push(paneHead(W.t('Filtros'), W.t('Nuevo filtro'), newFilter));
+      if (!st.filters.length) kids.push(U.el('button.tp-empty', { text: W.t('Guarda una búsqueda como filtro'), attrs: { type: 'button' }, on: { click: newFilter } }));
+      st.filters.forEach(function (f) {
+        kids.push(paneItem({ label: f.name, title: f.name + ' · ' + W.Filters.describe(f), icon: 'filter', count: counts ? st.filterTasks(f).length : 0, on: on('filter', f.id),
+          onTap: go({ type: 'filter', id: f.id }), menu: function (e) { e.preventDefault(); W.Filters.menu(f, { x: e.clientX, y: e.clientY }); } }));
+      });
+    }
+    return U.el('aside.tasks-pane', { attrs: { 'aria-label': W.t('Vistas, categorías y filtros') } }, kids);
+  }
+  /** Ordenador: lo que coincide con la búsqueda del panel */
+  function searchView(root) {
+    var q = (S().ui.query || '').trim();
+    var host = U.el('div');
+    results(host);
+    W.UI.mount(root, W.UI.header({ title: W.t('Buscar'), sub: '«' + q + '»' }), [host]);
+  }
+
   var Screen = {
     title: W.t('Tareas'),
     open: function (v) {
       homeScroll = rootEl ? rootEl.scrollTop : 0;
       S().ui.taskView = v;
+      if (W.Layout.desktop) S().ui.query = '';
       W.Router.animate('push');
       if (rootEl) { Screen.render(rootEl); rootEl.scrollTop = 0; }
     },
@@ -419,8 +526,17 @@ window.Whider.Screens = window.Whider.Screens || {};
     reset: function () { return Screen.back(); },
     render: function (root) {
       rootEl = root;
-      var v = S().ui.taskView;
-      if (v) detail(root, v); else home(root);
+      var st = S(), v = st.ui.taskView, desk = !!W.Layout.desktop;
+      root.classList.toggle('split', desk);
+      if (!desk) { if (v) detail(root, v); else home(root); return; }
+      // Ordenador: el panel y, a su lado, la búsqueda o la vista elegida (sin perder lo que estás escribiendo)
+      var typing = document.activeElement && root.contains(document.activeElement) && document.activeElement.type === 'search';
+      U.clear(root);
+      var side = pane(st), main = U.el('div.tasks-main');
+      root.appendChild(side);
+      root.appendChild(main);
+      if ((st.ui.query || '').trim()) searchView(main); else detail(main, v || DEFAULT_VIEW);
+      if (typing) { var inp = side.querySelector('input[type=search]'); if (inp) { var val = inp.value; inp.focus(); inp.value = ''; inp.value = val; } }
     }
   };
   W.Screens.tasks = Screen;

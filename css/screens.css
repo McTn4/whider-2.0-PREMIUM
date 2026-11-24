@@ -98,10 +98,9 @@
 .tint-opt.none i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--t3); }
 .tint-opt.active { box-shadow: inset 0 0 0 1.5px var(--link); color: var(--t1); background: var(--fill-3); }
 .tint-opt:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
-/* Icono de una categoría con color (lista de categorías y barra lateral) */
+/* Icono de una categoría con color (en el panel de Tareas del ordenador, desktop.css) */
 .cell.tinted .cell-icon { background: var(--tint); }
 .cell.tinted .cell-icon .ic { color: var(--on-color); }
-.sb-item.tinted > .ic { color: var(--tint); }
 
 .done-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 2px; font-size: var(--fs-sub); font-weight: 600; color: var(--t3); letter-spacing: 0; }
 .done-toggle .ic { width: .8rem; height: .8rem; stroke-width: 2.6; }

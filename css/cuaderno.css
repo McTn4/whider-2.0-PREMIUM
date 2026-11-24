@@ -24,7 +24,7 @@
 .pt-h-add .ic { width: 15px; height: 15px; }
 .pt-item { position: relative; display: flex; align-items: center; min-height: 32px; border-radius: 9px; padding-left: calc(var(--d, 0) * 16px + 2px); }
 .pt-item:hover { background: var(--fill-3); }
-/* Índice de páginas: cada nivel cuelga de una guía fina; la página abierta, marcada como en la barra lateral */
+/* Índice de páginas: cada nivel cuelga de una guía fina; la página abierta, marcada como en el panel de Tareas */
 .pt-item::after { content: ''; position: absolute; left: calc(var(--d, 0) * 16px - 3px); top: 0; bottom: 0; width: 1px; background: var(--line-2); opacity: calc(var(--d, 0)); pointer-events: none; }
 .pt-item.active { background: var(--fill-2); box-shadow: inset 2px 0 0 var(--rule-strong); }
 .pt-item.active .pt-t { color: var(--t1); font-weight: 600; }

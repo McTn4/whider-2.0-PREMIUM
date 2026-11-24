@@ -20,7 +20,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   ok(v === PKG.version, 'versión de la app de escritorio (la de package.json): ' + v);
   const info = await win.evaluate(async () => {
     await document.fonts.ready;
-    const el = document.querySelector('.btn, .sb-new'), cs = getComputedStyle(el), h1 = document.querySelector('.screen.active .lt h1') || document.querySelector('.lt h1');
+    const el = document.querySelector('.btn, .tb-new'), cs = getComputedStyle(el), h1 = document.querySelector('.screen.active .lt h1') || document.querySelector('.lt h1');
     return { font: document.fonts.check('16px Inter'), display: [...document.fonts].some(f => f.family.replace(/"/g, '') === 'Inter' && f.status === 'loaded'), family: getComputedStyle(document.body).fontFamily, h1: h1 ? getComputedStyle(h1).fontFamily : '', radius: cs.borderTopLeftRadius, cs: cs.getPropertyValue('corner-shape') || '', plan: typeof Whider.Plan };
   });
   ok(info.font && /Inter/.test(info.family), 'tipografía Inter cargada (' + info.family.split(',')[0] + ')');
@@ -37,7 +37,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   ok(puente.fns && puente.otro && puente.otro.ok === false && puente.otro.detail === 'provider', 'el puente para entrar con Microsoft y Apple en el navegador ' + JSON.stringify(puente.otro));
   // Sin engranaje: tu foto y tu nombre abren el panel de tu cuenta
   await win.evaluate(() => Whider.Router.go('home')); await sleep(400);
-  await win.click('#sidebar .sb-profile'); await sleep(500);
+  await win.click('#topbar .tb-me'); await sleep(500);
   ok(await win.evaluate(() => !!document.querySelector('.menu.acct-pop') && !document.querySelector('use[href="#i-gear"]')), 'tu foto abre el panel de tu cuenta (sin engranaje)');
   await win.keyboard.press('Escape'); await sleep(300);
   await win.evaluate(() => Whider.Settings.open()); await sleep(600);
@@ -49,10 +49,10 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   const nat = () => app.evaluate(({ nativeTheme, BrowserWindow }) => ({ src: nativeTheme.themeSource, th: global.__whider.theme, bg: BrowserWindow.getAllWindows()[0].getBackgroundColor() }));
   const page = () => win.evaluate(() => ({ th: document.documentElement.getAttribute('data-theme'), bg: getComputedStyle(document.body).backgroundColor }));
   let n = await nat();
-  ok(n.src === 'dark' && n.th === 'dark' && /^#000000$/i.test(n.bg), 'empieza con el tema oscuro (ventana ' + n.bg + ', nativo ' + n.src + ')');
+  ok(n.src === 'dark' && n.th === 'dark' && /^#121316$/i.test(n.bg), 'empieza con el tema oscuro (ventana ' + n.bg + ', nativo ' + n.src + ')');
   await win.evaluate(() => Whider.State.setSetting('theme', 'light')); await sleep(500);
   n = await nat(); const pg = await page();
-  ok(pg.th === 'light' && pg.bg === 'rgb(255, 255, 255)' && n.th === 'light' && n.src === 'light' && /^#FFFFFF$/i.test(n.bg),
+  ok(pg.th === 'light' && pg.bg === 'rgb(246, 247, 249)' && n.th === 'light' && n.src === 'light' && /^#F6F7F9$/i.test(n.bg),
     'tema claro: la página (' + pg.bg + '), la ventana (' + n.bg + ') y lo nativo (' + n.src + ')');
   await win.evaluate(() => Whider.State.setSetting('theme', 'system')); await sleep(500);
   n = await nat();
@@ -77,7 +77,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); 
   const app2 = await electron.launch(LAUNCH);
   await app2.firstWindow();
   const n2 = await app2.evaluate(({ nativeTheme, BrowserWindow }) => ({ src: nativeTheme.themeSource, bg: BrowserWindow.getAllWindows()[0].getBackgroundColor() }));
-  ok(n2.src === 'light' && /^#FFFFFF$/i.test(n2.bg), 'al abrir otra vez, la ventana ya sale clara (' + n2.bg + ', nativo ' + n2.src + ')');
+  ok(n2.src === 'light' && /^#F6F7F9$/i.test(n2.bg), 'al abrir otra vez, la ventana ya sale clara (' + n2.bg + ', nativo ' + n2.src + ')');
   await app2.close();
   console.log(fails ? fails + ' FALLOS' : 'TODO OK'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });

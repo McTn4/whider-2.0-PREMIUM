@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- El mismo fondo que la app (variable bg de css/tokens.css) -->
-    <color name="black">#FF000000</color>
-    <color name="bar">#FF000000</color>
+    <color name="black">#FF121316</color>
+    <color name="bar">#FF121316</color>
     <color name="accent">#FFFFFFFF</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
