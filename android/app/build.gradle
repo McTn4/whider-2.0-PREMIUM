@@ -17,8 +17,8 @@ android {
         targetSdk 36
         // Los pone tools/version.js desde package.json (versión única). versionCode = MAYOR·1.000.000 +
         // MENOR·10.000 + PARCHE·100 + (beta 31-59 · rc 61-89 · estable 99): siempre sube, como exige Google Play.
-        versionCode 2000099
-        versionName "2.0.0"
+        versionCode 2010099
+        versionName "2.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

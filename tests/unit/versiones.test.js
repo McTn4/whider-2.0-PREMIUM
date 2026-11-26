@@ -160,9 +160,13 @@ test('Novedades: instalación nueva → nada que contar (y queda vista)', () => 
   assert.equal(W.__win.localStorage.getItem('whider.seenVersion'), W.VERSION);
 });
 
-test('Novedades: quien venía de la 1.0 ve las de esta versión, una sola vez', () => {
+test('Novedades: quien venía de la 1.0 ve las de esta versión mayor, una sola vez', () => {
   const W = app({ onboarded: true });
-  assert.deepEqual([...W.WhatsNew.pending().map((r) => r.v)], [W.VERSION]);
+  // Todas las publicadas de la misma versión mayor que la actual, de la más reciente a la más antigua
+  const mayor = W.VERSION.split('.')[0];
+  const esperadas = [...W.RELEASES.map((r) => r.v).filter((v) => v.split('.')[0] === mayor && !/-/.test(v))];
+  assert.equal(esperadas[0], W.VERSION);
+  assert.deepEqual([...W.WhatsNew.pending().map((r) => r.v)], esperadas);
   assert.equal(W.WhatsNew.due(), true);
   W.WhatsNew.markSeen();
   assert.equal(W.WhatsNew.due(), false);

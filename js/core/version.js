@@ -1,8 +1,52 @@
 // Generado por tools/version.js desde package.json y CHANGELOG.md: no lo edites a mano.
 // Para cambiar la versión: node tools/version.js 1.2.3 (y su entrada en CHANGELOG.md).
 window.Whider = window.Whider || {};
-window.Whider.VERSION = "2.0.0";
+window.Whider.VERSION = "2.1.0";
 window.Whider.RELEASES = [
+ {
+  "v": "2.1.0",
+  "date": "2026-11-26",
+  "summary": "WHIDER 2.1: aspecto y orden propios. Fondo grafito en lugar del negro y, en el ordenador, una barra superior con las secciones en el centro y Tareas con su propio panel; en el móvil, una barra flotante con el «+» en el centro. Además, entras con tu cuenta de Google, Microsoft o Apple, tu foto sustituye al engranaje, «Hoy» pasa a llamarse Inicio, el calendario deja añadir tareas tocando en él y la app empieza vacía.",
+  "groups": [
+   {
+    "t": "Novedades",
+    "items": [
+     "**Fondo grafito**: un gris muy oscuro en lugar del negro, con las tarjetas y los paneles un punto más claros. En el tema claro, un gris muy suave con tarjetas blancas. También en la ventana del ordenador, en Android (y su widget), en la pantalla de acceso y en la web.",
+     "**Barra superior en el ordenador**, en lugar de la barra lateral: las secciones en una cápsula en el centro y, a la derecha, buscar, «Nueva tarea» y tu foto con tu nombre. La sección abierta va resaltada, Inicio lleva el número de tareas vencidas y el contenido gana todo el ancho. Con la ventana más estrecha (o el texto más grande) se recoge por pasos para que nada se pise; tu nombre es de lo último en irse. En la app de Windows y macOS hace además de barra de título: desde ella se mueve la ventana. Arrastra una tarea a Inicio para pasarla a hoy.",
+     "**Barra flotante en el móvil**: una isla redondeada con Inicio, Tareas, Calendario y Cuaderno y el «+» en el centro. Personas pasa arriba, junto a tu foto, con el número de chats y solicitudes sin ver.",
+     "**Tareas con su propio panel** (ordenador): a la izquierda, las vistas, tus categorías y tus filtros, con sus contadores; a la derecha, la lista. Se abre en «Todas». Arrastra una tarea a una categoría para moverla (o a «Hoy»), y con el botón derecho abres, editas, ordenas o quitas una categoría.",
+     "**Entra con Google, Microsoft o Apple**: es lo único que hace falta para usar WHIDER. Ya no hay «Continuar sin cuenta» ni se crean cuentas con correo y contraseña. En la web se abre la ventana de cada uno; en el ordenador y en Android, Microsoft y Apple se completan en el navegador y vuelves a la app ya dentro. Si usabas WHIDER sin cuenta, tus tareas siguen ahí y pasan a tu cuenta al entrar. Las cuentas de correo y contraseña que ya existían siguen entrando («¿Tu cuenta es de correo y contraseña?») y recuperan la contraseña igual.",
+     "**Calendario más hábil**: toca un día (mes) o una hora (semana y día) y escribe la tarea ahí mismo. Intro la añade a ese día y a esa hora, y entiende lo mismo que «Nueva tarea» (hora, categoría, importancia). En el mes del móvil, el campo aparece bajo la semana del día elegido y sigue abierto para añadir varias; en «Sin hora», tareas sin hora.",
+     "**Tu foto, en lugar del engranaje**: arriba a la derecha (en el ordenador, con tu nombre). Al tocarla se abre tu cuenta, con interruptores rápidos (tema oscuro, sonidos, contenido a todo el ancho), los ajustes, la ayuda, «Todos los ajustes» y «Cerrar sesión»: en el ordenador, en un panel amplio; en el móvil, en una hoja. Si hay cambios sin subir a la nube, la foto lleva un punto.",
+     "**El mes, en Inicio** (ordenador): a la derecha, un calendario del mes con un punto en los días con tareas (en rojo si quedó algo sin hacer). Toca un día para abrirlo en el Calendario; debajo siguen los próximos días.",
+     "**Inicio**: la pantalla principal (antes «Hoy») se llama así en la barra, en el ordenador y en los atajos. Lo de dentro no cambia: lo que toca hoy, por importancia, y tus tareas de cada día.",
+     "**«Cada día» en Tareas**: una lista con todas las tareas que se repiten (hoy, mañana y más adelante), las mismas que salen en Inicio. Lo que añades desde ella nace como tarea de cada día."
+    ]
+   },
+   {
+    "t": "Mejoras",
+    "items": [
+     "**Empieza vacía**: sin la tarjeta de «Primeros pasos» ni categorías de ejemplo. Las categorías las creas tú si las quieres; las tareas funcionan igual sin categoría. Las de ejemplo de versiones anteriores (Personal, Trabajo, Salud y Estudios) se quitan solas si siguen vacías y con su nombre de siempre; las que usas no se tocan.",
+     "**La presentación**, más corta: tu nombre y tu foto, si la vas a usar con otras personas (si no, la sección Personas no está) y los avisos.",
+     "**Blanco en lugar de azul** en botones, enlaces, el «+» y lo elegido (negro en el tema claro); hoy, en el calendario, lleva un aro.",
+     "**Interruptores blancos** (con la bola negra) en lugar de verdes; en el tema claro, negros.",
+     "La pantalla de acceso, más sencilla: los tres botones, la política de privacidad y nada más."
+    ]
+   },
+   {
+    "t": "Correcciones",
+    "items": [
+     "Deshacer una importación quita también la categoría que creó, aunque sea la única."
+    ]
+   },
+   {
+    "t": "Seguridad",
+    "items": [
+     "Las cuentas de Google, Microsoft y Apple guardan en la nube aunque el proveedor no marque el correo como verificado (pasa con algunas cuentas de Microsoft); las de correo y contraseña siguen necesitando el correo verificado."
+    ]
+   }
+  ]
+ },
  {
   "v": "2.0.0",
   "date": "2026-11-22",

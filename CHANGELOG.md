@@ -8,50 +8,44 @@ Este archivo es la fuente de las notas que enseña la app (Ajustes → Ayuda →
 Las secciones «Novedades», «Mejoras», «Correcciones» y «Seguridad» se ven en la app; «Para desarrolladores», solo aquí.
 Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VERSION.md).
 
-## [Sin publicar]
+## [2.1.0] · 2026-11-26
 
-WHIDER estrena **aspecto y orden propios**: un fondo grafito en lugar del negro y, en el ordenador, una **barra
-superior** con las secciones en el centro en lugar de la barra lateral; en el móvil, una **barra flotante** con el «+»
-en el centro. Además, se usa con tu cuenta de **Google, Microsoft o Apple**, y tu foto de perfil sustituye al
-engranaje: al tocarla, tu cuenta, los ajustes y la ayuda. «Hoy» pasa a llamarse **Inicio**, el calendario deja añadir
-tareas tocando directamente en él, las tareas de cada día tienen su lista en Tareas y la app empieza vacía: sin
-tutorial ni categorías de ejemplo. Y lo que era azul (o verde, en los interruptores) pasa a blanco.
+WHIDER 2.1: aspecto y orden propios. Fondo grafito en lugar del negro y, en el ordenador, una barra superior con las
+secciones en el centro y Tareas con su propio panel; en el móvil, una barra flotante con el «+» en el centro. Además,
+entras con tu cuenta de Google, Microsoft o Apple, tu foto sustituye al engranaje, «Hoy» pasa a llamarse Inicio, el
+calendario deja añadir tareas tocando en él y la app empieza vacía.
 
 ### Novedades
 
-- **Fondo grafito**: el negro puro deja paso a un gris grafito muy oscuro, con las tarjetas y los paneles un punto más
-  claros; en el tema claro, un gris muy suave con tarjetas blancas. También en la ventana del ordenador, en Android
-  (y su widget), en la pantalla de acceso y en la web.
-- **Barra superior en el ordenador**, en lugar de la barra lateral: las secciones (Inicio, Tareas, Calendario,
-  Cuaderno y Personas) en una cápsula en el centro, con la abierta resaltada y el número de tareas vencidas en
-  Inicio; a la derecha, buscar (Ctrl K), «Nueva tarea» y tu foto con tu nombre. El contenido gana todo el ancho. Con
-  la ventana más estrecha (o el texto más grande) se recoge por pasos para que nada se pise; tu nombre es de lo último
-  en irse. En la app de Windows y macOS hace además de barra de título: desde ella se mueve la ventana, con sus
-  botones a la misma altura. Arrastra una tarea a Inicio para pasarla a hoy.
-- **Tareas con su propio panel** (ordenador): a la izquierda, buscar, las vistas (Hoy, Cada día, Programadas,
-  Prioritarias y Todas), tus categorías y tus filtros guardados, con sus contadores; a la derecha, la lista, que se
-  abre en «Todas». Arrastra una tarea a una categoría para moverla (o a «Hoy»), y con el botón derecho abres, editas,
-  ordenas o quitas una categoría.
-- **El mes, en Inicio** (ordenador): a la derecha, un calendario del mes con un punto en los días con tareas (en rojo
-  si quedó algo sin hacer); toca un día para abrirlo en el Calendario. Debajo siguen los próximos días.
-- **Barra flotante en el móvil**: una isla redondeada que flota sobre el contenido, con Inicio, Tareas, Calendario y
-  Cuaderno y el «+» en el centro. Personas pasa arriba, junto a tu foto, con el número de chats y solicitudes sin ver.
-
-- **Entra con Google, Microsoft o Apple**: es lo único que hace falta para usar WHIDER (ya no hay «Continuar sin
-  cuenta» ni se crean cuentas con correo y contraseña). En la web se abre la ventana de cada uno; en el ordenador y en
+- **Fondo grafito**: un gris muy oscuro en lugar del negro, con las tarjetas y los paneles un punto más claros. En el
+  tema claro, un gris muy suave con tarjetas blancas. También en la ventana del ordenador, en Android (y su widget),
+  en la pantalla de acceso y en la web.
+- **Barra superior en el ordenador**, en lugar de la barra lateral: las secciones en una cápsula en el centro y, a la
+  derecha, buscar, «Nueva tarea» y tu foto con tu nombre. La sección abierta va resaltada, Inicio lleva el número de
+  tareas vencidas y el contenido gana todo el ancho. Con la ventana más estrecha (o el texto más grande) se recoge
+  por pasos para que nada se pise; tu nombre es de lo último en irse. En la app de Windows y macOS hace además de
+  barra de título: desde ella se mueve la ventana. Arrastra una tarea a Inicio para pasarla a hoy.
+- **Barra flotante en el móvil**: una isla redondeada con Inicio, Tareas, Calendario y Cuaderno y el «+» en el
+  centro. Personas pasa arriba, junto a tu foto, con el número de chats y solicitudes sin ver.
+- **Tareas con su propio panel** (ordenador): a la izquierda, las vistas, tus categorías y tus filtros, con sus
+  contadores; a la derecha, la lista. Se abre en «Todas». Arrastra una tarea a una categoría para moverla (o a «Hoy»),
+  y con el botón derecho abres, editas, ordenas o quitas una categoría.
+- **Entra con Google, Microsoft o Apple**: es lo único que hace falta para usar WHIDER. Ya no hay «Continuar sin
+  cuenta» ni se crean cuentas con correo y contraseña. En la web se abre la ventana de cada uno; en el ordenador y en
   Android, Microsoft y Apple se completan en el navegador y vuelves a la app ya dentro. Si usabas WHIDER sin cuenta,
   tus tareas siguen ahí y pasan a tu cuenta al entrar. Las cuentas de correo y contraseña que ya existían siguen
-  entrando («¿Tu cuenta es de correo y contraseña?»), y recuperan la contraseña igual.
-- **Tu foto, en lugar del engranaje**: arriba a la derecha; en el ordenador, en la barra superior y con tu nombre
-  (nada más). Al tocarla se abre tu cuenta: en el ordenador, un panel amplio con interruptores rápidos
-  (tema oscuro, sonidos, contenido a todo el ancho), los ajustes, la ayuda, «Todos los ajustes» y «Cerrar sesión»; en
-  el móvil, lo mismo en una hoja. Si hay cambios sin subir a la nube, la foto lleva un punto.
-
-- **Inicio**: la pantalla principal (antes «Hoy») se llama así en la barra, en el ordenador y en los atajos. Lo de
-  dentro no cambia: lo que toca hoy, por importancia, y tus tareas de cada día.
-- **Calendario más hábil**: toca un día (mes) o una hora (semana y día) y escribe la tarea ahí mismo; Intro la añade
+  entrando («¿Tu cuenta es de correo y contraseña?») y recuperan la contraseña igual.
+- **Calendario más hábil**: toca un día (mes) o una hora (semana y día) y escribe la tarea ahí mismo. Intro la añade
   a ese día y a esa hora, y entiende lo mismo que «Nueva tarea» (hora, categoría, importancia). En el mes del móvil,
   el campo aparece bajo la semana del día elegido y sigue abierto para añadir varias; en «Sin hora», tareas sin hora.
+- **Tu foto, en lugar del engranaje**: arriba a la derecha (en el ordenador, con tu nombre). Al tocarla se abre tu
+  cuenta, con interruptores rápidos (tema oscuro, sonidos, contenido a todo el ancho), los ajustes, la ayuda, «Todos
+  los ajustes» y «Cerrar sesión»: en el ordenador, en un panel amplio; en el móvil, en una hoja. Si hay cambios sin
+  subir a la nube, la foto lleva un punto.
+- **El mes, en Inicio** (ordenador): a la derecha, un calendario del mes con un punto en los días con tareas (en rojo
+  si quedó algo sin hacer). Toca un día para abrirlo en el Calendario; debajo siguen los próximos días.
+- **Inicio**: la pantalla principal (antes «Hoy») se llama así en la barra, en el ordenador y en los atajos. Lo de
+  dentro no cambia: lo que toca hoy, por importancia, y tus tareas de cada día.
 - **«Cada día» en Tareas**: una lista con todas las tareas que se repiten (hoy, mañana y más adelante), las mismas
   que salen en Inicio. Lo que añades desde ella nace como tarea de cada día.
 
@@ -66,16 +60,20 @@ tutorial ni categorías de ejemplo. Y lo que era azul (o verde, en los interrupt
   calendario, lleva un aro.
 - **Interruptores blancos** (con la bola negra) en lugar de verdes; en el tema claro, negros.
 - La pantalla de acceso, más sencilla: los tres botones, la política de privacidad y nada más.
+
+### Correcciones
+
 - Deshacer una importación quita también la categoría que creó, aunque sea la única.
 
 ### Seguridad
 
-- Las reglas de Firestore y de Storage aceptan las cuentas que entran con Google, Microsoft o Apple aunque el
-  proveedor no marque el correo como verificado (pasa con algunas cuentas de Microsoft); las de correo y contraseña
-  siguen necesitando el correo verificado. Hay que publicarlas (docs/CONFIGURAR-CUENTAS.md).
+- Las cuentas de Google, Microsoft y Apple guardan en la nube aunque el proveedor no marque el correo como verificado
+  (pasa con algunas cuentas de Microsoft); las de correo y contraseña siguen necesitando el correo verificado.
 
 ### Para desarrolladores
 
+- Reglas: hay que publicar `firestore.rules` y `storage.rules` (las de esta versión aceptan Microsoft y Apple sin
+  el correo verificado); cómo, en [docs/CONFIGURAR-CUENTAS.md](docs/CONFIGURAR-CUENTAS.md).
 - Acceso: `Auth.oauth(id)` (`microsoft()`, `apple()`) con `OAuthProvider` (añadido a `js/vendor/firebase.js`). En el
   ordenador, `desktop/lib/acceso.js` (antes `google.js`) sirve la página de Google, Microsoft o Apple en un servidor
   local de un solo uso; con Microsoft y Apple devuelve la sesión de Firebase (`user.toJSON()`) y la app la adopta

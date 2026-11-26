@@ -333,6 +333,16 @@ Se entra con Google, Microsoft o Apple, y los datos se guardan en tu proyecto de
 
 Todas las versiones y lo que trae cada una: [`CHANGELOG.md`](CHANGELOG.md) (también en la app: Ajustes → Ayuda → Novedades).
 
+### 2.1
+
+- **Aspecto y orden propios**: fondo grafito en lugar del negro; en el ordenador, una barra superior con las
+  secciones en el centro (y, en la app de Windows y macOS, también como barra de título), Tareas con su propio panel
+  (vistas, categorías y filtros) e Inicio con el mes; en el móvil, una barra flotante con el «+» en el centro y
+  Personas arriba, junto a tu foto.
+- **Entrar con Google, Microsoft o Apple** (las cuentas de correo de antes siguen entrando); tu foto, en lugar del
+  engranaje, abre tu cuenta, los ajustes y la ayuda.
+- **Inicio** (antes «Hoy»), el calendario añade tareas tocando en él, «Cada día» en Tareas y una app que empieza vacía.
+
 ### 2.0
 
 - **Más sencilla**: Hoy, Tareas, Calendario, Cuaderno y Personas. Fuera el personaje, Enfoque, Estadísticas,
