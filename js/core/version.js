@@ -1,8 +1,35 @@
 // Generado por tools/version.js desde package.json y CHANGELOG.md: no lo edites a mano.
 // Para cambiar la versión: node tools/version.js 1.2.3 (y su entrada en CHANGELOG.md).
 window.Whider = window.Whider || {};
-window.Whider.VERSION = "2.1.0";
+window.Whider.VERSION = "2.2.0";
 window.Whider.RELEASES = [
+ {
+  "v": "2.2.0",
+  "date": "2026-11-28",
+  "summary": "WHIDER 2.2: en el ordenador, una barra superior más clara, con las secciones junto al logotipo; en los chats, Intro envía el mensaje, también en el móvil; y una revisión de toda la app en pantallas grandes y pequeñas, con lo que salía cortado ya arreglado.",
+  "groups": [
+   {
+    "t": "Novedades",
+    "items": [
+     "**Barra superior más clara** (ordenador): las secciones pasan a la izquierda, junto al logotipo, sin la cápsula; la abierta va en una píldora blanca. El hueco libre queda entre las secciones y las herramientas (buscar, «Nueva tarea» y tu foto), así que con la ventana más estrecha tarda más en recogerse: tu nombre se ve hasta en ventanas de 1000 px.",
+     "**Intro envía en los chats**, también en el móvil (la tecla «Enviar» del teclado); Mayús + Intro hace un salto de línea. Si estabas escribiendo, el campo queda listo para el siguiente mensaje. Está también en Atajos de teclado, en el apartado «En un chat»."
+    ]
+   },
+   {
+    "t": "Mejoras",
+    "items": [
+     "**El calendario, con la ventana estrecha** (ordenador): sus botones bajan de línea enteros en lugar de partirse o cortarse, así que categorías, Completadas, Por planificar, Calendarios, Exportar y Mes · Semana · Día · Agenda se leen siempre.",
+     "**Móviles pequeños** (320 px): «Calendario» se lee entero en la barra de abajo, y en Ajustes, «Como el sistema» y «Mecánico» ya no salen cortados."
+    ]
+   },
+   {
+    "t": "Correcciones",
+    "items": [
+     "Ajustes → «Lo que ves» ya no habla de la barra lateral ni de pestañas, sino de las secciones."
+    ]
+   }
+  ]
+ },
  {
   "v": "2.1.0",
   "date": "2026-11-26",

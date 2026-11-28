@@ -8,10 +8,11 @@ Este archivo es la fuente de las notas que enseña la app (Ajustes → Ayuda →
 Las secciones «Novedades», «Mejoras», «Correcciones» y «Seguridad» se ven en la app; «Para desarrolladores», solo aquí.
 Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VERSION.md).
 
-## [Sin publicar]
+## [2.2.0] · 2026-11-28
 
-La barra superior del ordenador, con las secciones junto al logotipo; Intro envía los mensajes de los chats, también en
-el móvil; y una revisión de toda la app en el ordenador y en el móvil, con lo que salía cortado ya arreglado.
+WHIDER 2.2: en el ordenador, una barra superior más clara, con las secciones junto al logotipo; en los chats, Intro
+envía el mensaje, también en el móvil; y una revisión de toda la app en pantallas grandes y pequeñas, con lo que salía
+cortado ya arreglado.
 
 ### Novedades
 
@@ -23,12 +24,16 @@ el móvil; y una revisión de toda la app en el ordenador y en el móvil, con lo
   línea. Si estabas escribiendo, el campo queda listo para el siguiente mensaje. Está también en Atajos de teclado,
   en el apartado «En un chat».
 
+### Mejoras
+
+- **El calendario, con la ventana estrecha** (ordenador): sus botones bajan de línea enteros en lugar de partirse o
+  cortarse, así que categorías, Completadas, Por planificar, Calendarios, Exportar y Mes · Semana · Día · Agenda se
+  leen siempre.
+- **Móviles pequeños** (320 px): «Calendario» se lee entero en la barra de abajo, y en Ajustes, «Como el sistema» y
+  «Mecánico» ya no salen cortados.
+
 ### Correcciones
 
-- Calendario del ordenador con la ventana estrecha: sus botones (categorías, Completadas, Por planificar,
-  Calendarios, Exportar y Mes · Semana · Día · Agenda) bajan de línea enteros en lugar de partirse o cortarse.
-- En móviles estrechos (320 px), «Calendario» se lee entero en la barra de abajo, y en Ajustes, «Como el sistema» y
-  «Mecánico» ya no salen cortados.
 - Ajustes → «Lo que ves» ya no habla de la barra lateral ni de pestañas, sino de las secciones.
 
 ### Para desarrolladores

@@ -333,6 +333,14 @@ Se entra con Google, Microsoft o Apple, y los datos se guardan en tu proyecto de
 
 Todas las versiones y lo que trae cada una: [`CHANGELOG.md`](CHANGELOG.md) (también en la app: Ajustes → Ayuda → Novedades).
 
+### 2.2
+
+- **Barra superior más clara** en el ordenador: las secciones junto al logotipo (la abierta, en una píldora blanca) y, a
+  la derecha, buscar, «Nueva tarea» y tu foto con tu nombre.
+- **Intro envía en los chats**, también en el móvil; Mayús + Intro hace un salto de línea.
+- **Revisión de toda la app** en pantallas grandes y pequeñas: nada sale cortado (calendario con la ventana estrecha,
+  móviles de 320 px y Ajustes).
+
 ### 2.1
 
 - **Aspecto y orden propios**: fondo grafito en lugar del negro; en el ordenador, una barra superior con las
