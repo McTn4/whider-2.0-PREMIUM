@@ -18,20 +18,21 @@ html[data-layout="desktop"] {
 }
 html[data-layout="desktop"] .dock { display: none; }
 html[data-layout="desktop"] .stage { top: calc(var(--safe-t) + var(--topbar-h)); }
+/*
+ * Barra superior: el logotipo y, a su lado, las secciones (la abierta, en una píldora blanca); a la derecha, buscar,
+ * «Nueva tarea» y tu foto con tu nombre. El hueco libre queda entre las secciones y las herramientas.
+ */
 html[data-layout="desktop"] .topbar {
   position: absolute; z-index: 25; top: var(--safe-t); left: 0; right: 0; height: var(--topbar-h);
-  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px;
-  padding: 0 max(20px, var(--safe-r)) 0 max(20px, var(--safe-l));
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 max(20px, var(--safe-r)) 0 max(24px, var(--safe-l));
   background: var(--bg); box-shadow: 0 .5px 0 var(--line);
 }
-.tb-brand { justify-self: start; display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 1.125rem; font-weight: 800; letter-spacing: -.02em; color: var(--t1); }
+.tb-brand { flex: none; display: flex; align-items: center; gap: 10px; margin-right: clamp(12px, 3vw, 56px); font-size: 1.125rem; font-weight: 800; letter-spacing: -.02em; color: var(--t1); }
 .tb-brand svg { width: 26px; height: 26px; flex: none; }
-.tb-nav {
-  justify-self: center; display: flex; align-items: center; gap: 2px; padding: 4px;
-  border-radius: 999px; background: var(--s1); box-shadow: inset 0 0 0 .5px var(--line);
-}
+.tb-nav { flex: none; display: flex; align-items: center; gap: clamp(4px, .7vw, 14px); }
 .tb-item {
-  position: relative; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 999px;
+  position: relative; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px;
   color: var(--t2); font-size: var(--fs-sub); font-weight: 600; letter-spacing: -.005em; white-space: nowrap;
   transition: background-color .15s, color .15s;
 }
@@ -44,7 +45,7 @@ html[data-layout="desktop"] .topbar {
 }
 .tb-badge.late { background: var(--imp-1); color: var(--on-color); }
 .tb-item.active .tb-badge { background: var(--on-accent); color: var(--accent); }
-.tb-tools { justify-self: end; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tb-tools { flex: none; margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .tb-search {
   display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px 0 12px; border-radius: 999px;
   background: var(--s1); box-shadow: inset 0 0 0 .5px var(--line); color: var(--t3); font-size: var(--fs-sub); letter-spacing: 0;
@@ -72,7 +73,9 @@ html[data-layout="desktop"] .topbar {
 .topbar.tb-c3 .tb-new { padding: 0 10px; }
 .topbar.tb-c4 .tb-name { display: none; }
 .topbar.tb-c4 .tb-me { padding-right: 2px; }
-.topbar.tb-c5 .tb-item { padding: 0 12px; }
+.topbar.tb-c5 .tb-item { padding: 0 11px; }
+.topbar.tb-c5 .tb-nav { gap: 2px; }
+.topbar.tb-c2 .tb-brand { margin-right: 12px; }
 .topbar.tb-c5 .tb-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* ---------- Tareas: panel con las vistas, tus categorías y tus filtros, y la vista elegida a su lado ---------- */
@@ -207,6 +210,10 @@ body.dnd .task-body { pointer-events: none; }
 /* ---------- Calendario en el ordenador ---------- */
 .cal-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin: 6px 0 16px; }
 .ct-left, .ct-right { display: flex; align-items: center; gap: 10px; }
+/* Con la ventana estrecha, los botones bajan de línea enteros (sin partir «Por planificar» ni cortar Mes · Semana…) */
+.ct-right { flex-wrap: wrap; row-gap: 8px; }
+.ct-right > * { flex: none; }
+.ct-right .btn, .ct-right .chip { white-space: nowrap; }
 .ct-arrows { display: flex; gap: 6px; }
 .ct-arrows .nav-icon { width: 34px; height: 34px; border-radius: 50%; color: var(--link); }
 .ct-arrows .nav-icon .ic { width: 1.1rem; height: 1.1rem; stroke-width: 2.1; }

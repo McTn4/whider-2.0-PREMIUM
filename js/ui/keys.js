@@ -148,6 +148,9 @@ window.Whider = window.Whider || {};
       ] },
       { title: W.t('Al escribir una tarea'), rows: [
         [W.t('Guardar'), [K(W.t('Intro'))]], [W.t('Añadir y seguir escribiendo'), [W.t('Intro')]], [W.t('Cerrar'), ['Esc']]
+      ] },
+      { title: W.t('En un chat'), rows: [
+        [W.t('Enviar el mensaje'), [W.t('Intro')]], [W.t('Salto de línea'), [W.t('Mayús Intro')]], [W.t('Dejar de responder o de editar'), ['Esc']]
       ] }
     ];
   };

@@ -167,6 +167,12 @@ input:focus-visible, textarea:focus-visible { outline: none; }
 .tab:focus-visible { outline: none; }
 .tab:focus-visible .tab-ic { border-radius: 8px; box-shadow: 0 0 0 2px var(--link); }
 .tab-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Móviles muy estrechos (320 px): un poco más de sitio para los nombres («Calendario» entero) */
+@media (max-width: 359px) {
+  .dock { padding: 0 2px; }
+  .dock-add { width: 48px; height: 48px; margin: 0 2px; }
+  .tab { font-size: 10px; letter-spacing: -.01em; }
+}
 .tab-badge {
   position: absolute; top: -3px; left: calc(50% + 4px); display: none;
   min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;

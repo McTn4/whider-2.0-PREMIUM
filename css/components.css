@@ -162,6 +162,9 @@ html[data-sync="offline"] .me-av::after, html[data-sync="error"] .me-av::after, 
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color .2s;
 }
 .segmented button.active { font-weight: 600; }
+/* Si algún nombre no cabe, cada botón toma el ancho de su texto (controls.js pone «fit») */
+.segmented.fit { grid-auto-columns: auto; }
+.segmented.fit button { padding-left: 6px; padding-right: 6px; }
 .seg-thumb {
   position: absolute; z-index: 0; top: 2px; bottom: 2px; left: 2px; border-radius: 7px;
   background: var(--seg-thumb); box-shadow: 0 3px 8px rgba(0, 0, 0, .12), 0 3px 1px rgba(0, 0, 0, .04);

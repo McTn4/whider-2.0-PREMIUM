@@ -83,7 +83,6 @@ window.Whider.I18n.add('en', {
   'Nueva categoría': 'New category',
   'Tu perfil': 'Your profile',
   // js/ui/dock.js
-  'Pestañas': 'Tabs',
   'Restablecer': 'Reset',
   // js/ui/taskcard.js
   'urgente': 'urgent',
@@ -1836,7 +1835,6 @@ window.Whider.I18n.add('en', {
   'Puedes activarlos en Ajustes → Avisos': 'You can turn them on in Settings → Reminders',
   // js/screens/settings.js
   'Lo que ves': 'What you see',
-  'Barra, calendario y categorías': 'Sidebar, calendar and categories',
   'Adaptar WHIDER a ti': 'Adapt WHIDER to you',
   'Recordatorios y tareas vencidas': 'Reminders and overdue tasks',
   'Completar tareas y terminar el día': 'Completing tasks and finishing the day',
@@ -2018,5 +2016,15 @@ window.Whider.I18n.add('en', {
   '**Interruptores blancos** (con la bola negra) en lugar de verdes; en el tema claro, negros.': '**White switches** (with a black knob) instead of green; black in the light theme.',
   'La pantalla de acceso, más sencilla: los tres botones, la política de privacidad y nada más.': 'A simpler sign-in screen: the three buttons, the privacy policy and nothing else.',
   'Deshacer una importación quita también la categoría que creó, aunque sea la única.': 'Undoing an import also removes the category it created, even if it’s the only one.',
-  'Las cuentas de Google, Microsoft y Apple guardan en la nube aunque el proveedor no marque el correo como verificado (pasa con algunas cuentas de Microsoft); las de correo y contraseña siguen necesitando el correo verificado.': 'Google, Microsoft and Apple accounts can save to the cloud even if the provider doesn’t mark the email as verified (this happens with some Microsoft accounts); email and password accounts still need a verified email.'
+  'Las cuentas de Google, Microsoft y Apple guardan en la nube aunque el proveedor no marque el correo como verificado (pasa con algunas cuentas de Microsoft); las de correo y contraseña siguen necesitando el correo verificado.': 'Google, Microsoft and Apple accounts can save to the cloud even if the provider doesn’t mark the email as verified (this happens with some Microsoft accounts); email and password accounts still need a verified email.',
+  // js/screens/chats.js
+  'Intro: enviar · Mayús + Intro: salto de línea': 'Enter: send · Shift + Enter: new line',
+  // js/ui/keys.js
+  'En un chat': 'In a chat',
+  'Enviar el mensaje': 'Send the message',
+  'Salto de línea': 'New line',
+  'Mayús Intro': 'Shift Enter',
+  'Dejar de responder o de editar': 'Stop replying or editing',
+  // js/screens/settings.js
+  'Secciones, Tareas y calendario': 'Sections, Tasks and calendar'
 });

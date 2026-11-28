@@ -1,7 +1,8 @@
 /**
  * WHIDER · Barra superior del ordenador (desde la 2.1, en lugar de la barra lateral).
- * A la izquierda, el logotipo; en el centro, las secciones en una cápsula (Inicio, Tareas, Calendario, Cuaderno y,
- * si la usas, Personas); a la derecha, buscar, «Nueva tarea» y tu foto con tu nombre (tu cuenta y los ajustes).
+ * A la izquierda, el logotipo y, a su lado, las secciones (Inicio, Tareas, Calendario, Cuaderno y, si la usas,
+ * Personas; la abierta, en una píldora blanca); a la derecha, buscar, «Nueva tarea» y tu foto con tu nombre (tu cuenta
+ * y los ajustes).
  * Tus categorías y tus filtros están dentro de Tareas, en su panel (js/screens/tasks.js).
  * Las tareas (una o varias seleccionadas) se pueden soltar sobre «Inicio» para pasarlas a hoy. Aquí viven también el
  * arrastre de tareas (DRAG_TYPE y dropTarget) y openView, que usan Tareas, el Calendario, los filtros y la paleta.
@@ -119,10 +120,12 @@ window.Whider = window.Whider || {};
    */
   var STEPS = ['tb-c1', 'tb-c2', 'tb-c3', 'tb-c4', 'tb-c5'];
   function crowded() {
-    var nav = el.querySelector('.tb-nav'), tools = el.querySelector('.tb-tools'), brand = el.querySelector('.tb-brand');
+    var nav = el.querySelector('.tb-nav'), tools = el.querySelector('.tb-tools');
     if (!nav || !tools) return false;
-    var n = nav.getBoundingClientRect(), t = tools.getBoundingClientRect(), b = brand ? brand.getBoundingClientRect() : null;
-    return t.left < n.right + 16 || (!!b && b.width > 0 && b.right > n.left - 16);
+    var n = nav.getBoundingClientRect(), t = tools.getBoundingClientRect(), box = el.getBoundingClientRect();
+    // Hasta dónde llega: el borde de la barra menos su margen (en Windows y macOS, el hueco de los botones de la ventana)
+    var end = box.right - (parseFloat(getComputedStyle(el).paddingRight) || 0);
+    return t.left < n.right + 24 || t.right > end + 0.5;
   }
   function fit() {
     if (!el || !W.Layout.desktop || !el.offsetWidth) return;

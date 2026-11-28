@@ -192,21 +192,34 @@ window.Whider.Screens = window.Whider.Screens || {};
   function drawComposer(c) {
     if (!composerHost) return;
     U.clear(composerHost);
-    var ta = U.el('textarea.ct-input', { attrs: { rows: '1', maxlength: '4000', placeholder: c.type === 'team' ? W.t('Mensaje al equipo') : W.t('Mensaje'), 'aria-label': W.t('Escribe un mensaje'), enterkeyhint: 'send' } });
+    var ta = U.el('textarea.ct-input', { attrs: { rows: '1', maxlength: '4000', placeholder: c.type === 'team' ? W.t('Mensaje al equipo') : W.t('Mensaje'), 'aria-label': W.t('Escribe un mensaje'), enterkeyhint: 'send',
+      title: desk() ? W.t('Intro: enviar · Mayús + Intro: salto de línea') : null } });
     ta.value = editing ? editing.text : (draftFor[c.id] || '');
     var grow = function () { ta.style.height = 'auto'; ta.style.height = Math.min(160, ta.scrollHeight) + 'px'; };
     var submit = function () {
       var v = ta.value.trim(); if (!v) return;
+      // Si escribías (Intro), sigues escribiendo: el campo nuevo recoge el foco (y el teclado del móvil no se cierra)
+      var typing = document.activeElement === ta;
       if (editing) { C().edit(c.id, editing.id, v); editing = null; }
       else { C().send(c.id, { text: v, reply: replyTo }).catch(function () {}); replyTo = null; }
       ta.value = ''; draftFor[c.id] = ''; grow(); drawComposer(c);
-      var f = composerHost.querySelector('.ct-input'); if (f && desk()) f.focus();
+      var f = composerHost.querySelector('.ct-input'); if (f && (desk() || typing)) f.focus();
     };
     ta.addEventListener('input', function () { draftFor[c.id] = editing ? draftFor[c.id] : ta.value; grow(); });
+    // Intro envía (en el móvil, la tecla «Enviar» del teclado); Mayús + Intro hace un salto de línea. Mientras se
+    // compone una letra (un acento, un idioma con IME), Intro es del teclado y no envía.
+    var shiftEnter = false;
     ta.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey && (desk() || e.ctrlKey)) { e.preventDefault(); submit(); }
+      if (e.key === 'Enter') shiftEnter = e.shiftKey;
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); submit(); }
       else if (e.key === 'Escape' && (replyTo || editing)) { e.preventDefault(); replyTo = null; editing = null; drawComposer(c); }
       e.stopPropagation();
+    });
+    // Teclados del móvil que no dicen qué tecla es (código 229): el salto de línea que iban a escribir, envía
+    ta.addEventListener('beforeinput', function (e) {
+      if (e.inputType !== 'insertLineBreak' && e.inputType !== 'insertParagraph') return;
+      if (shiftEnter) { shiftEnter = false; return; }
+      e.preventDefault(); submit();
     });
     var bar = null;
     if (replyTo || editing) {

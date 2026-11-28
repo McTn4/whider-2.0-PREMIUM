@@ -6,7 +6,7 @@
 
 **Web: [whider-red.vercel.app](https://whider-red.vercel.app)** — la portada presenta WHIDER, sus novedades y preguntas frecuentes, y ofrece la descarga para tu dispositivo (en el ordenador, Windows, macOS o Linux; en el iPhone, cómo añadirla desde Safari; en Android, Google Play, próximamente). También [en inglés](https://whider-red.vercel.app/en/). La app está en español y en inglés (Ajustes → Idioma); en el ordenador y en Android, el inglés llega con su próxima versión. La app en el navegador está en [`/app`](https://whider-red.vercel.app/app).
 
-**Diseño sencillo y propio**: fondo grafito (o un gris muy claro), texto casi blanco, **líneas finas** en lugar de tarjetas con sombra, títulos grandes y **blanco** (negro en el tema claro) para lo que se puede tocar. El único color «de verdad» es el de la **importancia** de cada tarea: **urgente en rojo, importante en naranja, destacada en amarillo** y normal en gris. Una sola tipografía, **Inter**, en todo; iconos de trazo redondeado, como los de Apple, que se rellenan en la pestaña activa. En el móvil, una **barra flotante** y redondeada con cuatro secciones y el **«+» en el centro**, y arriba a la derecha Personas y **tu foto** (tu cuenta y los ajustes); en el ordenador, una **barra superior** con las secciones en una cápsula en el centro y, a la derecha, buscar, **«Nueva tarea»** y tu foto con tu nombre.
+**Diseño sencillo y propio**: fondo grafito (o un gris muy claro), texto casi blanco, **líneas finas** en lugar de tarjetas con sombra, títulos grandes y **blanco** (negro en el tema claro) para lo que se puede tocar. El único color «de verdad» es el de la **importancia** de cada tarea: **urgente en rojo, importante en naranja, destacada en amarillo** y normal en gris. Una sola tipografía, **Inter**, en todo; iconos de trazo redondeado, como los de Apple, que se rellenan en la pestaña activa. En el móvil, una **barra flotante** y redondeada con cuatro secciones y el **«+» en el centro**, y arriba a la derecha Personas y **tu foto** (tu cuenta y los ajustes); en el ordenador, una **barra superior** con las secciones junto al logotipo (la abierta, en una píldora blanca) y, a la derecha, buscar, **«Nueva tarea»** y tu foto con tu nombre.
 
 <p align="center">
   <img src="sitio/img/pc-hoy.webp" width="900" alt="WHIDER en el ordenador: Inicio con el campo para añadir, «Cada día» y «Por hacer» por importancia">
@@ -97,7 +97,7 @@ La portada los ofrece en [whider-red.vercel.app/descargar](https://whider-red.ve
 
 ## 🧭 Organización
 
-En el ordenador, las secciones están en la **barra superior**, en una cápsula en el centro; Tareas tiene además su propio panel a la izquierda (vistas, categorías y filtros) e Inicio, el mes a la derecha. En el móvil, una **barra flotante** abajo con cuatro secciones y el botón **+** en el centro; **Personas** está arriba, junto a tu foto (solo si trabajas con otros; se elige en la presentación y en *Ajustes → Lo que ves*):
+En el ordenador, las secciones están en la **barra superior**, junto al logotipo; Tareas tiene además su propio panel a la izquierda (vistas, categorías y filtros) e Inicio, el mes a la derecha. En el móvil, una **barra flotante** abajo con cuatro secciones y el botón **+** en el centro; **Personas** está arriba, junto a tu foto (solo si trabajas con otros; se elige en la presentación y en *Ajustes → Lo que ves*):
 
 | Pestaña | Qué encontrarás |
 | --- | --- |
@@ -137,7 +137,7 @@ Arriba a la derecha de cada pantalla está **tu foto**: abre tu cuenta, con unos
 **Personas, equipos y chats**
 - **Contactos** (de amigos o de trabajo), en una sola lista. Se añaden con tu **enlace de invitación**, tu **código QR** (se escanea con la cámara del móvil o del ordenador) o tu código `WH-…`. El enlace funciona aunque la otra persona aún no tenga la app: la página de invitación la abre o le dice dónde descargarla.
 - **Equipos** con sus miembros, su enlace para entrar, su **chat** y sus **páginas del Cuaderno**.
-- **Chats** con cada contacto y con cada equipo: responder, reaccionar, editar y borrar tus mensajes, y compartir **tareas**, **páginas** y ánimos (quien los recibe los añade a lo suyo con un toque). Avisos de mensajes nuevos con la app abierta y contadores en Personas (en la barra superior del ordenador y arriba, junto a tu foto, en el móvil).
+- **Chats** con cada contacto y con cada equipo (Intro envía; Mayús + Intro, salto de línea): responder, reaccionar, editar y borrar tus mensajes, y compartir **tareas**, **páginas** y ánimos (quien los recibe los añade a lo suyo con un toque). Avisos de mensajes nuevos con la app abierta y contadores en Personas (en la barra superior del ordenador y arriba, junto a tu foto, en el móvil).
 - Tus contactos solo ven tu **nombre y tu foto** (o tu inicial); nunca tus tareas ni tu Cuaderno, salvo lo que compartas.
 
 **Cuentas y copia en la nube**

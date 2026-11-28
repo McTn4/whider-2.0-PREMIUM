@@ -8,6 +8,42 @@ Este archivo es la fuente de las notas que enseña la app (Ajustes → Ayuda →
 Las secciones «Novedades», «Mejoras», «Correcciones» y «Seguridad» se ven en la app; «Para desarrolladores», solo aquí.
 Cómo publicar una versión: [docs/PUBLICAR-UNA-VERSION.md](docs/PUBLICAR-UNA-VERSION.md).
 
+## [Sin publicar]
+
+La barra superior del ordenador, con las secciones junto al logotipo; Intro envía los mensajes de los chats, también en
+el móvil; y una revisión de toda la app en el ordenador y en el móvil, con lo que salía cortado ya arreglado.
+
+### Novedades
+
+- **Barra superior más clara** (ordenador): las secciones pasan a la izquierda, junto al logotipo, sin la cápsula; la
+  abierta va en una píldora blanca. El hueco libre queda entre las secciones y las herramientas (buscar, «Nueva
+  tarea» y tu foto), así que con la ventana más estrecha tarda más en recogerse: tu nombre se ve hasta en ventanas de
+  1000 px.
+- **Intro envía en los chats**, también en el móvil (la tecla «Enviar» del teclado); Mayús + Intro hace un salto de
+  línea. Si estabas escribiendo, el campo queda listo para el siguiente mensaje. Está también en Atajos de teclado,
+  en el apartado «En un chat».
+
+### Correcciones
+
+- Calendario del ordenador con la ventana estrecha: sus botones (categorías, Completadas, Por planificar,
+  Calendarios, Exportar y Mes · Semana · Día · Agenda) bajan de línea enteros en lugar de partirse o cortarse.
+- En móviles estrechos (320 px), «Calendario» se lee entero en la barra de abajo, y en Ajustes, «Como el sistema» y
+  «Mecánico» ya no salen cortados.
+- Ajustes → «Lo que ves» ya no habla de la barra lateral ni de pestañas, sino de las secciones.
+
+### Para desarrolladores
+
+- Barra superior: `display: flex` (logotipo, secciones con `flex: none` y herramientas con `margin-left: auto`), con
+  los espacios que crecen con el ancho (`clamp`). `Topbar.fit()` mide si las herramientas tocan las secciones o se
+  salen por la derecha (contando el hueco de los botones de la ventana) y la recoge por pasos, como antes.
+- Chats: envían `keydown` (Intro sin Mayús y sin composición en curso) y `beforeinput` (`insertLineBreak` o
+  `insertParagraph`, para los teclados que mandan el código 229).
+- `UI.segmented()` pone `.fit` (cada botón al ancho de su texto) cuando algún nombre no cabe.
+- Pruebas: `tests/e2e/revision.js` (grupo app) recorre unos 40 sitios en 8 combinaciones (ordenador a 1440 y 1000 px,
+  móvil a 390 y 320 px, oscuro y claro, español e inglés) buscando errores, desbordes, nombres cortados y la barra
+  flotante tapando contenido. `comunidad.js` comprueba Intro, Mayús + Intro y la tecla «Enviar» de Android, y
+  `rediseno.js`, la barra nueva.
+
 ## [2.1.0] · 2026-11-26
 
 WHIDER 2.1: aspecto y orden propios. Fondo grafito en lugar del negro y, en el ordenador, una barra superior con las

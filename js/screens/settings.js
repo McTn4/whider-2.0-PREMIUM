@@ -74,7 +74,7 @@ window.Whider = window.Whider || {};
           W.UI.cell({ icon: 'type', title: W.t('Apariencia'), value: U.cap(W.t('Texto {size}', { size: labelOf(TEXT, cfg.textSize).toLowerCase() })), onTap: function () { nav.push(appearancePage); } }),
           // El nombre de cada idioma, en ese idioma (así lo encuentra quien no entiende el actual)
           W.UI.cell({ icon: 'globe', title: W.t('Idioma'), value: LANGS[W.I18n.lang] || 'Español', onTap: function (e, node) { chooseLang(node && node.querySelector('.cell-value')); } }),
-          W.UI.cell({ icon: 'sliders', title: W.t('Lo que ves'), value: desk ? W.t('Barra, calendario y categorías') : W.t('Pestañas'), onTap: function () { nav.push(customPage); } }),
+          W.UI.cell({ icon: 'sliders', title: W.t('Lo que ves'), value: desk ? W.t('Secciones, Tareas y calendario') : W.t('Secciones'), onTap: function () { nav.push(customPage); } }),
           W.UI.cell({ icon: 'sound', title: W.t('Sonidos y vibración'), value: cfg.sound ? W.t('Activados') : W.t('Desactivados'), onTap: function () { nav.push(soundsPage); } })
         ] }),
         W.UI.section({ header: W.t('Avisos y organización'), items: [

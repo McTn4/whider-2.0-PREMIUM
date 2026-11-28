@@ -67,9 +67,15 @@ async function register(p, name, email) {
   // Chat de dos
   await B.evaluate(() => Whider.Chat.openChat({ uid: Whider.State.friends()[0].uid })); await sleep(2200);
   ok('B: chat abierto', await B.evaluate(() => Whider.State.activeScreen === 'chats' && !!document.querySelector('#screen-chats .ct-input')));
-  await B.fill('#screen-chats .ct-input', '¡Hola Lucía! ¿Vemos el informe mañana?');
-  await B.click('#screen-chats .ct-send'); await sleep(2000);
-  ok('B: mensaje enviado', await B.evaluate(() => { const m = Whider.Chat.messages(Whider.State.ui.chat); return m.length === 1 && !m[0].pending && !m[0].failed; }));
+  // En el móvil, Intro (la tecla «Enviar» del teclado) envía; Mayús + Intro hace un salto de línea
+  await B.click('#screen-chats .ct-input');
+  await B.keyboard.type('¡Hola Lucía!');
+  await B.keyboard.press('Shift+Enter');
+  await B.keyboard.type('¿Vemos el informe mañana?');
+  ok('B: Mayús + Intro, salto de línea sin enviar', await B.evaluate(() => document.querySelector('#screen-chats .ct-input').value === '¡Hola Lucía!\n¿Vemos el informe mañana?' && !Whider.Chat.messages(Whider.State.ui.chat).length));
+  await B.keyboard.press('Enter'); await sleep(2000);
+  ok('B: Intro envía el mensaje (con su salto de línea)', await B.evaluate(() => { const m = Whider.Chat.messages(Whider.State.ui.chat); return m.length === 1 && m[0].text === '¡Hola Lucía!\n¿Vemos el informe mañana?' && !m[0].pending && !m[0].failed; }));
+  ok('B: el campo queda vacío y listo para seguir escribiendo', await B.evaluate(() => { const t = document.querySelector('#screen-chats .ct-input'); return t.value === '' && document.activeElement === t; }));
   await A.evaluate(() => Whider.People.poll(true)); await sleep(2500);
   ok('A: aviso de chat sin leer', await A.evaluate(() => Whider.Chat.unreadCount() === 1));
   await A.evaluate(() => Whider.Router.go('chats')); await sleep(1500);
@@ -88,6 +94,17 @@ async function register(p, name, email) {
   await B.evaluate(() => Whider.Router.refresh()); await sleep(600);
   await B.click('#screen-chats .ct-card .btn'); await sleep(600);
   ok('B: añade la tarea compartida a las suyas', await B.evaluate(() => Whider.State.tasks.some(t => t.text === 'Revisar el informe trimestral' && t.time === '10:00')));
+  // Teclados de Android que no dicen qué tecla es: el salto de línea que iban a escribir también envía
+  const porTeclado = await B.evaluate(async () => {
+    const t = document.querySelector('#screen-chats .ct-input'), antes = Whider.Chat.messages(Whider.State.ui.chat).length;
+    t.focus(); t.value = 'Perfecto, gracias'; t.dispatchEvent(new Event('input', { bubbles: true }));
+    const ev = new InputEvent('beforeinput', { inputType: 'insertLineBreak', bubbles: true, cancelable: true });
+    t.dispatchEvent(ev);
+    await new Promise((r) => setTimeout(r, 1500));
+    const m = Whider.Chat.messages(Whider.State.ui.chat);
+    return { evitado: ev.defaultPrevented, nuevos: m.length - antes, ultimo: m[m.length - 1].text, vacio: document.querySelector('#screen-chats .ct-input').value === '' };
+  });
+  ok('B: la tecla «Enviar» de cualquier teclado envía', porTeclado.evitado && porTeclado.nuevos === 1 && porTeclado.ultimo === 'Perfecto, gracias' && porTeclado.vacio, porTeclado);
   if (OUT) await B.screenshot({ path: OUT + '/m-chat.png' });
   // B edita su mensaje
   await B.evaluate(() => { const c = Whider.State.ui.chat, m = Whider.Chat.messages(c).filter(x => x.by === Whider.Chat.me())[0]; return Whider.Chat.edit(c, m.id, '¡Hola Lucía! ¿Vemos el informe mañana a las 10?'); }); await sleep(1200);

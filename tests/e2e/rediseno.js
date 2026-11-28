@@ -182,7 +182,7 @@ async function abrir(b, opts, seed) {
     await ctx.close();
   }
 
-  /* 4. Ordenador: barra superior (las secciones en una cápsula en el centro) y Tareas con su panel */
+  /* 4. Ordenador: barra superior (el logotipo con las secciones a su lado) y Tareas con su panel */
   {
     const { ctx, p, errs } = await abrir(b, { viewport: { width: 1440, height: 900 } });
     const tb = await p.evaluate(() => {
@@ -190,13 +190,16 @@ async function abrir(b, opts, seed) {
       const act = document.querySelector('#topbar .tb-item.active');
       const kids = [...document.querySelector('#topbar').children].map((c) => c.className.split(' ')[0]);
       const nav = document.querySelector('#topbar .tb-nav').getBoundingClientRect();
+      const marca = document.querySelector('#topbar .tb-brand').getBoundingClientRect();
+      const tools = document.querySelector('#topbar .tb-tools').getBoundingClientRect();
       return {
         n: items.length,
         activo: act && act.dataset.go,
         relleno: act && act.querySelector('use').getAttribute('href'),
         fondo: act && getComputedStyle(act).backgroundColor,
         orden: kids.join(),
-        centro: Math.round(Math.abs(nav.left + nav.width / 2 - innerWidth / 2)),
+        junto: Math.round(nav.left - marca.right),
+        derecha: Math.round(innerWidth - tools.right),
         arriba: Math.round(document.getElementById('topbar').getBoundingClientRect().top),
         dock: getComputedStyle(document.querySelector('.dock')).display,
         nueva: !!document.querySelector('#topbar .tb-new'),
@@ -205,7 +208,7 @@ async function abrir(b, opts, seed) {
     });
     ok(tb.n === 5 && tb.activo === 'home', 'cinco secciones; Inicio activa', tb);
     ok(tb.relleno === '#i-home-fill' && tb.fondo !== 'rgba(0, 0, 0, 0)', 'la sección activa, rellena y con su icono relleno', tb);
-    ok(tb.orden === 'tb-brand,tb-nav,tb-tools' && tb.centro <= 2 && tb.arriba === 0, 'arriba: el logotipo, las secciones en el centro y las herramientas a la derecha', tb);
+    ok(tb.orden === 'tb-brand,tb-nav,tb-tools' && tb.junto >= 12 && tb.junto <= 80 && tb.derecha <= 24 && tb.arriba === 0, 'arriba: el logotipo con las secciones a su lado y las herramientas a la derecha', tb);
     ok(tb.nueva && tb.foto && tb.dock === 'none', 'buscar, «Nueva tarea» y tu foto arriba; sin barra de abajo', tb);
     // Nada se pisa: a 1440 px se ve tu nombre; más estrecha, la barra se recoge por pasos (y tampoco se pisa)
     const medir = () => p.evaluate(() => {

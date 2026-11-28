@@ -153,9 +153,16 @@ window.Whider = window.Whider || {};
         });
         wrap.appendChild(b);
       });
-      var ro = window.ResizeObserver ? new ResizeObserver(function () { placeThumb(wrap); }) : null;
-      if (ro) ro.observe(wrap); else setTimeout(function () { placeThumb(wrap); }, 60);
-      requestAnimationFrame(function () { placeThumb(wrap); });
+      // Botones iguales si todo cabe; si algún nombre no cabe (pantallas estrechas, «Como el sistema»), cada uno toma
+      // el ancho de su texto
+      var fit = function () {
+        wrap.classList.remove('fit');
+        if (U.$$('button', wrap).some(function (b) { return b.scrollWidth > b.clientWidth; })) wrap.classList.add('fit');
+        placeThumb(wrap);
+      };
+      var ro = window.ResizeObserver ? new ResizeObserver(fit) : null;
+      if (ro) ro.observe(wrap); else setTimeout(fit, 60);
+      requestAnimationFrame(fit);
       return wrap;
     },
 
