@@ -159,7 +159,7 @@ algo falla, los registros y las capturas quedan como artefacto de esa ejecución
 La versión es una sola, la de `package.json`: `node tools/version.js 1.2.0` la cambia en la app de escritorio, en
 Android (con su `versionCode`) y en la app; `npm run version:check` comprueba que todo coincide y que
 [`CHANGELOG.md`](../CHANGELOG.md) tiene su entrada. Paso a paso: [PUBLICAR-UNA-VERSION.md](PUBLICAR-UNA-VERSION.md).
-Los recursos de la ficha de Google Play se regeneran con `node tools/capturas/play.js` ([docs/play/](play/FICHA.md)).
+Los recursos de la ficha de Google Play (icono, gráfico de funciones y capturas de teléfono y tablet, en español e inglés) se regeneran con `node tools/capturas/play.js` ([docs/play/](play/FICHA.md)).
 
 ## 8. Problemas frecuentes
 
